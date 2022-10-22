@@ -1,0 +1,145 @@
+<mujoco model="Lagyi">
+  <default class="main">
+    <geom quat="0.7071 0 0 0.7071"/>
+
+    <default class="lagyi">
+      <geom quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
+    </default>
+
+    <default class="pole">
+      <geom size="0.025 0.5" rgba="0.1 0.1 0.1 1"/>
+      <default class="pole_top">
+        <geom type="cylinder" pos="0 0 0.5"/>
+      </default>
+      <default class="pole_bottom1">
+        <geom type="box" size="0.025 0.2 0.02" pos="0 0 0.02"/>
+        <default class="pole_bottom2">
+          <geom quat="1 0 0 0"/>
+        </default>
+      </default>
+    </default>
+    
+    <default class="landing_zone">
+      <geom type="box" pos="0 0 0.01" size="0.1175 0.0975 0.01" rgba="0.8 0.8 0.8 1.0"/>
+    </default>
+  </default>
+  
+
+  <compiler angle="radian" meshdir=""/>
+  <option timestep="0.005"/>
+  <visual>
+    <quality shadowsize="4096"/>
+  </visual>
+
+  <asset>
+    <mesh file="3d_models/cf2_assembly.stl" name="drone" smoothnormal="true" scale="1.5 1.5 1.5"/>
+    <mesh file="3d_models/lagyi_cockpit.stl" name="cockpit" smoothnormal="true" scale="0.0075 0.0075 0.0075"/>
+    <mesh file="3d_models/lagyi_fal1.stl" name="fal1" smoothnormal="true" scale="0.0075 0.0075 0.0075"/>
+    <mesh file="3d_models/lagyi_fal2.stl" name="fal2" smoothnormal="true" scale="0.0075 0.0075 0.0075"/>
+    <mesh file="3d_models/lagyi_oszlop1.stl" name="oszlop1" smoothnormal="true" scale="0.0075 0.0075 0.0075"/>
+    <mesh file="3d_models/lagyi_oszlop2.stl" name="oszlop2" smoothnormal="true" scale="0.0075 0.0075 0.0075"/>
+    <mesh file="3d_models/lagyi_oszlop3.stl" name="oszlop3" smoothnormal="true" scale="0.0075 0.0075 0.0075"/>
+    <mesh file="3d_models/lagyi_oszlop4.stl" name="oszlop4" smoothnormal="true" scale="0.0075 0.0075 0.0075"/>
+    <texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512"/>
+    <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .1 .1" rgb2=".2 .2 .2"/>
+    <texture name="tex-carpet" type="2d" file="textures/carpet_lagyi4.png"/>
+    <texture name="tex-roundabout" type="2d" file="textures/roundabout.png"/>
+    <texture name="tex-hospital" type="2d" file="textures/hospital.png"/>
+    <texture name="tex-post_office" type="2d" file="textures/post_office.png"/>
+    <texture name="tex-airport" type="2d" file="textures/airport.png"/>
+    <texture name="tex-parking_lot" type="2d" file="textures/parking_lot.png"/>
+    <texture name="tex-sztaki" type="2d" file="textures/sztaki.png"/>
+    <material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".05"/>
+    <material name="mat-carpet" shininess="0.1" texrepeat="0.1478 0.1478" texture="tex-carpet" texuniform="true"/>
+    <material name="mat-roundabout" reflectance="0.7" texrepeat="0.667 0.667" texture="tex-roundabout" texuniform="true"/>
+    <material name="mat-hospital" reflectance="0.7" texrepeat="7.843 7.692" texture="tex-hospital" texuniform="true"/>
+    <material name="mat-post_office" reflectance="0.7" texrepeat="7.843 7.843" texture="tex-post_office" texuniform="true"/>
+    <material name="mat-airport" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-airport" texuniform="true"/>
+    <material name="mat-parking_lot" reflectance="0.7" texrepeat="9.524 8.696" texture="tex-parking_lot" texuniform="true"/>
+    <material name="mat-sztaki" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-sztaki" texuniform="true"/>
+  </asset>
+
+  <worldbody>
+    <camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958"/>
+    <geom size="20 20 .05" type="plane" material="grid" condim="3"/>
+    <geom name="carpet" size="6.745 6.745 .001" pos="2.985 1.15 0.001" type="plane" material="mat-carpet" condim="3"/>
+    <geom name="roundabout" size="1.5 1.5 .05" pos="0 0 0.002" type="plane" material="mat-roundabout" condim="3"/>
+    <geom name="airport" size="0.105 0.105 .05" pos="0.5 -1.2 0.0025" type="plane" material="mat-airport"/>
+    <geom name="parking_lot" size="0.105 0.115 .05" pos="-0.5 1.2 0.0025" type="plane" material="mat-parking_lot"/>
+
+    <light dir=".2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="-2 -10 6" cutoff="70"/>
+    <light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -10 6" cutoff="70"/>
+
+
+    <body name="drone" pos="0 0 0.5">
+      <inertial pos="0 0 0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028"/>
+      <joint type="free"/>
+      <geom name="drone" type="mesh" pos="0 0 0" mesh="drone"/>
+      <site name="COG" pos="0 0 0"/>
+    </body>
+
+    <body name="lagyi" pos="1.45 -2.3 0" childclass="lagyi">
+      <geom name="cockpit" type="mesh" mesh="cockpit"/>
+      <geom name="fal1" type="mesh" mesh="fal1"/>
+      <geom name="fal2" type="mesh" mesh="fal2"/>
+      <geom name="oszlop1" type="mesh" mesh="oszlop1" rgba="0.3 0.3 0.3 1"/>
+      <geom name="oszlop2" type="mesh" mesh="oszlop2" rgba="0.3 0.3 0.3 1"/>
+      <geom name="oszlop3" type="mesh" mesh="oszlop3" rgba="0.3 0.3 0.3 1"/>
+      <geom name="oszlop4" type="mesh" mesh="oszlop4" rgba="0.3 0.3 0.3 1"/>
+    </body>
+    
+    <body name="pole1" pos="0.25 0.25 0">
+      <geom class="pole_top"/>
+      <geom class="pole_bottom1"/>
+      <geom class="pole_bottom2"/>
+    </body>
+    <body name="pole2" pos="-0.25 0.25 0" childclass="pole">
+      <geom class="pole_top"/>
+      <geom class="pole_bottom1"/>
+      <geom class="pole_bottom2"/>
+    </body>
+    <body name="pole3" pos="0 -0.3 0" childclass="pole" quat="0.924 0 0 0.383">
+      <geom class="pole_top"/>
+      <geom class="pole_bottom1"/>
+      <geom class="pole_bottom2"/>
+    </body>
+
+    <body name="hospital" pos="-1 1 0">
+      <geom name="hospital" type="box" pos="0 0 0.445" size="0.1275 0.13 0.445" material="mat-hospital"/>
+    </body>
+    
+    <body name="post_office" pos="1 1.255 0">
+      <geom name="post_office" type="box" pos="0 0 0.205" size="0.1275 0.1275 0.205" material="mat-post_office"/>
+    </body>
+
+    <body name="landing_zone1" pos="-1.2 -0.7 0" quat="0.924 0 0 0.383">
+      <geom class="landing_zone"/>
+    </body>
+    <body name="landing_zone2" pos="-1 -0.9 0" quat="0.924 0 0 0.383">
+      <geom class="landing_zone"/>
+    </body>
+    <body name="landing_zone3" pos="-0.8 -1.1 0" quat="0.924 0 0 0.383">
+      <geom class="landing_zone"/>
+    </body>
+    <body name="landing_zone4" pos="-0.6 -1.3 0" quat="0.924 0 0 0.383">
+      <geom class="landing_zone"/>
+    </body>
+
+    
+    <body name="landing_zone_middle" pos="0 0 0" quat="0 0 0 0">
+      <geom name="landing_zone_middle" type="box" pos="0 0 0.0925" size="0.105 0.105 0.0925" rgba="0.8 0.8 0.8 1.0" material="mat-sztaki"/>
+    </body>
+    
+  </worldbody>
+
+  <actuator>
+      <general site="COG" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 0.64"/>
+      <general site="COG" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-0.01 0.01"/>
+      <general site="COG" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-0.01 0.01"/>
+      <general site="COG" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-0.01 0.01"/>
+  </actuator>
+
+  <sensor>
+      <gyro site="COG"/>
+  </sensor>
+</mujoco>

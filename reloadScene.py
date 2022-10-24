@@ -2,6 +2,7 @@ import mujoco
 import glfw
 import os
 import numpy as np
+import time
 
 
 def main():
@@ -10,12 +11,14 @@ def main():
 
     xmlFileName = "scene.xml"
 
+    print(mujoco.mjtRndFlag.mjRND_ADDITIVE)
+
     model = mujoco.MjModel.from_xml_path(xmlFileName)
 
     data = mujoco.MjData(model)
 
     hospitalPos, hospitalQuat, postOfficePos, postOfficeQuat = loadBuildingData("building_positions.txt")
-    pole1Pos, pole1Quat, pole2Pos, pole2Quat, pole3Pos, pole3Quat = loadPoleData("pole_positions.txt")
+    pole1Pos, pole1Quat, pole2Pos, pole2Quat, pole3Pos, pole3Quat, pole4Pos, pole4Quat = loadPoleData("pole_positions.txt")
 
     setBuildingData(model, hospitalPos, hospitalQuat, "hospital")
     setBuildingData(model, postOfficePos, postOfficeQuat, "post_office")
@@ -23,6 +26,7 @@ def main():
     setBuildingData(model, pole1Pos, pole1Quat, "pole1")
     setBuildingData(model, pole2Pos, pole2Quat, "pole2")
     setBuildingData(model, pole3Pos, pole3Quat, "pole3")
+    setBuildingData(model, pole3Pos, pole3Quat, "pole4")
 
     #saveModelAsXml(model, "mod" + xmlFileName)
 
@@ -41,16 +45,19 @@ def main():
 
     # initialize visualization data structures
     cam = mujoco.MjvCamera()
-    cam.azimuth, cam.elevation = 180, -90
-    cam.lookat,  cam.distance  = [0, 0, 0], 15
+    cam.azimuth, cam.elevation = 180, -30
+    cam.lookat,  cam.distance  = [0, 0, 0], 3
     
     pert = mujoco.MjvPerturb()
     opt = mujoco.MjvOption()
-    scn = mujoco.MjvScene(model, maxgeom=30)
+    scn = mujoco.MjvScene(model, maxgeom=50)
     con = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
     ## To obtain inertia matrix
     mujoco.mj_step(model, data)
+
+    idx = 1 * 7 + 2
+    #pos_z = data.qpos[idx]
 
 
     while not glfw.window_should_close(window):
@@ -62,15 +69,23 @@ def main():
 
         glfw.swap_buffers(window)
         glfw.poll_events()
+        
+        #if pos_z < 0.5:
+          #pos_z += 0.01
+          #data.qpos[idx] = pos_z
+
+        time.sleep(0.005)
+
+
 
     glfw.terminate()
 
 
 # sets new position and orientation for a building specified by buildingName
 def setBuildingData(model, newPosition, newOrientation, buildingName: str):
-  pole = model.body(buildingName)
-  pole.pos = newPosition
-  pole.quat = newOrientation
+  building = model.body(buildingName)
+  building.pos = newPosition
+  building.quat = newOrientation
 
 def saveModelAsXml(model, fileName):
   mujoco.mj_saveLastXML(fileName, model)
@@ -84,10 +99,10 @@ def loadBuildingData(fileName):
 
 
 def loadPoleData(fileName):
-  pole1, pole2, pole3 = np.loadtxt(fileName, delimiter=",")
+  pole1, pole2, pole3, pole4 = np.loadtxt(fileName, delimiter=",")
   # the two arrays should have 7 elements
   # first three numbers are position, the remaining 4 are orientation as quaternion
-  return pole1[:3], pole1[3:], pole2[:3], pole2[3:], pole3[:3], pole3[3:]
+  return pole1[:3], pole1[3:], pole2[:3], pole2[3:], pole3[:3], pole3[3:], pole4[:3], pole4[3:]
 
 if __name__ == '__main__':
     main()

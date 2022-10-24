@@ -1,5 +1,9 @@
 <mujoco model="Lagyi">
   <default class="main">
+<!-- 
+    rotate by 90 degrees about the vertical axis
+    to match the optitrack coordinate system
+ -->
     <geom quat="0.7071 0 0 0.7071"/>
 
     <default class="lagyi">
@@ -7,12 +11,12 @@
     </default>
 
     <default class="pole">
-      <geom size="0.025 0.5" rgba="0.1 0.1 0.1 1"/>
+      <geom rgba="0.1 0.1 0.1 1"/>
       <default class="pole_top">
-        <geom type="cylinder" pos="0 0 0.5"/>
+        <geom type="cylinder" size="0.022 0.54" pos="0 0 0.5"/>
       </default>
       <default class="pole_bottom1">
-        <geom type="box" size="0.025 0.2 0.02" pos="0 0 0.02"/>
+        <geom type="box" size="0.02 0.205 0.02" pos="0 0 0.02"/>
         <default class="pole_bottom2">
           <geom quat="1 0 0 0"/>
         </default>
@@ -98,7 +102,12 @@
       <geom class="pole_bottom1"/>
       <geom class="pole_bottom2"/>
     </body>
-    <body name="pole3" pos="0 -0.3 0" childclass="pole" quat="0.924 0 0 0.383">
+    <body name="pole3" pos="0.3 -0.3 0" childclass="pole" quat="0.924 0 0 0.383">
+      <geom class="pole_top"/>
+      <geom class="pole_bottom1"/>
+      <geom class="pole_bottom2"/>
+    </body>
+    <body name="pole4" pos="-0.3 -0.3 0" childclass="pole" quat="0.924 0 0 0.383">
       <geom class="pole_top"/>
       <geom class="pole_bottom1"/>
       <geom class="pole_bottom2"/>
@@ -142,4 +151,5 @@
   <sensor>
       <gyro site="COG"/>
   </sensor>
+
 </mujoco>

@@ -66,7 +66,6 @@
   <worldbody>
     <camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958"/>
     <geom size="20 20 .05" type="plane" material="grid" condim="3"/>
-    <geom name="roundabout" size="1.5 1.5 .05" pos="0 0 0.002" type="plane" material="mat-roundabout" condim="3"/>
 
     <light dir=".2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="-2 -10 6" cutoff="70"/>
     <light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -10 6" cutoff="70"/>
@@ -74,6 +73,7 @@
 
 
     <body name="lagyi" pos="1.45 -2.3 0" childclass="lagyi">
+      <geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="-1.45 2.3 0.002" type="plane" material="mat-roundabout" condim="3"/>
       <geom name="carpet" size="7.644 7.644 .001" pos="1.7 3.9 0.001" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet" condim="3"/>
       <geom name="cockpit" type="mesh" mesh="cockpit"/>
       <geom name="fal1" type="mesh" mesh="fal1"/>

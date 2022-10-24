@@ -9,9 +9,7 @@ def main():
     # Reading model data
     print(f'Working directory:  {os.getcwd()}\n')
 
-    xmlFileName = "scene.xml"
-
-    print(mujoco.mjtRndFlag.mjRND_ADDITIVE)
+    xmlFileName = "testEnvironment.xml"
 
     model = mujoco.MjModel.from_xml_path(xmlFileName)
 
@@ -74,7 +72,7 @@ def main():
           #pos_z += 0.01
           #data.qpos[idx] = pos_z
 
-        time.sleep(0.005)
+        #time.sleep(0.005)
 
 
 

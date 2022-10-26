@@ -37,6 +37,7 @@ def main():
     # Make the window's context current
     glfw.make_context_current(window)
     glfw.set_scroll_callback(window, zoom)
+    glfw.set_mouse_button_callback(window, mouse_button_callback)
 
     # initialize visualization data structures
     cam.azimuth, cam.elevation = 180, -30
@@ -99,16 +100,13 @@ def update_drone(data, droneID, position, orientation):
     data.qpos[startIdx:startIdx + 3] = position
     data.qpos[startIdx + 3:startIdx + 7] = orientation
 
-def key_event(window,key,scancode,action,mods):
-    """ Handle keyboard events
-		Note:  It's not important to understand how this works just yet.
-		Keyboard and mouse inputs are covered in Tutorial 6
-	"""
-    if action == glfw.PRESS and key == glfw.KEY_D:
-	    if glIsEnabled (GL_DEPTH_TEST): glDisable(GL_DEPTH_TEST)
-	    else: glEnable(GL_DEPTH_TEST)
+def mouse_button_callback(window, button, action, mods):
+    if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
+        x, y = glfw.get_cursor_pos(window)
+        print(x, y)
 
-	    glDepthFunc(GL_LESS)
+
+
 
 def zoom(window, x, y):
     cam.distance -= 0.2 * y

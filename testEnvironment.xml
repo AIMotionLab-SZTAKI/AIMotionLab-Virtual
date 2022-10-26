@@ -6,13 +6,20 @@
     <geom name="parking_lot" size="0.105 0.115 .05" pos="-0.5 1.2 0.0025" type="plane" material="mat-parking_lot"/>
 
     
-    <body name="drone" pos="0 0 0.5">
+    <body name="drone0" pos="0 -1 0.5">
       <inertial pos="0 0 0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028"/>
       <joint type="free"/>
-      <geom name="drone" type="mesh" pos="0 0 0" mesh="drone"/>
-      <site name="COG" pos="0 0 0"/>
+      <geom name="drone0" type="mesh" pos="0 0 0" mesh="drone"/>
+      <site name="COG0" pos="0 0 0"/>
     </body>
 
+    <body name="drone1" pos="0 1 0.5">
+      <inertial pos="0 0 0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028"/>
+      <joint type="free"/>
+      <geom name="drone1" type="mesh" pos="0 0 0" mesh="drone"/>
+      <site name="COG1" pos="0 0 0"/>
+    </body>
+    
     <body name="pole1" pos="0.25 0.25 0">
       <geom class="pole_top"/>
       <geom class="pole_bottom1"/>
@@ -63,14 +70,19 @@
   </worldbody>
 
   <actuator>
-      <general site="COG" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 0.64"/>
-      <general site="COG" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-0.01 0.01"/>
-      <general site="COG" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-0.01 0.01"/>
-      <general site="COG" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-0.01 0.01"/>
+      <general site="COG0" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 0.64"/>
+      <general site="COG0" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-0.01 0.01"/>
+      <general site="COG0" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-0.01 0.01"/>
+      <general site="COG0" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-0.01 0.01"/>
+      <general site="COG1" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 0.64"/>
+      <general site="COG1" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-0.01 0.01"/>
+      <general site="COG1" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-0.01 0.01"/>
+      <general site="COG1" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-0.01 0.01"/>
   </actuator>
 
   <sensor>
-      <gyro site="COG"/>
+      <gyro site="COG0"/>
+      <gyro site="COG1"/>
   </sensor>
 
 </mujoco>

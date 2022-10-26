@@ -7,6 +7,7 @@ import os
 import numpy as np
 import time
 
+cam = mujoco.MjvCamera()
 
 def main():
     # Connect to optitrack
@@ -28,18 +29,18 @@ def main():
         return
 
     # Create a windowed mode window and its OpenGL context
-    window = glfw.create_window(1280, 720, "Reloaded Scene", None, None)
+    window = glfw.create_window(1280, 720, "Optitrack Scene", None, None)
     if not window:
         glfw.terminate()
         return
 
     # Make the window's context current
     glfw.make_context_current(window)
+    glfw.set_scroll_callback(window, zoom)
 
     # initialize visualization data structures
-    cam = mujoco.MjvCamera()
     cam.azimuth, cam.elevation = 180, -30
-    cam.lookat, cam.distance = [0, 0, 0], 4
+    cam.lookat, cam.distance = [0, 0, 0], 5
 
     pert = mujoco.MjvPerturb()
     opt = mujoco.MjvOption()
@@ -48,6 +49,7 @@ def main():
 
     ## To obtain inertia matrix
     mujoco.mj_step(model, data)
+    #print(data.qpos)
 
     while True and not glfw.window_should_close(window):
         mc.waitForNextFrame()
@@ -58,8 +60,19 @@ def main():
                               "{:.5f}".format(obj.position[2])
                 t2 = time.time()-t1
 
-                drone_pos_rot = [obj.position[0], obj.position[1], obj.position[2], obj.rotation.x, obj.rotation.y, obj.rotation.z, obj.rotation.w]
-                data.qpos = drone_pos_rot
+                # have to put rotation.w to the front because the order is different
+                drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+                update_drone(data, 0, obj.position, drone_orientation)
+
+            if name == 'cf7':
+
+                pos_message = "{:.5f}".format(obj.position[0]) + "," + "{:.5f}".format(obj.position[1]) + "," + \
+                              "{:.5f}".format(obj.position[2])
+                t2 = time.time()-t1
+
+                # have to put rotation.w to the front because the order is different
+                drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+                update_drone(data, 1, obj.position, drone_orientation)
 
 
         mujoco.mj_step(model, data, 1)
@@ -81,7 +94,24 @@ def main():
                 #print("Distance:", float(recived))
 
 
+def update_drone(data, droneID, position, orientation):
+    startIdx = droneID * 7
+    data.qpos[startIdx:startIdx + 3] = position
+    data.qpos[startIdx + 3:startIdx + 7] = orientation
 
+def key_event(window,key,scancode,action,mods):
+    """ Handle keyboard events
+		Note:  It's not important to understand how this works just yet.
+		Keyboard and mouse inputs are covered in Tutorial 6
+	"""
+    if action == glfw.PRESS and key == glfw.KEY_D:
+	    if glIsEnabled (GL_DEPTH_TEST): glDisable(GL_DEPTH_TEST)
+	    else: glEnable(GL_DEPTH_TEST)
+
+	    glDepthFunc(GL_LESS)
+
+def zoom(window, x, y):
+    cam.distance -= 0.2 * y
 
 if __name__ == '__main__':
     main()

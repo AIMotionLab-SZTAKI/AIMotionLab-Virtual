@@ -6,8 +6,11 @@ import glfw
 import os
 import numpy as np
 import time
+import reloadScene
 
 cam = mujoco.MjvCamera()
+mouse_right_btn_down = False
+prev_x, prev_y = 0.0, 0.0
 
 def main():
     # Connect to optitrack
@@ -24,6 +27,17 @@ def main():
 
     data = mujoco.MjData(model)
 
+    hospitalPos, hospitalQuat, postOfficePos, postOfficeQuat = reloadScene.loadBuildingData("building_positions.txt")
+    pole1Pos, pole1Quat, pole2Pos, pole2Quat, pole3Pos, pole3Quat, pole4Pos, pole4Quat = reloadScene.loadPoleData("pole_positions.txt")
+
+    reloadScene.setBuildingData(model, hospitalPos, hospitalQuat, "hospital")
+    reloadScene.setBuildingData(model, postOfficePos, postOfficeQuat, "post_office")
+
+    reloadScene.setBuildingData(model, pole1Pos, pole1Quat, "pole1")
+    reloadScene.setBuildingData(model, pole2Pos, pole2Quat, "pole2")
+    reloadScene.setBuildingData(model, pole3Pos, pole3Quat, "pole3")
+    reloadScene.setBuildingData(model, pole3Pos, pole3Quat, "pole4")
+
     # Initialize the library
     if not glfw.init():
         return
@@ -36,8 +50,11 @@ def main():
 
     # Make the window's context current
     glfw.make_context_current(window)
+    # setup mouse callbacks
     glfw.set_scroll_callback(window, zoom)
     glfw.set_mouse_button_callback(window, mouse_button_callback)
+    glfw.set_cursor_pos_callback(window, mouse_move_callback)
+
 
     # initialize visualization data structures
     cam.azimuth, cam.elevation = 180, -30
@@ -65,7 +82,7 @@ def main():
                 drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
                 update_drone(data, 0, obj.position, drone_orientation)
 
-            if name == 'cf7':
+            if name == 'cf1':
 
                 pos_message = "{:.5f}".format(obj.position[0]) + "," + "{:.5f}".format(obj.position[1]) + "," + \
                               "{:.5f}".format(obj.position[2])
@@ -85,6 +102,7 @@ def main():
 
         glfw.swap_buffers(window)
         glfw.poll_events()
+        #print(mouse_right_btn_down)
 
 
                 #print("--------------------")
@@ -101,12 +119,39 @@ def update_drone(data, droneID, position, orientation):
     data.qpos[startIdx + 3:startIdx + 7] = orientation
 
 def mouse_button_callback(window, button, action, mods):
+    global mouse_right_btn_down
     if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
-        x, y = glfw.get_cursor_pos(window)
-        print(x, y)
+        global prev_x, prev_y
+        prev_x, prev_y = glfw.get_cursor_pos(window)
+        mouse_right_btn_down = True
+    elif button == glfw.MOUSE_BUTTON_LEFT and action == glfw.RELEASE:
+        mouse_right_btn_down = False
+        pass
 
 
+def mouse_move_callback(window, xpos, ypos):
+    if not mouse_right_btn_down:
+        return
 
+    global prev_x, prev_y
+    x, y = glfw.get_cursor_pos(window)
+
+    dx = x - prev_x
+    dy = y - prev_y
+
+    cam.azimuth -= dx / 10
+    cam.elevation -= dy / 10
+
+    #print("dx: " + dx)
+    #print("dy: " + dy)
+
+    #print("azi: " + cam.azimuth)
+    #print("elev: " + cam.elevation)
+
+    prev_x = x
+    prev_y = y
+
+    #print(dx, dy)
 
 def zoom(window, x, y):
     cam.distance -= 0.2 * y

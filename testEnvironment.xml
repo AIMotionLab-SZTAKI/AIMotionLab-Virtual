@@ -9,7 +9,7 @@
     <body name="drone0" pos="0 -1 0.5">
       <inertial pos="0 0 0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028"/>
       <joint type="free"/>
-      <geom name="drone0" type="mesh" pos="0 0 0" mesh="drone"/>
+      <geom name="drone0" type="mesh" pos="0 0 0" mesh="drone" rgba=".9 .1 .1 1"/>
       <site name="COG0" pos="0 0 0"/>
     </body>
 

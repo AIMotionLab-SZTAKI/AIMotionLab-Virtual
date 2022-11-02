@@ -7,6 +7,7 @@ import os
 import numpy as np
 import time
 import reloadScene
+import mujocoHelper
 
 cam = mujoco.MjvCamera()
 mouse_right_btn_down = False
@@ -69,7 +70,7 @@ def main():
     mujoco.mj_step(model, data)
     #print(data.qpos)
 
-    while True and not glfw.window_should_close(window):
+    while not glfw.window_should_close(window):
         mc.waitForNextFrame()
         for name, obj in mc.rigidBodies.items():
             if name == 'cf4':
@@ -90,7 +91,7 @@ def main():
 
                 # have to put rotation.w to the front because the order is different
                 drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
-                update_drone(data, 1, obj.position, drone_orientation)
+                mujocoHelper.update_drone(data, 1, obj.position, drone_orientation)
 
 
         mujoco.mj_step(model, data, 1)
@@ -112,11 +113,6 @@ def main():
                 #print("Rotation:", obj.rotation.x, obj.rotation.y, obj.rotation.z, obj.rotation.w)
                 #print("Distance:", float(recived))
 
-
-def update_drone(data, droneID, position, orientation):
-    startIdx = droneID * 7
-    data.qpos[startIdx:startIdx + 3] = position
-    data.qpos[startIdx + 3:startIdx + 7] = orientation
 
 def mouse_button_callback(window, button, action, mods):
     global mouse_right_btn_down

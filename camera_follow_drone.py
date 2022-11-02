@@ -8,6 +8,7 @@ import os
 import numpy as np
 import time
 import reloadScene
+import mujocoHelper
 
 cam = mujoco.MjvCamera()
 mouse_right_btn_down = False
@@ -66,9 +67,10 @@ def main():
 
     ## To obtain inertia matrix
     mujoco.mj_step(model, data)
-    #print(data.qpos)
+    #print(data.qpos.size)
+    mujocoHelper.update_drone(data, 2, [0, 0, 0], [1, 0, 0, 0])
 
-    while True and not glfw.window_should_close(window):
+    while not glfw.window_should_close(window):
         mc.waitForNextFrame()
         for name, obj in mc.rigidBodies.items():
             if name == 'cf1':
@@ -79,8 +81,8 @@ def main():
 
                 # have to put rotation.w to the front because the order is different
                 drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
-                roll_x, pitch_y, yaw_z = euler_from_quaternion(obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z)
-                update_drone(data, 0, obj.position, drone_orientation)
+                roll_x, pitch_y, yaw_z = mujocoHelper.euler_from_quaternion(obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z)
+                mujocoHelper.update_drone(data, 0, obj.position, drone_orientation)
                 cam.lookat = [data.qpos[0], data.qpos[1], data.qpos[2]]
                 cam.azimuth = -math.degrees(roll_x)
                 cam.elevation = -math.degrees(pitch_y) - 20
@@ -93,7 +95,7 @@ def main():
 
                 # have to put rotation.w to the front because the order is different
                 drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
-                update_drone(data, 1, obj.position, drone_orientation)
+                mujocoHelper.update_drone(data, 1, obj.position, drone_orientation)
 
 
         mujoco.mj_step(model, data, 1)
@@ -117,32 +119,6 @@ def main():
 
 
 
-def euler_from_quaternion(x, y, z, w):
-    """
-    Convert a quaternion into euler angles (roll, pitch, yaw)
-    roll is rotation around x in radians (counterclockwise)
-    pitch is rotation around y in radians (counterclockwise)
-    yaw is rotation around z in radians (counterclockwise)
-    """
-    t0 = +2.0 * (w * x + y * z)
-    t1 = +1.0 - 2.0 * (x * x + y * y)
-    roll_x = math.atan2(t0, t1)
-
-    t2 = +2.0 * (w * y - z * x)
-    t2 = +1.0 if t2 > +1.0 else t2
-    t2 = -1.0 if t2 < -1.0 else t2
-    pitch_y = math.asin(t2)
-
-    t3 = +2.0 * (w * z + x * y)
-    t4 = +1.0 - 2.0 * (y * y + z * z)
-    yaw_z = math.atan2(t3, t4)
-
-    return roll_x, pitch_y, yaw_z  # in radians
-
-def update_drone(data, droneID, position, orientation):
-    startIdx = droneID * 7
-    data.qpos[startIdx:startIdx + 3] = position
-    data.qpos[startIdx + 3:startIdx + 7] = orientation
 
 
 def zoom(window, x, y):

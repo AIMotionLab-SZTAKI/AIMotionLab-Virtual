@@ -15,6 +15,7 @@ class PassiveDisplay:
     cam = mujoco.MjvCamera()
     camFollow = mujoco.MjvCamera()
     activeCam = cam
+    mouse_left_btn_down = False
     mouse_right_btn_down = False
     prev_x, prev_y = 0.0, 0.0
     followed_drone_ID = 0
@@ -92,7 +93,7 @@ class PassiveDisplay:
                 if name == 'cf1':
                     mujocoHelper.update_drone(self.data, 0, obj.position, drone_orientation)
 
-                if name == 'cf2':
+                if name == 'cf3':
                     mujocoHelper.update_drone(self.data, 1, obj.position, drone_orientation)
 
             if PassiveDisplay.activeCam == PassiveDisplay.camFollow:
@@ -113,28 +114,45 @@ class PassiveDisplay:
         if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
 
             PassiveDisplay.prev_x, PassiveDisplay.prev_y = glfw.get_cursor_pos(window)
-            PassiveDisplay.mouse_right_btn_down = True
+            PassiveDisplay.mouse_left_btn_down = True
 
         elif button == glfw.MOUSE_BUTTON_LEFT and action == glfw.RELEASE:
+            PassiveDisplay.mouse_left_btn_down = False
+
+        if button == glfw.MOUSE_BUTTON_RIGHT and action == glfw.PRESS:
+            PassiveDisplay.prev_x, PassiveDisplay.prev_y = glfw.get_cursor_pos(window)
+            PassiveDisplay.mouse_right_btn_down = True
+
+        elif button == glfw.MOUSE_BUTTON_RIGHT and action == glfw.RELEASE:
             PassiveDisplay.mouse_right_btn_down = False
-            pass
+
 
     def mouse_move_callback(window, xpos, ypos):
-        if not PassiveDisplay.mouse_right_btn_down:
-            return
         if PassiveDisplay.activeCam != PassiveDisplay.cam:
             return
 
-        x, y = glfw.get_cursor_pos(window)
+        if PassiveDisplay.mouse_left_btn_down:
+            dx, dy, PassiveDisplay.prev_x, PassiveDisplay.prev_y = PassiveDisplay.calc_dxdy(window)
 
+            PassiveDisplay.cam.azimuth -= dx / 10
+            PassiveDisplay.cam.elevation -= dy / 10
+
+        if PassiveDisplay.mouse_right_btn_down:
+
+            dx, dy, PassiveDisplay.prev_x, PassiveDisplay.prev_y = PassiveDisplay.calc_dxdy(window)
+            PassiveDisplay.cam.lookat[2] += dy / 100
+
+
+
+
+    def calc_dxdy(window):
+        x, y = glfw.get_cursor_pos(window)
         dx = x - PassiveDisplay.prev_x
         dy = y - PassiveDisplay.prev_y
 
-        PassiveDisplay.cam.azimuth -= dx / 10
-        PassiveDisplay.cam.elevation -= dy / 10
+        return dx, dy, x, y
 
-        PassiveDisplay.prev_x = x
-        PassiveDisplay.prev_y = y
+
 
     def zoom(window, x, y):
         PassiveDisplay.activeCam.distance -= 0.2 * y

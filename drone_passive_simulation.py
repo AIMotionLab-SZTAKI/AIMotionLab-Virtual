@@ -1,3 +1,5 @@
+import math
+
 import motioncapture
 import time
 import numpy as np
@@ -9,7 +11,6 @@ import time
 import reloadScene
 import mujocoHelper
 
-MAX_DRONE_NUM = 2
 
 class PassiveDisplay:
     cam = mujoco.MjvCamera()
@@ -19,8 +20,10 @@ class PassiveDisplay:
     mouse_right_btn_down = False
     prev_x, prev_y = 0.0, 0.0
     followed_drone_ID = 0
+    DRONE_NUM = 0
 
-    def __init__(self):
+    def __init__(self, xml_file_name):
+
         # Connect to optitrack
         self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
 
@@ -29,11 +32,16 @@ class PassiveDisplay:
         # Reading model data
         print(f'Working directory:  {os.getcwd()}\n')
 
-        xmlFileName = "testEnvironment.xml"
+        self.xmlFileName = xml_file_name
 
-        self.model = mujoco.MjModel.from_xml_path(xmlFileName)
+        self.model = mujoco.MjModel.from_xml_path(self.xmlFileName)
 
         self.data = mujoco.MjData(self.model)
+
+        PassiveDisplay.DRONE_NUM = int(self.data.qpos.size / 7)
+        self.droneNames = []
+        for i in range(PassiveDisplay.DRONE_NUM):
+            self.droneNames.append("cf" + str(i + 1))
 
         hospitalPos, hospitalQuat, postOfficePos, postOfficeQuat = reloadScene.loadBuildingData("building_positions.txt")
         pole1Pos, pole1Quat, pole2Pos, pole2Quat, pole3Pos, pole3Quat, pole4Pos, pole4Quat = reloadScene.loadPoleData("pole_positions.txt")
@@ -64,7 +72,6 @@ class PassiveDisplay:
         glfw.set_cursor_pos_callback(self.window, PassiveDisplay.mouse_move_callback)
         glfw.set_key_callback(self.window, PassiveDisplay.key_callback)
 
-
         # initialize visualization data structures
         PassiveDisplay.cam.azimuth, PassiveDisplay.cam.elevation = 180, -30
         PassiveDisplay.cam.lookat, PassiveDisplay.cam.distance = [0, 0, 0], 5
@@ -78,8 +85,20 @@ class PassiveDisplay:
 
         #print(self.data.qpos.size)
 
+    def set_drone_names(self, *names):
+        drone_num = len(names)
+        if len(names) > PassiveDisplay.DRONE_NUM:
+            print("Error: too many drones provided. Number of drones in the xml is: " + str(PassiveDisplay.DRONE_NUM))
+            print('Last ' + str(len(names) - PassiveDisplay.DRONE_NUM) + ' drone(s) ignored.')
+            drone_num = PassiveDisplay.DRONE_NUM
+
+        self.droneNames = []
+        for i in range(drone_num):
+            self.droneNames.append(names[i])
+
+
     def run(self):
-        ## To obtain inertia matrix
+        # To obtain inertia matrix
         mujoco.mj_step(self.model, self.data)
 
         while not glfw.window_should_close(self.window):
@@ -90,11 +109,13 @@ class PassiveDisplay:
                 # have to put rotation.w to the front because the order is different
                 drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-                if name == 'cf1':
-                    mujocoHelper.update_drone(self.data, 0, obj.position, drone_orientation)
+                try:
+                    idx = self.droneNames.index(name)
+                except ValueError:
+                    idx = -1
 
-                if name == 'cf3':
-                    mujocoHelper.update_drone(self.data, 1, obj.position, drone_orientation)
+                if idx >= 0:
+                    mujocoHelper.update_drone(self.data, idx, obj.position, drone_orientation)
 
             if PassiveDisplay.activeCam == PassiveDisplay.camFollow:
                 mujocoHelper.update_follow_cam(self.data.qpos, PassiveDisplay.followed_drone_ID, PassiveDisplay.camFollow)
@@ -109,6 +130,7 @@ class PassiveDisplay:
             glfw.swap_buffers(self.window)
             glfw.poll_events()
 
+    @staticmethod
     def mouse_button_callback(window, button, action, mods):
 
         if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
@@ -126,51 +148,75 @@ class PassiveDisplay:
         elif button == glfw.MOUSE_BUTTON_RIGHT and action == glfw.RELEASE:
             PassiveDisplay.mouse_right_btn_down = False
 
-
+    @staticmethod
     def mouse_move_callback(window, xpos, ypos):
         if PassiveDisplay.activeCam != PassiveDisplay.cam:
             return
 
         if PassiveDisplay.mouse_left_btn_down:
-            dx, dy, PassiveDisplay.prev_x, PassiveDisplay.prev_y = PassiveDisplay.calc_dxdy(window)
-
-            PassiveDisplay.cam.azimuth -= dx / 10
-            PassiveDisplay.cam.elevation -= dy / 10
+            """
+            Rotate camera about the lookat point
+            """
+            dx, dy = PassiveDisplay.calc_dxdy(window)
+            scale = 0.1
+            PassiveDisplay.cam.azimuth -= dx * scale
+            PassiveDisplay.cam.elevation -= dy * scale
 
         if PassiveDisplay.mouse_right_btn_down:
+            """
+            Move the point that the camera is looking at
+            """
+            dx, dy = PassiveDisplay.calc_dxdy(window)
+            scale = 0.005
+            angle = math.radians(PassiveDisplay.cam.azimuth + 90)
+            dx3d = math.cos(angle) * dx * scale
+            dy3d = math.sin(angle) * dx * scale
 
-            dx, dy, PassiveDisplay.prev_x, PassiveDisplay.prev_y = PassiveDisplay.calc_dxdy(window)
-            PassiveDisplay.cam.lookat[2] += dy / 100
+            PassiveDisplay.cam.lookat[0] += dx3d
+            PassiveDisplay.cam.lookat[1] += dy3d
 
+            # vertical axis is Z in 3D, so 3rd element in the lookat array
+            PassiveDisplay.cam.lookat[2] += dy * scale
 
-
-
+    @staticmethod
     def calc_dxdy(window):
+        """
+        Calculate cursor displacement
+        """
         x, y = glfw.get_cursor_pos(window)
         dx = x - PassiveDisplay.prev_x
         dy = y - PassiveDisplay.prev_y
+        PassiveDisplay.prev_x, PassiveDisplay.prev_y = x, y
 
-        return dx, dy, x, y
+        return dx, dy
 
-
-
+    @staticmethod
     def zoom(window, x, y):
+        """
+        Change distance between camera and lookat point by mouse wheel
+        """
         PassiveDisplay.activeCam.distance -= 0.2 * y
 
-
+    @staticmethod
     def key_callback(window, key, scancode, action, mods):
-
+        """
+        Switch camera on TAB press
+        Switch among drones on SPACE press if camera is set to follow drones
+        """
         if key == glfw.KEY_TAB and action == glfw.PRESS:
             PassiveDisplay.change_cam()
         elif key == glfw.KEY_SPACE and action == glfw.PRESS:
             if PassiveDisplay.activeCam == PassiveDisplay.camFollow:
-                if PassiveDisplay.followed_drone_ID + 1 == MAX_DRONE_NUM:
+                if PassiveDisplay.followed_drone_ID + 1 == PassiveDisplay.DRONE_NUM:
                     PassiveDisplay.followed_drone_ID = 0
                 else:
                     PassiveDisplay.followed_drone_ID += 1
 
-
+    @staticmethod
     def change_cam():
+        """
+        Change camera between scene cam and 'on board' cam
+        """
         if PassiveDisplay.activeCam == PassiveDisplay.cam:
             PassiveDisplay.activeCam = PassiveDisplay.camFollow
         else:
@@ -178,7 +224,9 @@ class PassiveDisplay:
 
 
 def main():
-    display = PassiveDisplay()
+    display = PassiveDisplay("testEnvironment_4drones.xml")
+    display.set_drone_names('cf5', 'cf2', 'cf10', 'cf4')
+    print(display.droneNames)
     display.run()
 
 

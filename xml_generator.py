@@ -2,11 +2,9 @@ import xml.etree.cElementTree as ET
 
 class SceneXmlGenerator:
 
-    def __init__(self):
+    def __init__(self, base_scene_filename):
         self.root = ET.Element("mujoco")
-        # needs an xml file called scene.xml in which the assets and other stuff are defined
-        # the xml will be generated either way, but will not compile if there's no scene.xml
-        scene_include = ET.SubElement(self.root, "include", file="scene.xml")
+        ET.SubElement(self.root, "include", file=base_scene_filename)
         self.worldbody = ET.SubElement(self.root, "worldbody")
         self.actuator = ET.SubElement(self.root, "actuator")
         self.sensor = ET.SubElement(self.root, "sensor")
@@ -151,8 +149,8 @@ class SceneXmlGenerator:
         tree.write(file_name)
 
 
-
-scene = SceneXmlGenerator()
+"""
+scene = SceneXmlGenerator("scene.xml")
 
 scene.add_airport(pos="0.5 -1.2 0.0025")
 scene.add_parking_lot(pos="-0.5 1.2 0.0025")
@@ -176,3 +174,4 @@ scene.add_landing_zone(name="landing_zone4", pos="-0.6 -1.3 0", quat="0.924 0 0 
 scene.add_tall_landing_zone(pos="0 0 0", quat="1 0 0 0")
 
 scene.save_xml("first_xml.xml")
+"""

@@ -145,7 +145,7 @@ class SceneXmlGenerator:
     def save_xml(self, file_name):
         
         tree = ET.ElementTree(self.root)
-        ET.indent(tree, space="\t", level=0)
+        # ET.indent(tree, space="\t", level=0) # uncomment this if python version >= 3.9
         tree.write(file_name)
 
 

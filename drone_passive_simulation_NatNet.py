@@ -30,12 +30,13 @@ class PassiveDisplay:
 
         # Connect to optitrack
         self.NatNetClient = NatNetClient()
-        self.NatNetClient.set_client_address("192.168.1.56")
+        self.NatNetClient.set_client_address("192.168.1.66")
         self.NatNetClient.set_server_address('192.168.1.141')
-        self.NatNetClient.set_use_multicast(True)
+        self.NatNetClient.set_use_multicast(False)
+        print(self.NatNetClient.get_client_address())
         # set up callback
         self.NatNetClient.rigid_body_listener = PassiveDisplay.receive_rigid_body_frame
-        self.NatNetClient.set_print_level(0)
+        #self.NatNetClient.set_print_level(0)
 
         self.t1 = time.time()
 
@@ -156,6 +157,7 @@ class PassiveDisplay:
         
         is_looping = False
         self.NatNetClient.shutdown()
+        #exit()
 
     @staticmethod
     def mouse_button_callback(window, button, action, mods):
@@ -267,7 +269,7 @@ class PassiveDisplay:
 
 def main():
     display = PassiveDisplay("testEnvironment_4drones.xml")
-    display.set_drone_names('5', '2', '7', '8')
+    display.set_drone_names('4', '2', '7', '8')
     print(display.droneNames)
     display.run()
 

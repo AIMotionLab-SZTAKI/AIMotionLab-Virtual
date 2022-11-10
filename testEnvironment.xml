@@ -63,7 +63,7 @@
     </body>
 
     
-    <body name="landing_zone_middle" pos="0 0 0" quat="0 0 0 0">
+    <body name="landing_zone_middle" pos="0.5 0 0" quat="0 0 0 0">
       <geom name="landing_zone_middle" type="box" pos="0 0 0.0925" size="0.105 0.105 0.0925" rgba="0.8 0.8 0.8 1.0" material="mat-sztaki"/>
     </body>
     

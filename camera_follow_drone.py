@@ -10,6 +10,7 @@ import time
 import reloadScene
 import mujocoHelper
 
+
 cam = mujoco.MjvCamera()
 mouse_right_btn_down = False
 prev_x, prev_y = 0.0, 0.0
@@ -67,8 +68,6 @@ def main():
 
     ## To obtain inertia matrix
     mujoco.mj_step(model, data)
-    #print(data.qpos.size)
-    mujocoHelper.update_drone(data, 2, [0, 0, 0], [1, 0, 0, 0])
 
     while not glfw.window_should_close(window):
         mc.waitForNextFrame()

@@ -1253,7 +1253,7 @@ class NatNetClient:
         major = self.get_major()
         minor = self.get_minor()
 
-        #trace( "Begin Packet\n-----------------" )
+        trace( "Begin Packet\n-----------------" )
         show_nat_net_version = False
         if show_nat_net_version:
             trace("NatNetVersion " , str(self.__nat_net_requested_version[0]), " "\
@@ -1268,16 +1268,16 @@ class NatNetClient:
         #skip the 4 bytes for message ID and packet_size
         offset = 4
         if message_id == self.NAT_FRAMEOFDATA :
-            #trace( "Message ID  : %3.1d NAT_FRAMEOFDATA"% message_id )
-            #trace( "Packet Size : ", packet_size )
+            trace( "Message ID  : %3.1d NAT_FRAMEOFDATA"% message_id )
+            trace( "Packet Size : ", packet_size )
 
             offset_tmp, mocap_data = self.__unpack_mocap_data( data[offset:], packet_size, major, minor )
             offset += offset_tmp
-            #print("MoCap Frame: %d\n"%(mocap_data.prefix_data.frame_number))
+            print("MoCap Frame: %d\n"%(mocap_data.prefix_data.frame_number))
             # get a string version of the data for output
             mocap_data_str=mocap_data.get_as_string()
-            #if print_level >= 1:
-            #    print("%s\n"%mocap_data_str)
+            if print_level >= 1:
+                print("%s\n"%mocap_data_str)
 
         elif message_id == self.NAT_MODELDEF :
             trace( "Message ID  : %3.1d NAT_MODELDEF"% message_id )
@@ -1326,7 +1326,7 @@ class NatNetClient:
             trace( "Packet Size : ", packet_size )
             trace( "ERROR: Unrecognized packet type" )
 
-        #trace( "End Packet\n-----------------" )
+        trace( "End Packet\n-----------------" )
         return message_id
 
     def send_request( self, in_socket, command, command_str, address ):

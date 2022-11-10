@@ -41,7 +41,7 @@ def euler_from_quaternion(x, y, z, w):
 
 def update_follow_cam(qpos, droneID, cam):
     """
-    updates the position and orientation of the camera that follows the drone from behind
+    Update the position and orientation of the camera that follows the drone from behind
     qpos is the array in which the position and orientation of all the drones are stored
     """
 

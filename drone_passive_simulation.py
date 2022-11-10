@@ -76,7 +76,7 @@ class PassiveDisplay:
         PassiveDisplay.cam.azimuth, PassiveDisplay.cam.elevation = 180, -30
         PassiveDisplay.cam.lookat, PassiveDisplay.cam.distance = [0, 0, 0], 5
         PassiveDisplay.camFollow.azimuth, PassiveDisplay.camFollow.elevation = 180, -30
-        PassiveDisplay.camFollow.lookat, PassiveDisplay.camFollow.distance = [0, 0, 0], 1
+        PassiveDisplay.camFollow.lookat, PassiveDisplay.camFollow.distance = [0, 0, 0], 0.8
 
         self.pert = mujoco.MjvPerturb()
         self.opt = mujoco.MjvOption()
@@ -88,7 +88,7 @@ class PassiveDisplay:
     def set_drone_names(self, *names):
         drone_num = len(names)
         if len(names) > PassiveDisplay.DRONE_NUM:
-            print("Error: too many drones provided. Number of drones in the xml is: " + str(PassiveDisplay.DRONE_NUM))
+            print("Error: too many (" + str(drone_num) + ") drone names provided. Number of drones in the xml is: " + str(PassiveDisplay.DRONE_NUM))
             print('Last ' + str(len(names) - PassiveDisplay.DRONE_NUM) + ' drone(s) ignored.')
             drone_num = PassiveDisplay.DRONE_NUM
 
@@ -224,8 +224,8 @@ class PassiveDisplay:
 
 
 def main():
-    display = PassiveDisplay("testEnvironment_4drones.xml")
-    display.set_drone_names('cf5', 'cf2', 'cf10', 'cf4')
+    display = PassiveDisplay("testEnvironment.xml")
+    display.set_drone_names('cf4', 'cf3', 'cf10', 'cf1')
     print(display.droneNames)
     display.run()
 

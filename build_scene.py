@@ -27,12 +27,26 @@ def add_building():
     # add airport
     if input_gui.building == "Airport":
         if input_gui.position != "" and input_gui.quaternion != "":
+            splt_pos = input_gui.position.split()
+            if len(splt_pos) == 3:
+                # if the 3rd coordinate is 0
+                # since it's a plane, need to move it up a little so that the carpet would not cover it
+                if(splt_pos[2] == '0'):
+                    splt_pos[2] = "0.01"
+            input_gui.position = splt_pos[0] + " " + splt_pos[1] + " " + splt_pos[2]
             scene.add_airport(input_gui.position, input_gui.quaternion)
             save_and_reload_model(scene, display, save_filename)
     
     # add parking lot
     elif input_gui.building == "Parking lot":
         if input_gui.position != "" and input_gui.quaternion != "":
+            splt_pos = input_gui.position.split()
+            if len(splt_pos) == 3:
+                # if the 3rd coordinate is 0
+                # since it's a plane, need to move it up a little so that the carpet would not cover it
+                if(splt_pos[2] == '0'):
+                    splt_pos[2] = "0.01"
+            input_gui.position = splt_pos[0] + " " + splt_pos[1] + " " + splt_pos[2]
             scene.add_parking_lot(input_gui.position, input_gui.quaternion)
             save_and_reload_model(scene, display, save_filename)
 
@@ -79,6 +93,8 @@ def add_building():
     
 def add_drone():
     global scene, drone_counter
+    # add drone at hard-coded positions
+    # they'll be updated as soon as Optitrack data arrives
     if drone_counter < 4:
         drone_name = "drone" + str(drone_counter)
         scene.add_drone(drone_name, drone_positions[drone_counter], drone_colors[drone_counter])

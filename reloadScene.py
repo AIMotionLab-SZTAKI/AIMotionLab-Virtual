@@ -1,13 +1,18 @@
+from email.mime import image
 import mujoco
 import glfw
 import os
 import numpy as np
 import time
-
+import imageio
 
 def main():
     # Reading model data
     print(f'Working directory:  {os.getcwd()}\n')
+
+    img = imageio.imread("screenshot.png")
+
+    print(img.shape)
 
     xmlFileName = "built_scene.xml"
 
@@ -33,7 +38,7 @@ def main():
         return
 
     # Create a windowed mode window and its OpenGL context
-    window = glfw.create_window(1280, 720, "Reloaded Scene", None, None)
+    window = glfw.create_window(640, 360, "Reloaded Scene", None, None)
     if not window:
         glfw.terminate()
         return
@@ -72,21 +77,18 @@ def main():
         glfw.swap_buffers(window)
         glfw.poll_events()
 
-        rgb = np.zeros(viewport.width * viewport.height, dtype=np.uint8)
+        rgb = np.zeros(viewport.width * viewport.height * 3, dtype=np.uint8)
         depth = np.zeros(viewport.width * viewport.height, dtype=np.float32)
 
         stamp = str(time.time())
         mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, viewport, stamp, None, con)
-        print("before readPixels")
-        mujoco.mjr_readPixels(rgb, depth, viewport, con)
-        print("pixels been read")
-
         
-        #if pos_z < 0.5:
-          #pos_z += 0.01
-          #data.qpos[idx] = pos_z
+        mujoco.mjr_readPixels(rgb, depth, viewport, con)
 
-        #time.sleep(0.005)
+        rgb = np.reshape(rgb, (viewport.height, viewport.width, 3))
+        #print(rgb.shape)
+        imageio.imwrite("image_capture/" + stamp + ".jpg", rgb)
+        
 
 
 

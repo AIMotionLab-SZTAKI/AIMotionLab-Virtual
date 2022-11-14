@@ -1,6 +1,7 @@
+from ast import Pass
 import math
 
-import motioncapture
+#import motioncapture
 import time
 import numpy as np
 import mujoco
@@ -8,7 +9,6 @@ import glfw
 import os
 import numpy as np
 import time
-import reloadScene
 import mujocoHelper
 
 
@@ -22,10 +22,12 @@ class PassiveDisplay:
     followed_drone_ID = 0
     DRONE_NUM = 0
 
-    def __init__(self, xml_file_name):
+    def __init__(self, xml_file_name, data_from_optitrack=True):
+        PassiveDisplay.data_from_optitrack = data_from_optitrack
 
         # Connect to optitrack
-        self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
+        #if data_from_optitrack:
+            #self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
 
         self.t1 = time.time()
 
@@ -42,17 +44,6 @@ class PassiveDisplay:
         self.droneNames = []
         for i in range(PassiveDisplay.DRONE_NUM):
             self.droneNames.append("cf" + str(i + 1))
-
-        hospitalPos, hospitalQuat, postOfficePos, postOfficeQuat = reloadScene.loadBuildingData("building_positions.txt")
-        pole1Pos, pole1Quat, pole2Pos, pole2Quat, pole3Pos, pole3Quat, pole4Pos, pole4Quat = reloadScene.loadPoleData("pole_positions.txt")
-
-        reloadScene.setBuildingData(self.model, hospitalPos, hospitalQuat, "hospital")
-        reloadScene.setBuildingData(self.model, postOfficePos, postOfficeQuat, "post_office")
-
-        reloadScene.setBuildingData(self.model, pole1Pos, pole1Quat, "pole1")
-        reloadScene.setBuildingData(self.model, pole2Pos, pole2Quat, "pole2")
-        reloadScene.setBuildingData(self.model, pole3Pos, pole3Quat, "pole3")
-        reloadScene.setBuildingData(self.model, pole3Pos, pole3Quat, "pole4")
 
         # Initialize the library
         if not glfw.init():
@@ -95,6 +86,27 @@ class PassiveDisplay:
         self.droneNames = []
         for i in range(drone_num):
             self.droneNames.append(names[i])
+    
+
+    def set_key_b_callback(self, callback_function):
+        PassiveDisplay.key_b_callback = callback_function
+
+
+    def set_key_d_callback(self, callback_function):
+        PassiveDisplay.key_d_callback = callback_function
+    
+
+    def reload_model(self, xml_file_name):
+        self.xmlFileName = xml_file_name
+
+        self.model = mujoco.MjModel.from_xml_path(self.xmlFileName)
+        self.data = mujoco.MjData(self.model)
+
+        self.scn = mujoco.MjvScene(self.model, maxgeom=50)
+        self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
+        
+        PassiveDisplay.DRONE_NUM = int(self.data.qpos.size / 7)
+
 
 
     def run(self):
@@ -103,21 +115,23 @@ class PassiveDisplay:
 
         while not glfw.window_should_close(self.window):
             # getting data from optitrack server
-            self.mc.waitForNextFrame()
-            for name, obj in self.mc.rigidBodies.items():
+            #if PassiveDisplay.data_from_optitrack:
 
-                # have to put rotation.w to the front because the order is different
-                drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+            #    self.mc.waitForNextFrame()
+            #    for name, obj in self.mc.rigidBodies.items():
 
-                try:
-                    idx = self.droneNames.index(name)
-                except ValueError:
-                    idx = -1
+                    # have to put rotation.w to the front because the order is different
+            #        drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-                if idx >= 0:
-                    mujocoHelper.update_drone(self.data, idx, obj.position, drone_orientation)
+            #        try:
+            #            idx = self.droneNames.index(name)
+            #        except ValueError:
+            #            idx = -1
 
-            if PassiveDisplay.activeCam == PassiveDisplay.camFollow:
+            #        if idx >= 0:
+            #            mujocoHelper.update_drone(self.data, idx, obj.position, drone_orientation)
+
+            if PassiveDisplay.activeCam == PassiveDisplay.camFollow and PassiveDisplay.DRONE_NUM > 0:
                 mujocoHelper.update_follow_cam(self.data.qpos, PassiveDisplay.followed_drone_ID, PassiveDisplay.camFollow)
 
             mujoco.mj_step(self.model, self.data, 1)
@@ -211,13 +225,21 @@ class PassiveDisplay:
                     PassiveDisplay.followed_drone_ID = 0
                 else:
                     PassiveDisplay.followed_drone_ID += 1
+        
+        if key == glfw.KEY_B and action == glfw.RELEASE:
+            PassiveDisplay.key_b_callback()
+
+        if key == glfw.KEY_D and action == glfw.RELEASE:
+            PassiveDisplay.key_d_callback()
+            
+
 
     @staticmethod
     def change_cam():
         """
         Change camera between scene cam and 'on board' cam
         """
-        if PassiveDisplay.activeCam == PassiveDisplay.cam:
+        if PassiveDisplay.activeCam == PassiveDisplay.cam and PassiveDisplay.DRONE_NUM > 0:
             PassiveDisplay.activeCam = PassiveDisplay.camFollow
         else:
             PassiveDisplay.activeCam = PassiveDisplay.cam

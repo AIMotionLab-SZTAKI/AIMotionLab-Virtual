@@ -13,7 +13,7 @@
     <default class="pole">
       <geom rgba="0.1 0.1 0.1 1"/>
       <default class="pole_top">
-        <geom type="cylinder" size="0.022 0.54" pos="0 0 0.5"/>
+        <geom type="cylinder" size="0.022 0.5" pos="0 0 0.5"/>
       </default>
       <default class="pole_bottom1">
         <geom type="box" size="0.02 0.205 0.02" pos="0 0 0.02"/>
@@ -69,12 +69,11 @@
 
     <light dir="0 -0.3 -1" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="1 1 15" cutoff="70"/>
     <light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70"/>
-
-
+    
+    <geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="0 0 0.002" type="plane" material="mat-roundabout" condim="3"/>
+    <geom name="carpet" size="7.644 7.644 .001" pos="3.15 1.6 0.001" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet"/>
 
     <body name="lagyi" pos="1.45 -2.3 0" childclass="lagyi">
-      <geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="-1.45 2.3 0.002" type="plane" material="mat-roundabout" condim="3"/>
-      <geom name="carpet" size="7.644 7.644 .001" pos="1.7 3.9 0.001" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet" condim="3"/>
       <geom name="cockpit" type="mesh" mesh="cockpit"/>
       <geom name="fal1" type="mesh" mesh="fal1"/>
       <geom name="fal2" type="mesh" mesh="fal2"/>

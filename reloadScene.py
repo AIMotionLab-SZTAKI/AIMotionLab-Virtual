@@ -9,7 +9,7 @@ def main():
     # Reading model data
     print(f'Working directory:  {os.getcwd()}\n')
 
-    xmlFileName = "testEnvironment.xml"
+    xmlFileName = "built_scene.xml"
 
     model = mujoco.MjModel.from_xml_path(xmlFileName)
 
@@ -18,13 +18,13 @@ def main():
     hospitalPos, hospitalQuat, postOfficePos, postOfficeQuat = loadBuildingData("building_positions.txt")
     pole1Pos, pole1Quat, pole2Pos, pole2Quat, pole3Pos, pole3Quat, pole4Pos, pole4Quat = loadPoleData("pole_positions.txt")
 
-    setBuildingData(model, hospitalPos, hospitalQuat, "hospital")
-    setBuildingData(model, postOfficePos, postOfficeQuat, "post_office")
+    #setBuildingData(model, hospitalPos, hospitalQuat, "hospital")
+    #setBuildingData(model, postOfficePos, postOfficeQuat, "post_office")
 
-    setBuildingData(model, pole1Pos, pole1Quat, "pole1")
-    setBuildingData(model, pole2Pos, pole2Quat, "pole2")
-    setBuildingData(model, pole3Pos, pole3Quat, "pole3")
-    setBuildingData(model, pole3Pos, pole3Quat, "pole4")
+    #setBuildingData(model, pole1Pos, pole1Quat, "pole1")
+    #setBuildingData(model, pole2Pos, pole2Quat, "pole2")
+    #setBuildingData(model, pole3Pos, pole3Quat, "pole3")
+    #setBuildingData(model, pole3Pos, pole3Quat, "pole4")
 
     #saveModelAsXml(model, "mod" + xmlFileName)
 
@@ -51,6 +51,10 @@ def main():
     scn = mujoco.MjvScene(model, maxgeom=50)
     con = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
+    #mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, con)
+
+    #print(con.currentBuffer)
+
     ## To obtain inertia matrix
     mujoco.mj_step(model, data)
 
@@ -67,6 +71,16 @@ def main():
 
         glfw.swap_buffers(window)
         glfw.poll_events()
+
+        rgb = np.zeros(viewport.width * viewport.height, dtype=np.uint8)
+        depth = np.zeros(viewport.width * viewport.height, dtype=np.float32)
+
+        stamp = str(time.time())
+        mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, viewport, stamp, None, con)
+        print("before readPixels")
+        mujoco.mjr_readPixels(rgb, depth, viewport, con)
+        print("pixels been read")
+
         
         #if pos_z < 0.5:
           #pos_z += 0.01

@@ -1,7 +1,7 @@
 # 3D model of the test environment in the building
 
 ## Purpose
-This serves the development of a simple model generator that can be used to add buildings and objects to the 3D scene. Currently the program supports the following objects:
+Development of a simple model generator that can be used to add buildings and objects to the 3D scene. Currently the program supports the following objects:
   * Drones
   * Hospital
   * Post office

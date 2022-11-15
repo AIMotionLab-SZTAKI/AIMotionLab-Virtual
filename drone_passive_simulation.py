@@ -16,6 +16,7 @@ import cv2
 class PassiveDisplay:
 
     def __init__(self, xml_file_name, connect_to_optitrack=True):
+        print(f'Working directory:  {os.getcwd()}\n')
 
         self.connect_to_optitrack = connect_to_optitrack
 
@@ -35,12 +36,12 @@ class PassiveDisplay:
 
         # Connect to optitrack
         #if connect_to_optitrack:
-            #self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
+        #    self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
+        #    print("[PassiveDisplay] Connected to Optitrack")
 
         self.t1 = time.time()
 
         # Reading model data
-        print(f'Working directory:  {os.getcwd()}\n')
 
         self.xmlFileName = xml_file_name
 
@@ -117,6 +118,9 @@ class PassiveDisplay:
         self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
         
         self.DRONE_NUM = int(self.data.qpos.size / 7)
+        self.droneNames = []
+        for i in range(self.DRONE_NUM):
+            self.droneNames.append("cf" + str(i + 1))
 
 
     def run(self):
@@ -125,7 +129,7 @@ class PassiveDisplay:
 
         while not glfw.window_should_close(self.window):
             # getting data from optitrack server
-            #if PassiveDisplay.connect_to_optitrack:
+            #if self.connect_to_optitrack:
 
             #    self.mc.waitForNextFrame()
             #    for name, obj in self.mc.rigidBodies.items():
@@ -272,6 +276,15 @@ class PassiveDisplay:
                 self.is_recording = False
                 self.save_video()
 
+        if key == glfw.KEY_C and action == glfw.RELEASE:
+            self.connect_to_Optitrack()
+
+
+    def connect_to_Optitrack(self):
+        #self.connect_to_optitrack = True
+        #self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
+        #print("[PassiveDisplay] Connected to Optitrack")
+        pass
 
     def change_cam(self):
         """

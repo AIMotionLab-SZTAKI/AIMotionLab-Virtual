@@ -11,6 +11,7 @@ import numpy as np
 import time
 import mujocoHelper
 import cv2
+from util.util import sync
 
 
 class PassiveDisplay:
@@ -127,7 +128,11 @@ class PassiveDisplay:
         # To obtain inertia matrix
         mujoco.mj_step(self.model, self.data)
 
+        self.timestep = 0.04
+        i = 0
+        start = time.time()
         while not glfw.window_should_close(self.window):
+            
             # getting data from optitrack server
             #if self.connect_to_optitrack:
 
@@ -169,6 +174,10 @@ class PassiveDisplay:
 
             glfw.swap_buffers(self.window)
             glfw.poll_events()
+
+            
+            sync(i, start, self.timestep)
+            i += 1
         
         if self.is_recording:
             self.save_video()
@@ -306,10 +315,12 @@ class PassiveDisplay:
             # then create folder
             os.mkdir(self.video_save_folder)
 
+        fps = 1 / self.timestep
+
         glfw.set_window_title(self.window, self.title + " (Saving video...)")
         time_stamp = self.image_list[0][0].replace('.', '_')
         out = cv2.VideoWriter(os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time_stamp + '.mp4'),\
-              cv2.VideoWriter_fourcc(*'mp4v'), 30, (self.viewport.width, self.viewport.height))
+              cv2.VideoWriter_fourcc(*'mp4v'), fps, (self.viewport.width, self.viewport.height))
         for i in range(len(self.image_list)):
             #print(self.image_list[i][0])
             rgb = np.reshape(self.image_list[i][1], (self.viewport.height, self.viewport.width, 3))
@@ -321,6 +332,8 @@ class PassiveDisplay:
         glfw.set_window_title(self.window, self.title)
 
 
+
+"""
 def main():
     display = PassiveDisplay("testEnvironment.xml")
     display.set_drone_names('cf4', 'cf3', 'cf10', 'cf1')
@@ -330,3 +343,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+"""

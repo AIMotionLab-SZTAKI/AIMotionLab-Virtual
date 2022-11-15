@@ -10,6 +10,7 @@ import os
 import numpy as np
 import time
 import mujocoHelper
+import cv2
 
 
 class PassiveDisplay:
@@ -28,6 +29,7 @@ class PassiveDisplay:
         self.DRONE_NUM = 0
         self.title = "Optitrack Scene"
         self.is_recording = False
+        self.image_list = []
 
         # Connect to optitrack
         #if connect_to_optitrack:
@@ -78,6 +80,9 @@ class PassiveDisplay:
         self.scn = mujoco.MjvScene(self.model, maxgeom=50)
         self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
+        self.viewport = mujoco.MjrRect(0, 0, 0, 0)
+        self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
+
         #print(self.data.qpos.size)
 
     def set_drone_names(self, *names):
@@ -112,7 +117,6 @@ class PassiveDisplay:
         self.DRONE_NUM = int(self.data.qpos.size / 7)
 
 
-
     def run(self):
         # To obtain inertia matrix
         mujoco.mj_step(self.model, self.data)
@@ -139,20 +143,36 @@ class PassiveDisplay:
                 mujocoHelper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow)
 
             mujoco.mj_step(self.model, self.data, 1)
-            viewport = mujoco.MjrRect(0, 0, 0, 0)
-            viewport.width, viewport.height = glfw.get_framebuffer_size(self.window)
+            self.viewport = mujoco.MjrRect(0, 0, 0, 0)
+            self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
             mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL,
                                    scn=self.scn)
-            mujoco.mjr_render(viewport, self.scn, self.con)
+            mujoco.mjr_render(self.viewport, self.scn, self.con)
+
+            if self.is_recording:
+                
+                rgb = np.zeros(self.viewport.width * self.viewport.height * 3, dtype=np.uint8)
+                depth = np.zeros(self.viewport.width * self.viewport.height, dtype=np.float32)
+
+                stamp = str(time.time())
+                mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
+                
+                mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
+                
+                self.image_list.append([stamp, rgb])
 
             glfw.swap_buffers(self.window)
             glfw.poll_events()
+        
+        if self.is_recording:
+            self.save_video()
+
+        glfw.terminate()
 
 
     def mouse_button_callback(self, window, button, action, mods):
 
         if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
-
             self.prev_x, self.prev_y = glfw.get_cursor_pos(window)
             self.mouse_left_btn_down = True
 
@@ -227,20 +247,29 @@ class PassiveDisplay:
                     self.followed_drone_ID += 1
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
+            """
+            Pass on this event
+            """
             self.key_b_callback()
 
         if key == glfw.KEY_D and action == glfw.RELEASE:
+            """
+            Pass on this event
+            """
             self.key_d_callback()
 
         if key == glfw.KEY_R and action == glfw.RELEASE:
+            """
+            Start recording
+            """
             if not self.is_recording:
                 glfw.set_window_title(window, self.title + " (Recording)")
                 self.is_recording = True
             else:
                 glfw.set_window_title(window, self.title)
                 self.is_recording = False
+                self.save_video()
 
-            
 
     def change_cam(self):
         """
@@ -250,6 +279,26 @@ class PassiveDisplay:
             self.activeCam = self.camFollow
         else:
             self.activeCam = self.cam
+    
+
+    def save_video(self):
+        """
+        Write saved images to hard disk as .mp4
+        """
+        print("[PassiveDisplay] Saving video...")
+        glfw.set_window_title(self.window, self.title + " (Saving video...)")
+        time_stamp = self.image_list[0][0].replace('.', '_')
+        out = cv2.VideoWriter(os.path.join('image_capture', 'output_' + time_stamp + '.mp4'),\
+              cv2.VideoWriter_fourcc(*'mp4v'), 30, (self.viewport.width, self.viewport.height))
+        for i in range(len(self.image_list)):
+            #print(self.image_list[i][0])
+            rgb = np.reshape(self.image_list[i][1], (self.viewport.height, self.viewport.width, 3))
+            rgb = cv2.cvtColor(np.flip(rgb, 0), cv2.COLOR_BGR2RGB)
+            out.write(rgb)
+        out.release()
+        self.image_list = []
+        print("[PassiveDisplay] Saved video")
+        glfw.set_window_title(self.window, self.title)
 
 
 def main():

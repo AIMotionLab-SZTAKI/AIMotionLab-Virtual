@@ -30,6 +30,8 @@ class PassiveDisplay:
         self.title = "Optitrack Scene"
         self.is_recording = False
         self.image_list = []
+        self.video_save_folder = "video_capture"
+        self.video_file_name_base = "output"
 
         # Connect to optitrack
         #if connect_to_optitrack:
@@ -286,9 +288,14 @@ class PassiveDisplay:
         Write saved images to hard disk as .mp4
         """
         print("[PassiveDisplay] Saving video...")
+        # checking for folder
+        if not os.path.exists(self.video_save_folder):
+            # then create folder
+            os.mkdir(self.video_save_folder)
+
         glfw.set_window_title(self.window, self.title + " (Saving video...)")
         time_stamp = self.image_list[0][0].replace('.', '_')
-        out = cv2.VideoWriter(os.path.join('image_capture', 'output_' + time_stamp + '.mp4'),\
+        out = cv2.VideoWriter(os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time_stamp + '.mp4'),\
               cv2.VideoWriter_fourcc(*'mp4v'), 30, (self.viewport.width, self.viewport.height))
         for i in range(len(self.image_list)):
             #print(self.image_list[i][0])

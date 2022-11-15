@@ -317,7 +317,7 @@ class PassiveDisplay:
             out.write(rgb)
         out.release()
         self.image_list = []
-        print("[PassiveDisplay] Saved video")
+        print("[PassiveDisplay] Saved video in " + os.path.join(os.getcwd(), self.video_save_folder))
         glfw.set_window_title(self.window, self.title)
 
 

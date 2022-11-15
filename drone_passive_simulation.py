@@ -332,11 +332,8 @@ class PassiveDisplay:
         print("[PassiveDisplay] Saved video in " + os.path.join(os.getcwd(), self.video_save_folder))
         glfw.set_window_title(self.window, self.title)
 
-<<<<<<< HEAD
-=======
 
 
->>>>>>> video_record
 """
 def main():
     display = PassiveDisplay("testEnvironment.xml")

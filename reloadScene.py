@@ -4,15 +4,14 @@ import glfw
 import os
 import numpy as np
 import time
-import imageio
+#import imageio
+import cv2
 
 def main():
     # Reading model data
     print(f'Working directory:  {os.getcwd()}\n')
 
-    img = imageio.imread("screenshot.png")
-
-    print(img.shape)
+    print(type(time.time()))
 
     xmlFileName = "built_scene.xml"
 
@@ -38,7 +37,7 @@ def main():
         return
 
     # Create a windowed mode window and its OpenGL context
-    window = glfw.create_window(640, 360, "Reloaded Scene", None, None)
+    window = glfw.create_window(1280, 720, "Reloaded Scene", None, None)
     if not window:
         glfw.terminate()
         return
@@ -66,6 +65,8 @@ def main():
     idx = 1 * 7 + 2
     #pos_z = data.qpos[idx]
 
+    image_list = []
+
 
     while not glfw.window_should_close(window):
         mujoco.mj_step(model, data, 1)
@@ -85,15 +86,28 @@ def main():
         
         mujoco.mjr_readPixels(rgb, depth, viewport, con)
 
-        rgb = np.reshape(rgb, (viewport.height, viewport.width, 3))
+        #rgb = np.reshape(rgb, (viewport.height, viewport.width, 3))
         #print(rgb.shape)
-        imageio.imwrite("image_capture/" + stamp + ".jpg", rgb)
+        #imageio.imwrite("image_capture/" + stamp + ".jpg", rgb)
         
+        image_list.append([stamp, rgb])
 
+    #image_list.sort(key=stamp_value)
+    out = cv2.VideoWriter(os.path.join('image_capture', 'output.mp4'), cv2.VideoWriter_fourcc(*'mp4v'), 30, (viewport.width, viewport.height))
+    for i in range(len(image_list)):
+      print(image_list[i][0])
+      rgb = np.reshape(image_list[i][1], (viewport.height, viewport.width, 3))
+      rgb = cv2.cvtColor(np.flip(rgb, 0), cv2.COLOR_BGR2RGB)
+      #imageio.imwrite("image_capture/" + image_list[i][0] + ".jpg", rgb)
+      out.write(rgb)
+    out.release()
 
 
     glfw.terminate()
 
+
+def stamp_value(input):
+  return input[0]
 
 # sets new position and orientation for a building specified by buildingName
 def setBuildingData(model, newPosition, newOrientation, buildingName: str):

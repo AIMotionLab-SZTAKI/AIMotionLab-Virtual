@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 import xml_generator
 import drone_passive_simulation
-import BuildingInputGui as bdg
+from BuildingInputGui import BuildingDataGui
 
 
 # open the base on which we'll build
@@ -10,7 +10,7 @@ xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 display = drone_passive_simulation.PassiveDisplay(xmlBaseFileName, False)
-display.set_drone_names()
+#display.set_drone_names()
 
 drone_counter = 0
 
@@ -22,7 +22,7 @@ pole_counter = 0
 
 def add_building():
     global scene
-    input_gui = bdg.BuildingDataGui()
+    input_gui = BuildingDataGui()
     input_gui.show()
 
     # add airport

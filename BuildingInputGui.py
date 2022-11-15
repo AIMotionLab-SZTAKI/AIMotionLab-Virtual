@@ -12,10 +12,6 @@ BUILDING_OPTIONS = [
     "Parking lot"
 ]
 
-def btnOk_on_press(gui):
-    gui.building, gui.position, gui.quaternion =\
-        gui.building_selected.get(), gui.entry_position.get(), gui.entry_quaternion.get()
-    gui.window.destroy()
 
 class BuildingDataGui:
     
@@ -28,9 +24,9 @@ class BuildingDataGui:
         self.position = ""
         self.quaternion = ""
         
-        tk.Label(self.window, text="Building").grid(row=0)
-        tk.Label(self.window, text="Position").grid(row=1)
-        tk.Label(self.window, text="Quaternion").grid(row=2)
+        tk.Label(self.window, text="Building ").grid(row=0)
+        tk.Label(self.window, text="Position ").grid(row=1)
+        tk.Label(self.window, text="Quaternion ").grid(row=2)
 
         self.building_selected = tk.StringVar()
         self.building_selected.set(BUILDING_OPTIONS[0])
@@ -44,8 +40,14 @@ class BuildingDataGui:
         self.entry_position.grid(row=1, column=1)
         self.entry_quaternion.grid(row=2, column=1)
 
-        tk.Button(self.window, text ="Ok", command = lambda: btnOk_on_press(self)).grid(row=3, column=1)
-        self.window.bind('<Return>', lambda event: btnOk_on_press(self))
+        tk.Button(self.window, text ="Ok", command = self.btnOk_on_press).grid(row=3, column=1)
+        self.window.bind('<Return>', lambda event: self.btnOk_on_press())
+
+        
+    def btnOk_on_press(self):
+        self.building, self.position, self.quaternion =\
+            self.building_selected.get(), self.entry_position.get(), self.entry_quaternion.get()
+        self.window.destroy()
     
     def show(self):
         #self.window.focus_force()

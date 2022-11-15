@@ -11,6 +11,7 @@ import numpy as np
 import time
 import mujocoHelper
 import cv2
+from DroneNameGui import DroneNameGui 
 
 
 class PassiveDisplay:
@@ -89,15 +90,12 @@ class PassiveDisplay:
         #print(self.data.qpos.size)
 
     def set_drone_names(self, *names):
-        drone_num = len(names)
-        if len(names) > self.DRONE_NUM:
-            print("Error: too many (" + str(drone_num) + ") drone names provided. Number of drones in the xml is: " + str(self.DRONE_NUM))
-            print('Last ' + str(len(names) - self.DRONE_NUM) + ' drone(s) ignored.')
-            drone_num = self.DRONE_NUM
+        if self.DRONE_NUM > 0:
+            gui = DroneNameGui(self.DRONE_NUM, self.droneNames)
+            gui.show()
+            self.droneNames = gui.drone_names
+            #print(self.droneNames)
 
-        self.droneNames = []
-        for i in range(drone_num):
-            self.droneNames.append(names[i])
     
 
     def set_key_b_callback(self, callback_function):
@@ -118,8 +116,8 @@ class PassiveDisplay:
         self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
         
         self.DRONE_NUM = int(self.data.qpos.size / 7)
-        self.droneNames = []
-        for i in range(self.DRONE_NUM):
+        
+        for i in range(len(self.droneNames), self.DRONE_NUM):
             self.droneNames.append("cf" + str(i + 1))
 
 
@@ -279,6 +277,9 @@ class PassiveDisplay:
         if key == glfw.KEY_C and action == glfw.RELEASE:
             self.connect_to_Optitrack()
 
+        if key == glfw.KEY_N and action == glfw.RELEASE:
+            self.set_drone_names()
+
 
     def connect_to_Optitrack(self):
         #self.connect_to_optitrack = True
@@ -320,13 +321,14 @@ class PassiveDisplay:
         print("[PassiveDisplay] Saved video in " + os.path.join(os.getcwd(), self.video_save_folder))
         glfw.set_window_title(self.window, self.title)
 
-
+"""
 def main():
     display = PassiveDisplay("testEnvironment.xml")
-    display.set_drone_names('cf4', 'cf3', 'cf10', 'cf1')
+    #display.set_drone_names('cf4', 'cf3', 'cf10', 'cf1')
     print(display.droneNames)
     display.run()
 
 
 if __name__ == '__main__':
     main()
+"""

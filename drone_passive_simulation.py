@@ -11,11 +11,8 @@ import numpy as np
 import time
 import mujocoHelper
 import cv2
-<<<<<<< HEAD
 from DroneNameGui import DroneNameGui 
-=======
 from util.util import sync
->>>>>>> video_record
 
 
 class PassiveDisplay:

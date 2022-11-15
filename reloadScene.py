@@ -1,15 +1,19 @@
+from email.mime import image
 import mujoco
 import glfw
 import os
 import numpy as np
 import time
-
+#import imageio
+import cv2
 
 def main():
     # Reading model data
     print(f'Working directory:  {os.getcwd()}\n')
 
-    xmlFileName = "testEnvironment.xml"
+    print(type(time.time()))
+
+    xmlFileName = "built_scene.xml"
 
     model = mujoco.MjModel.from_xml_path(xmlFileName)
 
@@ -18,13 +22,13 @@ def main():
     hospitalPos, hospitalQuat, postOfficePos, postOfficeQuat = loadBuildingData("building_positions.txt")
     pole1Pos, pole1Quat, pole2Pos, pole2Quat, pole3Pos, pole3Quat, pole4Pos, pole4Quat = loadPoleData("pole_positions.txt")
 
-    setBuildingData(model, hospitalPos, hospitalQuat, "hospital")
-    setBuildingData(model, postOfficePos, postOfficeQuat, "post_office")
+    #setBuildingData(model, hospitalPos, hospitalQuat, "hospital")
+    #setBuildingData(model, postOfficePos, postOfficeQuat, "post_office")
 
-    setBuildingData(model, pole1Pos, pole1Quat, "pole1")
-    setBuildingData(model, pole2Pos, pole2Quat, "pole2")
-    setBuildingData(model, pole3Pos, pole3Quat, "pole3")
-    setBuildingData(model, pole3Pos, pole3Quat, "pole4")
+    #setBuildingData(model, pole1Pos, pole1Quat, "pole1")
+    #setBuildingData(model, pole2Pos, pole2Quat, "pole2")
+    #setBuildingData(model, pole3Pos, pole3Quat, "pole3")
+    #setBuildingData(model, pole3Pos, pole3Quat, "pole4")
 
     #saveModelAsXml(model, "mod" + xmlFileName)
 
@@ -51,11 +55,17 @@ def main():
     scn = mujoco.MjvScene(model, maxgeom=50)
     con = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
+    #mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, con)
+
+    #print(con.currentBuffer)
+
     ## To obtain inertia matrix
     mujoco.mj_step(model, data)
 
     idx = 1 * 7 + 2
     #pos_z = data.qpos[idx]
+
+    image_list = []
 
 
     while not glfw.window_should_close(window):
@@ -67,17 +77,37 @@ def main():
 
         glfw.swap_buffers(window)
         glfw.poll_events()
+
+        rgb = np.zeros(viewport.width * viewport.height * 3, dtype=np.uint8)
+        depth = np.zeros(viewport.width * viewport.height, dtype=np.float32)
+
+        stamp = str(time.time())
+        mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, viewport, stamp, None, con)
         
-        #if pos_z < 0.5:
-          #pos_z += 0.01
-          #data.qpos[idx] = pos_z
+        mujoco.mjr_readPixels(rgb, depth, viewport, con)
 
-        #time.sleep(0.005)
+        #rgb = np.reshape(rgb, (viewport.height, viewport.width, 3))
+        #print(rgb.shape)
+        #imageio.imwrite("image_capture/" + stamp + ".jpg", rgb)
+        
+        image_list.append([stamp, rgb])
 
+    #image_list.sort(key=stamp_value)
+    out = cv2.VideoWriter(os.path.join('image_capture', 'output.mp4'), cv2.VideoWriter_fourcc(*'mp4v'), 30, (viewport.width, viewport.height))
+    for i in range(len(image_list)):
+      print(image_list[i][0])
+      rgb = np.reshape(image_list[i][1], (viewport.height, viewport.width, 3))
+      rgb = cv2.cvtColor(np.flip(rgb, 0), cv2.COLOR_BGR2RGB)
+      #imageio.imwrite("image_capture/" + image_list[i][0] + ".jpg", rgb)
+      out.write(rgb)
+    out.release()
 
 
     glfw.terminate()
 
+
+def stamp_value(input):
+  return input[0]
 
 # sets new position and orientation for a building specified by buildingName
 def setBuildingData(model, newPosition, newOrientation, buildingName: str):

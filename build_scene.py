@@ -10,6 +10,7 @@ xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 display = drone_passive_simulation.PassiveDisplay(xmlBaseFileName, False)
+display.set_drone_names()
 
 drone_counter = 0
 

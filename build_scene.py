@@ -6,7 +6,7 @@ from BuildingInputGui import BuildingDataGui
 
 
 # open the base on which we'll build
-xmlBaseFileName = "scene.xml"
+xmlBaseFileName = "built_scene.xml"
 save_filename = "built_scene.xml"
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 display = drone_passive_simulation.PassiveDisplay(xmlBaseFileName, False)

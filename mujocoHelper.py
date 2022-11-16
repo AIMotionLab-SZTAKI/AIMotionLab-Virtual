@@ -1,6 +1,49 @@
 import mujoco
 import math
 
+import numpy as np
+from collections import deque
+
+class LiveFilter:
+    """Base class for live filters.
+    """
+    def process(self, x):
+        # do not process NaNs
+        if np.isnan(x):
+            return x
+
+        return self._process(x)
+
+    def __call__(self, x):
+        return self.process(x)
+
+    def _process(self, x):
+        raise NotImplementedError("Derived class must implement _process")
+
+
+class LiveLFilter(LiveFilter):
+    def __init__(self, b, a):
+        """Initialize live filter based on difference equation.
+
+        Args:
+            b (array-like): numerator coefficients obtained from scipy.
+            a (array-like): denominator coefficients obtained from scipy.
+        """
+        self.b = b
+        self.a = a
+        self._xs = deque([0] * len(b), maxlen=len(b))
+        self._ys = deque([0] * (len(a) - 1), maxlen=len(a)-1)
+
+    def _process(self, x):
+        """Filter incoming data with standard difference equations.
+        """
+        self._xs.appendleft(x)
+        y = np.dot(self.b, self._xs) - np.dot(self.a[1:], self._ys)
+        y = y / self.a[0]
+        self._ys.appendleft(y)
+
+        return y
+
 def update_drone(data, droneID, position, orientation):
     """
     Update the position and orientation of a drone
@@ -39,11 +82,16 @@ def euler_from_quaternion(x, y, z, w):
 
     return roll_x, pitch_y, yaw_z  # in radians
 
-def update_follow_cam(qpos, droneID, cam):
+        
+
+def update_follow_cam(qpos, droneID, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None):
     """
     Update the position and orientation of the camera that follows the drone from behind
     qpos is the array in which the position and orientation of all the drones are stored
+
+    Smoothing the 2 angle signals with 4 low-pass filters
     """
+    MAX_CHANGE = 3
 
     startIdx = droneID * 7
     position = qpos[startIdx:startIdx + 3]
@@ -51,6 +99,29 @@ def update_follow_cam(qpos, droneID, cam):
 
     roll_x, pitch_y, yaw_z = euler_from_quaternion(orientation[0], orientation[1], orientation[2], orientation[3])
 
+    new_azim = -math.degrees(roll_x)
+    new_elev = -math.degrees(pitch_y) - 20
+
     cam.lookat = position
-    cam.azimuth = -math.degrees(roll_x)
-    cam.elevation = -math.degrees(pitch_y) - 20
+
+    if azim_filter_sin and azim_filter_cos:
+        cosa = math.cos(math.radians(new_azim))
+        sina = math.sin(math.radians(new_azim))
+
+        cosa = azim_filter_cos(cosa)
+        sina = azim_filter_sin(sina)
+
+        cam.azimuth = math.degrees(math.atan2(sina, cosa))
+
+    if elev_filter_sin and elev_filter_cos:
+        cosa = math.cos(math.radians(new_elev))
+        sina = math.sin(math.radians(new_elev))
+
+        cosa = elev_filter_cos(cosa)
+        sina = elev_filter_sin(sina)
+
+        cam.elevation = math.degrees(math.atan2(sina, cosa))
+
+    else:
+        cam.azimuth = new_azim
+        cam.elevation = new_elev

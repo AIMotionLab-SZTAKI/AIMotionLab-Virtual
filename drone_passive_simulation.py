@@ -1,7 +1,7 @@
 from ast import Pass
 import math
 
-#import motioncapture
+import motioncapture
 import time
 import numpy as np
 import mujoco
@@ -11,8 +11,10 @@ import numpy as np
 import time
 import mujocoHelper
 import cv2
-from DroneNameGui import DroneNameGui 
+from DroneNameGui import DroneNameGui
 from util.util import sync
+import scipy.signal
+from mujocoHelper import LiveLFilter
 
 
 class PassiveDisplay:
@@ -36,10 +38,19 @@ class PassiveDisplay:
         self.video_save_folder = "video_capture"
         self.video_file_name_base = "output"
 
+        self.timestep = 0.04
+        fs = 1 / self.timestep  # sampling rate, Hz
+        cutoff = 4
+        self.b, self.a = scipy.signal.iirfilter(4, Wn=cutoff, fs=fs, btype="low", ftype="butter")
+        self.azim_filter_sin = LiveLFilter(self.b, self.a)
+        self.azim_filter_cos = LiveLFilter(self.b, self.a)
+        self.elev_filter_sin = LiveLFilter(self.b, self.a)
+        self.elev_filter_cos = LiveLFilter(self.b, self.a)
+
         # Connect to optitrack
-        #if connect_to_optitrack:
-        #    self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
-        #    print("[PassiveDisplay] Connected to Optitrack")
+        if connect_to_optitrack:
+            self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
+            print("[PassiveDisplay] Connected to Optitrack")
 
         self.t1 = time.time()
 
@@ -126,30 +137,31 @@ class PassiveDisplay:
         # To obtain inertia matrix
         mujoco.mj_step(self.model, self.data)
 
-        self.timestep = 0.04
         i = 0
         start = time.time()
         while not glfw.window_should_close(self.window):
             
             # getting data from optitrack server
-            #if self.connect_to_optitrack:
+            if self.connect_to_optitrack:
 
-            #    self.mc.waitForNextFrame()
-            #    for name, obj in self.mc.rigidBodies.items():
+                self.mc.waitForNextFrame()
+                for name, obj in self.mc.rigidBodies.items():
 
                     # have to put rotation.w to the front because the order is different
-            #        drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+                    drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-            #        try:
-            #            idx = self.droneNames.index(name)
-            #        except ValueError:
-            #            idx = -1
+                    try:
+                        idx = self.droneNames.index(name)
+                    except ValueError:
+                        idx = -1
 
-            #        if idx >= 0:
-            #            mujocoHelper.update_drone(self.data, idx, obj.position, drone_orientation)
+                    if idx >= 0:
+                        mujocoHelper.update_drone(self.data, idx, obj.position, drone_orientation)
 
             if self.activeCam == self.camFollow and self.DRONE_NUM > 0:
-                mujocoHelper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow)
+                mujocoHelper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow,\
+                                               self.azim_filter_sin, self.azim_filter_cos,\
+                                               self.elev_filter_sin, self.elev_filter_cos)
 
             mujoco.mj_step(self.model, self.data, 1)
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)
@@ -258,6 +270,9 @@ class PassiveDisplay:
                     self.followed_drone_ID = 0
                 else:
                     self.followed_drone_ID += 1
+                self.azim_filter = LiveLFilter(self.b, self.a)
+                self.elev_filter = LiveLFilter(self.b, self.a)
+                mujocoHelper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow)
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
             """
@@ -291,9 +306,9 @@ class PassiveDisplay:
 
 
     def connect_to_Optitrack(self):
-        #self.connect_to_optitrack = True
-        #self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
-        #print("[PassiveDisplay] Connected to Optitrack")
+        self.connect_to_optitrack = True
+        self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
+        print("[PassiveDisplay] Connected to Optitrack")
         pass
 
     def change_cam(self):

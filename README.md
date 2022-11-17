@@ -1,7 +1,7 @@
 # 3D model of the test environment in the building
 
 ## Purpose
-Development of a simple model generator that can be used to add buildings and objects to the 3D scene. Currently the program supports the following objects:
+Development of a simple display and model generator that can be used to add buildings and objects to the 3D scene. Currently the program supports the following objects:
   * Drones
   * Hospital
   * Post office
@@ -16,7 +16,7 @@ Development of a simple model generator that can be used to add buildings and ob
 
 2.
 ```
-$ pip install -r requirements.txt
+$ pip install -e .
 ```
 3.
 ```
@@ -34,3 +34,15 @@ To add a building:
 To add drones:
   * Press 'd'
   * The drones will be added at hard-coded positions, because they will be updated anyway, once data streaming starts from Optitrack.
+
+To name drones:
+  * Press 'n'
+  * In the pop-up window enter the name of the drones that are 'ticked' in Motive
+  * Click ok, or hit enter
+
+To connect to Motive:
+  * Press 'c'
+
+To start and stop video recording:
+  * Press 'r'
+  * The location of the saved video will be printed to the terminal

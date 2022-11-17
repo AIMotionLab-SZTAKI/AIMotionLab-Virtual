@@ -37,6 +37,8 @@ class LiveLFilter(LiveFilter):
     def _process(self, x):
         """Filter incoming data with standard difference equations.
         """
+        #print("_xs: " + str(self._xs))
+        #print("_ys: " + str(self._ys))
         self._xs.appendleft(x)
         y = np.dot(self.b, self._xs) - np.dot(self.a[1:], self._ys)
         y = y / self.a[0]
@@ -89,7 +91,11 @@ def update_follow_cam(qpos, droneID, cam, azim_filter_sin=None, azim_filter_cos=
     Update the position and orientation of the camera that follows the drone from behind
     qpos is the array in which the position and orientation of all the drones are stored
 
-    Smoothing the 2 angle signals with 4 low-pass filters
+    Smoothing the 2 angle signals with 4 low-pass filters so that the camera would not shake.
+    It's not enough to only filter the angle signal, because when the drone turns,
+    the angle jumps from 180 degrees to -180 degrees, and the filter tries to smooth out
+    the jump (the camera ends up turning a 360). Instead, take the sine and the cosine of the
+    angle, filter them, and convert them back with atan2().
     """
     MAX_CHANGE = 3
 
@@ -113,6 +119,9 @@ def update_follow_cam(qpos, droneID, cam, azim_filter_sin=None, azim_filter_cos=
 
         cam.azimuth = math.degrees(math.atan2(sina, cosa))
 
+    else:
+        cam.azimuth = new_azim
+
     if elev_filter_sin and elev_filter_cos:
         cosa = math.cos(math.radians(new_elev))
         sina = math.sin(math.radians(new_elev))
@@ -123,5 +132,4 @@ def update_follow_cam(qpos, droneID, cam, azim_filter_sin=None, azim_filter_cos=
         cam.elevation = math.degrees(math.atan2(sina, cosa))
 
     else:
-        cam.azimuth = new_azim
         cam.elevation = new_elev

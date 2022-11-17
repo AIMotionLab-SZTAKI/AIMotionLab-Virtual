@@ -35,7 +35,7 @@ class PassiveDisplay:
         self.title = "Optitrack Scene"
         self.is_recording = False
         self.image_list = []
-        self.video_save_folder = "video_capture"
+        self.video_save_folder = os.path.join("..", "video_capture")
         self.video_file_name_base = "output"
 
         self.timestep = 0.04
@@ -344,7 +344,7 @@ class PassiveDisplay:
             out.write(rgb)
         out.release()
         self.image_list = []
-        print("[PassiveDisplay] Saved video in " + os.path.join(os.getcwd(), self.video_save_folder))
+        print("[PassiveDisplay] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
         glfw.set_window_title(self.window, self.title)
 
 

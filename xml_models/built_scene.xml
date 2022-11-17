@@ -1,0 +1,1 @@
+<mujoco><include file="../xml_models/scene.xml" /><worldbody><body name="hospital" pos="0 1 0" quat="1 0 0 0"><geom name="hospital" type="box" pos="0 0 0.445" size="0.1275 0.13 0.445" material="mat-hospital" /></body></worldbody><actuator /><sensor /></mujoco>

@@ -2,6 +2,7 @@ from setuptools import setup
 
 setup(name='mujoco-simulation',
       version='1.0.0',
+      py_modules=['gui', 'util'],
       install_requires=[
         'absl-py==1.2.0',
         'contourpy==1.0.5',

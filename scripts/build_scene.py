@@ -8,7 +8,7 @@ from gui.building_input_gui import BuildingDataGui
 
 # open the base on which we'll build
 xml_path = "../xml_models"
-xmlBaseFileName = "built_scene.xml"
+xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
 display = drone_passive_simulation.PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
@@ -38,7 +38,7 @@ def add_building():
                     splt_pos[2] = "0.01"
             input_gui.position = splt_pos[0] + " " + splt_pos[1] + " " + splt_pos[2]
             scene.add_airport(input_gui.position, input_gui.quaternion)
-            save_and_reload_model(scene, display, save_filename)
+            save_and_reload_model(scene, display, os.path.join(xml_path, save_filename))
     
     # add parking lot
     elif input_gui.building == "Parking lot":
@@ -51,19 +51,19 @@ def add_building():
                     splt_pos[2] = "0.01"
             input_gui.position = splt_pos[0] + " " + splt_pos[1] + " " + splt_pos[2]
             scene.add_parking_lot(input_gui.position, input_gui.quaternion)
-            save_and_reload_model(scene, display, save_filename)
+            save_and_reload_model(scene, display, os.path.join(xml_path, save_filename))
 
     # add hospital
     elif input_gui.building == "Hospital":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_hospital(input_gui.position, input_gui.quaternion)
-            save_and_reload_model(scene, display, save_filename)
+            save_and_reload_model(scene, display, os.path.join(xml_path, save_filename))
     
     # add post-office
     elif input_gui.building == "Post office":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_post_office(input_gui.position, input_gui.quaternion)
-            save_and_reload_model(scene, display, save_filename)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
 
     # add landing zone
     elif input_gui.building == "Landing zone":
@@ -78,7 +78,7 @@ def add_building():
     elif input_gui.building == "Sztaki landing zone":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_tall_landing_zone(input_gui.position, input_gui.quaternion)
-            save_and_reload_model(scene, display, save_filename)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     # add pole
     elif input_gui.building == "Pole":
@@ -87,7 +87,7 @@ def add_building():
         pole_counter += 1
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_pole(p_name, input_gui.position, input_gui.quaternion)
-            save_and_reload_model(scene, display, save_filename)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     else:
         print("Non-existent building")
@@ -101,7 +101,7 @@ def add_drone():
     if drone_counter < 4:
         drone_name = "drone" + str(drone_counter)
         scene.add_drone(drone_name, drone_positions[drone_counter], drone_colors[drone_counter])
-        save_and_reload_model(scene, display, os.path.join(xml_path, xmlBaseFileName))
+        save_and_reload_model(scene, display, os.path.join(xml_path, save_filename))
         drone_counter += 1
 
 

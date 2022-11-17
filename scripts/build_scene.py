@@ -1,15 +1,17 @@
 from dataclasses import dataclass
 import numpy as np
-import xml_generator
+import os
+from util import xml_generator
 import drone_passive_simulation
-from BuildingInputGui import BuildingDataGui
+from gui.building_input_gui import BuildingDataGui
 
 
 # open the base on which we'll build
+xml_path = "../xml_models"
 xmlBaseFileName = "built_scene.xml"
 save_filename = "built_scene.xml"
-scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
-display = drone_passive_simulation.PassiveDisplay(xmlBaseFileName, False)
+scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
+display = drone_passive_simulation.PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
 #display.set_drone_names()
 
 drone_counter = 0
@@ -99,7 +101,7 @@ def add_drone():
     if drone_counter < 4:
         drone_name = "drone" + str(drone_counter)
         scene.add_drone(drone_name, drone_positions[drone_counter], drone_colors[drone_counter])
-        save_and_reload_model(scene, display, save_filename)
+        save_and_reload_model(scene, display, os.path.join(xml_path, xmlBaseFileName))
         drone_counter += 1
 
 

@@ -13,14 +13,14 @@ def main():
 
     print(type(time.time()))
 
-    xmlFileName = "built_scene.xml"
+    xmlFileName = "../xml_models/built_scene.xml"
 
     model = mujoco.MjModel.from_xml_path(xmlFileName)
 
     data = mujoco.MjData(model)
 
-    hospitalPos, hospitalQuat, postOfficePos, postOfficeQuat = loadBuildingData("building_positions.txt")
-    pole1Pos, pole1Quat, pole2Pos, pole2Quat, pole3Pos, pole3Quat, pole4Pos, pole4Quat = loadPoleData("pole_positions.txt")
+    #hospitalPos, hospitalQuat, postOfficePos, postOfficeQuat = loadBuildingData("building_positions.txt")
+    #pole1Pos, pole1Quat, pole2Pos, pole2Quat, pole3Pos, pole3Quat, pole4Pos, pole4Quat = loadPoleData("pole_positions.txt")
 
     #setBuildingData(model, hospitalPos, hospitalQuat, "hospital")
     #setBuildingData(model, postOfficePos, postOfficeQuat, "post_office")

@@ -9,12 +9,12 @@ import glfw
 import os
 import numpy as np
 import time
-import mujocoHelper
+from util import mujoco_helper
 import cv2
-from DroneNameGui import DroneNameGui
+from gui.drone_name_gui import DroneNameGui
 from util.util import sync
 import scipy.signal
-from mujocoHelper import LiveLFilter
+from util.mujoco_helper import LiveLFilter
 
 
 class PassiveDisplay:
@@ -156,10 +156,10 @@ class PassiveDisplay:
                         idx = -1
 
                     if idx >= 0:
-                        mujocoHelper.update_drone(self.data, idx, obj.position, drone_orientation)
+                        mujoco_helper.update_drone(self.data, idx, obj.position, drone_orientation)
 
             if self.activeCam == self.camFollow and self.DRONE_NUM > 0:
-                mujocoHelper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow,\
+                mujoco_helper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow,\
                                                self.azim_filter_sin, self.azim_filter_cos,\
                                                self.elev_filter_sin, self.elev_filter_cos)
 
@@ -272,7 +272,7 @@ class PassiveDisplay:
                     self.followed_drone_ID += 1
                 self.azim_filter = LiveLFilter(self.b, self.a)
                 self.elev_filter = LiveLFilter(self.b, self.a)
-                mujocoHelper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow)
+                mujoco_helper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow)
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
             """
@@ -351,7 +351,7 @@ class PassiveDisplay:
 
 """
 def main():
-    display = PassiveDisplay("testEnvironment.xml")
+    display = PassiveDisplay("../xml_models/testEnvironment.xml")
     #display.set_drone_names('cf4', 'cf3', 'cf10', 'cf1')
     print(display.droneNames)
     display.run()

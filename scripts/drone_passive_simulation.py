@@ -22,6 +22,10 @@ class PassiveDisplay:
     def __init__(self, xml_file_name, connect_to_optitrack=True):
         print(f'Working directory:  {os.getcwd()}\n')
 
+        self.key_b_callback = None
+        self.key_d_callback = None
+        self.key_l_callback = None
+
         self.connect_to_optitrack = connect_to_optitrack
 
         self.cam = mujoco.MjvCamera()
@@ -108,7 +112,6 @@ class PassiveDisplay:
             self.droneNames = gui.drone_names
             #print(self.droneNames)
 
-    
 
     def set_key_b_callback(self, callback_function):
         self.key_b_callback = callback_function
@@ -116,7 +119,11 @@ class PassiveDisplay:
 
     def set_key_d_callback(self, callback_function):
         self.key_d_callback = callback_function
-    
+
+
+    def set_key_l_callback(self, callback_function):
+        self.key_l_callback = callback_function
+
 
     def reload_model(self, xml_file_name):
         self.xmlFileName = xml_file_name
@@ -278,13 +285,15 @@ class PassiveDisplay:
             """
             Pass on this event
             """
-            self.key_b_callback()
+            if self.key_b_callback:
+                self.key_b_callback()
 
         if key == glfw.KEY_D and action == glfw.RELEASE:
             """
             Pass on this event
             """
-            self.key_d_callback()
+            if self.key_d_callback:
+                self.key_d_callback()
 
         if key == glfw.KEY_R and action == glfw.RELEASE:
             """
@@ -303,6 +312,13 @@ class PassiveDisplay:
 
         if key == glfw.KEY_N and action == glfw.RELEASE:
             self.set_drone_names()
+
+        if key == glfw.KEY_L and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_l_callback:
+                self.key_l_callback()
 
 
     def connect_to_Optitrack(self):

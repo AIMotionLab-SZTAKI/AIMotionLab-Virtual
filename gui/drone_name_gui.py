@@ -31,10 +31,21 @@ class DroneNameGui:
     def btnOk_on_press(self):
         for i in range(len(self.entries)):
             self.drone_names.append(self.entries[i].get())
+        self.window.quit()
         self.window.destroy()
-    
+        #print(self.drone_names)
+
+    def on_closing(self):
+        for i in range(len(self.entries)):
+            self.drone_names.append(self.entries[i].get())
+        self.window.quit()
+        self.window.destroy()
+
+
     def show(self):
         #self.window.focus_force()
         self.entries[0].focus_force()
+
+        self.window.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.window.mainloop()
 

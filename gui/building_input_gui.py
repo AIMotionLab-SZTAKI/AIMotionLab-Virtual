@@ -47,9 +47,16 @@ class BuildingDataGui:
     def btnOk_on_press(self):
         self.building, self.position, self.quaternion =\
             self.building_selected.get(), self.entry_position.get(), self.entry_quaternion.get()
+        self.window.quit()
+        self.window.destroy()
+
+    def on_closing(self):
+        self.window.quit()
         self.window.destroy()
     
     def show(self):
         #self.window.focus_force()
         self.opt_building.focus_force()
+
+        self.window.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.window.mainloop()

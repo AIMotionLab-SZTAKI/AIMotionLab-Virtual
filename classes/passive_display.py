@@ -24,7 +24,6 @@ class PassiveDisplay(Display):
 
         super().__init__(xml_file_name, connect_to_optitrack)
 
-
     def run(self):
         # To obtain inertia matrix
         mujoco.mj_step(self.model, self.data)

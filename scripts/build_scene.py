@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 import os
 from util import xml_generator
-import drone_passive_simulation
+from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingDataGui
 
 
@@ -11,7 +11,7 @@ xml_path = "../xml_models"
 xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
-display = drone_passive_simulation.PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
+display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
 #display.set_drone_names()
 
 drone_counter = 0

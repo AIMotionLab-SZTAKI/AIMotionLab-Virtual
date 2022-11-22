@@ -15,7 +15,7 @@ from gui.drone_name_gui import DroneNameGui
 from util.util import sync
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
-from mujoco_display import Display
+from classes.mujoco_display import Display
 
 
 class PassiveDisplay(Display):

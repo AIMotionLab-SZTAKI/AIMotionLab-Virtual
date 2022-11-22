@@ -128,6 +128,8 @@ class Display:
         self.scn = mujoco.MjvScene(self.model, maxgeom=MAX_GEOM)
         self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
+    def glfw_window_should_close(self):
+        return glfw.window_should_close(self.window)
     
     def reload_model(self, xml_file_name):
         

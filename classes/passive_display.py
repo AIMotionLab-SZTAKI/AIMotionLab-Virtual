@@ -31,7 +31,7 @@ class PassiveDisplay(Display):
 
         i = 0
         start = time.time()
-        while not glfw.window_should_close(self.window):
+        while not self.glfw_window_should_close():
             
             # getting data from optitrack server
             if self.connect_to_optitrack:

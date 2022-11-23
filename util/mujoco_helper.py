@@ -77,7 +77,7 @@ def get_joint_name_list(mjmodel: mujoco.MjModel):
 
 def get_body_name_list(mjmodel: mujoco.MjModel):
     """
-    Create a list of valid joint names of a mujoco model
+    Create a list of valid body names of a mujoco model
     """
     n = mjmodel.nbody
     name_list = []

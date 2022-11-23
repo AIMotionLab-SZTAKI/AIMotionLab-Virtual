@@ -18,6 +18,7 @@ def main():
 
     data = mujoco.MjData(model)
 
+
     #mujoco.mj_printData(model, data, "data.txt")
 
     print("valid body names: " + str(mujoco_helper.get_body_name_list(model)))

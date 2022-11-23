@@ -14,11 +14,19 @@ Development of a simple display and model generator that can be used to add buil
 ## Installation
 1. Create and activate a virtual environment
 
-2.
+2. Prerequisite for motioncapture (haven't been able to get it to work on windows):
+```
+sudo apt install libboost-system-dev libboost-thread-dev libeigen3-dev ninja-build
+```
+3.
 ```
 $ pip install -e .
 ```
-3.
+4. On Windows
+```
+pip install windows-curses
+```
+5.
 ```
 $ python build_scene.py
 ```

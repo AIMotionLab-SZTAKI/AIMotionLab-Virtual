@@ -29,7 +29,7 @@ while not simulator.glfw_window_should_close():
 
     simulator.log()
 
-simulator.plot()
+simulator.plot_log()
 
 simulator.save_log()
 

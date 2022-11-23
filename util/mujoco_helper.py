@@ -62,6 +62,32 @@ def update_drone(data, droneID, position, orientation):
     data.qpos[startIdx + 3:startIdx + 7] = orientation
 
 
+def get_joint_name_list(mjmodel: mujoco.MjModel):
+    """
+    Create a list of valid joint names of a mujoco model
+    """
+    n = mjmodel.njnt
+    name_list = []
+    for i in range(n):
+        jnt_name = mjmodel.joint(i).name
+        if jnt_name != "":
+            name_list.append(jnt_name)
+    
+    return name_list
+
+def get_body_name_list(mjmodel: mujoco.MjModel):
+    """
+    Create a list of valid joint names of a mujoco model
+    """
+    n = mjmodel.nbody
+    name_list = []
+    for i in range(n):
+        jnt_name = mjmodel.body(i).name
+        if jnt_name != "":
+            name_list.append(jnt_name)
+    
+    return name_list
+
 def euler_from_quaternion(x, y, z, w):
     """
     Convert a quaternion into euler angles (roll, pitch, yaw)

@@ -29,7 +29,7 @@ class ActiveSimulator(Display):
 
         self.record_video = record_video
     
-    def update(self, state):
+    def update(self):
         
         # getting data from optitrack server
         if self.connect_to_optitrack:
@@ -74,6 +74,17 @@ class ActiveSimulator(Display):
 
         glfw.swap_buffers(self.window)
         glfw.poll_events()
+
+        return self.data
+    
+    def log():
+        pass
+
+    def plot_log():
+        pass
+
+    def save_log():
+        pass
 
     def close(self):
         

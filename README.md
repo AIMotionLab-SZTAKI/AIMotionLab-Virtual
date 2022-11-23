@@ -16,7 +16,7 @@ Development of a simple display and model generator that can be used to add buil
 
 2. Prerequisite for motioncapture (haven't been able to get it to work on windows):
 ```
-sudo apt install libboost-system-dev libboost-thread-dev libeigen3-dev ninja-build
+$ sudo apt install libboost-system-dev libboost-thread-dev libeigen3-dev ninja-build
 ```
 3.
 ```
@@ -24,7 +24,7 @@ $ pip install -e .
 ```
 4. On Windows
 ```
-pip install windows-curses
+$ pip install windows-curses
 ```
 5.
 ```

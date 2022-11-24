@@ -1,0 +1,100 @@
+<mujoco>
+    <include file="../xml_models\scene.xml" />
+    <worldbody>
+        <body name="virtdrone_hooked_1" pos="-0.69 0 1.5">
+            <inertial pos="0 0 0" diaginertia="0.082 0.085 0.138" mass="4.34"/>
+            <joint type="free" name="virtdrone_hooked_1"/>
+            <geom name="virtdrone_hooked_1" type="mesh" pos="0 0 -0.05" mesh="drone"/>
+            <site name="virtdrone_hooked_1_cog" pos="0 0 0"/>
+            <body name="rod1" pos="0 0 0" euler="0 0 0">
+                <geom type="cylinder" fromto="0 0 0  0 0 -0.4" size="0.002" mass="0.00"/>
+                <site name="rod_end1" pos="0 0 -0.4" type="sphere" size="0.002"/>
+                <joint name="virtdrone_hooked_1_hook" axis="0 1 0" pos="0 0 0" damping="0.001"/>
+                <body name="virtdrone_hooked_1_hook" pos="0 0 -0.4" euler="0 3.141592 -1.57">
+                    <geom type="capsule" pos="0 0 0.02" size="0.002 0.02" mass="0.05"/>
+                    <geom type="capsule" pos="0 0.01299 0.04750" euler="-1.04720 0 0" size="0.0035 0.01800" mass="0.0001"/>
+                    <geom type="capsule" pos="0 0.02598 0.07000" euler="0.00000 0 0" size="0.0035 0.01800" mass="0.0001"/>
+                    <geom type="capsule" pos="0 0.01299 0.09250" euler="1.04720 0 0" size="0.0035 0.01800" mass="0.0001"/>
+                    <geom type="capsule" pos="0 -0.01299 0.09250" euler="2.09440 0 0" size="0.0035 0.01800" mass="0.0001"/>
+
+                </body>
+            </body>
+        </body>
+        <body name="virtdrone_hooked_0" pos="0.69 0 1.5">
+            <inertial pos="0 0 0" diaginertia="0.082 0.085 0.138" mass="4.34"/>
+            <joint type="free" name="virtdrone_hooked_0"/>
+            <geom name="virtdrone_hooked_0" type="mesh" pos="0 0 -0.05" mesh="drone"/>
+            <site name="virtdrone_hooked_0_cog" pos="0 0 0"/>
+            <body name="rod0" pos="0 0 0" euler="0 0 0">
+                <geom type="cylinder" fromto="0 0 0  0 0 -0.4" size="0.002" mass="0.00"/>
+                <site name="rod_end0" pos="0 0 -0.4" type="sphere" size="0.002"/>
+                <joint name="virtdrone_hooked_0_hook" axis="0 1 0" pos="0 0 0" damping="0.001"/>
+                <body name="hook0" pos="0 0 -0.4" euler="0 3.141592 -1.57">
+                <geom type="capsule" pos="0 0 0.02" size="0.002 0.02" mass="0.05"/>
+
+                <geom type="capsule" pos="0 0.01299 0.04750" euler="-1.04720 0 0" size="0.0035 0.01800" mass="0.0001"/>
+                <geom type="capsule" pos="0 0.02598 0.07000" euler="0.00000 0 0" size="0.0035 0.01800" mass="0.0001"/>
+                <geom type="capsule" pos="0 0.01299 0.09250" euler="1.04720 0 0" size="0.0035 0.01800" mass="0.0001"/>
+                <geom type="capsule" pos="0 -0.01299 0.09250" euler="2.09440 0 0" size="0.0035 0.01800" mass="0.0001"/>
+
+                </body>
+            </body>
+                
+        </body>
+        <body name="realdrone_hooked_0" pos="0.69 -0.69 1.5">
+            <inertial pos="0 0 0" diaginertia="0.082 0.085 0.138" mass="4.34"/>
+            <joint type="free" name="realdrone_hooked_0"/>
+            <geom name="realdrone_hooked_0" type="mesh" pos="0 0 -0.05" mesh="drone"/>
+            <site name="realdrone_hooked_0_cog" pos="0 0 0"/>
+            <body pos="0 0 0" euler="0 0 0">
+                <geom type="cylinder" fromto="0 0 0  0 0 -0.4" size="0.002" mass="0.00"/>
+                <site name="realdrone_hooked_0_rod_end" pos="0 0 -0.4" type="sphere" size="0.002"/>
+                <joint name="realdrone_hooked_0_hook" axis="0 1 0" pos="0 0 0" damping="0.001"/>
+                <body name="realdrone_hooked_0_hook" pos="0 0 -0.4" euler="0 3.141592 -1.57">
+                <geom type="capsule" pos="0 0 0.02" size="0.002 0.02" mass="0.05"/>
+
+                <geom type="capsule" pos="0 0.01299 0.04750" euler="-1.04720 0 0" size="0.0035 0.01800" mass="0.0001"/>
+                <geom type="capsule" pos="0 0.02598 0.07000" euler="0.00000 0 0" size="0.0035 0.01800" mass="0.0001"/>
+                <geom type="capsule" pos="0 0.01299 0.09250" euler="1.04720 0 0" size="0.0035 0.01800" mass="0.0001"/>
+                <geom type="capsule" pos="0 -0.01299 0.09250" euler="2.09440 0 0" size="0.0035 0.01800" mass="0.0001"/>
+
+                </body>
+            </body>
+                
+        </body>
+        
+        <body name="virtdrone_0" pos="0.69 0.69 1.5">
+            <inertial pos="0 0 0" diaginertia="0.082 0.085 0.138" mass="4.34"/>
+            <joint type="free" name="virtdrone_0"/>
+            <geom name="virtdrone_0" type="mesh" pos="0 0 -0.05" mesh="drone"/>
+            <site name="virtdrone_0_cog" pos="0 0 0"/>
+                
+        </body>
+        
+        <body name="hospital" pos="0 1 0" quat="1 0 0 0">
+            <geom name="hospital" type="box" pos="0 0 0.445" size="0.1275 0.13 0.445" material="mat-hospital" />
+        </body>
+    </worldbody>
+  <actuator>
+      <general site="virtdrone_hooked_0_cog" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 67.2"/>
+      <general site="virtdrone_hooked_0_cog" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-6 6"/>
+      <general site="virtdrone_hooked_0_cog" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-6 6"/>
+      <general site="virtdrone_hooked_0_cog" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-1.5 1.5"/>
+      <general site="virtdrone_hooked_1_cog" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 67.2"/>
+      <general site="virtdrone_hooked_1_cog" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-6 6"/>
+      <general site="virtdrone_hooked_1_cog" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-6 6"/>
+      <general site="virtdrone_hooked_1_cog" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-1.5 1.5"/>
+      <general site="virtdrone_0_cog" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 67.2"/>
+      <general site="virtdrone_0_cog" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-6 6"/>
+      <general site="virtdrone_0_cog" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-6 6"/>
+      <general site="virtdrone_0_cog" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-1.5 1.5"/>
+      <general site="realdrone_hooked_0_cog" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 67.2"/>
+      <general site="realdrone_hooked_0_cog" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-6 6"/>
+      <general site="realdrone_hooked_0_cog" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-6 6"/>
+      <general site="realdrone_hooked_0_cog" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-1.5 1.5"/>
+  </actuator>
+  <sensor>
+      <gyro name="virtdrone_hooked_0" site="virtdrone_hooked_0_cog"/>
+      <gyro name="virtdrone_hooked_1" site="virtdrone_hooked_1_cog"/>
+  </sensor>
+</mujoco>

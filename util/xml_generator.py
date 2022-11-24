@@ -14,6 +14,11 @@ class SceneXmlGenerator:
         self.post_office = None
         self.tall_landing_zone = None
 
+        self.__virtdrone_cntr = 0
+        self.__virtdrone_hooked_cntr = 0
+        self.__realdrone_cntr = 0
+        self.__realdrone_hooked_cntr = 0
+
 
     def add_airport(self, pos, quat=None):
         if self.airport is None:
@@ -65,15 +70,44 @@ class SceneXmlGenerator:
         return pole
 
 
-    def add_drone(self, name, pos, color):
-        site_name = name + "_COG"
+    def add_drone(self, pos, quat, color, is_virtual = True, is_hooked = False):
 
-        drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos)
+        if is_virtual:
+
+            if is_hooked:
+                name = "virtdrone_hooked_" + str(self.__virtdrone_hooked_cntr)
+
+                self.__virtdrone_hooked_cntr += 1
+
+
+            else:
+                name = "virtdrone_" + str(self.__virtdrone_cntr)
+
+                self.__virtdrone_cntr += 1
+        
+        else:
+            if is_hooked:
+                name = "realdrone_hooked_" + str(self.__realdrone_hooked_cntr)
+
+                self.__realdrone_hooked_cntr += 1
+
+            else:
+                name = "realdrone_" + str(self.__realdrone_cntr)
+
+                self.__realdrone_cntr += 1
+
+        
+        site_name = name + "_cog"
+    
+        drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
         ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.4e-5 1.4e-5 2.17e-5", mass="0.028")
-        ET.SubElement(drone, "joint", type="free")
+        ET.SubElement(drone, "joint", name=name, type="free")
         ET.SubElement(drone, "geom", name=name, type="mesh", pos="0 0 0", mesh="drone", rgba=color)
         ET.SubElement(drone, "site", name=site_name, pos="0 0 0")
 
+        if is_hooked:
+            self.add_hook_to_drone(drone, name)
+        
         ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 1 0 0 0", ctrllimited="true", ctrlrange="0 0.64")
         ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 1 0 0", ctrllimited="true", ctrlrange="-0.01 0.01")
         ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-0.01 0.01")
@@ -82,6 +116,20 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "gyro", site=site_name)
 
         return drone
+
+    def add_hook_to_drone(self, drone, drone_name):
+        
+        rod = ET.SubElement(drone, "body", name=drone_name + "_rod" "body", pos="0 0 0")
+        ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.002", mass="0.00")
+        ET.SubElement(rod, "site", name=drone_name + "_rod_end", pos="0 0 -0.4", type="sphere", size="0.002")
+        ET.SubElement(rod, "joint", name=drone_name + "_hook", axis="0 1 0", pos="0 0 0", damping="0.001")
+        hook = ET.SubElement(rod, "body", name=drone_name + "_hook", pos="0 0 -0.4", euler="0 3.141592 -1.57")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02", mass="0.05")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.04750", euler="-1.04720 0 0", size="0.0035 0.01800", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02598 0.07000", euler="0.00000 0 0", size="0.0035 0.01800", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.09250", euler="1.04720 0 0", size="0.0035 0.01800", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01299 0.09250", euler="2.09440 0 0", size="0.0035 0.01800", mass="0.0001")
+
 
 
     def add_hospital(self, pos, quat=None):
@@ -145,7 +193,7 @@ class SceneXmlGenerator:
     def save_xml(self, file_name):
         
         tree = ET.ElementTree(self.root)
-        # ET.indent(tree, space="\t", level=0) # uncomment this if python version >= 3.9
+        ET.indent(tree, space="\t", level=0) # uncomment this if python version >= 3.9
         tree.write(file_name)
 
 

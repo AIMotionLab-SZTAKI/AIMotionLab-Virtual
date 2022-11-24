@@ -8,7 +8,7 @@ import classes.drone as drone
 
 
 # init simulator
-simulator = ActiveSimulator(os.path.join("..", "xml_models", "test_scene.xml"), record_video=[0, 1], connect_to_optitrack=False)
+simulator = ActiveSimulator(os.path.join("..", "xml_models", "built_scene.xml"), record_video=[0, 1], connect_to_optitrack=False)
 
 for d in simulator.drones:
     d.print_info()

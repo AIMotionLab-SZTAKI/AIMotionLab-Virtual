@@ -4,6 +4,7 @@ import os
 from util import xml_generator
 from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingDataGui
+from gui.drone_input_gui import DroneInputGui
 
 
 # open the base on which we'll build
@@ -18,6 +19,9 @@ drone_counter = 0
 
 drone_positions = ["-1 -1 0.5", "1 -1 0.5", "-1 1 0.5", "1 1 0.5"]
 drone_colors = ["0.1 0.9 0.1 1", "0.9 0.1 0.1 1", "0.1 0.1 0.9 1", "0.5 0.5 0.1 1"]
+
+RED_COLOR = "0.8 0.2 0.2 1.0"
+BLUE_COLOR = "0.2 0.2 0.8 1.0"
 
 landing_zone_counter = 0
 pole_counter = 0
@@ -95,14 +99,30 @@ def add_building():
 
     
 def add_drone():
-    global scene, drone_counter
     # add drone at hard-coded positions
     # they'll be updated as soon as Optitrack data arrives
-    if drone_counter < 4:
-        drone_name = "drone" + str(drone_counter)
-        scene.add_drone(drone_name, drone_positions[drone_counter], drone_colors[drone_counter])
-        save_and_reload_model(scene, display, os.path.join(xml_path, save_filename))
-        drone_counter += 1
+    input_gui = DroneInputGui()
+    input_gui.show()
+    if input_gui.drone_type == "Virtual":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, False)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.drone_type == "Virtual with hook":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, True)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.drone_type == "Real":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, False)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.drone_type == "Real with hook":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    
+    else:
+        print(input_gui.drone_type)
+        print("Non-existent drone type " + input_gui.drone_type)
 
 
 def save_and_reload_model(scene, display, save_filename):

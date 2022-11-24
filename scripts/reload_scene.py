@@ -7,6 +7,8 @@ import time
 #import imageio
 import cv2
 import util.mujoco_helper as mujoco_helper
+import classes.drone as drone
+
 
 def main():
     # Reading model data
@@ -18,17 +20,24 @@ def main():
 
     data = mujoco.MjData(model)
 
-
     #mujoco.mj_printData(model, data, "data.txt")
 
-    print("valid body names: " + str(mujoco_helper.get_body_name_list(model)))
-    print("valid joint names: " + str(mujoco_helper.get_joint_name_list(model)))
+    joint_names = mujoco_helper.get_joint_name_list(model)
 
-    for i in range(int(len(data.qpos) / 7)):
-      #idx_start = i * 7
-      #print(data.qpos[idx_start : idx_start + 7])
-      pass
-    
+    #print("valid body names: " + str(mujoco_helper.get_body_name_list(model)))
+    #print("valid geom names: " + str(mujoco_helper.get_geom_name_list(model)))
+
+    print("Valid joint names:")
+    for jname in joint_names:
+      print("\t" + jname)
+      
+
+    drones = drone.Drone.parse_drones(data, joint_names)
+
+    for d in drones:
+        print()
+        d.print_names()
+        print("qpos: " + str(d.get_qpos()))
 
     # Initialize the library
     if not glfw.init():
@@ -46,18 +55,18 @@ def main():
     # initialize visualization data structures
     cam = mujoco.MjvCamera()
     cam.azimuth, cam.elevation = 180, -30
-    cam.lookat,  cam.distance  = [0, 0, 0], 3
-    
+    cam.lookat,  cam.distance = [0, 0, 0], 3
+
     pert = mujoco.MjvPerturb()
     opt = mujoco.MjvOption()
-    scn = mujoco.MjvScene(model, maxgeom=50)
+    scn = mujoco.MjvScene(model, maxgeom=200)
     con = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
     #mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, con)
 
-    #print(con.currentBuffer)
+    # print(con.currentBuffer)
 
-    ## To obtain inertia matrix
+    # To obtain inertia matrix
     mujoco.mj_step(model, data)
 
     idx = 1 * 7 + 2
@@ -65,12 +74,12 @@ def main():
 
     image_list = []
 
-
     while not glfw.window_should_close(window):
         mujoco.mj_step(model, data, 1)
-        viewport = mujoco.MjrRect(0,0,0,0)
+        viewport = mujoco.MjrRect(0, 0, 0, 0)
         viewport.width, viewport.height = glfw.get_framebuffer_size(window)
-        mujoco.mjv_updateScene(model, data, opt, pert=None, cam=cam, catmask=mujoco.mjtCatBit.mjCAT_ALL, scn=scn)
+        mujoco.mjv_updateScene(model, data, opt, pert=None,
+                               cam=cam, catmask=mujoco.mjtCatBit.mjCAT_ALL, scn=scn)
         mujoco.mjr_render(viewport, scn, con)
 
         glfw.swap_buffers(window)
@@ -79,56 +88,59 @@ def main():
         rgb = np.zeros(viewport.width * viewport.height * 3, dtype=np.uint8)
         depth = np.zeros(viewport.width * viewport.height, dtype=np.float32)
 
-        stamp = str(time.time())
-        mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, viewport, stamp, None, con)
-        
-        mujoco.mjr_readPixels(rgb, depth, viewport, con)
+        #stamp = str(time.time())
+        #mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, viewport, stamp, None, con)
+
+        #mujoco.mjr_readPixels(rgb, depth, viewport, con)
 
         #rgb = np.reshape(rgb, (viewport.height, viewport.width, 3))
-        #print(rgb.shape)
+        # print(rgb.shape)
         #imageio.imwrite("image_capture/" + stamp + ".jpg", rgb)
-        
+
         #image_list.append([stamp, rgb])
 
-    #image_list.sort(key=stamp_value)
+    # image_list.sort(key=stamp_value)
     #out = cv2.VideoWriter(os.path.join('image_capture', 'output.mp4'), cv2.VideoWriter_fourcc(*'mp4v'), 30, (viewport.width, viewport.height))
-    #for i in range(len(image_list)):
+    # for i in range(len(image_list)):
     #  print(image_list[i][0])
     #  rgb = np.reshape(image_list[i][1], (viewport.height, viewport.width, 3))
     #  rgb = cv2.cvtColor(np.flip(rgb, 0), cv2.COLOR_BGR2RGB)
-      #imageio.imwrite("image_capture/" + image_list[i][0] + ".jpg", rgb)
+        #imageio.imwrite("image_capture/" + image_list[i][0] + ".jpg", rgb)
     #  out.write(rgb)
-    #out.release()
-
+    # out.release()
 
     glfw.terminate()
 
 
 def stamp_value(input):
-  return input[0]
+    return input[0]
 
 # sets new position and orientation for a building specified by buildingName
+
+
 def setBuildingData(model, newPosition, newOrientation, buildingName: str):
-  building = model.body(buildingName)
-  building.pos = newPosition
-  building.quat = newOrientation
+    building = model.body(buildingName)
+    building.pos = newPosition
+    building.quat = newOrientation
+
 
 def saveModelAsXml(model, fileName):
-  mujoco.mj_saveLastXML(fileName, model)
+    mujoco.mj_saveLastXML(fileName, model)
 
 
 def loadBuildingData(fileName):
-  hospitalData, postOfficeData = np.loadtxt(fileName, delimiter=",")
-  # the two arrays should have 7 elements
-  # first three numbers are position, the remaining 4 are orientation as quaternion
-  return hospitalData[:3], hospitalData[3:], postOfficeData[:3], postOfficeData[3:]
+    hospitalData, postOfficeData = np.loadtxt(fileName, delimiter=",")
+    # the two arrays should have 7 elements
+    # first three numbers are position, the remaining 4 are orientation as quaternion
+    return hospitalData[:3], hospitalData[3:], postOfficeData[:3], postOfficeData[3:]
 
 
 def loadPoleData(fileName):
-  pole1, pole2, pole3, pole4 = np.loadtxt(fileName, delimiter=",")
-  # the two arrays should have 7 elements
-  # first three numbers are position, the remaining 4 are orientation as quaternion
-  return pole1[:3], pole1[3:], pole2[:3], pole2[3:], pole3[:3], pole3[3:], pole4[:3], pole4[3:]
+    pole1, pole2, pole3, pole4 = np.loadtxt(fileName, delimiter=",")
+    # the two arrays should have 7 elements
+    # first three numbers are position, the remaining 4 are orientation as quaternion
+    return pole1[:3], pole1[3:], pole2[:3], pole2[3:], pole3[:3], pole3[3:], pole4[:3], pole4[3:]
+
 
 if __name__ == '__main__':
     main()

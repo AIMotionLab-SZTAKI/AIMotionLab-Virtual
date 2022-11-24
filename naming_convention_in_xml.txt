@@ -1,6 +1,8 @@
+Replace 'n' with drone index
+
 real drone:
 	* body name: realdrone_n
-	* free joint name: realdrone_n_jnt
+	* free joint name: realdrone_n
 
 virtual drone:
 	* body name: virtdrone_n
@@ -8,10 +10,10 @@ virtual drone:
 
 real drone with hook:
 	* body name: realdrone_hooked_n
-	* free joint name: realdrone_hooked_n_jnt
-	* hook joint name: realdrone_hooked_n_hook_jnt
+	* free joint name: realdrone_hooked_n
+	* hook joint name: realdrone_hooked_n_hook
 
 virtual drone with hook:
 	* body name: virtdrone_hooked_n
-	* free joint name: virtdrone_hooked_n_jnt
-	* hook joint name: virtdrone_hooked_n_hook_jnt
+	* free joint name: virtdrone_hooked_n
+	* hook joint name: virtdrone_hooked_n_hook

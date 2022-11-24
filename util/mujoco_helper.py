@@ -69,9 +69,22 @@ def get_joint_name_list(mjmodel: mujoco.MjModel):
     n = mjmodel.njnt
     name_list = []
     for i in range(n):
-        jnt_name = mjmodel.joint(i).name
-        if jnt_name != "":
-            name_list.append(jnt_name)
+        o_name = mjmodel.joint(i).name
+        if o_name != "":
+            name_list.append(o_name)
+    
+    return name_list
+
+def get_geom_name_list(mjmodel: mujoco.MjModel):
+    """
+    Create a list of valid geom names of a mujoco model
+    """
+    n = mjmodel.ngeom
+    name_list = []
+    for i in range(n):
+        o_name = mjmodel.geom(i).name
+        if o_name != "":
+            name_list.append(o_name)
     
     return name_list
 
@@ -82,9 +95,9 @@ def get_body_name_list(mjmodel: mujoco.MjModel):
     n = mjmodel.nbody
     name_list = []
     for i in range(n):
-        jnt_name = mjmodel.body(i).name
-        if jnt_name != "":
-            name_list.append(jnt_name)
+        o_name = mjmodel.body(i).name
+        if o_name != "":
+            name_list.append(o_name)
     
     return name_list
 

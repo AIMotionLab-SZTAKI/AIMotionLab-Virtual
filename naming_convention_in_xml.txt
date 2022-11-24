@@ -1,0 +1,17 @@
+real drone:
+	* body name: realdrone_n
+	* free joint name: realdrone_n_jnt
+
+virtual drone:
+	* body name: virtdrone_n
+	* free joint name: virtdrone_n
+
+real drone with hook:
+	* body name: realdrone_hooked_n
+	* free joint name: realdrone_hooked_n_jnt
+	* hook joint name: realdrone_hooked_n_hook_jnt
+
+virtual drone with hook:
+	* body name: virtdrone_hooked_n
+	* free joint name: virtdrone_hooked_n_jnt
+	* hook joint name: virtdrone_hooked_n_hook_jnt

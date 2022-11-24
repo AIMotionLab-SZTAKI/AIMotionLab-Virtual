@@ -25,6 +25,8 @@ $ python build_scene.py
 
 ## Usage
 
+For drone naming convention see naming_convention_in_xml.txt
+
 To add a building:
   * Press 'b'
   * In the pop-up window select the bulding with the dropdown list.

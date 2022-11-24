@@ -23,13 +23,21 @@ class Drone:
     def print_names(self):
         print("name in xml:      " + self.name_in_xml)
         print("name in motive:   " + self.name_in_motive)
+    
+    def print_info(self):
+        self.print_names()
+        print("Is virtual:       " + str(self.is_virtual))
 
     @staticmethod
     def parse_drones(data: mujoco.MjData, joint_names: list[str]):
+        """
+        Create a list of Drone objects from mujoco's MjData following a naming convention
+        found in naming_convention_in_xml.txt
+        """
 
         drones = []
         i = 0
-        
+
         for _name in joint_names:
 
             if _name.startswith("virtdrone_hooked") and not _name.endswith("hook"):
@@ -63,7 +71,7 @@ class Drone:
                     d = DroneHooked(data, name_in_xml=_name,
                                     hook_name_in_xml=hook,
                                     name_in_motive="cf" + str(i + 1),
-                                    is_virtual=FALSE,
+                                    is_virtual=False,
                                     trajectories=None,
                                     controller=None,
                                     parameters=None)
@@ -113,3 +121,4 @@ class DroneHooked(Drone):
     def print_names(self):
         super().print_names()
         print("hook name in xml: " + self.hook_name_in_xml)
+    

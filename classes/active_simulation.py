@@ -16,16 +16,16 @@ from util.util import sync
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.mujoco_display import Display
-from classes.drone import Drone
+import classes.drone as drone
 
 
 class ActiveSimulator(Display):
 
-    def __init__(self, xml_file_name, drones: list[Drone], record_video, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, record_video, connect_to_optitrack=True):
 
         super().__init__(xml_file_name, connect_to_optitrack)
 
-        self.drones = drones
+        self.drones = drone.Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
 
         self.record_video = record_video
     
@@ -77,13 +77,13 @@ class ActiveSimulator(Display):
 
         return self.data
     
-    def log():
+    def log(self):
         pass
 
-    def plot_log():
+    def plot_log(self):
         pass
 
-    def save_log():
+    def save_log(self):
         pass
 
     def close(self):

@@ -1,7 +1,7 @@
 from ast import Pass
 import math
 
-#import motioncapture
+import motioncapture
 import time
 import numpy as np
 import mujoco

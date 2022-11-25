@@ -11,6 +11,9 @@ from gui.drone_input_gui import DroneInputGui
 xml_path = os.path.join("..", "xml_models")
 xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
+
+build_based_on_optitrack = False
+
 scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
 display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
 #display.set_drone_names()
@@ -142,6 +145,37 @@ def main():
     display.set_key_d_callback(add_drone)
     display.set_key_delete_callback(clear_scene)
     
+    #display.print_optitrack_data()
+    
+    if build_based_on_optitrack:
+        display.mc.waitForNextFrame()
+        for name, obj in display.mc.rigidBodies.items():
+
+            # have to put rotation.w to the front because the order is different
+        
+        
+            orientation = str(obj.rotation.w) + " " + str(obj.rotation.x) + " " + str(obj.rotation.y) + " " + str(obj.rotation.z)
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0'
+
+
+            if name.startswith("cf"):
+                scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+                scene.add_drone(position, orientation, RED_COLOR, True, False)
+            elif name == "bu11":
+                scene.add_hospital(position, "1 0 0 0")
+            elif name == "bu12":
+                scene.add_tall_landing_zone(position, "1 0 0 0")
+            elif name == "bu13":
+                scene.add_post_office(position, "1 0 0 0")
+            elif name == "bu14":
+                scene.add_airport(position, "1 0 0 0")
+
+            elif name.startswith("obs"):
+                scene.add_pole(name, position, orientation)
+
+        save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+
     display.run()
 
 if __name__ == '__main__':

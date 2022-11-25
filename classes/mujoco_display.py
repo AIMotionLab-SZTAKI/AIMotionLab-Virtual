@@ -53,7 +53,7 @@ class Display:
         # Connect to optitrack
         if connect_to_optitrack:
             self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
-            print("[PassiveDisplay] Connected to Optitrack")
+            print("[Display] Connected to Optitrack")
 
         self.t1 = time.time()
 
@@ -271,7 +271,7 @@ class Display:
     def connect_to_Optitrack(self):
         self.connect_to_optitrack = True
         self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
-        print("[PassiveDisplay] Connected to Optitrack")
+        print("[Display] Connected to Optitrack")
         pass
 
     def change_cam(self):
@@ -288,13 +288,14 @@ class Display:
         """
         Write saved images to hard disk as .mp4
         """
-        print("[PassiveDisplay] Saving video...")
+        print("[Display] Saving video...")
         # checking for folder
         if not os.path.exists(self.video_save_folder):
             # then create folder
             os.mkdir(self.video_save_folder)
 
         fps = 1 / self.timestep
+        #print("fps: " + str(fps))
 
         glfw.set_window_title(self.window, self.title + " (Saving video...)")
         time_stamp = self.image_list[0][0].replace('.', '_')
@@ -307,7 +308,7 @@ class Display:
             out.write(rgb)
         out.release()
         self.image_list = []
-        print("[PassiveDisplay] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
+        print("[Display] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
         glfw.set_window_title(self.window, self.title)
 
     def set_drone_names(self):
@@ -319,16 +320,3 @@ class Display:
             gui.show()
             Drone.set_drone_names_motive(self.drones, gui.drone_names)
 
-
-
-"""
-def main():
-    display = PassiveDisplay("../xml_models/testEnvironment.xml")
-    #display.set_drone_names('cf4', 'cf3', 'cf10', 'cf1')
-    print(display.droneNames)
-    display.run()
-
-
-if __name__ == '__main__':
-    main()
-"""

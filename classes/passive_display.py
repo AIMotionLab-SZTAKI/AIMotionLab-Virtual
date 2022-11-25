@@ -31,6 +31,7 @@ class PassiveDisplay(Display):
 
         i = 0
         start = time.time()
+        
         while not self.glfw_window_should_close():
             
             # getting data from optitrack server
@@ -42,7 +43,6 @@ class PassiveDisplay(Display):
                     # have to put rotation.w to the front because the order is different
                     drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-                    
                     drone_to_update = Drone.get_drone_by_name_in_motive(self.drones, name)
 
                     if drone_to_update:
@@ -83,4 +83,14 @@ class PassiveDisplay(Display):
             self.save_video()
 
         glfw.terminate()
-    
+	
+    def print_optitrack_data(self):
+
+        self.mc.waitForNextFrame()
+        for name, obj in self.mc.rigidBodies.items():
+
+            # have to put rotation.w to the front because the order is different
+            drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+
+            print(name + str(obj.position) + " " + str(drone_orientation))
+            print()

@@ -16,6 +16,7 @@ from util.util import sync
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.mujoco_display import Display
+from classes.drone import Drone
 
 
 class PassiveDisplay(Display):
@@ -41,16 +42,14 @@ class PassiveDisplay(Display):
                     # have to put rotation.w to the front because the order is different
                     drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-                    try:
-                        idx = self.droneNames.index(name)
-                    except ValueError:
-                        idx = -1
+                    
+                    drone_to_update = Drone.get_drone_by_name_in_motive(self.drones, name)
 
-                    if idx >= 0:
-                        mujoco_helper.update_drone(self.data, idx, obj.position, drone_orientation)
+                    if drone_to_update:
+                        drone_to_update.set_qpos(obj.position, drone_orientation)
 
-            if self.activeCam == self.camFollow and self.DRONE_NUM > 0:
-                mujoco_helper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow,\
+            if self.activeCam == self.camFollow and len(self.drones) > 0:
+                mujoco_helper.update_follow_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow,\
                                                self.azim_filter_sin, self.azim_filter_cos,\
                                                self.elev_filter_sin, self.elev_filter_cos)
 
@@ -84,3 +83,4 @@ class PassiveDisplay(Display):
             self.save_video()
 
         glfw.terminate()
+    

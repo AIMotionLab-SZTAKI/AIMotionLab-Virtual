@@ -8,7 +8,7 @@ from gui.drone_input_gui import DroneInputGui
 
 
 # open the base on which we'll build
-xml_path = "../xml_models"
+xml_path = os.path.join("..", "xml_models")
 xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
@@ -20,8 +20,8 @@ drone_counter = 0
 drone_positions = ["-1 -1 0.5", "1 -1 0.5", "-1 1 0.5", "1 1 0.5"]
 drone_colors = ["0.1 0.9 0.1 1", "0.9 0.1 0.1 1", "0.1 0.1 0.9 1", "0.5 0.5 0.1 1"]
 
-RED_COLOR = "0.8 0.2 0.2 1.0"
-BLUE_COLOR = "0.2 0.2 0.8 1.0"
+RED_COLOR = "0.85 0.2 0.2 1.0"
+BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
 landing_zone_counter = 0
 pole_counter = 0
@@ -99,8 +99,7 @@ def add_building():
 
     
 def add_drone():
-    # add drone at hard-coded positions
-    # they'll be updated as soon as Optitrack data arrives
+    
     input_gui = DroneInputGui()
     input_gui.show()
     if input_gui.drone_type == "Virtual":
@@ -129,11 +128,19 @@ def save_and_reload_model(scene, display, save_filename):
         scene.save_xml(save_filename)
         display.reload_model(save_filename)
 
-
+def clear_scene():
+    global scene, display, drone_counter, landing_zone_counter, pole_counter
+    scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
+    display.reload_model(os.path.join(xml_path, xmlBaseFileName))
+    
+    drone_counter = 0
+    landing_zone_counter = 0
+    pole_counter = 0
 
 def main():
     display.set_key_b_callback(add_building)
     display.set_key_d_callback(add_drone)
+    display.set_key_delete_callback(clear_scene)
     
     display.run()
 

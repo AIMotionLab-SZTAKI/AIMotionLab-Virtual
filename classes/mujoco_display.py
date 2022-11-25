@@ -15,10 +15,13 @@ from gui.drone_name_gui import DroneNameGui
 from util.util import sync
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
+from classes.drone import Drone
 
 MAX_GEOM = 200
 
 class Display:
+    """ Base class for passive and active simulation
+    """
 
     def __init__(self, xml_file_name, connect_to_optitrack=True):
         print(f'Working directory:  {os.getcwd()}\n')
@@ -26,14 +29,14 @@ class Display:
         self.key_b_callback = None
         self.key_d_callback = None
         self.key_l_callback = None
+        self.key_delete_callback = None
 
         self.connect_to_optitrack = connect_to_optitrack
 
         self.mouse_left_btn_down = False
         self.mouse_right_btn_down = False
         self.prev_x, self.prev_y = 0.0, 0.0
-        self.followed_drone_ID = 0
-        self.DRONE_NUM = 0
+        self.followed_drone_idx = 0
         self.title = "Optitrack Scene"
         self.is_recording = False
         self.image_list = []
@@ -42,8 +45,10 @@ class Display:
 
         self.timestep = 0.04
         
+        
         self.init_glfw()
         self.init_cams()
+        self.load_model(xml_file_name)
 
         # Connect to optitrack
         if connect_to_optitrack:
@@ -51,14 +56,6 @@ class Display:
             print("[PassiveDisplay] Connected to Optitrack")
 
         self.t1 = time.time()
-
-        # Reading model data
-
-        self.load_model(xml_file_name)
-        self.DRONE_NUM = int(self.data.qpos.size / 7)
-        self.droneNames = []
-        for i in range(self.DRONE_NUM):
-            self.droneNames.append("cf" + str(i + 1))
 
 
         self.pert = mujoco.MjvPerturb()
@@ -69,6 +66,7 @@ class Display:
         self.viewport = mujoco.MjrRect(0, 0, 0, 0)
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
+        self.drones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
         #print(self.data.qpos.size)
         
     def init_glfw(self):
@@ -112,12 +110,6 @@ class Display:
         self.elev_filter_sin = LiveLFilter(self.b, self.a)
         self.elev_filter_cos = LiveLFilter(self.b, self.a)
 
-    def set_drone_names(self, *names):
-        if self.DRONE_NUM > 0:
-            gui = DroneNameGui(self.DRONE_NUM, self.droneNames)
-            gui.show()
-            self.droneNames = gui.drone_names
-            #print(self.droneNames)
     
     def load_model(self, xml_file_name):
         self.xmlFileName = xml_file_name
@@ -134,11 +126,7 @@ class Display:
     def reload_model(self, xml_file_name):
         
         self.load_model(xml_file_name)
-        
-        self.DRONE_NUM = int(self.data.qpos.size / 7)
-        
-        for i in range(len(self.droneNames), self.DRONE_NUM):
-            self.droneNames.append("cf" + str(i + 1))
+        self.drones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
 
 
     def set_key_b_callback(self, callback_function):
@@ -151,6 +139,9 @@ class Display:
 
     def set_key_l_callback(self, callback_function):
         self.key_l_callback = callback_function
+    
+    def set_key_delete_callback(self, callback_function):
+        self.key_delete_callback = callback_function
 
 
     def mouse_button_callback(self, window, button, action, mods):
@@ -224,13 +215,13 @@ class Display:
             self.change_cam()
         elif key == glfw.KEY_SPACE and action == glfw.PRESS:
             if self.activeCam == self.camFollow:
-                if self.followed_drone_ID + 1 == self.DRONE_NUM:
-                    self.followed_drone_ID = 0
+                if self.followed_drone_idx + 1 == len(self.drones):
+                    self.followed_drone_idx = 0
                 else:
-                    self.followed_drone_ID += 1
+                    self.followed_drone_idx += 1
                 self.azim_filter = LiveLFilter(self.b, self.a)
                 self.elev_filter = LiveLFilter(self.b, self.a)
-                mujoco_helper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow)
+                mujoco_helper.update_follow_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow)
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
             """
@@ -270,6 +261,11 @@ class Display:
             """
             if self.key_l_callback:
                 self.key_l_callback()
+        
+        if key == glfw.KEY_DELETE and action == glfw.RELEASE:
+
+            if self.key_delete_callback:
+                self.key_delete_callback()
 
 
     def connect_to_Optitrack(self):
@@ -282,7 +278,7 @@ class Display:
         """
         Change camera between scene cam and 'on board' cam
         """
-        if self.activeCam == self.cam and self.DRONE_NUM > 0:
+        if self.activeCam == self.cam and len(self.drones) > 0:
             self.activeCam = self.camFollow
         else:
             self.activeCam = self.cam
@@ -313,6 +309,15 @@ class Display:
         self.image_list = []
         print("[PassiveDisplay] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
         glfw.set_window_title(self.window, self.title)
+
+    def set_drone_names(self):
+        
+        if len(self.drones) > 0:
+            drone_names = Drone.get_drone_names_motive(self.drones)
+            drone_labels = Drone.get_drone_labels(self.drones)
+            gui = DroneNameGui(len(self.drones), drone_labels=drone_labels, drone_names=drone_names)
+            gui.show()
+            Drone.set_drone_names_motive(self.drones, gui.drone_names)
 
 
 

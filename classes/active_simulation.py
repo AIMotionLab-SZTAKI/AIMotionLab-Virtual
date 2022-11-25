@@ -25,7 +25,6 @@ class ActiveSimulator(Display):
 
         super().__init__(xml_file_name, connect_to_optitrack)
 
-        self.drones = drone.Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
 
         self.record_video = record_video
     
@@ -48,8 +47,8 @@ class ActiveSimulator(Display):
                 if idx >= 0:
                     mujoco_helper.update_drone(self.data, idx, obj.position, drone_orientation)
 
-        if self.activeCam == self.camFollow and self.DRONE_NUM > 0:
-            mujoco_helper.update_follow_cam(self.data.qpos, self.followed_drone_ID, self.camFollow,\
+        if self.activeCam == self.camFollow and len(self.drones) > 0:
+            mujoco_helper.update_follow_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
                                             self.elev_filter_sin, self.elev_filter_cos)
         

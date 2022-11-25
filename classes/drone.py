@@ -19,6 +19,13 @@ class Drone:
 
     def get_qpos(self):
         return self.data.joint(self.name_in_xml).qpos
+    
+    def set_qpos(self, position, orientation):
+        """
+        orientation should be quaternion
+        """
+        self.data.joint(self.name_in_xml).qpos = np.append(position, orientation)
+
 
     def print_names(self):
         print("name in xml:      " + self.name_in_xml)
@@ -27,6 +34,9 @@ class Drone:
     def print_info(self):
         self.print_names()
         print("Is virtual:       " + str(self.is_virtual))
+    
+    def get_label(self):
+        return self.name_in_xml
 
     @staticmethod
     def parse_drones(data: mujoco.MjData, joint_names: list[str]):
@@ -104,6 +114,41 @@ class Drone:
                 return jnt
         
         return None
+    
+    @staticmethod
+    def get_drone_by_name_in_motive(drones, name: str):
+        for d in drones:
+            if d.name_in_motive == name:
+                return d
+        
+        return None
+    
+    @staticmethod
+    def get_drone_names_motive(drones):
+        names = []
+        for d in drones:
+            names += [d.name_in_motive]
+        
+        return names
+    
+    @staticmethod
+    def set_drone_names_motive(drones, names):
+        
+        if len(drones) != len(names):
+            print("[Drone.set_drone_names()] Error: too many or not enough drone names provided")
+            return
+        
+        for i in range(len(drones)):
+            drones[i].name_in_motive = names[i]
+    
+
+    @staticmethod
+    def get_drone_labels(drones):
+        labels = []
+        for d in drones:
+            labels += [d.get_label()]
+            
+        return labels
 
 
 
@@ -121,4 +166,9 @@ class DroneHooked(Drone):
     def print_names(self):
         super().print_names()
         print("hook name in xml: " + self.hook_name_in_xml)
+    
+    def get_label(self):
+        """ extend this method later
+        """
+        return self.name_in_xml
     

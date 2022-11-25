@@ -48,6 +48,7 @@ class LiveLFilter(LiveFilter):
 
 def update_drone(data, droneID, position, orientation):
     """
+    Old, do not use this anymore!
     Update the position and orientation of a drone
     first drone's position is data.qpos[:3], orientation is data.qpos[3:7]
     second drone's position is data.qpos[7:10], orientation is data.qpos[10:14]
@@ -125,7 +126,7 @@ def euler_from_quaternion(x, y, z, w):
 
         
 
-def update_follow_cam(qpos, droneID, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None):
+def update_follow_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None):
     """
     Update the position and orientation of the camera that follows the drone from behind
     qpos is the array in which the position and orientation of all the drones are stored
@@ -137,10 +138,8 @@ def update_follow_cam(qpos, droneID, cam, azim_filter_sin=None, azim_filter_cos=
     angle, filter them, and convert them back with atan2().
     """
     MAX_CHANGE = 3
-
-    startIdx = droneID * 7
-    position = qpos[startIdx:startIdx + 3]
-    orientation = qpos[startIdx + 3:startIdx + 7]
+    position = drone_qpos[0:3]
+    orientation = drone_qpos[3:7]
 
     roll_x, pitch_y, yaw_z = euler_from_quaternion(orientation[0], orientation[1], orientation[2], orientation[3])
 

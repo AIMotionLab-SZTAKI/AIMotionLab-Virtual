@@ -1,10 +1,20 @@
 <mujoco>
-	<include file="../xml_models\scene.xml" />
+	<include file="..\xml_models\scene.xml" />
 	<worldbody>
-		<body name="hospital" pos="0 0 0" quat="1 0 0 0">
-			<geom name="hospital" type="box" pos="0 0 0.445" size="0.1275 0.13 0.445" material="mat-hospital" />
+		<body name="virtdrone_0" pos="1 0 1" quat="1 0 0 0">
+			<inertial pos="0 0 0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028" />
+			<joint name="virtdrone_0" type="free" />
+			<geom name="virtdrone_0" type="mesh" pos="0 0 0" mesh="drone" rgba="0.85 0.2 0.2 1.0" />
+			<site name="virtdrone_0_cog" pos="0 0 0" />
 		</body>
 	</worldbody>
-	<actuator />
-	<sensor />
+	<actuator>
+		<general site="virtdrone_0_cog" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 0.64" />
+		<general site="virtdrone_0_cog" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-0.01 0.01" />
+		<general site="virtdrone_0_cog" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-0.01 0.01" />
+		<general site="virtdrone_0_cog" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-0.01 0.01" />
+	</actuator>
+	<sensor>
+		<gyro site="virtdrone_0_cog" />
+	</sensor>
 </mujoco>

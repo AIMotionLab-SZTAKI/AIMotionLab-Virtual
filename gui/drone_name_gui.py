@@ -3,7 +3,7 @@ import tkinter as tk
 
 class DroneNameGui:
 
-    def __init__(self, drone_num=4, drone_names=[]):
+    def __init__(self, drone_num=4, drone_labels=[], drone_names=[]):
         if drone_num <= 0:
             return
         
@@ -14,8 +14,12 @@ class DroneNameGui:
         self.entries = []
         self.drone_names = []
 
+        if len(drone_names) != len(drone_labels):
+            print("[DroneNameGui.__init__()] Different number of drone names and number of drone labels")
+            return
+
         for i in range(drone_num):
-            tk.Label(self.window, text="Drone " + str(i + 1) + " name: ").grid(row=i)
+            tk.Label(self.window, text=drone_labels[i] + ": ").grid(row=i)
             self.entries.append(tk.Entry(self.window))
             self.entries[i].grid(row=i, column=1)
             if len(drone_names) == drone_num:

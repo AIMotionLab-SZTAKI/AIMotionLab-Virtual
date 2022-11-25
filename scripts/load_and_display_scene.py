@@ -8,7 +8,7 @@ from tkinter import filedialog
 
 # open the base on which we'll build
 xml_path = "../xml_models"
-xmlBaseFileName = "built_scene.xml"
+xmlBaseFileName = "scene.xml"
 
 display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
 

@@ -39,7 +39,7 @@ class Drone:
         return self.name_in_xml
 
     @staticmethod
-    def parse_drones(data: mujoco.MjData, joint_names: list[str]):
+    def parse_drones(data, joint_names):
         """
         Create a list of Drone objects from mujoco's MjData following a naming convention
         found in naming_convention_in_xml.txt
@@ -108,7 +108,7 @@ class Drone:
         return drones
 
     @staticmethod
-    def find_hook_for_drone(joint_names: list[str], drone_name):
+    def find_hook_for_drone(joint_names, drone_name):
         for jnt in joint_names:
             if drone_name + "_hook" == jnt:
                 return jnt

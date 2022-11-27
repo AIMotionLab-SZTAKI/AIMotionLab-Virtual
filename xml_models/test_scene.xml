@@ -1,6 +1,29 @@
 <mujoco>
-    <include file="../xml_models\scene.xml" />
+
+    <asset>
+
+        <mesh file="../meshes/cf_body.stl" name="drone_body" smoothnormal="true" scale="1.5 1.5 1.5"/>
+        <mesh file="../meshes/4_motormounts.stl" name="drone_4_motormounts" smoothnormal="true" scale="1.5 1.5 1.5"/>
+        <mesh file="../meshes/4_motors.stl" name="drone_4_motors" smoothnormal="true" scale="1.5 1.5 1.5"/>
+        <mesh file="../meshes/ccw_prop.stl" name="drone_ccw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
+        <mesh file="../meshes/cw_prop.stl" name="drone_cw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
+
+    </asset>
+    
+    <include file="../xml_models/scene.xml" />
     <worldbody>
+
+        <body name="cf_from_parts" pos="1 -1 0">
+            <geom name="cf_body" type="mesh" mesh="drone_body"/>
+            <geom name="cf_4_motormounts" type="mesh" mesh="drone_4_motormounts"/>
+            <geom name="cf_4_motors" type="mesh" mesh="drone_4_motors"/>
+            <geom name="cf_ccw_prop1" type="mesh" mesh="drone_ccw_prop" pos="0.048 0.048 0.032"/>
+            <geom name="cf_ccw_prop2" type="mesh" mesh="drone_ccw_prop" pos="-0.048 -0.048 0.032"/>
+            <geom name="cf_cw_prop3" type="mesh" mesh="drone_cw_prop" pos="-0.048 0.048 0.032"/>
+            <geom name="cf_cw_prop4" type="mesh" mesh="drone_cw_prop" pos="0.048 -0.048 0.032"/>
+        </body>
+
+
         <body name="virtdrone_hooked_1" pos="-0.69 0 1.5">
             <inertial pos="0 0 0" diaginertia="0.082 0.085 0.138" mass="4.34"/>
             <joint type="free" name="virtdrone_hooked_1"/>

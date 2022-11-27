@@ -14,7 +14,7 @@ def main():
     # Reading model data
     print(f'Working directory:  {os.getcwd()}\n')
 
-    xmlFileName = os.path.join("..", "xml_models", "hook_scenario_3_loads.xml")
+    xmlFileName = os.path.join("..", "xml_models", "test_scene.xml")
 
     model = mujoco.MjModel.from_xml_path(xmlFileName)
 
@@ -55,7 +55,7 @@ def main():
     # initialize visualization data structures
     cam = mujoco.MjvCamera()
     cam.azimuth, cam.elevation = 180, -30
-    cam.lookat,  cam.distance = [0, 0, 0], 3
+    cam.lookat,  cam.distance = [1, -1, 0], 2
 
     pert = mujoco.MjvPerturb()
     opt = mujoco.MjvOption()
@@ -87,6 +87,11 @@ def main():
 
         rgb = np.zeros(viewport.width * viewport.height * 3, dtype=np.uint8)
         depth = np.zeros(viewport.width * viewport.height, dtype=np.float32)
+
+        data.joint("virtdrone_1_prop1").qpos[0] += .51
+        data.joint("virtdrone_1_prop2").qpos[0] += .50
+        data.joint("virtdrone_1_prop3").qpos[0] += -.51
+        data.joint("virtdrone_1_prop4").qpos[0] += -.50
 
         #stamp = str(time.time())
         #mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, viewport, stamp, None, con)

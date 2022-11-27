@@ -1,26 +1,30 @@
 <mujoco>
 
-    <asset>
-
-        <mesh file="../meshes/cf_body.stl" name="drone_body" smoothnormal="true" scale="1.5 1.5 1.5"/>
-        <mesh file="../meshes/4_motormounts.stl" name="drone_4_motormounts" smoothnormal="true" scale="1.5 1.5 1.5"/>
-        <mesh file="../meshes/4_motors.stl" name="drone_4_motors" smoothnormal="true" scale="1.5 1.5 1.5"/>
-        <mesh file="../meshes/ccw_prop.stl" name="drone_ccw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
-        <mesh file="../meshes/cw_prop.stl" name="drone_cw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
-
-    </asset>
     
     <include file="../xml_models/scene.xml" />
     <worldbody>
 
-        <body name="cf_from_parts" pos="1 -1 0">
+        <body name="virtdrone_1" pos="1 -1 1">
             <geom name="cf_body" type="mesh" mesh="drone_body"/>
             <geom name="cf_4_motormounts" type="mesh" mesh="drone_4_motormounts"/>
             <geom name="cf_4_motors" type="mesh" mesh="drone_4_motors"/>
-            <geom name="cf_ccw_prop1" type="mesh" mesh="drone_ccw_prop" pos="0.048 0.048 0.032"/>
-            <geom name="cf_ccw_prop2" type="mesh" mesh="drone_ccw_prop" pos="-0.048 -0.048 0.032"/>
-            <geom name="cf_cw_prop3" type="mesh" mesh="drone_cw_prop" pos="-0.048 0.048 0.032"/>
-            <geom name="cf_cw_prop4" type="mesh" mesh="drone_cw_prop" pos="0.048 -0.048 0.032"/>
+            <joint type="free" name="virtdrone_1"/>
+            <body>
+                <joint name="virtdrone_1_prop1" axis="0 0 1" pos="0.048 0.048 0.032"/>
+                <geom name="cf_ccw_prop1" type="mesh" mesh="drone_ccw_prop" pos="0.048 0.048 0.032"/>
+            </body>
+            <body>
+                <joint name="virtdrone_1_prop2" axis="0 0 1" pos="-0.048 -0.048 0.032"/>
+                <geom name="cf_ccw_prop2" type="mesh" mesh="drone_ccw_prop" pos="-0.048 -0.048 0.032"/>
+            </body>
+            <body>
+                <joint name="virtdrone_1_prop3" axis="0 0 1" pos="-0.048 0.048 0.032"/>
+                <geom name="cf_cw_prop3" type="mesh" mesh="drone_cw_prop" pos="-0.048 0.048 0.032"/>
+            </body>
+            <body>
+                <joint name="virtdrone_1_prop4" axis="0 0 1" pos="0.048 -0.048 0.032"/>
+                <geom name="cf_cw_prop4" type="mesh" mesh="drone_cw_prop" pos="0.048 -0.048 0.032"/>
+            </body>
         </body>
 
 
@@ -29,7 +33,7 @@
             <joint type="free" name="virtdrone_hooked_1"/>
             <geom name="virtdrone_hooked_1" type="mesh" pos="0 0 -0.05" mesh="drone"/>
             <site name="virtdrone_hooked_1_cog" pos="0 0 0"/>
-            <body name="rod1" pos="0 0 0" euler="0 0 0">
+            <body name="rod1" pos="0 0 -0.02" euler="0 0 0">
                 <geom type="cylinder" fromto="0 0 0  0 0 -0.4" size="0.002" mass="0.00"/>
                 <site name="rod_end1" pos="0 0 -0.4" type="sphere" size="0.002"/>
                 <joint name="virtdrone_hooked_1_hook" axis="0 1 0" pos="0 0 0" damping="0.001"/>

@@ -12,7 +12,7 @@ import time
 from util import mujoco_helper
 import cv2
 from gui.drone_name_gui import DroneNameGui
-from util.util import sync
+from util.util import sync, FpsLimiter
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.mujoco_display import Display
@@ -28,11 +28,12 @@ class PassiveDisplay(Display):
     def run(self):
         # To obtain inertia matrix
         mujoco.mj_step(self.model, self.data)
-
-        i = 0
-        start = time.time()
+    
+        
+        self.fps_limiter = FpsLimiter(1.0 / self.timestep)
         
         while not self.glfw_window_should_close():
+            self.fps_limiter.begin_frame()
             
             # getting data from optitrack server
             if self.connect_to_optitrack:
@@ -53,17 +54,10 @@ class PassiveDisplay(Display):
                                                self.azim_filter_sin, self.azim_filter_cos,\
                                                self.elev_filter_sin, self.elev_filter_cos)
 
-
             for i in range(len(self.drones)):
-                #print(d.get_qpos()[2])
-                #self.drones[i].print_prop_angles()
-                if self.drones[i].get_qpos()[2] > 0.15:
-                    self.drones[i].rotate_propellers(1)
-                else:
-                    self.drones[i].rotate_propellers(0.01)
-                    
+                self.spin_propellers(self.drones[i])
 
-            mujoco.mj_step(self.model, self.data, 1)
+            mujoco.mj_step(self.model, self.data, 4)
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)
             self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
             mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL,
@@ -71,10 +65,12 @@ class PassiveDisplay(Display):
             mujoco.mjr_render(self.viewport, self.scn, self.con)
 
             if self.is_recording:
-                
-                rgb = np.zeros(self.viewport.width * self.viewport.height * 3, dtype=np.uint8)
-                depth = np.zeros(self.viewport.width * self.viewport.height, dtype=np.float32)
+                 
+                # need to create arrays with the exact size!! before passing them to mjr_readPixels()
+                rgb = np.empty(self.viewport.width * self.viewport.height * 3, dtype=np.uint8)
+                depth = np.empty(self.viewport.width * self.viewport.height, dtype=np.float32)
 
+                # draw a time stamp on the rendered image
                 stamp = str(time.time())
                 mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
                 
@@ -86,8 +82,7 @@ class PassiveDisplay(Display):
             glfw.poll_events()
 
             
-            #sync(i, start, self.timestep)
-            i += 1
+            self.fps_limiter.end_frame()
         
         if self.is_recording:
             self.save_video()

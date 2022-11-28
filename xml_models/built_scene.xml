@@ -1,67 +1,10 @@
 <mujoco>
 	<include file="../xml_models/scene.xml" />
 	<worldbody>
-		<body name="realdrone_0" pos="1 1 1" quat="1 0 0 0">
-			<inertial pos="0 0 0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028" />
-			<joint name="realdrone_0" type="free" />
-			<geom name="realdrone_0_body" type="mesh" mesh="drone_body" rgba="0.2 0.2 0.85 1.0" />
-			<geom name="realdrone_0_4_motormounts" type="mesh" mesh="drone_4_motormounts" rgba="0.2 0.2 0.85 1.0" />
-			<geom name="realdrone_0_4_motors" type="mesh" mesh="drone_4_motors" rgba="0.2 0.2 0.85 1.0" />
-			<site name="realdrone_0_cog" pos="0 0 0" />
-			<body name="realdrone_0_prop1">
-				<joint name="realdrone_0_prop1" axis="0 0 1" pos="0.047 0.047 0.032" />
-				<geom name="realdrone_0_prop1" type="mesh" mesh="drone_ccw_prop" pos="0.047 0.047 0.032" rgba="0.1 0.1 0.1 1.0" />
-			</body>
-			<body name="realdrone_0_prop2">
-				<joint name="realdrone_0_prop2" axis="0 0 1" pos="-0.047 -0.047 0.032" />
-				<geom name="realdrone_0_prop2" type="mesh" mesh="drone_ccw_prop" pos="-0.047 -0.047 0.032" rgba="0.1 0.1 0.1 1.0" />
-			</body>
-			<body name="realdrone_0_prop3">
-				<joint name="realdrone_0_prop3" axis="0 0 1" pos="-0.047 0.047 0.032" />
-				<geom name="realdrone_0_prop3" type="mesh" mesh="drone_cw_prop" pos="-0.047 0.047 0.032" rgba="0.1 0.1 0.1 1.0" />
-			</body>
-			<body name="realdrone_0_prop4">
-				<joint name="realdrone_0_prop4" axis="0 0 1" pos="0.047 -0.047 0.032" />
-				<geom name="realdrone_0_prop4" type="mesh" mesh="drone_cw_prop" pos="0.047 -0.047 0.032" rgba="0.1 0.1 0.1 1.0" />
-			</body>
-		</body>
-		<body name="virtdrone_0" pos="0 1 1" quat="1 0 0 0">
-			<inertial pos="0 0 0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028" />
-			<joint name="virtdrone_0" type="free" />
-			<geom name="virtdrone_0_body" type="mesh" mesh="drone_body" rgba="0.85 0.2 0.2 1.0" />
-			<geom name="virtdrone_0_4_motormounts" type="mesh" mesh="drone_4_motormounts" rgba="0.85 0.2 0.2 1.0" />
-			<geom name="virtdrone_0_4_motors" type="mesh" mesh="drone_4_motors" rgba="0.85 0.2 0.2 1.0" />
-			<site name="virtdrone_0_cog" pos="0 0 0" />
-			<body name="virtdrone_0_prop1">
-				<joint name="virtdrone_0_prop1" axis="0 0 1" pos="0.047 0.047 0.032" />
-				<geom name="virtdrone_0_prop1" type="mesh" mesh="drone_ccw_prop" pos="0.047 0.047 0.032" rgba="0.1 0.1 0.1 1.0" />
-			</body>
-			<body name="virtdrone_0_prop2">
-				<joint name="virtdrone_0_prop2" axis="0 0 1" pos="-0.047 -0.047 0.032" />
-				<geom name="virtdrone_0_prop2" type="mesh" mesh="drone_ccw_prop" pos="-0.047 -0.047 0.032" rgba="0.1 0.1 0.1 1.0" />
-			</body>
-			<body name="virtdrone_0_prop3">
-				<joint name="virtdrone_0_prop3" axis="0 0 1" pos="-0.047 0.047 0.032" />
-				<geom name="virtdrone_0_prop3" type="mesh" mesh="drone_cw_prop" pos="-0.047 0.047 0.032" rgba="0.1 0.1 0.1 1.0" />
-			</body>
-			<body name="virtdrone_0_prop4">
-				<joint name="virtdrone_0_prop4" axis="0 0 1" pos="0.047 -0.047 0.032" />
-				<geom name="virtdrone_0_prop4" type="mesh" mesh="drone_cw_prop" pos="0.047 -0.047 0.032" rgba="0.1 0.1 0.1 1.0" />
-			</body>
+		<body name="hospital" pos="1 1 1" quat="1 0 0 0">
+			<geom name="hospital" type="box" pos="0 0 0.445" size="0.1275 0.13 0.445" material="mat-hospital" />
 		</body>
 	</worldbody>
-	<actuator>
-		<general site="realdrone_0_cog" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 0.64" />
-		<general site="realdrone_0_cog" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-0.01 0.01" />
-		<general site="realdrone_0_cog" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-0.01 0.01" />
-		<general site="realdrone_0_cog" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-0.01 0.01" />
-		<general site="virtdrone_0_cog" gear=" 0 0 1 0 0 0" ctrllimited="true" ctrlrange="0 0.64" />
-		<general site="virtdrone_0_cog" gear=" 0 0 0 1 0 0" ctrllimited="true" ctrlrange="-0.01 0.01" />
-		<general site="virtdrone_0_cog" gear=" 0 0 0 0 1 0" ctrllimited="true" ctrlrange="-0.01 0.01" />
-		<general site="virtdrone_0_cog" gear=" 0 0 0 0 0 1" ctrllimited="true" ctrlrange="-0.01 0.01" />
-	</actuator>
-	<sensor>
-		<gyro site="realdrone_0_cog" />
-		<gyro site="virtdrone_0_cog" />
-	</sensor>
+	<actuator />
+	<sensor />
 </mujoco>

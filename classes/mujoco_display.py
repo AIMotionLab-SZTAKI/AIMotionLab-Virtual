@@ -110,6 +110,14 @@ class Display:
         self.azim_filter_cos = LiveLFilter(self.b, self.a)
         self.elev_filter_sin = LiveLFilter(self.b, self.a)
         self.elev_filter_cos = LiveLFilter(self.b, self.a)
+    
+    def spin_propellers(self, drone):
+
+            if drone.get_qpos()[2] > 0.10:
+                drone.spin_propellers(50 * self.timestep)
+            else:
+                drone.spin_propellers(10 * self.timestep)
+                
 
     
     def load_model(self, xml_file_name):

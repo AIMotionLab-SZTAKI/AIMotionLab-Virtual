@@ -9,7 +9,7 @@ import glfw
 import os
 import numpy as np
 import time
-from util import mujoco_helper  
+from util import mujoco_helper
 import cv2
 from gui.drone_name_gui import DroneNameGui
 from util.util import sync
@@ -24,7 +24,6 @@ class ActiveSimulator(Display):
     def __init__(self, xml_file_name, record_video, connect_to_optitrack=True):
 
         super().__init__(xml_file_name, connect_to_optitrack)
-
 
         self.record_video = record_video
     
@@ -51,10 +50,11 @@ class ActiveSimulator(Display):
             mujoco_helper.update_follow_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
                                             self.elev_filter_sin, self.elev_filter_cos)
-        
 
 
         for i in range(len(self.drones)):
+
+            self.spin_propellers(self.drones[i])
             
             # drones[i].trajectories.update()
             # drones[i].controller.update()
@@ -62,9 +62,9 @@ class ActiveSimulator(Display):
             # drones[i].trajectories.eval()
 
             # self.data.ctrl[valami] = drones[i].controller.eval()
-            pass
+            #pass
         
-        mujoco.mj_step(self.model, self.data, 1)
+        mujoco.mj_step(self.model, self.data, 4)
         self.viewport = mujoco.MjrRect(0, 0, 0, 0)
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
         mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL,

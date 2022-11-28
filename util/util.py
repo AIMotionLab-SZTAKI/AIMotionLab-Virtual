@@ -40,3 +40,20 @@ def sync(i, start_time, timestep):
         elapsed = time.time() - start_time
         if elapsed < (i * timestep):
             time.sleep(timestep * i - elapsed)
+
+
+class FpsLimiter:
+
+    def __init__(self, target_fps):
+        self.fps = target_fps
+        self.timestep = 1.0 / target_fps
+
+
+    def begin_frame(self):
+        self.t1 = time.time()
+
+    def end_frame(self):
+        frame_time = time.time() - self.t1
+
+        if self.timestep > frame_time:
+            time.sleep(self.timestep - frame_time)

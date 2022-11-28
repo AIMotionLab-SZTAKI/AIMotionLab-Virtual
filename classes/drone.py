@@ -24,6 +24,7 @@ class Drone:
         self.prop3_qpos = self.data.joint(self.name_in_xml + "_prop3").qpos
         self.prop4_qpos = self.data.joint(self.name_in_xml + "_prop4").qpos
 
+        # make a copy now, so that mj_step() does not affect these
         self.prop1_angle = self.prop1_qpos[0]
         self.prop2_angle = self.prop2_qpos[0]
         self.prop3_angle = self.prop3_qpos[0]
@@ -40,17 +41,17 @@ class Drone:
 
     def print_prop_angles(self):
         print("prop1: " + str(self.prop1_qpos))
-        #print("prop2: " + str(self.prop2_qpos))
-        #print("prop3: " + str(self.prop3_qpos))
-        #print("prop4: " + str(self.prop4_qpos))
+        print("prop2: " + str(self.prop2_qpos))
+        print("prop3: " + str(self.prop3_qpos))
+        print("prop4: " + str(self.prop4_qpos))
     
-    def rotate_propellers(self, angle_step):
+    def spin_propellers(self, angle_step):
         #print("angle step: " + str(angle_step))
                 
-        self.prop1_angle += angle_step
-        self.prop2_angle += angle_step
-        self.prop3_angle -= angle_step
-        self.prop4_angle -= angle_step
+        self.prop1_angle -= angle_step + 0.005
+        self.prop2_angle -= angle_step - 0.002
+        self.prop3_angle += angle_step + 0.005
+        self.prop4_angle += angle_step - 0.003
 
         self.prop1_qpos[0] = self.prop1_angle
         self.prop2_qpos[0] = self.prop2_angle

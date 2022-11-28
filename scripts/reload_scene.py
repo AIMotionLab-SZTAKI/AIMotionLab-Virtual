@@ -8,6 +8,7 @@ import time
 import cv2
 import util.mujoco_helper as mujoco_helper
 import classes.drone as drone
+from util.util import sync, FpsLimiter
 
 
 def main():
@@ -26,6 +27,16 @@ def main():
 
     #print("valid body names: " + str(mujoco_helper.get_body_name_list(model)))
     #print("valid geom names: " + str(mujoco_helper.get_geom_name_list(model)))
+
+
+    fps_limiter = FpsLimiter(25)
+    while True:
+        fps_limiter.begin_frame()
+        t1 = time.time()
+        
+
+        fps_limiter.end_frame()
+        print(time.time() - t1)
 
     print("Valid joint names:")
     for jname in joint_names:

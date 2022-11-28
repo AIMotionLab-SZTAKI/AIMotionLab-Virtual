@@ -25,6 +25,12 @@ class Drone:
         orientation should be quaternion
         """
         self.data.joint(self.name_in_xml).qpos = np.append(position, orientation)
+    
+    def rotate_propellers(self, angle_step):
+        self.data.joint(self.name_in_xml + "_prop1").qpos[0] += angle_step + 0.01
+        self.data.joint(self.name_in_xml + "_prop2").qpos[0] += angle_step
+        self.data.joint(self.name_in_xml + "_prop3").qpos[0] += -(angle_step + 0.01)
+        self.data.joint(self.name_in_xml + "_prop4").qpos[0] += -angle_step
 
 
     def print_names(self):
@@ -50,7 +56,9 @@ class Drone:
 
         for _name in joint_names:
 
-            if _name.startswith("virtdrone_hooked") and not _name.endswith("hook"):
+            _name_cut = _name[:len(_name) - 1]
+
+            if _name.startswith("virtdrone_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
                 hook = Drone.find_hook_for_drone(joint_names, _name)
                 if hook:
@@ -69,13 +77,13 @@ class Drone:
                     print("Error: did not find hook joint for this drone: " +
                           _name + " ... Ignoring drone.")
 
-            elif _name.startswith("virtdrone") and not _name.endswith("hook"):
+            elif _name.startswith("virtdrone") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
 
                 d = Drone(data, _name, "cf" + str(i + 1), True, None, None, None)
                 drones += [d]
                 i += 1
             
-            elif _name.startswith("realdrone_hooked") and not _name.endswith("hook"):
+            elif _name.startswith("realdrone_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
                 hook = Drone.find_hook_for_drone(joint_names, _name)
                 if hook:
                     d = DroneHooked(data, name_in_xml=_name,
@@ -94,7 +102,7 @@ class Drone:
                           _name + " ... Ignoring drone.")
             
             
-            elif _name.startswith("realdrone") and not _name.endswith("hook"):
+            elif _name.startswith("realdrone") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
 
                 d = Drone(data, _name, "cf" + str(i + 1), False, None, None, None)
                 drones += [d]
@@ -159,9 +167,12 @@ class DroneHooked(Drone):
                          trajectories, controller, parameters)
         self.hook_name_in_xml = hook_name_in_xml
 
-    def get_qpos(self):
-        drone_qpos = self.data.joint(self.name_in_xml).qpos
-        return np.append(drone_qpos, self.data.joint(self.hook_name_in_xml).qpos)
+    #def get_qpos(self):
+        #drone_qpos = self.data.joint(self.name_in_xml).qpos
+        #return np.append(drone_qpos, self.data.joint(self.hook_name_in_xml).qpos)
+    
+    def get_hook_qpos(self):
+        return self.data.joint(self.hook_name_in_xml).qpos
 
     def print_names(self):
         super().print_names()

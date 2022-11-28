@@ -123,13 +123,13 @@ def add_drone():
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     else:
-        print(input_gui.drone_type)
+        #print(input_gui.drone_type)
         print("Non-existent drone type " + input_gui.drone_type)
 
 
-def save_and_reload_model(scene, display, save_filename):
+def save_and_reload_model(scene, display, save_filename, drone_names_in_motive=None):
         scene.save_xml(save_filename)
-        display.reload_model(save_filename)
+        display.reload_model(save_filename, drone_names_in_motive)
 
 def clear_scene():
     global scene, display, drone_counter, landing_zone_counter, pole_counter
@@ -140,41 +140,55 @@ def clear_scene():
     landing_zone_counter = 0
     pole_counter = 0
 
+
+def build_from_optitrack():
+    global scene, display
+
+    drone_names_in_motive = []
+
+    if not display.connect_to_optitrack:
+        display.connect_to_Optitrack()
+
+    display.mc.waitForNextFrame()
+    for name, obj in display.mc.rigidBodies.items():
+
+        # have to put rotation.w to the front because the order is different
+        orientation = str(obj.rotation.w) + " " + str(obj.rotation.x) + " " + str(obj.rotation.y) + " " + str(obj.rotation.z)
+        position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0'
+
+
+        if name.startswith("cf"):
+            scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+            scene.add_drone(position, orientation, BLUE_COLOR, False, False)
+            drone_names_in_motive += [name]
+
+        elif name == "bu11":
+            scene.add_hospital(position, "1 0 0 0")
+        elif name == "bu12":
+            scene.add_tall_landing_zone(position, "1 0 0 0")
+        elif name == "bu13":
+            scene.add_post_office(position, "1 0 0 0")
+        elif name == "bu14":
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.01"
+            scene.add_airport(position, "1 0 0 0")
+
+        elif name.startswith("obs"):
+            scene.add_pole(name, position, orientation)
+
+    save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), drone_names_in_motive)
+
+
 def main():
     display.set_key_b_callback(add_building)
     display.set_key_d_callback(add_drone)
+    display.set_key_o_callback(build_from_optitrack)
     display.set_key_delete_callback(clear_scene)
     
     #display.print_optitrack_data()
-    
+
     if build_based_on_optitrack:
-        display.mc.waitForNextFrame()
-        for name, obj in display.mc.rigidBodies.items():
-
-            # have to put rotation.w to the front because the order is different
-        
-        
-            orientation = str(obj.rotation.w) + " " + str(obj.rotation.x) + " " + str(obj.rotation.y) + " " + str(obj.rotation.z)
-            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0'
-
-
-            if name.startswith("cf"):
-                scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
-                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_drone(position, orientation, RED_COLOR, True, False)
-            elif name == "bu11":
-                scene.add_hospital(position, "1 0 0 0")
-            elif name == "bu12":
-                scene.add_tall_landing_zone(position, "1 0 0 0")
-            elif name == "bu13":
-                scene.add_post_office(position, "1 0 0 0")
-            elif name == "bu14":
-                scene.add_airport(position, "1 0 0 0")
-
-            elif name.startswith("obs"):
-                scene.add_pole(name, position, orientation)
-
-        save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+        build_from_optitrack()
 
     display.run()
 

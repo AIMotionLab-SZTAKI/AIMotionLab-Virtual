@@ -29,6 +29,7 @@ class Display:
         self.key_b_callback = None
         self.key_d_callback = None
         self.key_l_callback = None
+        self.key_o_callback = None
         self.key_delete_callback = None
 
         self.connect_to_optitrack = connect_to_optitrack
@@ -123,10 +124,16 @@ class Display:
     def glfw_window_should_close(self):
         return glfw.window_should_close(self.window)
     
-    def reload_model(self, xml_file_name):
+    def reload_model(self, xml_file_name, drone_names_in_motive = None):
         
         self.load_model(xml_file_name)
         self.drones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+
+        if drone_names_in_motive is not None and len(drone_names_in_motive) > 0:
+            i = 0
+            for d in self.drones:
+                d.name_in_motive = drone_names_in_motive[i]
+                i += 1
 
 
     def set_key_b_callback(self, callback_function):
@@ -139,6 +146,9 @@ class Display:
 
     def set_key_l_callback(self, callback_function):
         self.key_l_callback = callback_function
+    
+    def set_key_o_callback(self, callback_function):
+        self.key_o_callback = callback_function
     
     def set_key_delete_callback(self, callback_function):
         self.key_delete_callback = callback_function
@@ -262,8 +272,17 @@ class Display:
             if self.key_l_callback:
                 self.key_l_callback()
         
+        if key == glfw.KEY_O and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_o_callback:
+                self.key_o_callback()
+        
         if key == glfw.KEY_DELETE and action == glfw.RELEASE:
-
+            """
+            pass on this event
+            """
             if self.key_delete_callback:
                 self.key_delete_callback()
 
@@ -272,7 +291,7 @@ class Display:
         self.connect_to_optitrack = True
         self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
         print("[Display] Connected to Optitrack")
-        pass
+
 
     def change_cam(self):
         """

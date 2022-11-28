@@ -17,20 +17,45 @@ class Drone:
         self.controller = controller
         self.parameters = parameters
 
+        self.qpos = self.data.joint(self.name_in_xml).qpos
+
+        self.prop1_qpos = self.data.joint(self.name_in_xml + "_prop1").qpos
+        self.prop2_qpos = self.data.joint(self.name_in_xml + "_prop2").qpos
+        self.prop3_qpos = self.data.joint(self.name_in_xml + "_prop3").qpos
+        self.prop4_qpos = self.data.joint(self.name_in_xml + "_prop4").qpos
+
+        self.prop1_angle = self.prop1_qpos[0]
+        self.prop2_angle = self.prop2_qpos[0]
+        self.prop3_angle = self.prop3_qpos[0]
+        self.prop4_angle = self.prop4_qpos[0]
+
     def get_qpos(self):
-        return self.data.joint(self.name_in_xml).qpos
+        return self.qpos
     
     def set_qpos(self, position, orientation):
         """
         orientation should be quaternion
         """
-        self.data.joint(self.name_in_xml).qpos = np.append(position, orientation)
+        self.qpos[:7] = np.append(position, orientation)
+
+    def print_prop_angles(self):
+        print("prop1: " + str(self.prop1_qpos))
+        #print("prop2: " + str(self.prop2_qpos))
+        #print("prop3: " + str(self.prop3_qpos))
+        #print("prop4: " + str(self.prop4_qpos))
     
     def rotate_propellers(self, angle_step):
-        self.data.joint(self.name_in_xml + "_prop1").qpos[0] += angle_step + 0.01
-        self.data.joint(self.name_in_xml + "_prop2").qpos[0] += angle_step
-        self.data.joint(self.name_in_xml + "_prop3").qpos[0] += -(angle_step + 0.01)
-        self.data.joint(self.name_in_xml + "_prop4").qpos[0] += -angle_step
+        #print("angle step: " + str(angle_step))
+                
+        self.prop1_angle += angle_step
+        self.prop2_angle += angle_step
+        self.prop3_angle -= angle_step
+        self.prop4_angle -= angle_step
+
+        self.prop1_qpos[0] = self.prop1_angle
+        self.prop2_qpos[0] = self.prop2_angle
+        self.prop3_qpos[0] = self.prop3_angle
+        self.prop4_qpos[0] = self.prop4_angle
 
 
     def print_names(self):
@@ -125,9 +150,9 @@ class Drone:
     
     @staticmethod
     def get_drone_by_name_in_motive(drones, name: str):
-        for d in drones:
-            if d.name_in_motive == name:
-                return d
+        for i in range(len(drones)):
+            if drones[i].name_in_motive == name:
+                return drones[i]
         
         return None
     

@@ -52,12 +52,16 @@ class PassiveDisplay(Display):
                 mujoco_helper.update_follow_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow,\
                                                self.azim_filter_sin, self.azim_filter_cos,\
                                                self.elev_filter_sin, self.elev_filter_cos)
-            
-            for d in self.drones:
-                if d.get_qpos()[2] > 0.05:
-                    d.rotate_propellers(1)
+
+
+            for i in range(len(self.drones)):
+                #print(d.get_qpos()[2])
+                #self.drones[i].print_prop_angles()
+                if self.drones[i].get_qpos()[2] > 0.15:
+                    self.drones[i].rotate_propellers(1)
                 else:
-                    d.rotate_propellers(1)
+                    self.drones[i].rotate_propellers(0.01)
+                    
 
             mujoco.mj_step(self.model, self.data, 1)
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)
@@ -82,7 +86,7 @@ class PassiveDisplay(Display):
             glfw.poll_events()
 
             
-            sync(i, start, self.timestep)
+            #sync(i, start, self.timestep)
             i += 1
         
         if self.is_recording:

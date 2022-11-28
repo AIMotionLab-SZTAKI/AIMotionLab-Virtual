@@ -72,6 +72,11 @@ class SceneXmlGenerator:
 
     def add_drone(self, pos, quat, color, is_virtual = True, is_hooked = False):
 
+        PROP_OFFS = "0.047"
+        PROP_OFFS_Z = "0.032"
+
+        PROP_COLOR = "0.1 0.1 0.1 1.0"
+
         if is_virtual:
 
             if is_hooked:
@@ -110,25 +115,29 @@ class SceneXmlGenerator:
 
         ET.SubElement(drone, "site", name=site_name, pos="0 0 0")
 
-        prop1_name = name + "_prop1"
-        prop1_body = ET.SubElement(drone, "body", name=prop1_name)
-        ET.SubElement(prop1_body, "joint", name=prop1_name, axis="0 0 1", pos="0.048 0.048 0.032")
-        ET.SubElement(prop1_body, "geom", name=prop1_name, type="mesh", mesh="drone_ccw_prop", pos="0.048 0.048 0.032", rgba="0.1 0.1 0.1 1.0")
+        prop_name = name + "_prop1"
+        pos = PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
+        prop1_body = ET.SubElement(drone, "body", name=prop_name)
+        ET.SubElement(prop1_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
+        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR)
 
-        prop2_name = name + "_prop2"
-        prop2_body = ET.SubElement(drone, "body", name=prop2_name)
-        ET.SubElement(prop2_body, "joint", name=prop2_name, axis="0 0 1", pos="-0.048 -0.048 0.032")
-        ET.SubElement(prop2_body, "geom", name=prop2_name, type="mesh", mesh="drone_ccw_prop", pos="-0.048 -0.048 0.032", rgba="0.1 0.1 0.1 1.0")
+        prop_name = name + "_prop2"
+        pos = "-" + PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
+        prop2_body = ET.SubElement(drone, "body", name=prop_name)
+        ET.SubElement(prop2_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
+        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR)
 
-        prop3_name = name + "_prop3"
-        prop3_body = ET.SubElement(drone, "body", name=prop3_name)
-        ET.SubElement(prop3_body, "joint", name=prop3_name, axis="0 0 1", pos="-0.048 0.048 0.032")
-        ET.SubElement(prop3_body, "geom", name=prop3_name, type="mesh", mesh="drone_ccw_prop", pos="-0.048 0.048 0.032", rgba="0.1 0.1 0.1 1.0")
+        prop_name = name + "_prop3"
+        pos = "-" + PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
+        prop3_body = ET.SubElement(drone, "body", name=prop_name)
+        ET.SubElement(prop3_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
+        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR)
 
-        prop4_name = name + "_prop4"
-        prop4_body = ET.SubElement(drone, "body", name=prop4_name)
-        ET.SubElement(prop4_body, "joint", name=prop4_name, axis="0 0 1", pos="0.048 -0.048 0.032")
-        ET.SubElement(prop4_body, "geom", name=prop4_name, type="mesh", mesh="drone_ccw_prop", pos="0.048 -0.048 0.032", rgba="0.1 0.1 0.1 1.0")
+        prop_name = name + "_prop4"
+        pos = PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
+        prop4_body = ET.SubElement(drone, "body", name=prop_name)
+        ET.SubElement(prop4_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
+        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR)
 
         if is_hooked:
             self.add_hook_to_drone(drone, name)
@@ -218,7 +227,7 @@ class SceneXmlGenerator:
     def save_xml(self, file_name):
         
         tree = ET.ElementTree(self.root)
-        #ET.indent(tree, space="\t", level=0) # uncomment this if python version >= 3.9
+        ET.indent(tree, space="\t", level=0) # uncomment this if python version >= 3.9
         tree.write(file_name)
 
 

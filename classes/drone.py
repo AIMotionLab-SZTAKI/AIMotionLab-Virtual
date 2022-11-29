@@ -57,6 +57,13 @@ class Drone:
         self.prop2_qpos[0] = self.prop2_angle
         self.prop3_qpos[0] = self.prop3_angle
         self.prop4_qpos[0] = self.prop4_angle
+    
+    def stop_propellers(self):
+        self.prop1_qpos[0] = self.prop1_angle
+        self.prop2_qpos[0] = self.prop2_angle
+        self.prop3_qpos[0] = self.prop3_angle
+        self.prop4_qpos[0] = self.prop4_angle
+
 
 
     def print_names(self):

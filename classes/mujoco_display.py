@@ -116,7 +116,9 @@ class Display:
             if drone.get_qpos()[2] > 0.10:
                 drone.spin_propellers(50 * self.timestep)
             else:
-                drone.spin_propellers(10 * self.timestep)
+                #drone.spin_propellers(5 * self.timestep)
+                drone.stop_propellers()
+                pass
                 
 
     

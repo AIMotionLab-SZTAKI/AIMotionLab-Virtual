@@ -116,28 +116,29 @@ class SceneXmlGenerator:
         ET.SubElement(drone, "site", name=site_name, pos="0 0 0")
 
         prop_name = name + "_prop1"
+        mass = "0.0001"
         pos = PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
         prop1_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop1_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR)
+        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
 
         prop_name = name + "_prop2"
         pos = "-" + PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
         prop2_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop2_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR)
+        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
 
         prop_name = name + "_prop3"
         pos = "-" + PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
         prop3_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop3_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR)
+        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
 
         prop_name = name + "_prop4"
         pos = PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
         prop4_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop4_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR)
+        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
 
         if is_hooked:
             self.add_hook_to_drone(drone, name)

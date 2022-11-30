@@ -36,6 +36,7 @@ class ActiveSimulator(Display):
             for name, obj in self.mc.rigidBodies.items():
 
                 # have to put rotation.w to the front because the order is different
+                # only update real drones
                 drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
                 try:

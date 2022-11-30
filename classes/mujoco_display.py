@@ -12,7 +12,6 @@ import time
 from util import mujoco_helper
 import cv2
 from gui.drone_name_gui import DroneNameGui
-from util.util import sync
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.drone import Drone
@@ -30,6 +29,7 @@ class Display:
         self.key_d_callback = None
         self.key_l_callback = None
         self.key_o_callback = None
+        self.key_t_callback = None
         self.key_delete_callback = None
 
         self.connect_to_optitrack = connect_to_optitrack
@@ -147,21 +147,28 @@ class Display:
 
 
     def set_key_b_callback(self, callback_function):
-        self.key_b_callback = callback_function
-
+        if callable(callback_function):
+            self.key_b_callback = callback_function
 
     def set_key_d_callback(self, callback_function):
-        self.key_d_callback = callback_function
-
+        if callable(callback_function):
+            self.key_d_callback = callback_function
 
     def set_key_l_callback(self, callback_function):
-        self.key_l_callback = callback_function
+        if callable(callback_function):
+            self.key_l_callback = callback_function
     
     def set_key_o_callback(self, callback_function):
-        self.key_o_callback = callback_function
+        if callable(callback_function):
+            self.key_o_callback = callback_function
+
+    def set_key_t_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_t_callback = callback_function
     
     def set_key_delete_callback(self, callback_function):
-        self.key_delete_callback = callback_function
+        if callable(callback_function):
+            self.key_delete_callback = callback_function
 
 
     def mouse_button_callback(self, window, button, action, mods):
@@ -288,6 +295,13 @@ class Display:
             """
             if self.key_o_callback:
                 self.key_o_callback()
+        
+        if key == glfw.KEY_T and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_t_callback:
+                self.key_t_callback()
         
         if key == glfw.KEY_DELETE and action == glfw.RELEASE:
             """

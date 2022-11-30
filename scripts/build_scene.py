@@ -3,8 +3,9 @@ import numpy as np
 import os
 from util import xml_generator
 from classes.passive_display import PassiveDisplay
-from gui.building_input_gui import BuildingDataGui
+from gui.building_input_gui import BuildingInputGui
 from gui.drone_input_gui import DroneInputGui
+from gui.cargo_input_gui import CargoInputGui
 
 
 # open the base on which we'll build
@@ -30,8 +31,8 @@ landing_zone_counter = 0
 pole_counter = 0
 
 def add_building():
-    global scene
-    input_gui = BuildingDataGui()
+    global scene, display
+    input_gui = BuildingInputGui()
     input_gui.show()
 
     # add airport
@@ -81,10 +82,10 @@ def add_building():
             scene.add_landing_zone(lz_name, input_gui.position, input_gui.quaternion)
             save_and_reload_model(scene, display, save_filename)
 
-    # add tall Sztaki landing zone
-    elif input_gui.building == "Sztaki landing zone":
+    # add Sztaki
+    elif input_gui.building == "Sztaki":
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_tall_landing_zone(input_gui.position, input_gui.quaternion)
+            scene.add_sztaki(input_gui.position, input_gui.quaternion)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     # add pole
@@ -102,6 +103,7 @@ def add_building():
 
     
 def add_drone():
+    global scene, display
     
     input_gui = DroneInputGui()
     input_gui.show()
@@ -125,6 +127,16 @@ def add_drone():
     else:
         #print(input_gui.drone_type)
         print("Non-existent drone type " + input_gui.drone_type)
+
+def add_load():
+    global scene, display
+    input_gui = CargoInputGui()
+    input_gui.show()
+
+    if input_gui.position != "" and input_gui.size != "" and input_gui.mass != "" and input_gui.quaternion != "":
+        scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
+
+        save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
 
 
 def save_and_reload_model(scene, display, save_filename, drone_names_in_motive=None):
@@ -166,7 +178,7 @@ def build_from_optitrack():
         elif name == "bu11":
             scene.add_hospital(position, "1 0 0 0")
         elif name == "bu12":
-            scene.add_tall_landing_zone(position, "1 0 0 0")
+            scene.add_sztaki(position, "1 0 0 0")
         elif name == "bu13":
             scene.add_post_office(position, "1 0 0 0")
         elif name == "bu14":
@@ -183,6 +195,7 @@ def main():
     display.set_key_b_callback(add_building)
     display.set_key_d_callback(add_drone)
     display.set_key_o_callback(build_from_optitrack)
+    display.set_key_t_callback(add_load)
     display.set_key_delete_callback(clear_scene)
     
     #display.print_optitrack_data()

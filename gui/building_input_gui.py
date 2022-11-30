@@ -5,7 +5,7 @@ import tkinter as tk
 BUILDING_OPTIONS = [
     "Hospital",
     "Post office",
-    "Sztaki landing zone",
+    "Sztaki",
     "Landing zone",
     "Pole",
     "Airport",
@@ -13,7 +13,7 @@ BUILDING_OPTIONS = [
 ]
 
 
-class BuildingDataGui:
+class BuildingInputGui:
     
     def __init__(self):
         self.window = tk.Tk()

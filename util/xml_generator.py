@@ -12,12 +12,14 @@ class SceneXmlGenerator:
         self.airport = None
         self.hospital = None
         self.post_office = None
-        self.tall_landing_zone = None
+        self.sztaki = None
 
         self.__virtdrone_cntr = 0
         self.__virtdrone_hooked_cntr = 0
         self.__realdrone_cntr = 0
         self.__realdrone_hooked_cntr = 0
+        
+        self.__load_cntr = 0
 
 
     def add_airport(self, pos, quat=None):
@@ -211,19 +213,43 @@ class SceneXmlGenerator:
         return landing_zone
 
 
-    def add_tall_landing_zone(self, pos, quat):
-        if self.tall_landing_zone is None:
-            name = "tall_landing_zone"
+    def add_sztaki(self, pos, quat):
+        if self.sztaki is None:
+            name = "sztaki"
             
-            self.tall_landing_zone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
+            self.sztaki = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
 
-            ET.SubElement(self.tall_landing_zone, "geom", name=name, type="box", pos="0 0 0.0925", size="0.105 0.105 0.0925", rgba="0.8 0.8 0.8 1.0", material="mat-sztaki")
+            ET.SubElement(self.sztaki, "geom", name=name, type="box", pos="0 0 0.0925", size="0.105 0.105 0.0925", rgba="0.8 0.8 0.8 1.0", material="mat-sztaki")
 
-            return self.tall_landing_zone
+            return self.sztaki
 
         else:
-            print("[SceneXmlGenerator] Tall Sztaki landing zone already added")
+            print("[SceneXmlGenerator] Sztaki already added")
+    
+    def add_load(self, pos, size, mass, quat, color):
 
+        name = "load_" + str(self.__load_cntr)
+        self.__load_cntr += 1
+
+        box_pos = "0 0 " + size.split()[2]
+
+        load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
+        ET.SubElement(load, "geom", type="box", size=size, mass=mass, pos=box_pos, rgba=color)
+        ET.SubElement(load, "joint", type="free")
+
+        hook_pos = "0 0 " + str(2 * float(size.split()[2]))
+        hook = ET.SubElement(load, "body", name=name + "_hook", pos=hook_pos)
+
+        hook_mass = "0.0001"
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02", mass=hook_mass)
+
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01173 0.04565", euler="-1.12200 0 0", size="0.004 0.01562", mass=hook_mass)
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.04439", euler="-1.17810 0 0", size="0.004 0.01378", mass=hook_mass)
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02561 0.05939", euler="-0.39270 0 0", size="0.004 0.01378", mass=hook_mass)
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02561 0.08061", euler="0.39270 0 0", size="0.004 0.01378", mass=hook_mass)
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.09561", euler="1.17810 0 0", size="0.004 0.01378", mass=hook_mass)
+        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01061 0.09561", euler="1.96350 0 0", size="0.004 0.01378", mass=hook_mass)
+        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.08061", euler="2.74889 0 0", size="0.004 0.01378", mass=hook_mass)
 
     def save_xml(self, file_name):
         
@@ -254,7 +280,7 @@ scene.add_landing_zone(name="landing_zone2", pos="-1 -0.9 0", quat="0.924 0 0 0.
 scene.add_landing_zone(name="landing_zone3", pos="-0.8 -1.1 0", quat="0.924 0 0 0.383")
 scene.add_landing_zone(name="landing_zone4", pos="-0.6 -1.3 0", quat="0.924 0 0 0.383")
 
-scene.add_tall_landing_zone(pos="0 0 0", quat="1 0 0 0")
+scene.add_sztaki(pos="0 0 0", quat="1 0 0 0")
 
 scene.save_xml("first_xml.xml")
 """

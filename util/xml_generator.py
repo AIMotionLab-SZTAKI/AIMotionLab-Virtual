@@ -1,5 +1,17 @@
 import xml.etree.ElementTree as ET
 
+
+
+PROP_OFFS = "0.047"
+PROP_OFFS_Z = "0.032"
+
+PROP_OFFS_LARGE = "0.157"
+PROP_OFFS_Z_LARGE = "0.107"
+
+PROP_COLOR = "0.1 0.1 0.1 1.0"
+
+SITE_NAME_END = "_cog"
+
 class SceneXmlGenerator:
 
     def __init__(self, base_scene_filename):
@@ -15,8 +27,10 @@ class SceneXmlGenerator:
         self.sztaki = None
 
         self.__virtdrone_cntr = 0
+        self.__virtdrone_large_cntr = 0
         self.__virtdrone_hooked_cntr = 0
         self.__realdrone_cntr = 0
+        self.__realdrone_large_cntr = 0
         self.__realdrone_hooked_cntr = 0
         
         self.__load_cntr = 0
@@ -72,41 +86,71 @@ class SceneXmlGenerator:
         return pole
 
 
-    def add_drone(self, pos, quat, color, is_virtual = True, is_hooked = False):
+    def add_drone(self, pos, quat, color, is_virtual = True, is_large = False, is_hooked = False):
 
-        PROP_OFFS = "0.047"
-        PROP_OFFS_Z = "0.032"
+        if is_hooked and not is_large:
+            print("[SceneXmlGenerator] Error: Hooked drone can only be large...")
+            return None
 
-        PROP_COLOR = "0.1 0.1 0.1 1.0"
-
-        is_large = is_hooked # for later use
 
         if is_virtual:
 
-            if is_hooked:
-                name = "virtdrone_hooked_" + str(self.__virtdrone_hooked_cntr)
+            if is_large:
 
-                self.__virtdrone_hooked_cntr += 1
+                if is_hooked:
+                    name = "virtdrone_hooked_" + str(self.__virtdrone_hooked_cntr)
 
+                    drone = self.__add_large_drone(name, pos, quat, color, True)
+
+                    self.__virtdrone_hooked_cntr += 1
+                    return
+                
+                else:
+
+                    name = "virtdrone_large_" + str(self.__virtdrone_large_cntr)
+                    drone = self.__add_large_drone(name, pos, quat, color)
+
+                    self.__virtdrone_large_cntr += 1
+                    return
 
             else:
                 name = "virtdrone_" + str(self.__virtdrone_cntr)
 
+                drone = self.__add_small_drone(name, pos, quat, color)
+
                 self.__virtdrone_cntr += 1
+                return
         
         else:
-            if is_hooked:
-                name = "realdrone_hooked_" + str(self.__realdrone_hooked_cntr)
+            if is_large:
 
-                self.__realdrone_hooked_cntr += 1
+                if is_hooked:
+
+                    name = "realdrone_hooked_" + str(self.__realdrone_hooked_cntr)
+
+                    drone = self.__add_large_drone(name, pos, quat, color, True)
+
+                    self.__realdrone_hooked_cntr += 1
+
+                else:
+
+                    name = "realdrone_large_" + str(self.__virtdrone_large_cntr)
+                    drone = self.__add_large_drone(name, pos, quat, color)
+
+                    self.__realdrone_large_cntr += 1
+                    return
 
             else:
                 name = "realdrone_" + str(self.__realdrone_cntr)
 
+                drone = self.__add_small_drone(name, pos, quat, color)
+
                 self.__realdrone_cntr += 1
 
         
-        site_name = name + "_cog"
+    
+    def __add_small_drone(self, name, pos, quat, color):
+        site_name = name + SITE_NAME_END
     
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
         ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.4e-5 1.4e-5 2.17e-5", mass="0.028")
@@ -120,32 +164,30 @@ class SceneXmlGenerator:
         ET.SubElement(drone, "site", name=site_name, pos="0 0 0")
 
         prop_name = name + "_prop1"
-        mass = "0.0001"
+        mass = "0.00001"
         pos = PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
         prop1_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop1_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
 
         prop_name = name + "_prop2"
         pos = "-" + PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
         prop2_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop2_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
 
         prop_name = name + "_prop3"
         pos = "-" + PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
         prop3_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop3_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
+        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
 
         prop_name = name + "_prop4"
         pos = PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
         prop4_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop4_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
+        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
 
-        if is_hooked:
-            self.add_hook_to_drone(drone, name)
         
         ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 1 0 0 0", ctrllimited="true", ctrlrange="0 0.64")
         ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 1 0 0", ctrllimited="true", ctrlrange="-0.01 0.01")
@@ -156,7 +198,61 @@ class SceneXmlGenerator:
 
         return drone
 
-    def add_hook_to_drone(self, drone, drone_name):
+    
+    def __add_large_drone(self, name, pos, quat, color, is_hooked=False):
+
+        drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
+        ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="0.082 0.085 0.138", mass="4.34")
+        ET.SubElement(drone, "joint", name=name, type="free")
+
+        drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
+        ET.SubElement(drone_body, "geom", name=name + "_body", type="mesh", mesh="drone_body_large", rgba=color, mass="0.0001")
+        ET.SubElement(drone_body, "geom", name=name + "_4_motormounts", type="mesh", mesh="drone_4_motormounts_large", rgba=color, mass="0.0001")
+        ET.SubElement(drone_body, "geom", name=name + "_4_motors", type="mesh", mesh="drone_4_motors_large", rgba=color, mass="0.0001")
+
+        site_name = name + SITE_NAME_END
+        ET.SubElement(drone, "site", name=site_name, pos="0 0 0")
+
+        if is_hooked:
+            self.__add_hook_to_drone(drone, name)
+
+        prop_name = name + "_prop1"
+        mass = "0.00001"
+        pos = PROP_OFFS_LARGE + " " + PROP_OFFS_LARGE + " " + PROP_OFFS_Z_LARGE
+        prop1_body = ET.SubElement(drone, "body", name=prop_name)
+        ET.SubElement(prop1_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
+        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+
+        prop_name = name + "_prop2"
+        pos = "-" + PROP_OFFS_LARGE + " -" + PROP_OFFS_LARGE + " " + PROP_OFFS_Z_LARGE
+        prop2_body = ET.SubElement(drone, "body", name=prop_name)
+        ET.SubElement(prop2_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
+        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+
+        prop_name = name + "_prop3"
+        pos = "-" + PROP_OFFS_LARGE + " " + PROP_OFFS_LARGE + " " + PROP_OFFS_Z_LARGE
+        prop3_body = ET.SubElement(drone, "body", name=prop_name)
+        ET.SubElement(prop3_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
+        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
+
+        prop_name = name + "_prop4"
+        pos = PROP_OFFS_LARGE + " -" + PROP_OFFS_LARGE + " " + PROP_OFFS_Z_LARGE
+        prop4_body = ET.SubElement(drone, "body", name=prop_name)
+        ET.SubElement(prop4_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
+        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
+
+
+        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 1 0 0 0", ctrllimited="true", ctrlrange="0 67.2")
+        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 1 0 0", ctrllimited="true", ctrlrange="-6 6")
+        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-6 6")
+        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-1.5 1.5")
+
+        ET.SubElement(self.sensor, "gyro", site=site_name)
+
+        return drone
+
+
+    def __add_hook_to_drone(self, drone, drone_name):
         
         rod = ET.SubElement(drone, "body", name=drone_name + "_rod" "body", pos="0 0 0")
         ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.002", mass="0.00")

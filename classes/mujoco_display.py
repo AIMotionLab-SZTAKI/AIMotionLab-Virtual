@@ -38,7 +38,7 @@ class Display:
         self.mouse_right_btn_down = False
         self.prev_x, self.prev_y = 0.0, 0.0
         self.followed_drone_idx = 0
-        self.title = "Optitrack Scene"
+        self.title = "Scene"
         self.is_recording = False
         self.image_list = []
         self.video_save_folder = os.path.join("..", "video_capture")

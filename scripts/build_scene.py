@@ -113,7 +113,7 @@ def add_drone():
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     elif input_gui.drone_type == "Virtual with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, True)
+            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, True)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     elif input_gui.drone_type == "Real":
         if input_gui.position != "" and input_gui.quaternion != "":
@@ -121,7 +121,7 @@ def add_drone():
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     elif input_gui.drone_type == "Real with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True)
+            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, True)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     else:

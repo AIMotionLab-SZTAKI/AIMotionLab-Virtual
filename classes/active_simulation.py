@@ -21,13 +21,18 @@ import classes.drone as drone
 
 class ActiveSimulator(Display):
 
-    def __init__(self, xml_file_name, record_video, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, record_video, sim_step, control_step, graphics_step, connect_to_optitrack=True):
 
         super().__init__(xml_file_name, connect_to_optitrack)
 
         self.record_video = record_video
+        self.sim_step = sim_step
+        self.control_step = control_step
+        self.graphics_step = graphics_step
+
+        self.start = 0
     
-    def update(self):
+    def update(self, i):
         
         # getting data from optitrack server
         if self.connect_to_optitrack:
@@ -53,27 +58,43 @@ class ActiveSimulator(Display):
                                             self.elev_filter_sin, self.elev_filter_cos)
 
 
-        for i in range(len(self.drones)):
+        for l in range(len(self.drones)):
 
-            self.spin_propellers(self.drones[i])
+            self.spin_propellers(self.drones[l])
             
-            # drones[i].trajectories.update()
-            # drones[i].controller.update()
+            self.drones[l].trajectories.evaluate(i)
+            # self.drones[l].controller.update()
 
-            # drones[i].trajectories.eval()
+            # self.drones[l].trajectories.eval()
 
-            # self.data.ctrl[valami] = drones[i].controller.eval()
+            # self.data.ctrl[valami] = drones[l].controller.eval()
             #pass
         
-        mujoco.mj_step(self.model, self.data, 4)
-        self.viewport = mujoco.MjrRect(0, 0, 0, 0)
-        self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
-        mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL,
-                                scn=self.scn)
-        mujoco.mjr_render(self.viewport, self.scn, self.con)
+        mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
 
-        glfw.swap_buffers(self.window)
-        glfw.poll_events()
+        if i % (self.graphics_step / self.control_step) == 0:
+            self.viewport = mujoco.MjrRect(0, 0, 0, 0)
+            self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
+            mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL,
+                                    scn=self.scn)
+            mujoco.mjr_render(self.viewport, self.scn, self.con)
+            if self.is_recording:
+                 
+                # need to create arrays with the exact size!! before passing them to mjr_readPixels()
+                rgb = np.empty(self.viewport.width * self.viewport.height * 3, dtype=np.uint8)
+                depth = np.empty(self.viewport.width * self.viewport.height, dtype=np.float32)
+
+                # draw a time stamp on the rendered image
+                stamp = str(time.time())
+                mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
+                
+                mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
+                
+                self.image_list.append([stamp, rgb])
+
+            glfw.swap_buffers(self.window)
+            glfw.poll_events()
+            sync(i, self.start, self.control_step)
 
         return self.data
     

@@ -143,7 +143,7 @@ def update_follow_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=Non
 
     roll_x, pitch_y, yaw_z = euler_from_quaternion(orientation[0], orientation[1], orientation[2], orientation[3])
 
-    new_azim = -math.degrees(roll_x)
+    new_azim = -math.degrees(roll_x) + 180
     new_elev = -math.degrees(pitch_y) - 20
 
     cam.lookat = position

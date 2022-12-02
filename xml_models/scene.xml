@@ -1,4 +1,5 @@
 <mujoco model="Lagyi">
+
   <default class="main">
 <!-- 
     rotate by 90 degrees about the vertical axis
@@ -30,13 +31,14 @@
   
 
   <compiler angle="radian" meshdir=""/>
-  <option timestep="0.005"/>
+  <option timestep="0.001"/>
   <visual>
     <quality shadowsize="4096"/>
   </visual>
 
   <asset>
     <mesh file="../3d_models/cf2_assembly.stl" name="drone" smoothnormal="true" scale="1.5 1.5 1.5"/>
+    <mesh file="../3d_models/cf2_assembly.stl" name="drone_large" smoothnormal="true" scale="5 5 5"/>
     <mesh file="../3d_models/lagyi_cockpit.stl" name="cockpit" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
     <mesh file="../3d_models/lagyi_fal1.stl" name="fal1" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
     <mesh file="../3d_models/lagyi_fal2.stl" name="fal2" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
@@ -50,6 +52,12 @@
     <mesh file="../meshes/4_motors.stl" name="drone_4_motors" smoothnormal="true" scale="1.5 1.5 1.5"/>
     <mesh file="../meshes/ccw_prop.stl" name="drone_ccw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
     <mesh file="../meshes/cw_prop.stl" name="drone_cw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
+
+    <mesh file="../meshes/cf_body.stl" name="drone_body_large" smoothnormal="true" scale="5 5 5"/>
+    <mesh file="../meshes/4_motormounts.stl" name="drone_4_motormounts_large" smoothnormal="true" scale="5 5 5"/>
+    <mesh file="../meshes/4_motors.stl" name="drone_4_motors_large" smoothnormal="true" scale="5 5 5"/>
+    <mesh file="../meshes/ccw_prop.stl" name="drone_ccw_prop_large" smoothnormal="true" scale="5 5 5"/>
+    <mesh file="../meshes/cw_prop.stl" name="drone_cw_prop_large" smoothnormal="true" scale="5 5 5"/>
 
     <texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512"/>
     <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .1 .1" rgb2=".2 .2 .2"/>
@@ -80,6 +88,16 @@
     <geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="0 0 0.002" type="plane" material="mat-roundabout" condim="3"/>
     <geom name="carpet" size="7.644 7.644 .001" pos="3.16 1.615 0.001" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet"/>
 
+
+      <geom name="cockpit" pos="1.45 -2.3 0" type="mesh" mesh="cockpit" quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
+      <geom name="fal1" pos="1.45 -2.3 0" type="mesh" mesh="fal1" quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
+      <geom name="fal2" pos="1.45 -2.3 0" type="mesh" mesh="fal2" quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
+      <geom name="oszlop1" pos="1.45 -2.3 0" type="mesh" mesh="oszlop1" quat="0 0 0.7071 0.7071" rgba="0.3 0.3 0.3 1"/>
+      <geom name="oszlop2" pos="1.45 -2.3 0" type="mesh" mesh="oszlop2" quat="0 0 0.7071 0.7071" rgba="0.3 0.3 0.3 1"/>
+      <geom name="oszlop3" pos="1.45 -2.3 0" type="mesh" mesh="oszlop3" quat="0 0 0.7071 0.7071" rgba="0.3 0.3 0.3 1"/>
+      <geom name="oszlop4" pos="1.45 -2.3 0" type="mesh" mesh="oszlop4" quat="0 0 0.7071 0.7071" rgba="0.3 0.3 0.3 1"/>
+  
+    <!--
     <body name="lagyi" pos="1.45 -2.3 0" childclass="lagyi">
       <geom name="cockpit" type="mesh" mesh="cockpit"/>
       <geom name="fal1" type="mesh" mesh="fal1"/>
@@ -89,8 +107,8 @@
       <geom name="oszlop3" type="mesh" mesh="oszlop3" rgba="0.3 0.3 0.3 1"/>
       <geom name="oszlop4" type="mesh" mesh="oszlop4" rgba="0.3 0.3 0.3 1"/>
     </body>
+    -->
 
   </worldbody>
-    
 
 </mujoco>

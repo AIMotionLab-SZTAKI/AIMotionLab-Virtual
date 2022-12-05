@@ -9,6 +9,7 @@ import glfw
 import os
 import numpy as np
 import time
+import threading
 from util import mujoco_helper
 import cv2
 from gui.drone_name_gui import DroneNameGui
@@ -274,7 +275,9 @@ class Display:
             else:
                 glfw.set_window_title(window, self.title)
                 self.is_recording = False
-                self.save_video()
+                save_vid_thread = threading.Thread(target=self.save_video, args=(self.viewport.width, self.viewport.height))
+                
+                save_vid_thread.start()
 
         if key == glfw.KEY_C and action == glfw.RELEASE:
             self.connect_to_Optitrack()
@@ -327,7 +330,7 @@ class Display:
             self.activeCam = self.cam
     
 
-    def save_video(self):
+    def save_video(self, width, height):
         """
         Write saved images to hard disk as .mp4
         """
@@ -343,10 +346,10 @@ class Display:
         glfw.set_window_title(self.window, self.title + " (Saving video...)")
         time_stamp = self.image_list[0][0].replace('.', '_')
         out = cv2.VideoWriter(os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time_stamp + '.mp4'),\
-              cv2.VideoWriter_fourcc(*'mp4v'), fps, (self.viewport.width, self.viewport.height))
+              cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
         for i in range(len(self.image_list)):
             #print(self.image_list[i][0])
-            rgb = np.reshape(self.image_list[i][1], (self.viewport.height, self.viewport.width, 3))
+            rgb = np.reshape(self.image_list[i][1], (height, width, 3))
             rgb = cv2.cvtColor(np.flip(rgb, 0), cv2.COLOR_BGR2RGB)
             out.write(rgb)
         out.release()

@@ -34,7 +34,7 @@ for d in simulator.drones:
 
 #simulator.drones[0].trajectories
 
-print(simulator.data.qpos)
+#print(simulator.data.qpos)
 #fps_limiter = FpsLimiter(1.0 / control_step)
 i = 0
 simulator.start = time.time()

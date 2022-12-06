@@ -115,7 +115,8 @@ class Display:
     def spin_propellers(self, drone):
 
             if drone.get_qpos()[2] > 0.10:
-                drone.spin_propellers(50 * self.timestep)
+                drone.spin_propellers(10 * self.timestep)
+                #drone.print_prop_angles()
             else:
                 #drone.spin_propellers(5 * self.timestep)
                 drone.stop_propellers()
@@ -362,7 +363,7 @@ class Display:
         if len(self.drones) > 0:
             drone_names = Drone.get_drone_names_motive(self.drones)
             drone_labels = Drone.get_drone_labels(self.drones)
-            gui = DroneNameGui(len(self.drones), drone_labels=drone_labels, drone_names=drone_names)
+            gui = DroneNameGui(drone_labels=drone_labels, drone_names=drone_names)
             gui.show()
             Drone.set_drone_names_motive(self.drones, gui.drone_names)
 

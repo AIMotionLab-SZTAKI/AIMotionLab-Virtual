@@ -29,9 +29,10 @@ class Trajectory:
 
         # Trajectory parameters
         self.init_pos = [-1.5, 2, 1]  # initial position compared to the first load
-        self.load_init = [[0.0, 0, 0.8], [-0.6, 0.6, 0.79], [-0.3, -0.6, 0.85]]
-        self.load_target = [[2.2, 1.0, 0.78], [1.8, 1.0, 0.78], [1.4, 1.0, 0.83]]
+        self.load_init = [[0.0, 0, 0.8], [-0.6, 0.6, 0.75], [-0.3, -0.6, 0.8]]
+        self.load_target = [[2.2, 1.0, 0.77], [1.8, 1.0, 0.72], [1.4, 1.0, 0.77]]
         self.init_pos = [-0.5, 2.0, 1.8, np.pi/2]#, [load_target[0] - [0.3, 0, 0]]]
+        self.load_mass = [0.15, 0.05, 0.1]
 
         self.pos_ref, self.vel_ref, self.yaw_ref, self.ctrl_type = None, None, None, None
         for num_sec in range(len(self.load_init)):
@@ -42,7 +43,7 @@ class Trajectory:
                 self.init_pos_rel.append(e1-e2)
                 self.load_target_rel.append(e3-e2)
             self.init_pos_rel.append(self.init_pos[-1])
-            pos_ref_, vel_ref_, yaw_ref_, ctrl_type_ = construct(self.init_pos_rel, self.load_target_rel, plot_result=False)
+            pos_ref_, vel_ref_, yaw_ref_, ctrl_type_ = construct(self.init_pos_rel, self.load_target_rel, self.load_mass[num_sec], plot_result=False)
 
             sys.stdout = sys.__stdout__
             # exec_time = timeit.timeit("construct(init_pos_rel, load_target_rel, False)", number=100,
@@ -110,7 +111,9 @@ class Trajectory:
                 target_pos = self.pos_ref[i_, :]
                 target_vel = self.vel_ref[i_, :]
                 target_rpy = np.array([0, 0, self.yaw_ref[i_]])
-                if self.ctrl_type[i_] == 'lqr':
+                if 'lqr' in self.ctrl_type[i_]:
+                    self.controller.mass = self.mass + float(self.ctrl_type[i_][-5:])
+                    self.controller_lqr.mass = self.mass + float(self.ctrl_type[i_][-5:])
                     self.data.ctrl = self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos,
                                                                target_vel=target_vel, target_rpy=target_rpy)
                     alpha = self.data.qpos[7]
@@ -139,7 +142,8 @@ class Trajectory:
                                                                 target_pos_load)
                     self.data.ctrl[0] = lqr_ctrl[0]
                     self.data.ctrl[2] = lqr_ctrl[2]
-                elif self.ctrl_type[i_] == 'geom_load':
+                elif 'geom_load' in self.ctrl_type[i_]:
+                    self.controller.mass = self.mass + float(self.ctrl_type[i_][-5:])
                     self.controller.mass = self.mass + 0.1
                     self.data.ctrl = self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos,
                                                                target_vel=target_vel, target_rpy=target_rpy)

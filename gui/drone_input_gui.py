@@ -3,10 +3,12 @@ import tkinter as tk
 
 # Dropdown menu options
 DRONE_TYPE_OPTIONS = [
-    "Virtual",
-    "Virtual with hook",
-    "Real",
-    "Real with hook"
+    "Virtual crazyflie",
+    "Virtual bumblebee",
+    "Virtual bb with hook",
+    "Real crazyflie",
+    "Real bumblebee",
+    "Real bb with hook"
 ]
 
 

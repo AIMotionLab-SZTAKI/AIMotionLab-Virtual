@@ -85,11 +85,14 @@ class Drone:
         """
 
         drones = []
-        i = 0
+        icf = 0
+        ibb = 0
 
         for _name in joint_names:
 
             _name_cut = _name[:len(_name) - 1]
+
+
 
             if _name.startswith("virtdrone_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
@@ -97,49 +100,59 @@ class Drone:
                 if hook:
                     d = DroneHooked(data, name_in_xml=_name,
                                     hook_name_in_xml=hook,
-                                    name_in_motive="cf" + str(i + 1),
+                                    name_in_motive=None,
                                     is_virtual=True,
                                     trajectories=None,
                                     controller=None,
                                     parameters=None)
 
                     drones += [d]
-                    i += 1
 
                 else:
                     print("Error: did not find hook joint for this drone: " +
                           _name + " ... Ignoring drone.")
+            
+            elif _name.startswith("virtdrone_large") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+                # this joint must be a drone
+
+                d = Drone(data, _name, None, True, None, None, None)
+                drones += [d]
 
             elif _name.startswith("virtdrone") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
 
-                d = Drone(data, _name, "cf" + str(i + 1), True, None, None, None)
+                d = Drone(data, _name, None, True, None, None, None)
                 drones += [d]
-                i += 1
-            
+
             elif _name.startswith("realdrone_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
                 hook = Drone.find_hook_for_drone(joint_names, _name)
                 if hook:
                     d = DroneHooked(data, name_in_xml=_name,
                                     hook_name_in_xml=hook,
-                                    name_in_motive="cf" + str(i + 1),
+                                    name_in_motive="bb" + str(ibb + 1),
                                     is_virtual=False,
                                     trajectories=None,
                                     controller=None,
                                     parameters=None)
 
                     drones += [d]
-                    i += 1
+                    ibb += 1
 
                 else:
                     print("Error: did not find hook joint for this drone: " +
                           _name + " ... Ignoring drone.")
             
             
+            elif _name.startswith("realdrone_large") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+
+                d = Drone(data, _name, "bb" + str(ibb + 1), False, None, None, None)
+                drones += [d]
+                ibb += 1
+
             elif _name.startswith("realdrone") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
 
-                d = Drone(data, _name, "cf" + str(i + 1), False, None, None, None)
+                d = Drone(data, _name, "cf" + str(icf + 1), False, None, None, None)
                 drones += [d]
-                i += 1
+                icf += 1
                 
 
 
@@ -168,26 +181,30 @@ class Drone:
     def get_drone_names_motive(drones):
         names = []
         for d in drones:
-            names += [d.name_in_motive]
+            if not d.is_virtual:
+                names += [d.name_in_motive]
         
         return names
     
     @staticmethod
     def set_drone_names_motive(drones, names):
         
-        if len(drones) != len(names):
-            print("[Drone.set_drone_names()] Error: too many or not enough drone names provided")
-            return
-        
+        #if len(drones) != len(names):
+        #    print("[Drone.set_drone_names()] Error: too many or not enough drone names provided")
+        #    return
+        j = 0
         for i in range(len(drones)):
-            drones[i].name_in_motive = names[i]
+            if not drones[i].is_virtual:
+                drones[i].name_in_motive = names[j]
+                j += 1
     
 
     @staticmethod
     def get_drone_labels(drones):
         labels = []
         for d in drones:
-            labels += [d.get_label()]
+            if not d.is_virtual:
+                labels += [d.get_label()]
             
         return labels
 

@@ -107,19 +107,27 @@ def add_drone():
     
     input_gui = DroneInputGui()
     input_gui.show()
-    if input_gui.drone_type == "Virtual":
+    if input_gui.drone_type == "Virtual crazyflie":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, False)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Virtual with hook":
+    elif input_gui.drone_type == "Virtual bumblebee":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, False)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.drone_type == "Virtual bb with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, True)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Real":
+    elif input_gui.drone_type == "Real crazyflie":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, False)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Real with hook":
+    elif input_gui.drone_type == "Real bumblebee":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, False)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.drone_type == "Real bb with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, True)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))

@@ -5,10 +5,13 @@ import xml.etree.ElementTree as ET
 PROP_OFFS = "0.047"
 PROP_OFFS_Z = "0.032"
 
-PROP_OFFS_LARGE = "0.157"
-PROP_OFFS_Z_LARGE = "0.107"
+PROP_OFFS_X1_LARGE = "0.100"
+PROP_OFFS_X2_LARGE = "0.065"
+PROP_OFFS_Y_LARGE = "0.087"
+PROP_OFFS_Z_LARGE = "0.026"
 
 PROP_COLOR = "0.1 0.1 0.1 1.0"
+PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
 
 SITE_NAME_END = "_cog"
 
@@ -202,13 +205,13 @@ class SceneXmlGenerator:
     def __add_large_drone(self, name, pos, quat, color, is_hooked=False):
 
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
-        ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="0.082 0.085 0.138", mass="4.34")
+        ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.5e-3 1.45e-3 2.66e-3", mass="0.407")
         ET.SubElement(drone, "joint", name=name, type="free")
 
-        drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
-        ET.SubElement(drone_body, "geom", name=name + "_body", type="mesh", mesh="drone_body_large", rgba=color, mass="0.0001")
-        ET.SubElement(drone_body, "geom", name=name + "_4_motormounts", type="mesh", mesh="drone_4_motormounts_large", rgba=color, mass="0.0001")
-        ET.SubElement(drone_body, "geom", name=name + "_4_motors", type="mesh", mesh="drone_4_motors_large", rgba=color, mass="0.0001")
+        #drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
+        ET.SubElement(drone, "geom", name=name + "_body", type="mesh", mesh="drone_body_large", rgba=color)
+        #ET.SubElement(drone_body, "geom", name=name + "_4_motormounts", type="mesh", mesh="drone_4_motormounts_large", rgba=color, mass="0.0001")
+        #ET.SubElement(drone_body, "geom", name=name + "_4_motors", type="mesh", mesh="drone_4_motors_large", rgba=color, mass="0.0001")
 
         site_name = name + SITE_NAME_END
         ET.SubElement(drone, "site", name=site_name, pos="0 0 0")
@@ -218,28 +221,28 @@ class SceneXmlGenerator:
 
         prop_name = name + "_prop1"
         mass = "0.00001"
-        pos = PROP_OFFS_LARGE + " " + PROP_OFFS_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = PROP_OFFS_X1_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop1_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop1_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
 
         prop_name = name + "_prop2"
-        pos = "-" + PROP_OFFS_LARGE + " -" + PROP_OFFS_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = "-" + PROP_OFFS_X2_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop2_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop2_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
 
         prop_name = name + "_prop3"
-        pos = "-" + PROP_OFFS_LARGE + " " + PROP_OFFS_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = "-" + PROP_OFFS_X2_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop3_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop3_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
+        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
 
         prop_name = name + "_prop4"
-        pos = PROP_OFFS_LARGE + " -" + PROP_OFFS_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = PROP_OFFS_X1_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop4_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop4_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
+        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
 
 
         ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 1 0 0 0", ctrllimited="true", ctrlrange="0 67.2")
@@ -255,15 +258,15 @@ class SceneXmlGenerator:
     def __add_hook_to_drone(self, drone, drone_name):
         
         rod = ET.SubElement(drone, "body", name=drone_name + "_rod" "body", pos="0 0 0")
-        ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.002", mass="0.00")
+        ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.0025", mass="0.00")
         ET.SubElement(rod, "site", name=drone_name + "_rod_end", pos="0 0 -0.4", type="sphere", size="0.002")
         ET.SubElement(rod, "joint", name=drone_name + "_hook", axis="0 1 0", pos="0 0 0", damping="0.001")
         hook = ET.SubElement(rod, "body", name=drone_name + "_hook", pos="0 0 -0.4", euler="0 3.141592 -1.57")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02", mass="0.05")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.04750", euler="-1.04720 0 0", size="0.0035 0.01800", mass="0.0001")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02598 0.07000", euler="0.00000 0 0", size="0.0035 0.01800", mass="0.0001")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.09250", euler="1.04720 0 0", size="0.0035 0.01800", mass="0.0001")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01299 0.09250", euler="2.09440 0 0", size="0.0035 0.01800", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02", mass="0.02")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.04750", euler="-1.04720 0 0", size="0.005 0.01800", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02598 0.07000", euler="0.00000 0 0", size="0.005 0.01800", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.09250", euler="1.04720 0 0", size="0.005 0.01800", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01299 0.09250", euler="2.09440 0 0", size="0.005 0.01800", mass="0.0001")
 
 
 

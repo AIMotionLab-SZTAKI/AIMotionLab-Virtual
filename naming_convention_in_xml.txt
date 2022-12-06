@@ -1,19 +1,27 @@
 Replace 'n' with drone index
 
-real drone:
+real crazyflie:
 	* body name: realdrone_n
 	* free joint name: realdrone_n
 
-virtual drone:
+virtual crazyflie:
 	* body name: virtdrone_n
 	* free joint name: virtdrone_n
 
-real drone with hook:
+real bumblebee:
+	* body name: realdrone_large_n
+	* free joint name: realdrone_large_n
+	
+virtual bumblebee:
+	* body name: virtdrone_large_n
+	* free joint name: virtdrone_large_n
+
+real bumblebee with hook:
 	* body name: realdrone_hooked_n
 	* free joint name: realdrone_hooked_n
 	* hook joint name: realdrone_hooked_n_hook
 
-virtual drone with hook:
+virtual bumblebee with hook:
 	* body name: virtdrone_hooked_n
 	* free joint name: virtdrone_hooked_n
 	* hook joint name: virtdrone_hooked_n_hook

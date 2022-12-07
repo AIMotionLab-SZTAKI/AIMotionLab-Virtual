@@ -98,10 +98,10 @@ class Display:
         self.camFollow = mujoco.MjvCamera()
         self.activeCam = self.cam
         
-        self.cam.azimuth, self.cam.elevation = 180, -30
-        self.cam.lookat, self.cam.distance = [0, 0, 0], 5
+        self.cam.azimuth, self.cam.elevation = 70, -20
+        self.cam.lookat, self.cam.distance = [0, 0, .5], 3
         self.camFollow.azimuth, self.camFollow.elevation = 180, -30
-        self.camFollow.lookat, self.camFollow.distance = [0, 0, 0], 0.8
+        self.camFollow.lookat, self.camFollow.distance = [0, 0, 0], 1.8
 
         # set up low-pass filters for the camera that follows the drones
         fs = 1 / self.timestep  # sampling rate, Hz

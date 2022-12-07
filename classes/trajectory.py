@@ -3,6 +3,7 @@ import pickle
 import sys
 # caution: path[0] is reserved for script path (or '' in REPL)
 sys.path.insert(1, '/home/mate/Desktop/mujoco/crazyflie-mujoco/')
+sys.path.insert(2, '/home/crazyfly/Desktop/mujoco_digital_twin/crazyflie-mujoco/')
 
 import mujoco
 import glfw

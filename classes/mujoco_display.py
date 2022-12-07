@@ -1,4 +1,3 @@
-from ast import Pass
 import math
 
 import motioncapture
@@ -110,6 +109,9 @@ class Display:
         self.b, self.a = scipy.signal.iirfilter(4, Wn=cutoff, fs=fs, btype="low", ftype="butter")
         self.azim_filter_sin = LiveLFilter(self.b, self.a)
         self.azim_filter_cos = LiveLFilter(self.b, self.a)
+        fs = 1 / self.timestep  # sampling rate, Hz
+        cutoff = 0.5
+        self.b, self.a = scipy.signal.iirfilter(4, Wn=cutoff, fs=fs, btype="low", ftype="butter")
         self.elev_filter_sin = LiveLFilter(self.b, self.a)
         self.elev_filter_cos = LiveLFilter(self.b, self.a)
     

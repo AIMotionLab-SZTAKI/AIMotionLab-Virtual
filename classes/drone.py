@@ -68,7 +68,8 @@ class Drone:
 
     def print_names(self):
         print("name in xml:      " + self.name_in_xml)
-        print("name in motive:   " + self.name_in_motive)
+        if not self.is_virtual:
+            print("name in motive:   " + self.name_in_motive)
     
     def print_info(self):
         self.print_names()

@@ -60,9 +60,9 @@
     <mesh file="../meshes/cw_prop.stl" name="drone_cw_prop_large" smoothnormal="true" scale="5 5 5"/>
 -->
 
-    <mesh file="../meshes/quad_model_no_prop.stl" name="drone_body_large" smoothnormal="true" scale="0.001 0.001 0.001"/>
-    <mesh file="../meshes/ccw_propeller.stl" name="drone_ccw_prop_large" smoothnormal="true" scale="0.001 0.001 0.001"/>
-    <mesh file="../meshes/cw_propeller.stl" name="drone_cw_prop_large" smoothnormal="true" scale="0.001 0.001 0.001"/>
+    <mesh file="../meshes/quad_model_no_prop_simplified.stl" name="drone_body_large" smoothnormal="true" scale="0.001 0.001 0.001"/>
+    <mesh file="../meshes/ccw_propeller_simplified.stl" name="drone_ccw_prop_large" smoothnormal="true" scale="0.001 0.001 0.001"/>
+    <mesh file="../meshes/cw_propeller_simplified.stl" name="drone_cw_prop_large" smoothnormal="true" scale="0.001 0.001 0.001"/>
 
     <texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512"/>
     <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .1 .1" rgb2=".2 .2 .2"/>

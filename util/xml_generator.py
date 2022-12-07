@@ -8,7 +8,7 @@ PROP_OFFS_Z = "0.032"
 PROP_OFFS_X1_LARGE = "0.100"
 PROP_OFFS_X2_LARGE = "0.065"
 PROP_OFFS_Y_LARGE = "0.087"
-PROP_OFFS_Z_LARGE = "0.026"
+PROP_OFFS_Z_LARGE = "0.036"
 
 PROP_COLOR = "0.1 0.1 0.1 1.0"
 PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
@@ -220,7 +220,7 @@ class SceneXmlGenerator:
         ET.SubElement(drone, "joint", name=name, type="free")
 
         #drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
-        ET.SubElement(drone, "geom", name=name + "_body", type="mesh", mesh="drone_body_large", rgba=color)
+        ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", mesh="drone_body_large", rgba=color)
         #ET.SubElement(drone_body, "geom", name=name + "_4_motormounts", type="mesh", mesh="drone_4_motormounts_large", rgba=color, mass="0.0001")
         #ET.SubElement(drone_body, "geom", name=name + "_4_motors", type="mesh", mesh="drone_4_motors_large", rgba=color, mass="0.0001")
 

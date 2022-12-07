@@ -109,27 +109,27 @@ def add_drone():
     input_gui.show()
     if input_gui.drone_type == "Virtual crazyflie":
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, False)
+            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "crazyflie")
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     elif input_gui.drone_type == "Virtual bumblebee":
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, False)
+            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", False)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     elif input_gui.drone_type == "Virtual bb with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, True)
+            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", True)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     elif input_gui.drone_type == "Real crazyflie":
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, False)
+            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "crazyflie")
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     elif input_gui.drone_type == "Real bumblebee":
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, False)
+            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", False)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     elif input_gui.drone_type == "Real bb with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, True)
+            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", True)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     else:

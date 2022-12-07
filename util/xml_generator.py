@@ -29,12 +29,12 @@ class SceneXmlGenerator:
         self.post_office = None
         self.sztaki = None
 
-        self.__virtdrone_cntr = 0
-        self.__virtdrone_large_cntr = 0
-        self.__virtdrone_hooked_cntr = 0
-        self.__realdrone_cntr = 0
-        self.__realdrone_large_cntr = 0
-        self.__realdrone_hooked_cntr = 0
+        self.__virtcrazyflie_cntr = 0
+        self.__virtbumblebee_cntr = 0
+        self.__virtbumblebee_hooked_cntr = 0
+        self.__realcrazyflie_cntr = 0
+        self.__realbumblebee_cntr = 0
+        self.__realbumblebee_hooked_cntr = 0
         
         self.__load_cntr = 0
 
@@ -89,70 +89,81 @@ class SceneXmlGenerator:
         return pole
 
 
-    def add_drone(self, pos, quat, color, is_virtual = True, is_large = False, is_hooked = False):
+    def add_drone(self, pos, quat, color, is_virtual = True, type="crazyflie", is_hooked = False):
 
-        if is_hooked and not is_large:
+        if is_hooked and type != "bumblebee":
             print("[SceneXmlGenerator] Error: Hooked drone can only be large...")
             return None
 
 
         if is_virtual:
 
-            if is_large:
+            if type == "bumblebee":
 
                 if is_hooked:
-                    name = "virtdrone_hooked_" + str(self.__virtdrone_hooked_cntr)
+                    name = "virtbumblebee_hooked_" + str(self.__virtbumblebee_hooked_cntr)
 
-                    drone = self.__add_large_drone(name, pos, quat, color, True)
+                    drone = self.__add_bumblebee(name, pos, quat, color, True)
 
-                    self.__virtdrone_hooked_cntr += 1
+                    self.__virtbumblebee_hooked_cntr += 1
                     return
                 
                 else:
 
-                    name = "virtdrone_large_" + str(self.__virtdrone_large_cntr)
-                    drone = self.__add_large_drone(name, pos, quat, color)
+                    name = "virtbumblebee_" + str(self.__virtbumblebee_cntr)
+                    drone = self.__add_bumblebee(name, pos, quat, color)
 
-                    self.__virtdrone_large_cntr += 1
+                    self.__virtbumblebee_cntr += 1
                     return
 
+            elif type == "crazyflie":
+                name = "virtcrazyflie_" + str(self.__virtcrazyflie_cntr)
+
+                drone = self.__add_crazyflie(name, pos, quat, color)
+
+                self.__virtcrazyflie_cntr += 1
+                return
+                
+            
             else:
-                name = "virtdrone_" + str(self.__virtdrone_cntr)
-
-                drone = self.__add_small_drone(name, pos, quat, color)
-
-                self.__virtdrone_cntr += 1
+                print("[SceneXmlGenerator] Error: unknown drone type: " + str(type))
                 return
         
         else:
-            if is_large:
+            if type == "bumblebee":
 
                 if is_hooked:
 
-                    name = "realdrone_hooked_" + str(self.__realdrone_hooked_cntr)
+                    name = "realbumblebee_hooked_" + str(self.__realbumblebee_hooked_cntr)
 
-                    drone = self.__add_large_drone(name, pos, quat, color, True)
+                    drone = self.__add_bumblebee(name, pos, quat, color, True)
 
-                    self.__realdrone_hooked_cntr += 1
+                    self.__realbumblebee_hooked_cntr += 1
+                    return
 
                 else:
 
-                    name = "realdrone_large_" + str(self.__virtdrone_large_cntr)
-                    drone = self.__add_large_drone(name, pos, quat, color)
+                    name = "realbumblebee_" + str(self.__virtbumblebee_cntr)
+                    drone = self.__add_bumblebee(name, pos, quat, color)
 
-                    self.__realdrone_large_cntr += 1
+                    self.__realbumblebee_cntr += 1
                     return
 
+            elif type == "crazyflie":
+                name = "realcrazyflie_" + str(self.__realcrazyflie_cntr)
+
+                drone = self.__add_crazyflie(name, pos, quat, color)
+
+                self.__realcrazyflie_cntr += 1
+                return
+            
             else:
-                name = "realdrone_" + str(self.__realdrone_cntr)
-
-                drone = self.__add_small_drone(name, pos, quat, color)
-
-                self.__realdrone_cntr += 1
+                print("[SceneXmlGenerator] Error: unknown drone type: " + str(type))
+                return
 
         
     
-    def __add_small_drone(self, name, pos, quat, color):
+    def __add_crazyflie(self, name, pos, quat, color):
         site_name = name + SITE_NAME_END
     
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
@@ -202,7 +213,7 @@ class SceneXmlGenerator:
         return drone
 
     
-    def __add_large_drone(self, name, pos, quat, color, is_hooked=False):
+    def __add_bumblebee(self, name, pos, quat, color, is_hooked=False):
 
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
         ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.5e-3 1.45e-3 2.66e-3", mass="0.407")

@@ -68,7 +68,8 @@ class Display:
         self.viewport = mujoco.MjrRect(0, 0, 0, 0)
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
-        self.drones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+        self.virtdrones, self.realdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+        self.drones = self.virtdrones + self.realdrones
         #print(self.data.qpos.size)
         
     def init_glfw(self):
@@ -139,12 +140,13 @@ class Display:
     def reload_model(self, xml_file_name, drone_names_in_motive = None):
         
         self.load_model(xml_file_name)
-        self.drones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+        self.virtdrones, self.realdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+        self.drones = self.virtdrones + self.realdrones
 
         if drone_names_in_motive is not None and len(drone_names_in_motive) > 0:
             i = 0
-            for d in self.drones:
-                d.name_in_motive = drone_names_in_motive[i]
+            for i in range(len(self.realdrones)):
+                self.realdrones[i].name_in_motive = drone_names_in_motive[i]
                 i += 1
 
 
@@ -360,10 +362,10 @@ class Display:
 
     def set_drone_names(self):
         
-        if len(self.drones) > 0:
-            drone_names = Drone.get_drone_names_motive(self.drones)
-            drone_labels = Drone.get_drone_labels(self.drones)
+        if len(self.realdrones) > 0:
+            drone_names = Drone.get_drone_names_motive(self.realdrones)
+            drone_labels = Drone.get_drone_labels(self.realdrones)
             gui = DroneNameGui(drone_labels=drone_labels, drone_names=drone_names)
             gui.show()
-            Drone.set_drone_names_motive(self.drones, gui.drone_names)
+            Drone.set_drone_names_motive(self.realdrones, gui.drone_names)
 

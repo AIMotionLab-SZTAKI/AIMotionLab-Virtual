@@ -1,27 +1,27 @@
 Replace 'n' with drone index
 
 real crazyflie:
-	* body name: realdrone_n
-	* free joint name: realdrone_n
+	* body name: realcrazyflie_n
+	* free joint name: realcrazyflie_n
 
 virtual crazyflie:
-	* body name: virtdrone_n
-	* free joint name: virtdrone_n
+	* body name: virtcrazyflie_n
+	* free joint name: virtcrazyflie_n
 
 real bumblebee:
-	* body name: realdrone_large_n
-	* free joint name: realdrone_large_n
+	* body name: realbumblebee_n
+	* free joint name: realbumblebee_n
 	
 virtual bumblebee:
-	* body name: virtdrone_large_n
-	* free joint name: virtdrone_large_n
+	* body name: virtbumblebee_n
+	* free joint name: virtbumblebee_n
 
 real bumblebee with hook:
-	* body name: realdrone_hooked_n
-	* free joint name: realdrone_hooked_n
+	* body name: realbumblebee_hooked_n
+	* free joint name: realbumblebee_hooked_n
 	* hook joint name: realdrone_hooked_n_hook
 
 virtual bumblebee with hook:
-	* body name: virtdrone_hooked_n
-	* free joint name: virtdrone_hooked_n
-	* hook joint name: virtdrone_hooked_n_hook
+	* body name: virtbumblebee_hooked_n
+	* free joint name: virtbumblebee_hooked_n
+	* hook joint name: virtbumblebee_hooked_n_hook

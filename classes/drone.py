@@ -84,7 +84,8 @@ class Drone:
         found in naming_convention_in_xml.txt
         """
 
-        drones = []
+        virtdrones = []
+        realdrones = []
         icf = 0
         ibb = 0
 
@@ -94,7 +95,7 @@ class Drone:
 
 
 
-            if _name.startswith("virtdrone_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+            if _name.startswith("virtbumblebee_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
                 hook = Drone.find_hook_for_drone(joint_names, _name)
                 if hook:
@@ -106,24 +107,24 @@ class Drone:
                                     controller=None,
                                     parameters=None)
 
-                    drones += [d]
+                    virtdrones += [d]
 
                 else:
                     print("Error: did not find hook joint for this drone: " +
                           _name + " ... Ignoring drone.")
             
-            elif _name.startswith("virtdrone_large") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+            elif _name.startswith("virtbumblebee") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
 
                 d = Drone(data, _name, None, True, None, None, None)
-                drones += [d]
+                virtdrones += [d]
 
-            elif _name.startswith("virtdrone") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+            elif _name.startswith("virtcrazyflie") and not _name_cut.endswith("prop"):
 
                 d = Drone(data, _name, None, True, None, None, None)
-                drones += [d]
+                virtdrones += [d]
 
-            elif _name.startswith("realdrone_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+            elif _name.startswith("realbumblebee_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
                 hook = Drone.find_hook_for_drone(joint_names, _name)
                 if hook:
                     d = DroneHooked(data, name_in_xml=_name,
@@ -134,7 +135,7 @@ class Drone:
                                     controller=None,
                                     parameters=None)
 
-                    drones += [d]
+                    realdrones += [d]
                     ibb += 1
 
                 else:
@@ -142,24 +143,24 @@ class Drone:
                           _name + " ... Ignoring drone.")
             
             
-            elif _name.startswith("realdrone_large") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+            elif _name.startswith("realbumblebee") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
 
                 d = Drone(data, _name, "bb" + str(ibb + 1), False, None, None, None)
-                drones += [d]
+                realdrones += [d]
                 ibb += 1
 
-            elif _name.startswith("realdrone") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+            elif _name.startswith("realcrazyflie") and not _name_cut.endswith("prop"):
 
                 d = Drone(data, _name, "cf" + str(icf + 1), False, None, None, None)
-                drones += [d]
+                realdrones += [d]
                 icf += 1
                 
 
 
         print()
-        print(str(len(drones)) + " drones found in xml.")
+        print(str(len(virtdrones) + len(realdrones)) + " drones found in xml.")
         print()
-        return drones
+        return virtdrones, realdrones
 
     @staticmethod
     def find_hook_for_drone(joint_names, drone_name):

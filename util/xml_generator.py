@@ -203,12 +203,12 @@ class SceneXmlGenerator:
         ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
 
         
-        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 1 0 0 0", ctrllimited="true", ctrlrange="0 0.64")
-        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 1 0 0", ctrllimited="true", ctrlrange="-0.01 0.01")
-        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-0.01 0.01")
-        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-0.01 0.01")
+        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr0", gear=" 0 0 1 0 0 0", ctrllimited="true", ctrlrange="0 0.64")
+        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr1", gear=" 0 0 0 1 0 0", ctrllimited="true", ctrlrange="-0.01 0.01")
+        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr2", gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-0.01 0.01")
+        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr3", gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-0.01 0.01")
 
-        ET.SubElement(self.sensor, "gyro", site=site_name)
+        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_sensor0")
 
         return drone
 
@@ -256,10 +256,10 @@ class SceneXmlGenerator:
         ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
 
 
-        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 1 0 0 0", ctrllimited="true", ctrlrange="0 67.2")
-        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 1 0 0", ctrllimited="true", ctrlrange="-6 6")
-        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-6 6")
-        ET.SubElement(self.actuator, "general", site=site_name, gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-1.5 1.5")
+        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr0", gear=" 0 0 1 0 0 0", ctrllimited="true", ctrlrange="0 67.2")
+        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr1", gear=" 0 0 0 1 0 0", ctrllimited="true", ctrlrange="-6 6")
+        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr2", gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-6 6")
+        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr3", gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-1.5 1.5")
 
         ET.SubElement(self.sensor, "gyro", site=site_name)
 

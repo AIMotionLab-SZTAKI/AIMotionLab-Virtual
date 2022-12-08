@@ -44,7 +44,7 @@ class Display:
         self.video_save_folder = os.path.join("..", "video_capture")
         self.video_file_name_base = "output"
 
-        self.timestep = 0.04
+        self.graphics_step = 0.04
         
         
         self.init_glfw()
@@ -104,12 +104,12 @@ class Display:
         self.camFollow.lookat, self.camFollow.distance = [0, 0, 0], 1.8
 
         # set up low-pass filters for the camera that follows the drones
-        fs = 1 / self.timestep  # sampling rate, Hz
+        fs = 1 / self.graphics_step  # sampling rate, Hz
         cutoff = 4
         self.b, self.a = scipy.signal.iirfilter(4, Wn=cutoff, fs=fs, btype="low", ftype="butter")
         self.azim_filter_sin = LiveLFilter(self.b, self.a)
         self.azim_filter_cos = LiveLFilter(self.b, self.a)
-        fs = 1 / self.timestep  # sampling rate, Hz
+        fs = 1 / self.graphics_step  # sampling rate, Hz
         cutoff = 0.5
         self.b, self.a = scipy.signal.iirfilter(4, Wn=cutoff, fs=fs, btype="low", ftype="butter")
         self.elev_filter_sin = LiveLFilter(self.b, self.a)
@@ -118,10 +118,10 @@ class Display:
     def spin_propellers(self, drone):
 
             if drone.get_qpos()[2] > 0.10:
-                drone.spin_propellers(10 * self.timestep)
+                drone.spin_propellers(10 * self.graphics_step)
                 #drone.print_prop_angles()
             else:
-                #drone.spin_propellers(5 * self.timestep)
+                #drone.spin_propellers(5 * self.graphics_step)
                 drone.stop_propellers()
                 pass
                 
@@ -345,7 +345,7 @@ class Display:
             # then create folder
             os.mkdir(self.video_save_folder)
 
-        fps = 1 / self.timestep
+        fps = 1 / self.graphics_step
         #print("fps: " + str(fps))
 
         glfw.set_window_title(self.window, self.title + " (Saving video...)")

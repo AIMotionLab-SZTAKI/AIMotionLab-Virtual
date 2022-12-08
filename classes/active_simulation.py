@@ -62,7 +62,7 @@ class ActiveSimulator(Display):
 
             self.spin_propellers(self.drones[l])
             
-            self.drones[l].trajectories.evaluate(i)
+            self.drones[l].trajectories.evaluate(i, self.drones[l])
             # self.drones[l].controller.update()
 
             # self.drones[l].trajectories.eval()

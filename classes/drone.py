@@ -5,7 +5,7 @@ import numpy as np
 
 class Drone:
 
-    def __init__(self, data: mujoco.MjData, name_in_xml, name_in_motive, is_virtual, trajectories, controller, parameters):
+    def __init__(self, data: mujoco.MjData, name_in_xml, name_in_motive, is_virtual, trajectories, controllers, parameters):
 
         self.data = data
         self.is_virtual = is_virtual
@@ -14,21 +14,34 @@ class Drone:
         self.name_in_motive = name_in_motive
 
         self.trajectories = trajectories
-        self.controller = controller
+        self.controllers = controllers
         self.parameters = parameters
 
-        self.qpos = self.data.joint(self.name_in_xml).qpos
+        free_joint = self.data.joint(self.name_in_xml)
+
+        self.qpos = free_joint.qpos
 
         self.prop1_qpos = self.data.joint(self.name_in_xml + "_prop1").qpos
         self.prop2_qpos = self.data.joint(self.name_in_xml + "_prop2").qpos
         self.prop3_qpos = self.data.joint(self.name_in_xml + "_prop3").qpos
         self.prop4_qpos = self.data.joint(self.name_in_xml + "_prop4").qpos
 
+        self.ctrl0 = self.data.actuator(self.name_in_xml + "_actr0").ctrl
+        self.ctrl1 = self.data.actuator(self.name_in_xml + "_actr1").ctrl
+        self.ctrl2 = self.data.actuator(self.name_in_xml + "_actr2").ctrl
+        self.ctrl3 = self.data.actuator(self.name_in_xml + "_actr3").ctrl
+
         # make a copy now, so that mj_step() does not affect these
         self.prop1_angle = self.prop1_qpos[0]
         self.prop2_angle = self.prop2_qpos[0]
         self.prop3_angle = self.prop3_qpos[0]
         self.prop4_angle = self.prop4_qpos[0]
+
+        self.top_body_xquat = self.data.body("virtbumblebee_hooked_0").xquat
+
+        self.qvel = free_joint.qvel
+
+        self.sensor_data = self.data.sensor("virtbumblebee_hooked_0_sensor0").data
 
     def get_qpos(self):
         return self.qpos
@@ -38,6 +51,24 @@ class Drone:
         orientation should be quaternion
         """
         self.qpos[:7] = np.append(position, orientation)
+    
+    def get_ctrl(self):
+        return np.concatenate((self.ctrl0, self.ctrl1, self.ctrl2, self.ctrl3))
+    
+    def set_ctrl(self, ctrl):
+        self.ctrl0[0] = ctrl[0]
+        self.ctrl1[0] = ctrl[1]
+        self.ctrl2[0] = ctrl[2]
+        self.ctrl3[0] = ctrl[3]
+
+    def get_top_body_xquat(self):
+        return self.top_body_xquat
+
+    def get_qvel(self):
+        return self.qvel
+
+    def get_sensor_data(self):
+        return self.sensor_data
 
     def print_prop_angles(self):
         print("prop1: " + str(self.prop1_qpos))
@@ -93,8 +124,6 @@ class Drone:
         for _name in joint_names:
 
             _name_cut = _name[:len(_name) - 1]
-
-
 
             if _name.startswith("virtbumblebee_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
@@ -219,12 +248,17 @@ class DroneHooked(Drone):
                          trajectories, controller, parameters)
         self.hook_name_in_xml = hook_name_in_xml
 
+        
+
     #def get_qpos(self):
         #drone_qpos = self.data.joint(self.name_in_xml).qpos
         #return np.append(drone_qpos, self.data.joint(self.hook_name_in_xml).qpos)
     
     def get_hook_qpos(self):
-        return self.data.joint(self.hook_name_in_xml).qpos
+        return self.data.joint(self.hook_name_in_xml).qpos[0]
+
+    def get_hook_qvel(self):
+        return self.data.joint(self.hook_name_in_xml).qvel[0]
 
     def print_names(self):
         super().print_names()

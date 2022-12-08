@@ -23,7 +23,7 @@ import timeit
 
 class Trajectory:
 
-    def __init__(self, model, data, simulation_step, control_step, graphics_step):
+    def __init__(self, model, data, control_step):
         # Reading model data
         self.model = model
         self.data = data
@@ -80,9 +80,7 @@ class Trajectory:
 
         self.L = 0.4
 
-        self.sim_step = simulation_step
         self.control_step = control_step
-        self.graphics_step = graphics_step
 
         q0 = np.roll(Rotation.from_euler('xyz', [0, 0, self.yaw_ref[0]]).as_quat(), 1)
         self.data.qpos[0:8] = np.hstack((self.pos_ref[0, :], q0, 0))
@@ -90,20 +88,25 @@ class Trajectory:
 
         #print(self.data.xquat)
 
-    def evaluate(self, i):
+    def evaluate(self, i, drone):
         
         # Get time and states
         simtime = self.data.time
-        pos = self.data.qpos[0:3]
-        quat = self.data.xquat[1, :]
-        vel = self.data.qvel[0:3]
-        ang_vel = self.data.sensordata[0:3]
+
+        pos = drone.get_qpos()[:3]
+        quat = drone.get_top_body_xquat()
+        vel = drone.get_qvel()[0:3]
+        ang_vel = drone.get_sensor_data()
+
+        #print(self.data.sensordata[0:3])
+        #print("get_sensor_data(): ", drone.get_sensor_data())
+        #print()
 
 
         if simtime < 1:
             target_pos = self.pos_ref[0, :]
             target_rpy = np.array([0, 0, self.yaw_ref[0]])
-            self.data.ctrl = self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos, target_rpy=target_rpy)
+            drone.set_ctrl(self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos, target_rpy=target_rpy))
         else:
 
             i_ = i - int(1 / self.control_step)
@@ -115,10 +118,11 @@ class Trajectory:
                 if 'lqr' in self.ctrl_type[i_]:
                     self.controller.mass = self.mass + float(self.ctrl_type[i_][-5:])
                     self.controller_lqr.mass = self.mass + float(self.ctrl_type[i_][-5:])
-                    self.data.ctrl = self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos,
-                                                               target_vel=target_vel, target_rpy=target_rpy)
-                    alpha = self.data.qpos[7]
-                    dalpha = self.data.qvel[6]
+                    drone.set_ctrl(self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos,
+                                                               target_vel=target_vel, target_rpy=target_rpy))
+
+                    alpha = drone.get_hook_qpos()
+                    dalpha = drone.get_hook_qvel()
                     pos_ = pos.copy()
                     vel_ = vel.copy()
                     R_plane = np.array([[np.cos(self.yaw_ref[i_]), -np.sin(self.yaw_ref[i_])],
@@ -141,20 +145,20 @@ class Trajectory:
                                                                 phi_Q,
                                                                 dphi_Q,
                                                                 target_pos_load)
-                    self.data.ctrl[0] = lqr_ctrl[0]
-                    self.data.ctrl[2] = lqr_ctrl[2]
+                    drone.ctrl0[0] = lqr_ctrl[0]
+                    drone.ctrl2[0] = lqr_ctrl[2]
                 elif 'geom_load' in self.ctrl_type[i_]:
                     self.controller.mass = self.mass + float(self.ctrl_type[i_][-5:])
                     self.controller.mass = self.mass + 0.1
-                    self.data.ctrl = self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos,
-                                                               target_vel=target_vel, target_rpy=target_rpy)
+                    drone.set_ctrl(self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos,
+                                                               target_vel=target_vel, target_rpy=target_rpy))
                 else:
                     self.controller.mass = self.mass
-                    self.data.ctrl = self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos,
-                                                               target_vel=target_vel, target_rpy=target_rpy)
+                    drone.set_ctrl(self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos,
+                                                               target_vel=target_vel, target_rpy=target_rpy))
             else:
                 target_pos = self.pos_ref[-1, :]
                 target_vel = np.zeros(3)
                 target_rpy = np.array([0, 0, self.yaw_ref[-1]])
-                self.data.ctrl = self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos,
-                                                               target_vel=target_vel, target_rpy=target_rpy)
+                drone.set_ctrl(self.controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos,
+                                                               target_vel=target_vel, target_rpy=target_rpy))

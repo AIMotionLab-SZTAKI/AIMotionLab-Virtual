@@ -30,7 +30,7 @@ class PassiveDisplay(Display):
         mujoco.mj_step(self.model, self.data)
     
         
-        self.fps_limiter = FpsLimiter(1.0 / self.timestep)
+        self.fps_limiter = FpsLimiter(1.0 / self.graphics_step)
         
         while not self.glfw_window_should_close():
             self.fps_limiter.begin_frame()

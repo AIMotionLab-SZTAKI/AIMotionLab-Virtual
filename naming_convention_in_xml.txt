@@ -25,3 +25,27 @@ virtual bumblebee with hook:
 	* body name: virtbumblebee_hooked_n
 	* free joint name: virtbumblebee_hooked_n
 	* hook joint name: virtbumblebee_hooked_n_hook
+
+site for drone:
+	drone_name_cog
+
+site for hook:
+	drone_name_rod_end
+	
+	example for virtbumblebee_hooked_2:
+		* virtbumblebee_hooked_2_rod_end
+
+4 actuators per drone:
+	* drone_name_actr0
+	* drone_name_actr1
+	* drone_name_actr2
+	* drone_name_actr3
+	
+	example for realcrazyflie_69:
+		* realcrazyflie_69_actr0
+		* realcrazyflie_69_actr1
+		* realcrazyflie_69_actr2
+		* realcrazyflie_69_actr3
+
+sensor for drone:
+	* drone_name_sensor0

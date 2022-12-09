@@ -261,7 +261,7 @@ class SceneXmlGenerator:
         ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr2", gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-6 6")
         ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr3", gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-1.5 1.5")
 
-        ET.SubElement(self.sensor, "gyro", site=site_name)
+        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_sensor0")
 
         return drone
 

@@ -30,7 +30,10 @@ class ActiveSimulator(Display):
         self.control_step = control_step
         self.graphics_step = graphics_step
 
-        self.start = 0
+        ## To obtain inertia matrix
+        mujoco.mj_step(self.model, self.data)
+
+        self.start_time = 0
     
     def update(self, i):
         
@@ -60,12 +63,13 @@ class ActiveSimulator(Display):
 
         for l in range(len(self.drones)):
 
-            self.spin_propellers(self.drones[l])
+            self.spin_propellers(self.drones[l], 15)
             
-            self.drones[l].trajectories.evaluate(i, self.drones[l])
+            self.drones[l].update(i)
+
             # self.drones[l].controller.update()
 
-            # self.drones[l].trajectories.eval()
+            # self.drones[l].trajectory.eval()
 
             # self.data.ctrl[valami] = drones[l].controller.eval()
             #pass
@@ -94,7 +98,7 @@ class ActiveSimulator(Display):
 
             glfw.swap_buffers(self.window)
             glfw.poll_events()
-            sync(i, self.start, self.control_step)
+            sync(i, self.start_time, self.control_step)
 
         return self.data
     

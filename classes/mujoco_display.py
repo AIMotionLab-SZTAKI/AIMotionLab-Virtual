@@ -98,10 +98,10 @@ class Display:
         self.camFollow = mujoco.MjvCamera()
         self.activeCam = self.cam
         
-        self.cam.azimuth, self.cam.elevation = 70, -20
-        self.cam.lookat, self.cam.distance = [0, 0, .5], 3
+        self.cam.azimuth, self.cam.elevation = 180, -20
+        self.cam.lookat, self.cam.distance = [0, 0, .5], 5
         self.camFollow.azimuth, self.camFollow.elevation = 180, -30
-        self.camFollow.lookat, self.camFollow.distance = [0, 0, 0], 1.8
+        self.camFollow.lookat, self.camFollow.distance = [0, 0, 0], 1
 
         # set up low-pass filters for the camera that follows the drones
         fs = 1 / self.graphics_step  # sampling rate, Hz
@@ -115,10 +115,10 @@ class Display:
         self.elev_filter_sin = LiveLFilter(self.b, self.a)
         self.elev_filter_cos = LiveLFilter(self.b, self.a)
     
-    def spin_propellers(self, drone):
+    def spin_propellers(self, drone, speed = 10):
 
             if drone.get_qpos()[2] > 0.10:
-                drone.spin_propellers(10 * self.graphics_step)
+                drone.spin_propellers(speed * self.graphics_step)
                 #drone.print_prop_angles()
             else:
                 #drone.spin_propellers(5 * self.graphics_step)

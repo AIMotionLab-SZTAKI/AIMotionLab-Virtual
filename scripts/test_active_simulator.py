@@ -65,10 +65,10 @@ elif SCENARIO == traj.FLY:
 
 sim_step, control_step, graphics_step = 0.001, 0.01, 0.04
 
-simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, sim_step, control_step, graphics_step, connect_to_optitrack=True)
+simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, sim_step, control_step, graphics_step, connect_to_optitrack=False)
 
 #simulator.data.mocap_pos("realbumblebee_0").xpos = [1, 0, 0.5]
-print(simulator.model.body("realbumblebee_0").mocapid[0])
+#print(simulator.model.body("realbumblebee_0").mocapid[0])
 
 
 simulator.cam.azimuth, simulator.cam.elevation = 70, -20
@@ -77,14 +77,14 @@ simulator.cam.distance = 3
 
 d0 = simulator.drones[0]
 d1 = simulator.drones[1]
-#d2 = simulator.drones[2]
+d2 = simulator.drones[2]
 
 d0.print_info()
 print()
 d1.print_info()
 print()
-#d2.print_info()
-#print()
+d2.print_info()
+print()
 
 controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
 controller.delta_r = 0

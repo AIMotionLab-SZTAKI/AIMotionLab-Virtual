@@ -92,12 +92,7 @@ class ActiveSimulator(Display):
 
         if self.activeCam == self.camFollow and len(self.drones) > 0:
             d = self.drones[self.followed_drone_idx]
-            if isinstance(d, drone.DroneMocap):
-                qpos = np.append(d.get_pos(), d.get_quat())
-            else:
-                qpos = d.get_qpos()
-            mujoco_helper.update_follow_cam(qpos, self.camFollow)
-            mujoco_helper.update_follow_cam(qpos, self.camFollow,\
+            mujoco_helper.update_follow_cam(d.get_qpos(), self.camFollow,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
                                             self.elev_filter_sin, self.elev_filter_cos)
 

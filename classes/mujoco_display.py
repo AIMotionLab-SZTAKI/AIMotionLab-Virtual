@@ -68,7 +68,7 @@ class Display:
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
         self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
-        self.realdrones = Drone.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
+        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
         #self.drones = self.virtdrones + self.realdrones
         self.drones = self.virtdrones + self.realdrones
         #print(self.data.qpos.size)
@@ -246,11 +246,7 @@ class Display:
                 self.azim_filter = LiveLFilter(self.b, self.a)
                 self.elev_filter = LiveLFilter(self.b, self.a)
                 d = self.drones[self.followed_drone_idx]
-                if isinstance(d, DroneMocap):
-                    qpos = np.append(d.get_pos(), d.get_quat())
-                else:
-                    qpos = d.get_qpos()
-                mujoco_helper.update_follow_cam(qpos, self.camFollow)
+                mujoco_helper.update_follow_cam(d.get_qpos(), self.camFollow)
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
             """
@@ -374,9 +370,9 @@ class Display:
     def set_drone_names(self):
         
         if len(self.realdrones) > 0:
-            drone_names = Drone.get_drone_names_motive(self.realdrones)
-            drone_labels = Drone.get_drone_labels(self.realdrones)
+            drone_names = DroneMocap.get_drone_names_motive(self.realdrones)
+            drone_labels = DroneMocap.get_drone_labels(self.realdrones)
             gui = DroneNameGui(drone_labels=drone_labels, drone_names=drone_names)
             gui.show()
-            Drone.set_drone_names_motive(self.realdrones, gui.drone_names)
+            DroneMocap.set_drone_names_motive(self.realdrones, gui.drone_names)
 

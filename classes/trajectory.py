@@ -20,14 +20,35 @@ from assets.logger import Logger
 from matplotlib import pyplot as plt
 from hook_up_scenario.traj_opt_min_time import construct, plot_3d_trajectory
 import timeit
+from assets.splines.spline import BSpline, BSplineBasis
+
+
+HOOK_UP_3_LOADS = 1
+HOOK_UP = 2
+FLY = 3
+FLIP = 4
+
 
 class Trajectory:
 
-    def __init__(self, control_step, scenario = "hook up 3 loads"):
+    def __init__(self, control_step, scenario = HOOK_UP_3_LOADS):
         self.control_step = control_step
         self.scenario = scenario
 
-        if scenario == "hook up 3 loads":
+        self.output = {
+            "controller_name" : None,
+            "load_mass" : 0.0,
+            "target_pos" : None,
+            "target_rpy" : np.zeros(3),
+            "target_vel" : np.zeros(3),
+            "target_pos" : None,
+            "target_acc" : None,
+            "target_quat" : None,
+            "target_quat_vel" : None,
+            "target_pos_load" : None
+        }
+
+        if scenario == HOOK_UP_3_LOADS:
             # Trajectory parameters
             self.init_pos = [-1.5, 2, 1]  # initial position compared to the first load
             self.load_init = [[0.0, 0, 0.8], [-0.6, 0.6, 0.75], [-0.3, -0.6, 0.8]]
@@ -74,109 +95,108 @@ class Trajectory:
             self.q0 = np.roll(Rotation.from_euler('xyz', [0, 0, self.yaw_ref[0]]).as_quat(), 1)
             self.episode_length = (self.pos_ref.shape[0] - 1) * control_step + 2.5
         
-        elif scenario == "hook up":
+        elif scenario == HOOK_UP:
             print("hook up trajectory not yet implemented")
         
-        elif scenario == "fly":
+        elif scenario == FLY:
             # don't have to do anything
             pass
             
         
-        elif scenario == "flip":
-            print("flip trajectory not yet imlemented")
+        elif scenario == FLIP:
+            self.flip_spline_params = np.loadtxt("../../crazyflie-mujoco/assets/pos_spline.csv", delimiter=',')
+            self.flip_traj = [BSpline(BSplineBasis(self.flip_spline_params[i, 1:18], int(self.flip_spline_params[i, 0])), self.flip_spline_params[i, 18:]) for i in range(3)]
+            self.flip_vel = [self.flip_traj[i].derivative(1) for i in range(3)]
+            self.flip_acc = [self.flip_traj[i].derivative(2) for i in range(3)]
         
 
 
 
-    def evaluate(self, i, simtime, pos, quat, vel, ang_vel, alpha, dalpha):
+    def evaluate(self, i, simtime, pos, vel, alpha, dalpha):
 
-        target_pos = None
-        target_rpy=np.zeros(3)
-        target_vel=np.zeros(3)
-        controller_name = ""
-        load_mass = 0.0
 
-        hook_pos = None
-        hook_vel = None
-        phi_Q = None
-        dphi_Q = None
-        target_pos_load = None
-
-        if self.scenario == "hook up 3 loads":
+        if self.scenario == HOOK_UP_3_LOADS:
         
 
             if simtime < 1:
-                target_pos = self.pos_ref[0, :]
-                target_rpy = np.array([0, 0, self.yaw_ref[0]])
-                controller_name = "geom"
+                self.output["target_pos"] = self.pos_ref[0, :]
+                self.output["target_rpy"] = np.array([0, 0, self.yaw_ref[0]])
+                self.output["controller_name"] = "geom_pos"
                 
             else:
 
                 i_ = i - int(1 / self.control_step)
 
                 if i_ < self.pos_ref.shape[0]:
-                    target_pos = self.pos_ref[i_, :]
-                    target_vel = self.vel_ref[i_, :]
-                    target_rpy = np.array([0, 0, self.yaw_ref[i_]])
+                    self.output["target_pos"] = self.pos_ref[i_, :]
+                    self.output["target_vel"] = self.vel_ref[i_, :]
+                    self.output["target_rpy"] = np.array([0, 0, self.yaw_ref[i_]])
 
                     if 'lqr' in self.ctrl_type[i_]:
-                        load_mass = float(self.ctrl_type[i_][-5:])
-                        controller_name = "lqr"
+                        self.output["load_mass"] = float(self.ctrl_type[i_][-5:])
+                        self.output["controller_name"] = "lqr"
 
-                        pos_ = pos.copy()
-                        vel_ = vel.copy()
                         R_plane = np.array([[np.cos(self.yaw_ref[i_]), -np.sin(self.yaw_ref[i_])],
                                             [np.sin(self.yaw_ref[i_]), np.cos(self.yaw_ref[i_])]])
-                        pos_[0:2] = R_plane.T @ pos_[0:2]
-                        vel_[0:2] = R_plane.T @ vel_[0:2]
-                        hook_pos = pos_ + self.L * np.array([-np.sin(alpha), 0, -np.cos(alpha)])
-                        hook_vel = vel_ + self.L * dalpha * np.array([-np.cos(alpha), 0, np.sin(alpha)])
-                        hook_pos = np.take(hook_pos, [0, 2])
-                        hook_vel = np.take(hook_vel, [0, 2])
-                        phi_Q = Rotation.from_quat(np.roll(quat, -1)).as_euler('xyz')[1]
-                        dphi_Q = ang_vel[1]
-                        target_pos_ = target_pos.copy()
+                                            
+                        target_pos_ = self.output["target_pos"].copy()
                         target_pos_[0:2] = R_plane.T @ target_pos_[0:2]
-                        target_pos_load = np.take(target_pos_, [0, 2]) - np.array([0, self.L])
+                        self.output["target_pos_load"] = np.take(target_pos_, [0, 2]) - np.array([0, self.L])
 
                     elif 'geom_load' in self.ctrl_type[i_]:
-                        load_mass = float(self.ctrl_type[i_][-5:])
-                        controller_name = "geom"
+                        self.output["load_mass"] = float(self.ctrl_type[i_][-5:])
+                        self.output["controller_name"] = "geom_pos"
                     else:
-                        load_mass = 0
-                        controller_name = "geom"
+                        self.output["load_mass"] = 0
+                        self.output["controller_name"] = "geom_pos"
                 else:
-                    target_pos = self.pos_ref[-1, :]
-                    target_vel = np.zeros(3)
-                    target_rpy = np.array([0, 0, self.yaw_ref[-1]])
-                    controller_name = "geom"
+                    self.output["target_pos"] = self.pos_ref[-1, :]
+                    self.output["target_vel"] = np.zeros(3)
+                    self.output["target_rpy"] = np.array([0, 0, self.yaw_ref[-1]])
+                    self.output["controller_name"] = "geom_pos"
                 
         
-        elif self.scenario == "fly":
+        elif self.scenario == FLY:
 
-            controller_name = "geom"
-            load_mass = 0.0
+            self.output["controller_name"] = "geom_pos"
 
             if simtime < 1:
-                target_pos = np.array([0, 0, 1])
-                #pos = data.qpos[0:3]
-                #quat = data.xquat[1, :]
-                #vel = data.qvel[0:3]
-                #ang_vel = data.sensordata[0:3]
-                #data.ctrl = controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos)
+                self.output["target_pos"] = np.array([0, 0, 1])
 
             else:
                 traj_freq = 2
                 t = i * self.control_step
-                target_pos = np.array([0.8 * np.sin(traj_freq * t), 0.8 * np.sin(2 * traj_freq * (t - np.pi / 2)),
+                self.output["target_pos"] = np.array([0.8 * np.sin(traj_freq * t), 0.8 * np.sin(2 * traj_freq * (t - np.pi / 2)),
                                     1])
-                target_vel = np.array([0.8 * traj_freq * np.cos(traj_freq * t),
+                self.output["target_vel"] = np.array([0.8 * traj_freq * np.cos(traj_freq * t),
                                     0.8 * 2 * traj_freq * np.cos(2 * traj_freq * (t - np.pi / 2)), 0])
-                #pos = data.qpos[0:3]
-                #quat = data.xquat[1, :]
-                #vel = data.qvel[0:3]
-                #ang_vel = data.sensordata[0:3]
-                #data.ctrl = controller.compute_pos_control(pos, quat, vel, ang_vel, target_pos, target_vel=target_vel)
-            
-        return controller_name, load_mass, target_pos, target_rpy, target_vel, hook_pos, hook_vel, phi_Q, dphi_Q, target_pos_load
 
+        elif self.scenario == FLIP:
+
+            if simtime < 2:
+                self.output["target_pos"] = np.array([0, 0, 0.3])
+                self.output["controller_name"] = "geom_pos"
+                
+            elif simtime < 2.9:
+                
+                eval_time = (simtime - 2) / 0.9
+                target_pos = np.array([self.flip_traj[0](eval_time)[0], 0, self.flip_traj[1](eval_time)[0]])
+                target_pos[2] = target_pos[2] + 0.3
+                self.output["target_pos"] = target_pos
+                self.output["target_vel"] = np.array([self.flip_vel[0](eval_time)[0], 0, self.flip_vel[1](eval_time)[0]])
+                self.output["target_acc"] = np.array([self.flip_acc[0](eval_time)[0], 0, self.flip_acc[1](eval_time)[0]])
+                q0 = self.flip_traj[2](eval_time)[0]
+                q2 = np.sqrt(1 - q0**2)
+                self.output["target_quat"] = np.array([q0, 0, q2, 0])
+                dq0 = self.flip_vel[2](eval_time)[0]
+                dq2 = - dq0 * q0 / q2
+                self.output["target_quat_vel"] = np.array([dq0, 0, dq2, 0])
+                self.output["controller_name"] = "geom_att"
+
+            else:
+                self.output["target_pos"] = np.array([0, 0, 0.3])
+        
+        elif self.scenario == HOOK_UP:
+            pass
+            
+        return self.output

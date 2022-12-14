@@ -1,6 +1,7 @@
 from pickle import FALSE
 import mujoco
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 
 class Drone:
@@ -45,28 +46,23 @@ class Drone:
 
         self.sensor_data = self.data.sensor(self.name_in_xml + "_sensor0").data
 
-        if isinstance(controllers, dict):
-            self.current_control = list(controllers.keys())[0]
+        #if isinstance(controllers, dict):
+        #    self.current_control = list(controllers.keys())[0]
 
     
     def update(self, i):
 
         pos = self.get_qpos()[:3]
-        quat = self.get_top_body_xquat()
         vel = self.get_qvel()[:3]
-        ang_vel = self.get_sensor_data()
 
         alpha = None
         dalpha = None
 
-        controller_name, load_mass, target_pos, target_rpy, target_vel,\
-            hook_pos, hook_vel, phi_Q, dphi_Q, target_pos_load =\
-            self.trajectory.evaluate(i, self.data.time, pos, quat, vel, ang_vel, alpha, dalpha)
+        controller_input = self.trajectory.evaluate(i, self.data.time, pos, vel, alpha, dalpha)
         
-        self.use_controller(controller_name)
+        #self.use_controller(controller_input["controller_name"])
 
-        ctrl = self.compute_control(pos, quat, vel, ang_vel, target_pos, target_vel, target_rpy,\
-            hook_pos, hook_vel, alpha, dalpha, phi_Q, dphi_Q, target_pos_load)
+        ctrl = self.compute_control(controller_input)
         
         if ctrl is not None:
             self.set_ctrl(ctrl)
@@ -75,13 +71,29 @@ class Drone:
     
 
     
-    def compute_control(self, pos, quat, vel, ang_vel, target_pos, target_vel, target_rpy,\
-            hook_pos, hook_vel, alpha, dalpha, phi_Q, dphi_Q, target_pos_load):
+    def compute_control(self, input_dict):
 
-        if self.current_control == "geom":
+        target_pos = input_dict["target_pos"]
+        target_vel = input_dict["target_vel"]
 
+        pos = self.get_qpos()[:3]
+        quat = self.get_top_body_xquat()
+        vel = self.get_qvel()[:3]
+        ang_vel = self.get_sensor_data()
+
+
+        if input_dict["controller_name"] == "geom_pos":
+
+            target_rpy = input_dict["target_rpy"]
             ctrl = self.controllers["geom"].compute_pos_control(pos, quat, vel, ang_vel, target_pos,
                                                                target_vel=target_vel, target_rpy=target_rpy)
+        
+        elif input_dict["controller_name"] == "geom_att":
+            target_quat = input_dict["target_quat"]
+            target_acc = input_dict["target_acc"]
+            target_quat_vel = input_dict["target_quat_vel"]
+            ctrl = self.controllers["geom"].compute_att_control(pos, quat, vel, ang_vel, target_pos, target_vel, target_acc,
+                                                                target_quat=target_quat, target_quat_vel=target_quat_vel)
         
         else:
             print("[Drone] Error: unknown controller")
@@ -159,6 +171,14 @@ class Drone:
         self.prop3_qpos[0] = self.prop3_angle
         self.prop4_qpos[0] = self.prop4_angle
     
+      
+    def fake_propeller_spin(self, control_step , speed = 10):
+
+            if self.get_qpos()[2] > 0.10:
+                self.spin_propellers(speed * control_step)
+            else:
+                self.stop_propellers()
+    
     def stop_propellers(self):
         self.prop1_qpos[0] = self.prop1_angle
         self.prop2_qpos[0] = self.prop2_angle
@@ -180,7 +200,7 @@ class Drone:
     @staticmethod
     def parse_drones(data, joint_names):
         """
-        Create a list of Drone objects from mujoco's MjData following a naming convention
+        Create a list of Drone instances from mujoco's MjData following a naming convention
         found in naming_convention_in_xml.txt
         """
 
@@ -254,7 +274,7 @@ class Drone:
 
 
         print()
-        print(str(len(virtdrones) + len(realdrones)) + " drones found in xml.")
+        print(str(len(virtdrones) + len(realdrones)) + " drone(s) found in xml.")
         print()
         return virtdrones, realdrones
 
@@ -318,6 +338,7 @@ class DroneHooked(Drone):
         self.hook_qvel = self.data.joint(self.hook_name_in_xml).qvel
 
         self.load_mass = 0.0
+        self.rod_length = 0.4
 
     #def get_qpos(self):
         #drone_qpos = self.data.joint(self.name_in_xml).qpos
@@ -326,22 +347,17 @@ class DroneHooked(Drone):
     def update(self, i):
 
         pos = self.get_qpos()[:3]
-        quat = self.get_top_body_xquat()
         vel = self.get_qvel()[:3]
-        ang_vel = self.get_sensor_data()
 
         alpha = self.get_hook_qpos()
         dalpha = self.get_hook_qvel()
 
-        controller_name, load_mass, target_pos, target_rpy, target_vel,\
-            hook_pos, hook_vel, phi_Q, dphi_Q, target_pos_load =\
-            self.trajectory.evaluate(i, self.data.time, pos, quat, vel, ang_vel, alpha, dalpha)
+        controller_input = self.trajectory.evaluate(i, self.data.time, pos, vel, alpha, dalpha)
         
-        self.use_controller(controller_name)
-        self.set_load_mass(load_mass)
+        #self.use_controller(controller_input["controller_name"])
+        self.set_load_mass(controller_input["load_mass"])
 
-        ctrl = self.compute_control(pos, quat, vel, ang_vel, target_pos, target_vel, target_rpy,\
-            hook_pos, hook_vel, alpha, dalpha, phi_Q, dphi_Q, target_pos_load)
+        ctrl = self.compute_control(controller_input)
         
         if ctrl is not None:
             self.set_ctrl(ctrl)
@@ -350,15 +366,42 @@ class DroneHooked(Drone):
     
 
     
-    def compute_control(self, pos, quat, vel, ang_vel, target_pos, target_vel, target_rpy,\
-            hook_pos, hook_vel, alpha, dalpha, phi_Q, dphi_Q, target_pos_load):
+    def compute_control(self, input_dict):
 
-        if self.current_control == "geom":
+        target_pos = input_dict["target_pos"]
+        target_vel = input_dict["target_vel"]
+        target_rpy = input_dict["target_rpy"]
+        target_pos_load = input_dict["target_pos_load"]
+
+        pos = self.get_qpos()[:3]
+        quat = self.get_top_body_xquat()
+        vel = self.get_qvel()[:3]
+        ang_vel = self.get_sensor_data()
+
+
+        if input_dict["controller_name"] == "geom_pos":
 
             ctrl = self.controllers["geom"].compute_pos_control(pos, quat, vel, ang_vel, target_pos,
                                                                target_vel=target_vel, target_rpy=target_rpy)
 
-        elif self.current_control == "lqr":
+        elif input_dict["controller_name"] == "lqr":
+
+            alpha = self.get_hook_qpos()
+            dalpha = self.get_hook_qvel()
+
+            pos_ = pos.copy()
+            vel_ = vel.copy()
+            R_plane = np.array([[np.cos(target_rpy[2]), -np.sin(target_rpy[2])],
+                                [np.sin(target_rpy[2]), np.cos(target_rpy[2])]])
+            pos_[0:2] = R_plane.T @ pos_[0:2]
+            vel_[0:2] = R_plane.T @ vel_[0:2]
+            hook_pos = pos_ + self.rod_length * np.array([-np.sin(alpha), 0, -np.cos(alpha)])
+            hook_vel = vel_ + self.rod_length * dalpha * np.array([-np.cos(alpha), 0, np.sin(alpha)])
+            hook_pos = np.take(hook_pos, [0, 2])
+            hook_vel = np.take(hook_vel, [0, 2])
+
+            phi_Q = Rotation.from_quat(np.roll(quat, -1)).as_euler('xyz')[1]
+            dphi_Q = ang_vel[1]
 
             ctrl = self.controllers["geom"].compute_pos_control(pos, quat, vel, ang_vel, target_pos,
                                                                target_vel=target_vel, target_rpy=target_rpy)

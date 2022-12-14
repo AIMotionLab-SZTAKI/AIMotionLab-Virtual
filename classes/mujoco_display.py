@@ -38,7 +38,7 @@ class Display:
         self.mouse_right_btn_down = False
         self.prev_x, self.prev_y = 0.0, 0.0
         self.followed_drone_idx = 0
-        self.title = "Scene"
+        self.title0 = "Scene"
         self.is_recording = False
         self.image_list = []
         self.video_save_folder = os.path.join("..", "video_capture")
@@ -78,7 +78,7 @@ class Display:
             return
 
         # Create a windowed mode window and its OpenGL context
-        self.window = glfw.create_window(1280, 720, self.title, None, None)
+        self.window = glfw.create_window(1280, 720, self.title0, None, None)
         if not self.window:
             print("Could not create glfw window...")
             glfw.terminate()
@@ -114,17 +114,6 @@ class Display:
         self.b, self.a = scipy.signal.iirfilter(4, Wn=cutoff, fs=fs, btype="low", ftype="butter")
         self.elev_filter_sin = LiveLFilter(self.b, self.a)
         self.elev_filter_cos = LiveLFilter(self.b, self.a)
-    
-    def spin_propellers(self, drone, speed = 10):
-
-            if drone.get_qpos()[2] > 0.10:
-                drone.spin_propellers(speed * self.graphics_step)
-                #drone.print_prop_angles()
-            else:
-                #drone.spin_propellers(5 * self.graphics_step)
-                drone.stop_propellers()
-                pass
-                
 
     
     def load_model(self, xml_file_name):
@@ -275,14 +264,12 @@ class Display:
             Start recording
             """
             if not self.is_recording:
-                glfw.set_window_title(window, self.title + " (Recording)")
+                self.append_title(" (Recording)")
                 self.is_recording = True
             else:
-                glfw.set_window_title(window, self.title)
+                self.reset_title()
                 self.is_recording = False
-                save_vid_thread = threading.Thread(target=self.save_video, args=(self.viewport.width, self.viewport.height))
-                
-                save_vid_thread.start()
+                self.save_video_background()
 
         if key == glfw.KEY_C and action == glfw.RELEASE:
             self.connect_to_Optitrack()
@@ -317,6 +304,16 @@ class Display:
             """
             if self.key_delete_callback:
                 self.key_delete_callback()
+    
+    def set_title(self, window_title):
+        self.title0 = window_title
+        glfw.set_window_title(self.window, window_title)
+    
+    def append_title(self, text):
+        glfw.set_window_title(self.window, self.title0 + text)
+    
+    def reset_title(self):
+        glfw.set_window_title(self.window, self.title0)
 
 
     def connect_to_Optitrack(self):
@@ -335,7 +332,7 @@ class Display:
             self.activeCam = self.cam
     
 
-    def save_video(self, width, height):
+    def save_video(self, image_list, width, height):
         """
         Write saved images to hard disk as .mp4
         """
@@ -348,19 +345,24 @@ class Display:
         fps = 1 / self.graphics_step
         #print("fps: " + str(fps))
 
-        glfw.set_window_title(self.window, self.title + " (Saving video...)")
-        time_stamp = self.image_list[0][0].replace('.', '_')
+        self.append_title(" (Saving video...)")
+        time_stamp = image_list[0][0].replace('.', '_')
         out = cv2.VideoWriter(os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time_stamp + '.mp4'),\
               cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
-        for i in range(len(self.image_list)):
+        for i in range(len(image_list)):
             #print(self.image_list[i][0])
-            rgb = np.reshape(self.image_list[i][1], (height, width, 3))
+            rgb = np.reshape(image_list[i][1], (height, width, 3))
             rgb = cv2.cvtColor(np.flip(rgb, 0), cv2.COLOR_BGR2RGB)
             out.write(rgb)
         out.release()
-        self.image_list = []
         print("[Display] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
-        glfw.set_window_title(self.window, self.title)
+        self.reset_title()
+
+    def save_video_background(self):
+        save_vid_thread = threading.Thread(target=self.save_video, args=(self.image_list.copy(), self.viewport.width, self.viewport.height))
+        self.image_list = []
+        save_vid_thread.start()
+        
 
     def set_drone_names(self):
         

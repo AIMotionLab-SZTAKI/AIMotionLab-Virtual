@@ -36,10 +36,10 @@ def sync(i, start_time, timestep):
     timestep : float
         Desired, wall-clock step of the simulation's rendering.
     """
-    if timestep > .04 or i % (int(1 / (24 * timestep))) == 0:
-        elapsed = time.time() - start_time
-        if elapsed < (i * timestep):
-            time.sleep(timestep * i - elapsed)
+    #if timestep > .04 or i % (int(1 / (24 * timestep))) == 0:
+    elapsed = time.time() - start_time
+    if elapsed < (i * timestep):
+        time.sleep(timestep * i - elapsed)
 
 
 class FpsLimiter:

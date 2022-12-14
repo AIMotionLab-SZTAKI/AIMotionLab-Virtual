@@ -14,7 +14,7 @@ import cv2
 from gui.drone_name_gui import DroneNameGui
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
-from classes.drone import Drone
+from classes.drone import Drone, DroneMocap
 
 MAX_GEOM = 200
 
@@ -67,7 +67,9 @@ class Display:
         self.viewport = mujoco.MjrRect(0, 0, 0, 0)
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
-        self.virtdrones, self.realdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+        self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+        self.realdrones = Drone.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
+        #self.drones = self.virtdrones + self.realdrones
         self.drones = self.virtdrones + self.realdrones
         #print(self.data.qpos.size)
         
@@ -243,7 +245,12 @@ class Display:
                     self.followed_drone_idx += 1
                 self.azim_filter = LiveLFilter(self.b, self.a)
                 self.elev_filter = LiveLFilter(self.b, self.a)
-                mujoco_helper.update_follow_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow)
+                d = self.drones[self.followed_drone_idx]
+                if isinstance(d, DroneMocap):
+                    qpos = np.append(d.get_pos(), d.get_quat())
+                else:
+                    qpos = d.get_qpos()
+                mujoco_helper.update_follow_cam(qpos, self.camFollow)
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
             """

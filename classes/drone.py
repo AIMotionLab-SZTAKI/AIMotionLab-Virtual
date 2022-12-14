@@ -205,7 +205,6 @@ class Drone:
         """
 
         virtdrones = []
-        realdrones = []
         icf = 0
         ibb = 0
 
@@ -257,35 +256,83 @@ class Drone:
                 else:
                     print("Error: did not find hook joint for this drone: " +
                           _name + " ... Ignoring drone.")
-            
-            
+
+
+                
+
+
+        print()
+        print(str(len(virtdrones)) + " virtual drone(s) found in xml.")
+        print()
+        return virtdrones
+
+    @staticmethod
+    def parse_mocap_drones(data, model, body_names):
+
+        realdrones = []
+        icf = 0
+        ibb = 0
+        for _name in body_names:
+
+            _name_cut = _name[:len(_name) - 1]
+
+            if _name.startswith("realbumblebee_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+                hook = Drone.find_mocap_hook_for_drone(body_names, _name)
+                if hook:
+                    d = DroneMocapHooked(data, name_in_xml=_name,
+                                    hook_name_in_xml=hook,
+                                    name_in_motive="bb" + str(ibb + 1),
+                                    is_virtual=False,
+                                    trajectory=None,
+                                    controller=None)
+
+                    realdrones += [d]
+                    ibb += 1
+
+                else:
+                    print("Error: did not find hook body for this drone: " +
+                          _name + " ... Ignoring drone.")
+
             elif _name.startswith("realbumblebee") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
 
-                d = Drone(data, _name, "bb" + str(ibb + 1), False, None, None)
+                prop_mocapids = []
+                drone_mocapid = model.body(_name).mocapid[0]
+                prop_mocapids += [model.body(_name + "_prop1").mocapid[0]]
+                prop_mocapids += [model.body(_name + "_prop2").mocapid[0]]
+                prop_mocapids += [model.body(_name + "_prop3").mocapid[0]]
+                prop_mocapids += [model.body(_name + "_prop4").mocapid[0]]
+
+                d = DroneMocap(data, drone_mocapid, prop_mocapids, "bb" + str(ibb + 1), _name)
                 realdrones += [d]
                 ibb += 1
 
             elif _name.startswith("realcrazyflie") and not _name_cut.endswith("prop"):
 
-                d = Drone(data, _name, "cf" + str(icf + 1), False, None, None)
+                prop_mocapids = []
+                drone_mocapid = model.body(_name).mocapid[0]
+                prop_mocapids += [model.body(_name + "_prop1").mocapid[0]]
+                prop_mocapids += [model.body(_name + "_prop2").mocapid[0]]
+                prop_mocapids += [model.body(_name + "_prop3").mocapid[0]]
+                prop_mocapids += [model.body(_name + "_prop4").mocapid[0]]
+
+                d = DroneMocap(data, drone_mocapid, prop_mocapids, "cf" + str(icf + 1), _name)
                 realdrones += [d]
                 icf += 1
-                
 
 
         print()
-        print(str(len(virtdrones) + len(realdrones)) + " drone(s) found in xml.")
+        print(str(len(realdrones)) + " virtual drone(s) found in xml.")
         print()
-        return virtdrones, realdrones
+        return realdrones
 
     @staticmethod
-    def find_hook_for_drone(joint_names, drone_name):
-        for jnt in joint_names:
-            if drone_name + "_hook" == jnt:
-                return jnt
+    def find_hook_for_drone(names, drone_name):
+        for n_ in names:
+            if drone_name + "_hook" == n_:
+                return n_
         
         return None
-    
+
     @staticmethod
     def get_drone_by_name_in_motive(drones, name: str):
         for i in range(len(drones)):
@@ -449,3 +496,35 @@ class DroneHooked(Drone):
 
         for k, v in self.controllers.items():
             self.controllers[k].mass = self.mass + self.load_mass
+
+
+class DroneMocap:
+    def __init__(self, data: mujoco.MjData, drone_mocapid, prop_mocapids, name_in_motive, name_in_xml):
+        self.data = data
+        self.name_in_xml = name_in_xml
+        self.name_in_motive = name_in_motive
+        self.mocapid = drone_mocapid
+        self.prop_mocapids = prop_mocapids
+
+    def set_pos(self, pos):
+        self.data.mocap_pos[self.mocapid] = pos
+
+        for i in range(len(self.prop_mocapids)):
+            self.data.mocap_pos[self.prop_mocapids[i]] = pos
+
+    def set_quat(self, quat):
+        self.data.mocap_quat[self.mocapid] = quat
+
+        for i in range(len(self.prop_mocapids)):
+            self.data.mocap_quat[self.prop_mocapids[i]] = quat
+
+    def get_pos(self):
+        return self.data.mocap_pos[self.mocapid]
+
+    def get_quat(self):
+        return self.data.mocap_quat[self.mocapid]
+
+
+class DroneMocapHooked(DroneMocap):
+    def __init__(self, pos, quat, prop_poss, prop_quats, hook_pos, hook_quat, name_in_motive):
+        super().__init__(pos, quat, prop_poss, prop_quats, name_in_motive)

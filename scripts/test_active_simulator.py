@@ -54,18 +54,22 @@ elif SCENARIO == traj.FLY:
     simulator = ActiveSimulator(os.path.join(xml_path, save_filename), [0, 1], sim_step, control_step, graphics_step, connect_to_optitrack=False)
 """
 
-scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
-scene.add_drone("0 0 1", "1 0 0 0", RED_COLOR, True, "crazyflie")
-scene.add_drone("0 0 1", "1 0 0 0", RED_COLOR, True, "bumblebee")
-#scene.add_load("0 0 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
-scene.add_load("-.6 .6 0", ".075 .075 .075", ".05", "1 0 0 0", "0.1 0.9 0.1 1.0")
-scene.add_load("-.3 -.6 0", ".075 .075 .1", ".1", "1 0 0 0", "0.9 0.1 0.1 1.0")
-
-scene.save_xml(os.path.join(xml_path, save_filename))
+#scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
+#scene.add_drone("0 0 1", "1 0 0 0", RED_COLOR, True, "crazyflie")
+#scene.add_drone("0 -1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee")
+##scene.add_load("0 0 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
+#scene.add_load("-.6 .6 0", ".075 .075 .075", ".05", "1 0 0 0", "0.1 0.9 0.1 1.0")
+#scene.add_load("-.3 -.6 0", ".075 .075 .1", ".1", "1 0 0 0", "0.9 0.1 0.1 1.0")
+#
+#scene.save_xml(os.path.join(xml_path, save_filename))
 
 sim_step, control_step, graphics_step = 0.001, 0.01, 0.04
 
-simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, sim_step, control_step, graphics_step, connect_to_optitrack=False)
+simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, sim_step, control_step, graphics_step, connect_to_optitrack=True)
+
+#simulator.data.mocap_pos("realbumblebee_0").xpos = [1, 0, 0.5]
+print(simulator.model.body("realbumblebee_0").mocapid[0])
+
 
 simulator.cam.azimuth, simulator.cam.elevation = 70, -20
 simulator.cam.distance = 3
@@ -73,14 +77,14 @@ simulator.cam.distance = 3
 
 d0 = simulator.drones[0]
 d1 = simulator.drones[1]
-d2 = simulator.drones[2]
+#d2 = simulator.drones[2]
 
 d0.print_info()
 print()
 d1.print_info()
 print()
-d2.print_info()
-print()
+#d2.print_info()
+#print()
 
 controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
 controller.delta_r = 0
@@ -111,16 +115,16 @@ d1.set_trajectory(traj_)
 d1.set_controllers(controllers)
 
 
-controller = GeomControl(simulator.model, simulator.data, drone_type="large_quad")
+#controller = GeomControl(simulator.model, simulator.data, drone_type="large_quad")
 
-controllers = {"geom" : controller}
+#controllers = {"geom" : controller}
 
-traj_ = traj.Trajectory(control_step, traj.FLY)
+#traj_ = traj.Trajectory(control_step, traj.FLY)
 
-d2.set_qpos(np.array((0.0, 0.0, 0.5)), np.array((1.0, 0.0, 0.0, 0.0)))
-
-d2.set_trajectory(traj_)
-d2.set_controllers(controllers)
+#d2.set_qpos(np.array((0.0, 0.0, 0.5)), np.array((1.0, 0.0, 0.0, 0.0)))
+#
+#d2.set_trajectory(traj_)
+#d2.set_controllers(controllers)
 
 """
 if SCENARIO == traj.HOOK_UP_3_LOADS:

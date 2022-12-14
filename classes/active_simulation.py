@@ -87,21 +87,28 @@ class ActiveSimulator(Display):
                 drone_to_update = drone.Drone.get_drone_by_name_in_motive(self.realdrones, name)
 
                 if drone_to_update is not None:
-                    drone_to_update.set_qpos(obj.position, drone_orientation)
+                    drone_to_update.set_pos(obj.position)
+                    drone_to_update.set_quat(drone_orientation)
 
         if self.activeCam == self.camFollow and len(self.drones) > 0:
-            mujoco_helper.update_follow_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow,\
+            d = self.drones[self.followed_drone_idx]
+            if isinstance(d, drone.DroneMocap):
+                qpos = np.append(d.get_pos(), d.get_quat())
+            else:
+                qpos = d.get_qpos()
+            mujoco_helper.update_follow_cam(qpos, self.camFollow)
+            mujoco_helper.update_follow_cam(qpos, self.camFollow,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
                                             self.elev_filter_sin, self.elev_filter_cos)
 
 
-        for l in range(len(self.drones)):
+        for l in range(len(self.virtdrones)):
 
             #self.spin_propellers(self.drones[l], self.control_step, 20)
-            self.drones[l].fake_propeller_spin(self.control_step, 20)
-            
-            if self.drones[l].is_virtual:
-                self.drones[l].update(i)
+            self.virtdrones[l].fake_propeller_spin(self.control_step, 20)
+
+
+            self.virtdrones[l].update(i)
 
             # self.drones[l].controller.update()
 
@@ -155,7 +162,7 @@ class ActiveSimulator(Display):
                 if not self.is_automatic_recording:
                     self.is_recording = True
                     self.is_automatic_recording = True
-                    self.append_title(" Recording automatically...")
+                    self.append_title(" (Recording automatically...)")
 
     
     def print_time_diff(self):

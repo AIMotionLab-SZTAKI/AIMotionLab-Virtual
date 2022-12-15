@@ -4,9 +4,11 @@ import math
 import numpy as np
 from collections import deque
 
+
 class LiveFilter:
     """Base class for live filters.
     """
+
     def process(self, x):
         # do not process NaNs
         if np.isnan(x):
@@ -46,6 +48,7 @@ class LiveLFilter(LiveFilter):
 
         return y
 
+
 def update_drone(data, droneID, position, orientation):
     """
     Old, do not use this anymore!
@@ -57,7 +60,8 @@ def update_drone(data, droneID, position, orientation):
     """
     startIdx = droneID * 7
     if startIdx + 6 >= data.qpos.size:
-        print("Drone id: " + str(droneID) + " out of bounds of data.qpos. (Not enough drones defined in the xml)")
+        print("Drone id: " + str(droneID) +
+              " out of bounds of data.qpos. (Not enough drones defined in the xml)")
         return
     data.qpos[startIdx:startIdx + 3] = position
     data.qpos[startIdx + 3:startIdx + 7] = orientation
@@ -73,8 +77,9 @@ def get_joint_name_list(mjmodel: mujoco.MjModel):
         o_name = mjmodel.joint(i).name
         if o_name != "":
             name_list.append(o_name)
-    
+
     return name_list
+
 
 def get_geom_name_list(mjmodel: mujoco.MjModel):
     """
@@ -86,8 +91,9 @@ def get_geom_name_list(mjmodel: mujoco.MjModel):
         o_name = mjmodel.geom(i).name
         if o_name != "":
             name_list.append(o_name)
-    
+
     return name_list
+
 
 def get_body_name_list(mjmodel: mujoco.MjModel):
     """
@@ -99,10 +105,11 @@ def get_body_name_list(mjmodel: mujoco.MjModel):
         o_name = mjmodel.body(i).name
         if o_name != "":
             name_list.append(o_name)
-    
+
     return name_list
 
-def euler_from_quaternion(x, y, z, w):
+
+def euler_from_quaternion(w, x, y, z):
     """
     Convert a quaternion into euler angles (roll, pitch, yaw)
     roll is rotation around x in radians (counterclockwise)
@@ -122,9 +129,57 @@ def euler_from_quaternion(x, y, z, w):
     t4 = +1.0 - 2.0 * (y * y + z * z)
     yaw_z = math.atan2(t3, t4)
 
-    return roll_x, pitch_y, yaw_z  # in radians
+    return [roll_x, pitch_y, yaw_z]  # in radians
 
-        
+
+def quaternion_from_euler(roll, pitch, yaw):
+    """
+    Convert an Euler angle to a quaternion.
+
+    Input
+      :param roll: The roll (rotation around x-axis) angle in radians.
+      :param pitch: The pitch (rotation around y-axis) angle in radians.
+      :param yaw: The yaw (rotation around z-axis) angle in radians.
+
+    Output
+      :return qx, qy, qz, qw: The orientation in quaternion [x,y,z,w] format
+    """
+    qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - \
+        np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+    qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + \
+        np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
+    qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - \
+        np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
+    qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + \
+        np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+
+    return [qw, qx, qy, qz]
+
+
+def quaternion_multiply(quaternion0, quaternion1):
+    """Return multiplication of two quaternions.
+    """
+    w0, x0, y0, z0 = quaternion0
+    w1, x1, y1, z1 = quaternion1
+    return np.array((
+                    -x1*x0 - y1*y0 - z1*z0 + w1*w0,
+                    x1*w0 + y1*z0 - z1*y0 + w1*x0,
+                    -x1*z0 + y1*w0 + z1*x0 + w1*y0,
+                    x1*y0 - y1*x0 + z1*w0 + w1*z0), dtype=np.float64)
+
+def q_conjugate(q):
+    w, x, y, z = q
+    return [w, -x, -y, -z]
+
+def qv_mult(q1, v1):
+    """For active rotation. If passive rotation is needed, use q1 * q2 * q1^(-1)"""
+    q2 = np.append(0.0, v1)
+    return quaternion_multiply(q_conjugate(q1), quaternion_multiply(q2, q1))[1:]
+
+
+def euler_rad_to_euler_deg(array_3elem):
+    return [math.degrees(array_3elem[0]), math.degrees(array_3elem[1]), math.degrees(array_3elem[2])]
+
 
 def update_follow_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None):
     """
@@ -141,9 +196,10 @@ def update_follow_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=Non
     position = drone_qpos[0:3]
     orientation = drone_qpos[3:7]
 
-    roll_x, pitch_y, yaw_z = euler_from_quaternion(orientation[0], orientation[1], orientation[2], orientation[3])
+    roll_x, pitch_y, yaw_z = euler_from_quaternion(
+        orientation[0], orientation[1], orientation[2], orientation[3])
 
-    new_azim = -math.degrees(roll_x) + 180
+    new_azim = math.degrees(yaw_z)
     new_elev = math.degrees(pitch_y) - 20
 
     cam.lookat = position

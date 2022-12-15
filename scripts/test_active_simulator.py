@@ -71,36 +71,38 @@ simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, sim_ste
 #print(simulator.model.body("realbumblebee_0").mocapid[0])
 
 
-simulator.cam.azimuth, simulator.cam.elevation = 70, -20
-simulator.cam.distance = 3
+simulator.cam.azimuth, simulator.cam.elevation = 70, -90
+simulator.cam.distance = 1
 
 
 d0 = simulator.drones[0]
 d1 = simulator.drones[1]
 d2 = simulator.drones[2]
 
-d0.print_info()
-print()
-d1.print_info()
-print()
-d2.print_info()
-print()
+d2.set_quat(np.array([-0.5, 0, -0.9, -0.2]))
+d2.set_pos(np.array([0.3, 0.3, 0.3]))
+#d2.set_quat(np.array([0.7, 0.0, 0.0, 0.7]))
+print(d2.get_quat())
 
-controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
-controller.delta_r = 0
-controller_lqr = PlanarLQRControl(simulator.model)
-controllers = {"geom" : controller, "lqr" : controller_lqr}
-traj_ = traj.Trajectory(control_step, traj.HOOK_UP_3_LOADS)
+for d in simulator.drones:
+    d.print_info()
+    print()
 
-d0.set_qpos(traj_.pos_ref[0, :], traj_.q0)
-
-if isinstance(d0, drone.DroneHooked):
-    d0.set_hook_qpos(0)
-else:
-    print("Error: drone is not hooked")
-d0.set_mass(controller.mass)
-d0.set_trajectory(traj_)
-d0.set_controllers(controllers)
+#controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
+#controller.delta_r = 0
+#controller_lqr = PlanarLQRControl(simulator.model)
+#controllers = {"geom" : controller, "lqr" : controller_lqr}
+#traj_ = traj.Trajectory(control_step, traj.HOOK_UP_3_LOADS)
+#
+#d0.set_qpos(traj_.pos_ref[0, :], traj_.q0)
+#
+#if isinstance(d0, drone.DroneHooked):
+#    d0.set_hook_qpos(0)
+#else:
+#    print("Error: drone is not hooked")
+#d0.set_mass(controller.mass)
+#d0.set_trajectory(traj_)
+#d0.set_controllers(controllers)
 
 
 controller = GeomControl(simulator.model, simulator.data)

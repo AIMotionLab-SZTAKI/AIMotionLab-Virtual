@@ -1,10 +1,10 @@
 <mujoco model="Lagyi">
 
   <default class="main">
-<!-- 
+    <!-- 
     rotate by 90 degrees about the vertical axis
     to match the optitrack coordinate system
- -->
+    -->
     <geom quat="0.7071 0 0 0.7071"/>
 
     <default class="lagyi">

@@ -2,6 +2,8 @@ from pickle import FALSE
 import mujoco
 import numpy as np
 from scipy.spatial.transform import Rotation
+import util.mujoco_helper as mh
+import math
 
 
 class Drone:
@@ -47,20 +49,22 @@ class Drone:
     
     def update(self, i):
 
-        pos = self.get_qpos()[:3]
-        vel = self.get_qvel()[:3]
+        if self.trajectory is not None:
 
-        alpha = None
-        dalpha = None
+            pos = self.get_qpos()[:3]
+            vel = self.get_qvel()[:3]
 
-        controller_input = self.trajectory.evaluate(i, self.data.time, pos, vel, alpha, dalpha)
+            alpha = None
+            dalpha = None
 
-        ctrl = self.compute_control(controller_input)
-        
-        if ctrl is not None:
-            self.set_ctrl(ctrl)
-        else:
-            print("[Drone] Error: ctrl was None")
+            controller_input = self.trajectory.evaluate(i, self.data.time, pos, vel, alpha, dalpha)
+
+            ctrl = self.compute_control(controller_input)
+            
+            if ctrl is not None:
+                self.set_ctrl(ctrl)
+            #else:
+            #    print("[Drone] Error: ctrl was None")
     
 
     
@@ -175,8 +179,8 @@ class Drone:
         print("name in xml:      " + self.name_in_xml)
     
     def print_info(self):
+        print("Virtual")
         self.print_names()
-        print("Is mocap:         False")
     
     def get_name_in_xml(self):
         return self.name_in_xml
@@ -256,22 +260,23 @@ class DroneHooked(Drone):
     
     def update(self, i):
 
-        pos = self.get_qpos()[:3]
-        vel = self.get_qvel()[:3]
+        if self.trajectory is not None:
+            pos = self.get_qpos()[:3]
+            vel = self.get_qvel()[:3]
 
-        alpha = self.get_hook_qpos()
-        dalpha = self.get_hook_qvel()
+            alpha = self.get_hook_qpos()
+            dalpha = self.get_hook_qvel()
 
-        controller_input = self.trajectory.evaluate(i, self.data.time, pos, vel, alpha, dalpha)
-        
-        self.set_load_mass(controller_input["load_mass"])
+            controller_input = self.trajectory.evaluate(i, self.data.time, pos, vel, alpha, dalpha)
+            
+            self.set_load_mass(controller_input["load_mass"])
 
-        ctrl = self.compute_control(controller_input)
-        
-        if ctrl is not None:
-            self.set_ctrl(ctrl)
-        else:
-            print("[DroneHooked] Error: ctrl was None")
+            ctrl = self.compute_control(controller_input)
+            
+            if ctrl is not None:
+                self.set_ctrl(ctrl)
+            #else:
+            #    print("[DroneHooked] Error: ctrl was None")
     
     def compute_control(self, input_dict):
 
@@ -356,12 +361,26 @@ class DroneHooked(Drone):
 
 
 class DroneMocap:
-    def __init__(self, data: mujoco.MjData, drone_mocapid, prop_mocapids, name_in_motive, name_in_xml):
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, prop_mocapids, name_in_motive, name_in_xml):
         self.data = data
         self.name_in_xml = name_in_xml
         self.name_in_motive = name_in_motive
         self.mocapid = drone_mocapid
         self.prop_mocapids = prop_mocapids
+
+        self.prop1 = PropellerMocap(model, data, name_in_xml + "_prop1", drone_mocapid)
+        self.prop2 = PropellerMocap(model, data, name_in_xml + "_prop2", drone_mocapid)
+        self.prop3 = PropellerMocap(model, data, name_in_xml + "_prop3", drone_mocapid)
+        self.prop4 = PropellerMocap(model, data, name_in_xml + "_prop4", drone_mocapid)
+
+        self.prop1.print_data()
+        print()
+        self.prop2.print_data()
+        print()
+        self.prop3.print_data()
+        print()
+        self.prop4.print_data()
+        print()
 
     def set_pos(self, pos):
         self.data.mocap_pos[self.mocapid] = pos
@@ -372,8 +391,8 @@ class DroneMocap:
     def set_quat(self, quat):
         self.data.mocap_quat[self.mocapid] = quat
 
-        for i in range(len(self.prop_mocapids)):
-            self.data.mocap_quat[self.prop_mocapids[i]] = quat
+        #for i in range(len(self.prop_mocapids)):
+        #    self.data.mocap_quat[self.prop_mocapids[i]] = quat
 
     def get_pos(self):
         return self.data.mocap_pos[self.mocapid]
@@ -392,8 +411,16 @@ class DroneMocap:
         print("name in motive:   " + self.name_in_motive)
 
     def print_info(self):
+        print("Mocap")
         self.print_names()
-        print("Is mocap:         True")
+    
+
+    def spin_propellers(self):
+        self.prop1.update()
+        self.prop2.update()
+        self.prop3.update()
+        self.prop4.update()
+
 
     @staticmethod
     def get_drone_names_motive(drones):
@@ -467,7 +494,7 @@ class DroneMocap:
                 prop_mocapids += [model.body(_name + "_prop3").mocapid[0]]
                 prop_mocapids += [model.body(_name + "_prop4").mocapid[0]]
 
-                d = DroneMocap(data, drone_mocapid, prop_mocapids, "bb" + str(ibb + 1), _name)
+                d = DroneMocap(model, data, drone_mocapid, prop_mocapids, "bb" + str(ibb + 1), _name)
                 realdrones += [d]
                 ibb += 1
 
@@ -480,7 +507,7 @@ class DroneMocap:
                 prop_mocapids += [model.body(_name + "_prop3").mocapid[0]]
                 prop_mocapids += [model.body(_name + "_prop4").mocapid[0]]
 
-                d = DroneMocap(data, drone_mocapid, prop_mocapids, "cf" + str(icf + 1), _name)
+                d = DroneMocap(model, data, drone_mocapid, prop_mocapids, "cf" + str(icf + 1), _name)
                 realdrones += [d]
                 icf += 1
 
@@ -494,3 +521,56 @@ class DroneMocap:
 class DroneMocapHooked(DroneMocap):
     def __init__(self, pos, quat, prop_poss, prop_quats, hook_pos, hook_quat, name_in_motive):
         super().__init__(pos, quat, prop_poss, prop_quats, name_in_motive)
+
+
+
+class PropellerMocap():
+    def __init__(self, model, data, name_in_xml, drone_mocap_id):
+        
+        self.name_in_xml = name_in_xml
+        self.mocapid = model.body(name_in_xml).mocapid[0]
+        
+        self.position = data.mocap_pos[self.mocapid]
+        self.rotation = data.mocap_quat[self.mocapid]
+        self.OFFSET = model.geom(name_in_xml).pos
+
+        self.drone_pos = data.mocap_pos[drone_mocap_id]
+        self.drone_rot = data.mocap_quat[drone_mocap_id]
+
+        self.spin_angle = 0.0
+
+        self.spinned = True
+
+
+    def print_data(self):
+        print("name in xml ", self.name_in_xml)
+        print("mocapid     ", self.mocapid)
+        print("position    ", self.position)
+        print("rotation    ", self.rotation)
+        print("offset      ", self.OFFSET)
+        print("drone pos   ", self.drone_pos)
+        print("drone rot   ", self.drone_rot)
+    
+    def update(self):
+        if self.spinned:
+            self.spin_angle += 0.2
+        
+
+
+        quat = mh.quaternion_from_euler(0, 0, self.spin_angle)
+        quat = mh.quaternion_multiply(quat, self.drone_rot)
+    
+
+        self.rotation[0] = quat[0]
+        self.rotation[1] = quat[1]
+        self.rotation[2] = quat[2]
+        self.rotation[3] = quat[3]
+        
+
+        new_offs = mh.qv_mult(quat, self.OFFSET)
+
+        o = mh.qv_mult(self.drone_rot, self.OFFSET)
+
+        self.position[0] = self.drone_pos[0] - new_offs[0] + o[0]
+        self.position[1] = self.drone_pos[1] - new_offs[1] + o[1]
+        self.position[2] = self.drone_pos[2] - new_offs[2] + o[2]

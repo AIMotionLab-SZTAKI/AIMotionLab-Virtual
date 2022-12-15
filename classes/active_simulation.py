@@ -95,6 +95,9 @@ class ActiveSimulator(Display):
             mujoco_helper.update_follow_cam(d.get_qpos(), self.camFollow,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
                                             self.elev_filter_sin, self.elev_filter_cos)
+        
+        for m in range(len(self.realdrones)):
+            self.realdrones[m].spin_propellers()
 
 
         for l in range(len(self.virtdrones)):

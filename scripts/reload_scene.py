@@ -6,7 +6,7 @@ import numpy as np
 import time
 #import imageio
 import cv2
-import util.mujoco_helper as mujoco_helper
+import util.mujoco_helper as mh
 import classes.drone as drone
 from util.util import sync, FpsLimiter
 
@@ -21,22 +21,24 @@ def main():
 
     data = mujoco.MjData(model)
 
+    print(model.geom("cf_body"))
+
     #mujoco.mj_printData(model, data, "data.txt")
 
-    joint_names = mujoco_helper.get_joint_name_list(model)
+    joint_names = mh.get_joint_name_list(model)
 
-    #print("valid body names: " + str(mujoco_helper.get_body_name_list(model)))
-    #print("valid geom names: " + str(mujoco_helper.get_geom_name_list(model)))
+    #print("valid body names: " + str(mh.get_body_name_list(model)))
+    #print("valid geom names: " + str(mh.get_geom_name_list(model)))
 
 
-    fps_limiter = FpsLimiter(25)
-    while True:
-        fps_limiter.begin_frame()
-        t1 = time.time()
-        
-
-        fps_limiter.end_frame()
-        print(time.time() - t1)
+    #fps_limiter = FpsLimiter(25)
+    #while True:
+    #    fps_limiter.begin_frame()
+    #    t1 = time.time()
+    #    
+#
+    #    fps_limiter.end_frame()
+    #    print(time.time() - t1)
 
     print("Valid joint names:")
     for jname in joint_names:
@@ -99,10 +101,10 @@ def main():
         rgb = np.zeros(viewport.width * viewport.height * 3, dtype=np.uint8)
         depth = np.zeros(viewport.width * viewport.height, dtype=np.float32)
 
-        data.joint("virtdrone_1_prop1").qpos[0] += .51
-        data.joint("virtdrone_1_prop2").qpos[0] += .50
-        data.joint("virtdrone_1_prop3").qpos[0] += -.51
-        data.joint("virtdrone_1_prop4").qpos[0] += -.50
+        #data.joint("virtdrone_1_prop1").qpos[0] += .51
+        #data.joint("virtdrone_1_prop2").qpos[0] += .50
+        #data.joint("virtdrone_1_prop3").qpos[0] += -.51
+        #data.joint("virtdrone_1_prop4").qpos[0] += -.50
 
         #stamp = str(time.time())
         #mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, viewport, stamp, None, con)

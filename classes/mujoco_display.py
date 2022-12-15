@@ -50,7 +50,7 @@ class Display:
         self.init_glfw()
         self.init_cams()
         self.load_model(xml_file_name)
-
+        
         # Connect to optitrack
         if connect_to_optitrack:
             self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
@@ -371,7 +371,7 @@ class Display:
         
         if len(self.realdrones) > 0:
             drone_names = DroneMocap.get_drone_names_motive(self.realdrones)
-            drone_labels = DroneMocap.get_drone_labels(self.realdrones)
+            drone_labels = DroneMocap.get_drone_names_in_xml(self.realdrones)
             gui = DroneNameGui(drone_labels=drone_labels, drone_names=drone_names)
             gui.show()
             DroneMocap.set_drone_names_motive(self.realdrones, gui.drone_names)

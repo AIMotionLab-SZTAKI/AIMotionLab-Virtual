@@ -474,7 +474,7 @@ class DroneMocap:
             _name_cut = _name[:len(_name) - 1]
 
             if _name.startswith("realbumblebee_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
-                hook = Drone.find_mocap_hook_for_drone(body_names, _name)
+                hook = DroneMocap.find_mocap_hook_for_drone(body_names, _name)
                 if hook:
                     d = DroneMocapHooked(data, name_in_xml=_name,
                                     hook_name_in_xml=hook,
@@ -520,6 +520,15 @@ class DroneMocap:
         print(str(len(realdrones)) + " mocap drone(s) found in xml.")
         print()
         return realdrones
+    
+
+    @staticmethod
+    def find_mocap_hook_for_drone(names, drone_name):
+        for n_ in names:
+            if drone_name + "_hook" == n_:
+                return n_
+        
+        return None
 
 
 class DroneMocapHooked(DroneMocap):
@@ -536,7 +545,7 @@ class PropellerMocap():
         self.name_in_xml = name_in_xml
         self.mocapid = model.body(name_in_xml).mocapid[0]
 
-        print(model.geom(name_in_xml))
+        #print(model.geom(name_in_xml))
         
         self.position = data.mocap_pos[self.mocapid]
         self.rotation = data.mocap_quat[self.mocapid]

@@ -55,6 +55,7 @@ elif SCENARIO == traj.FLY:
 """
 
 scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
+#scene.add_drone("1 1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", True)
 scene.add_drone("0 0 1", "1 0 0 0", RED_COLOR, True, "crazyflie")
 scene.add_drone("0 -1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee")
 scene.add_drone("0 -1 .5", "1 0 0 0", BLUE_COLOR, False, "crazyflie")
@@ -72,8 +73,8 @@ simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, sim_ste
 #print(simulator.model.body("realbumblebee_0").mocapid[0])
 
 
-simulator.cam.azimuth, simulator.cam.elevation = 70, -90
-simulator.cam.distance = 1
+simulator.cam.azimuth, simulator.cam.elevation = 70, -20
+simulator.cam.distance = 3
 
 
 d0 = simulator.drones[0]

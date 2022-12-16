@@ -97,23 +97,15 @@ class ActiveSimulator(Display):
                                             self.elev_filter_sin, self.elev_filter_cos)
         
         for m in range(len(self.realdrones)):
-            self.realdrones[m].spin_propellers()
+            self.realdrones[m].update_propellers(self.control_step, 20)
 
 
         for l in range(len(self.virtdrones)):
 
-            #self.spin_propellers(self.drones[l], self.control_step, 20)
             self.virtdrones[l].fake_propeller_spin(self.control_step, 20)
 
-
             self.virtdrones[l].update(i)
-
-            # self.drones[l].controller.update()
-
-            # self.drones[l].trajectory.eval()
-
-            # self.data.ctrl[valami] = drones[l].controller.eval()
-            #pass
+        
         
         mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
 

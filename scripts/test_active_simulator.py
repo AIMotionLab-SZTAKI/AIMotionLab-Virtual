@@ -54,14 +54,15 @@ elif SCENARIO == traj.FLY:
     simulator = ActiveSimulator(os.path.join(xml_path, save_filename), [0, 1], sim_step, control_step, graphics_step, connect_to_optitrack=False)
 """
 
-#scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
-#scene.add_drone("0 0 1", "1 0 0 0", RED_COLOR, True, "crazyflie")
-#scene.add_drone("0 -1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee")
-##scene.add_load("0 0 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
-#scene.add_load("-.6 .6 0", ".075 .075 .075", ".05", "1 0 0 0", "0.1 0.9 0.1 1.0")
-#scene.add_load("-.3 -.6 0", ".075 .075 .1", ".1", "1 0 0 0", "0.9 0.1 0.1 1.0")
-#
-#scene.save_xml(os.path.join(xml_path, save_filename))
+scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
+scene.add_drone("0 0 1", "1 0 0 0", RED_COLOR, True, "crazyflie")
+scene.add_drone("0 -1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee")
+scene.add_drone("0 -1 .5", "1 0 0 0", BLUE_COLOR, False, "crazyflie")
+#scene.add_load("0 0 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
+scene.add_load("-.6 .6 0", ".075 .075 .075", ".05", "1 0 0 0", "0.1 0.9 0.1 1.0")
+scene.add_load("-.3 -.6 0", ".075 .075 .1", ".1", "1 0 0 0", "0.9 0.1 0.1 1.0")
+
+scene.save_xml(os.path.join(xml_path, save_filename))
 
 sim_step, control_step, graphics_step = 0.001, 0.01, 0.04
 
@@ -79,10 +80,7 @@ d0 = simulator.drones[0]
 d1 = simulator.drones[1]
 d2 = simulator.drones[2]
 
-d2.set_quat(np.array([-0.5, 0, -0.9, -0.2]))
-d2.set_pos(np.array([0.3, 0.3, 0.3]))
-#d2.set_quat(np.array([0.7, 0.0, 0.0, 0.7]))
-print(d2.get_quat())
+
 
 for d in simulator.drones:
     d.print_info()

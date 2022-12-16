@@ -92,7 +92,7 @@ class SceneXmlGenerator:
     def add_drone(self, pos, quat, color, is_virtual = True, type="crazyflie", is_hooked = False):
 
         if is_hooked and type != "bumblebee":
-            print("[SceneXmlGenerator] Error: Hooked drone can only be large...")
+            print("[SceneXmlGenerator] Error: Hooked drone can only be bumblebee...")
             return None
 
 
@@ -144,7 +144,7 @@ class SceneXmlGenerator:
                 else:
 
                     name = "realbumblebee_" + str(self.__virtbumblebee_cntr)
-                    drone = self.__add_bumblebee(name, pos, quat, color)
+                    drone = self.__add_mocap_bumblebee(name, pos, quat, color)
 
                     self.__realbumblebee_cntr += 1
                     return
@@ -152,7 +152,7 @@ class SceneXmlGenerator:
             elif type == "crazyflie":
                 name = "realcrazyflie_" + str(self.__realcrazyflie_cntr)
 
-                drone = self.__add_crazyflie(name, pos, quat, color)
+                drone = self.__add_mocap_crazyflie(name, pos, quat, color)
 
                 self.__realcrazyflie_cntr += 1
                 return
@@ -211,6 +211,34 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_sensor0")
 
         return drone
+    
+    def __add_mocap_crazyflie(self, name, pos, quat, color):
+        
+        drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(drone, "geom", name=name + "_body", type="mesh", mesh="drone_body", rgba=color)
+        ET.SubElement(drone, "geom", name=name + "_4_motormounts", type="mesh", mesh="drone_4_motormounts", rgba=color)
+        ET.SubElement(drone, "geom", name=name + "_4_motors", type="mesh", mesh="drone_4_motors", rgba=color)
+
+        prop_name = name + "_prop1"
+        pos = PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
+        prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+
+        prop_name = name + "_prop2"
+        pos = "-" + PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
+        prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+
+        prop_name = name + "_prop3"
+        pos = "-" + PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
+        prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+
+        prop_name = name + "_prop4"
+        pos = PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
+        prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+
 
     
     def __add_bumblebee(self, name, pos, quat, color, is_hooked=False):
@@ -264,6 +292,32 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_sensor0")
 
         return drone
+
+
+    def __add_mocap_bumblebee(self, name, pos, quat, color):
+        
+        drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", mesh="drone_body_large", rgba=color)
+
+        prop_name = name + "_prop1"
+        pos = PROP_OFFS_X1_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", pos=pos, rgba=PROP_COLOR)
+
+        prop_name = name + "_prop2"
+        pos = "-" + PROP_OFFS_X2_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", pos=pos, rgba=PROP_COLOR)
+
+        prop_name = name + "_prop3"
+        pos = "-" + PROP_OFFS_X2_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos, rgba=PROP_COLOR)
+
+        prop_name = name + "_prop4"
+        pos = PROP_OFFS_X1_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos, rgba=PROP_COLOR)
 
 
     def __add_hook_to_drone(self, drone, drone_name):

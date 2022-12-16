@@ -4,6 +4,11 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 import util.mujoco_helper as mh
 import math
+from enum import Enum
+
+class SPIN_DIR(Enum):
+    CLOCKWISE = 1
+    COUNTER_CLOCKWISE = -1
 
 
 class Drone:
@@ -368,19 +373,19 @@ class DroneMocap:
         self.mocapid = drone_mocapid
         self.prop_mocapids = prop_mocapids
 
-        self.prop1 = PropellerMocap(model, data, name_in_xml + "_prop1", drone_mocapid)
-        self.prop2 = PropellerMocap(model, data, name_in_xml + "_prop2", drone_mocapid)
-        self.prop3 = PropellerMocap(model, data, name_in_xml + "_prop3", drone_mocapid)
-        self.prop4 = PropellerMocap(model, data, name_in_xml + "_prop4", drone_mocapid)
+        self.prop1 = PropellerMocap(model, data, name_in_xml + "_prop1", drone_mocapid, SPIN_DIR.COUNTER_CLOCKWISE)
+        self.prop2 = PropellerMocap(model, data, name_in_xml + "_prop2", drone_mocapid, SPIN_DIR.COUNTER_CLOCKWISE)
+        self.prop3 = PropellerMocap(model, data, name_in_xml + "_prop3", drone_mocapid, SPIN_DIR.CLOCKWISE)
+        self.prop4 = PropellerMocap(model, data, name_in_xml + "_prop4", drone_mocapid, SPIN_DIR.CLOCKWISE)
 
-        self.prop1.print_data()
-        print()
-        self.prop2.print_data()
-        print()
-        self.prop3.print_data()
-        print()
-        self.prop4.print_data()
-        print()
+        #self.prop1.print_data()
+        #print()
+        #self.prop2.print_data()
+        #print()
+        #self.prop3.print_data()
+        #print()
+        #self.prop4.print_data()
+        #print()
 
     def set_pos(self, pos):
         self.data.mocap_pos[self.mocapid] = pos
@@ -413,13 +418,12 @@ class DroneMocap:
     def print_info(self):
         print("Mocap")
         self.print_names()
-    
 
-    def spin_propellers(self):
-        self.prop1.update()
-        self.prop2.update()
-        self.prop3.update()
-        self.prop4.update()
+    def update_propellers(self, control_step, spin_speed):
+        self.prop1.update(control_step, spin_speed)
+        self.prop2.update(control_step, spin_speed)
+        self.prop3.update(control_step, spin_speed)
+        self.prop4.update(control_step, spin_speed)
 
 
     @staticmethod
@@ -525,10 +529,14 @@ class DroneMocapHooked(DroneMocap):
 
 
 class PropellerMocap():
-    def __init__(self, model, data, name_in_xml, drone_mocap_id):
+    def __init__(self, model, data, name_in_xml, drone_mocap_id, spin_direction = SPIN_DIR.CLOCKWISE):
+
+        self.set_spin_direction(spin_direction)
         
         self.name_in_xml = name_in_xml
         self.mocapid = model.body(name_in_xml).mocapid[0]
+
+        print(model.geom(name_in_xml))
         
         self.position = data.mocap_pos[self.mocapid]
         self.rotation = data.mocap_quat[self.mocapid]
@@ -551,22 +559,29 @@ class PropellerMocap():
         print("drone pos   ", self.drone_pos)
         print("drone rot   ", self.drone_rot)
     
-    def update(self):
+    def set_spin_direction(self, spin_dir: SPIN_DIR):
+        self.__spin_direction = spin_dir
+    
+    def get_spin_direction(self):
+        return self.__spin_direction
+    
+    def update(self, control_step, spin_speed):
         if self.spinned:
-            self.spin_angle += 0.2
-        
+            self.spin_angle += (spin_speed * control_step * self.__spin_direction.value)
 
 
+        # combine the orientation and the spin quaternion
         quat = mh.quaternion_from_euler(0, 0, self.spin_angle)
         quat = mh.quaternion_multiply(quat, self.drone_rot)
-    
 
+        # set new rotation
         self.rotation[0] = quat[0]
         self.rotation[1] = quat[1]
         self.rotation[2] = quat[2]
         self.rotation[3] = quat[3]
         
-
+        # compensate for the shift caused by the spin
+        # as the origin of the propeller coordinate frame is the same as the drone's
         new_offs = mh.qv_mult(quat, self.OFFSET)
 
         o = mh.qv_mult(self.drone_rot, self.OFFSET)

@@ -86,21 +86,21 @@ for d in simulator.drones:
     d.print_info()
     print()
 
-#controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
-#controller.delta_r = 0
-#controller_lqr = PlanarLQRControl(simulator.model)
-#controllers = {"geom" : controller, "lqr" : controller_lqr}
-#traj_ = traj.Trajectory(control_step, traj.HOOK_UP_3_LOADS)
-#
-#d0.set_qpos(traj_.pos_ref[0, :], traj_.q0)
-#
-#if isinstance(d0, drone.DroneHooked):
-#    d0.set_hook_qpos(0)
-#else:
-#    print("Error: drone is not hooked")
-#d0.set_mass(controller.mass)
-#d0.set_trajectory(traj_)
-#d0.set_controllers(controllers)
+controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
+controller.delta_r = 0
+controller_lqr = PlanarLQRControl(simulator.model)
+controllers = {"geom" : controller, "lqr" : controller_lqr}
+traj_ = traj.Trajectory(control_step, traj.HOOK_UP_3_LOADS)
+
+d0.set_qpos(traj_.pos_ref[0, :], traj_.q0)
+
+if isinstance(d0, drone.DroneHooked):
+    d0.set_hook_qpos(0)
+else:
+    print("Error: drone is not hooked")
+d0.set_mass(controller.mass)
+d0.set_trajectory(traj_)
+d0.set_controllers(controllers)
 
 
 controller = GeomControl(simulator.model, simulator.data)

@@ -84,7 +84,7 @@ class ActiveSimulator(Display):
                 # only update real drones
                 drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
  
-                drone_to_update = drone.Drone.get_drone_by_name_in_motive(self.realdrones, name)
+                drone_to_update = drone.DroneMocap.get_drone_by_name_in_motive(self.realdrones, name)
 
                 if drone_to_update is not None:
                     drone_to_update.set_pos(obj.position)

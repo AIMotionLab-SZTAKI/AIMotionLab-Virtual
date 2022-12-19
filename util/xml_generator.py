@@ -15,6 +15,9 @@ PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
 
 SITE_NAME_END = "_cog"
 
+
+ROD_LENGTH = 0.4
+
 class SceneXmlGenerator:
 
     def __init__(self, base_scene_filename):
@@ -136,7 +139,8 @@ class SceneXmlGenerator:
 
                     name = "realbumblebee_hooked_" + str(self.__realbumblebee_hooked_cntr)
 
-                    drone = self.__add_bumblebee(name, pos, quat, color, True)
+                    drone = self.__add_mocap_bumblebee(name, pos, quat, color)
+                    self.__add_mocap_hook_to_drone(drone, pos, name)
 
                     self.__realbumblebee_hooked_cntr += 1
                     return
@@ -322,16 +326,46 @@ class SceneXmlGenerator:
 
     def __add_hook_to_drone(self, drone, drone_name):
         
-        rod = ET.SubElement(drone, "body", name=drone_name + "_rod" "body", pos="0 0 0")
+        rod = ET.SubElement(drone, "body", name=drone_name + "_rod", pos="0 0 0")
         ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.0025", mass="0.00")
         ET.SubElement(rod, "site", name=drone_name + "_rod_end", pos="0 0 -0.4", type="sphere", size="0.002")
         ET.SubElement(rod, "joint", name=drone_name + "_hook", axis="0 1 0", pos="0 0 0", damping="0.001")
         hook = ET.SubElement(rod, "body", name=drone_name + "_hook", pos="0 0 -0.4", euler="0 3.141592 -1.57")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02", mass="0.02")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.04750", euler="-1.04720 0 0", size="0.005 0.01800", mass="0.0001")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02598 0.07000", euler="0.00000 0 0", size="0.005 0.01800", mass="0.0001")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.09250", euler="1.04720 0 0", size="0.005 0.01800", mass="0.0001")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01299 0.09250", euler="2.09440 0 0", size="0.005 0.01800", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0475", euler="-1.0472 0 0", size="0.005 0.018", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02598 0.07", euler="0 0 0", size="0.005 0.018", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0925", euler="1.0472 0 0", size="0.005 0.018", mass="0.0001")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01299 0.0925", euler="2.0944 0 0", size="0.005 0.018", mass="0.0001")
+    
+
+    def __add_mocap_hook_to_drone(self, drone, drone_pos, drone_name):
+
+
+        splt = drone_pos.split()
+
+        pos_z = float(splt[2])
+        pos_z -= ROD_LENGTH
+        #hook_pos = splt[0] + " " + splt[1] + " " + str(pos_z)
+        
+        hook = ET.SubElement(self.worldbody, "body", name=drone_name + "_hook", pos=drone_pos, mocap="true")
+        ET.SubElement(hook, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.0025")
+        #hook = ET.SubElement(self.worldbody, "body", name=drone_name + "_hook", pos=hook_pos, euler="0 3.141592 -1.57", mocap="true")
+        
+        pos_z = 0.02 - ROD_LENGTH
+        hpos = "0 0 " + str(pos_z)
+        ET.SubElement(hook, "geom", type="capsule", pos=hpos, size="0.002 0.02")
+        pos_z = -0.0475 - ROD_LENGTH
+        hpos = "-0.01299 0 " + str(pos_z)
+        ET.SubElement(hook, "geom", type="capsule", pos=hpos, euler="0 -1.0472 0", size="0.005 0.018")
+        pos_z = -0.025 - ROD_LENGTH
+        hpos = "-0.02598 0 " + str(pos_z)
+        ET.SubElement(hook, "geom", type="capsule", pos=hpos, euler="0 0 0", size="0.005 0.018")
+        pos_z = -0.005 - ROD_LENGTH
+        hpos = "-0.01299 0 " + str(pos_z)
+        ET.SubElement(hook, "geom", type="capsule", pos=hpos, euler="0 1.0472 0", size="0.005 0.018")
+        pos_z = -0.0475 - ROD_LENGTH
+        hpos = "0.01299 0 " + str(pos_z)
+        ET.SubElement(hook, "geom", type="capsule", pos=hpos, euler="0 1.0472 0", size="0.005 0.018")
 
 
 

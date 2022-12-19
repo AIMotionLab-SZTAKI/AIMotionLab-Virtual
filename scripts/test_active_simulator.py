@@ -55,13 +55,13 @@ elif SCENARIO == traj.FLY:
 """
 
 scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
-#scene.add_drone("1 1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", True)
-scene.add_drone("0 0 1", "1 0 0 0", RED_COLOR, True, "crazyflie")
-scene.add_drone("0 -1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee")
-scene.add_drone("0 -1 .5", "1 0 0 0", BLUE_COLOR, False, "crazyflie")
+scene.add_drone("-1 -1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", True)
+#scene.add_drone("0 0 1", "1 0 0 0", RED_COLOR, True, "crazyflie")
+#scene.add_drone("0 -1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee")
+#scene.add_drone("0 -1 .5", "1 0 0 0", BLUE_COLOR, False, "crazyflie")
 #scene.add_load("0 0 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
-scene.add_load("-.6 .6 0", ".075 .075 .075", ".05", "1 0 0 0", "0.1 0.9 0.1 1.0")
-scene.add_load("-.3 -.6 0", ".075 .075 .1", ".1", "1 0 0 0", "0.9 0.1 0.1 1.0")
+#scene.add_load("-.6 .6 0", ".075 .075 .075", ".05", "1 0 0 0", "0.1 0.9 0.1 1.0")
+#scene.add_load("-.3 -.6 0", ".075 .075 .1", ".1", "1 0 0 0", "0.9 0.1 0.1 1.0")
 
 scene.save_xml(os.path.join(xml_path, save_filename))
 
@@ -78,8 +78,8 @@ simulator.cam.distance = 3
 
 
 d0 = simulator.drones[0]
-d1 = simulator.drones[1]
-d2 = simulator.drones[2]
+#d1 = simulator.drones[1]
+#d2 = simulator.drones[2]
 
 
 
@@ -87,33 +87,33 @@ for d in simulator.drones:
     d.print_info()
     print()
 
-controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
-controller.delta_r = 0
-controller_lqr = PlanarLQRControl(simulator.model)
-controllers = {"geom" : controller, "lqr" : controller_lqr}
-traj_ = traj.Trajectory(control_step, traj.HOOK_UP_3_LOADS)
-
-d0.set_qpos(traj_.pos_ref[0, :], traj_.q0)
-
-if isinstance(d0, drone.DroneHooked):
-    d0.set_hook_qpos(0)
-else:
-    print("Error: drone is not hooked")
-d0.set_mass(controller.mass)
-d0.set_trajectory(traj_)
-d0.set_controllers(controllers)
-
-
-controller = GeomControl(simulator.model, simulator.data)
-
-controllers = {"geom" : controller}
-
-traj_ = traj.Trajectory(control_step, traj.FLIP)
-
-d1.set_qpos(np.array((0.0, 0.0, 0.5)), np.array((1.0, 0.0, 0.0, 0.0)))
-
-d1.set_trajectory(traj_)
-d1.set_controllers(controllers)
+#controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
+#controller.delta_r = 0
+#controller_lqr = PlanarLQRControl(simulator.model)
+#controllers = {"geom" : controller, "lqr" : controller_lqr}
+#traj_ = traj.Trajectory(control_step, traj.HOOK_UP_3_LOADS)
+#
+#d0.set_qpos(traj_.pos_ref[0, :], traj_.q0)
+#
+#if isinstance(d0, drone.DroneHooked):
+#    d0.set_hook_qpos(0)
+#else:
+#    print("Error: drone is not hooked")
+#d0.set_mass(controller.mass)
+#d0.set_trajectory(traj_)
+#d0.set_controllers(controllers)
+#
+#
+#controller = GeomControl(simulator.model, simulator.data)
+#
+#controllers = {"geom" : controller}
+#
+#traj_ = traj.Trajectory(control_step, traj.FLIP)
+#
+#d1.set_qpos(np.array((0.0, 0.0, 0.5)), np.array((1.0, 0.0, 0.0, 0.0)))
+#
+#d1.set_trajectory(traj_)
+#d1.set_controllers(controllers)
 
 
 #controller = GeomControl(simulator.model, simulator.data, drone_type="large_quad")

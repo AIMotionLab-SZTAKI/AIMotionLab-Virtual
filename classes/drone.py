@@ -247,6 +247,7 @@ class Drone:
     
 
 
+################################## DroneHooked ##################################
 class DroneHooked(Drone):
 
     def __init__(self, data: mujoco.MjData, name_in_xml, hook_name_in_xml, trajectory, controller, parameters = {"mass" : 0.1}):
@@ -364,7 +365,7 @@ class DroneHooked(Drone):
         for k, v in self.controllers.items():
             self.controllers[k].mass = self.mass + self.load_mass
 
-
+################################## DroneMocap ##################################
 class DroneMocap:
     def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, prop_mocapids, name_in_motive, name_in_xml):
         self.data = data
@@ -476,11 +477,15 @@ class DroneMocap:
             if _name.startswith("realbumblebee_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
                 hook = DroneMocap.find_mocap_hook_for_drone(body_names, _name)
                 if hook:
-                    d = DroneMocapHooked(data, name_in_xml=_name,
-                                    hook_name_in_xml=hook,
-                                    name_in_motive="bb" + str(ibb + 1),
-                                    trajectory=None,
-                                    controller=None)
+
+                    prop_mocapids = []
+                    drone_mocapid = model.body(_name).mocapid[0]
+                    prop_mocapids += [model.body(_name + "_prop1").mocapid[0]]
+                    prop_mocapids += [model.body(_name + "_prop2").mocapid[0]]
+                    prop_mocapids += [model.body(_name + "_prop3").mocapid[0]]
+                    prop_mocapids += [model.body(_name + "_prop4").mocapid[0]]
+
+                    d = DroneMocapHooked(model, data, drone_mocapid, prop_mocapids, "bb" + str(ibb + 1), _name, hook)
 
                     realdrones += [d]
                     ibb += 1
@@ -531,12 +536,48 @@ class DroneMocap:
         return None
 
 
+################################## DroneMocapHooked ##################################
 class DroneMocapHooked(DroneMocap):
-    def __init__(self, pos, quat, prop_poss, prop_quats, hook_pos, hook_quat, name_in_motive):
-        super().__init__(pos, quat, prop_poss, prop_quats, name_in_motive)
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, prop_mocapids, name_in_motive, name_in_xml, hook_name_in_xml):
+        super().__init__(model, data, drone_mocapid, prop_mocapids, name_in_motive, name_in_xml)
 
+        self.hook_name_in_xml = hook_name_in_xml
 
+        self.hook_mocapid = model.body(name_in_xml + "_hook").mocapid[0]
 
+        self.hook_position = data.mocap_pos[self.hook_mocapid]
+        self.hook_rotation = data.mocap_quat[self.hook_mocapid]
+    
+    def get_hook_pos(self):
+        return self.hook_position
+    
+    def __set_hook_pos(self, pos):
+        self.hook_position[0] = pos[0]
+        self.hook_position[1] = pos[1]
+        self.hook_position[2] = pos[2]
+    
+    def get_hook_quat(self):
+        return self.hook_rotation
+    
+    def __set_hook_quat(self, quat):
+        self.hook_rotation[0] = quat[0]
+        self.hook_rotation[1] = quat[1]
+        self.hook_rotation[2] = quat[2]
+        self.hook_rotation[3] = quat[3]
+
+    def set_pos(self, pos):
+        self.__set_hook_pos(pos)
+        return super().set_pos(pos)
+
+    def set_quat(self, quat):
+        self.__set_hook_quat(quat)
+        return super().set_quat(quat)
+
+    def print_names(self):
+        super().print_names()
+        print("hook name in xml: " + self.hook_name_in_xml)
+
+################################## PropellerMocap ##################################
 class PropellerMocap():
     def __init__(self, model, data, name_in_xml, drone_mocap_id, spin_direction = SPIN_DIR.CLOCKWISE):
 

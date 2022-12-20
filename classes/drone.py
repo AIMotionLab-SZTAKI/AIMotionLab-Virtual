@@ -388,14 +388,12 @@ class DroneMocap:
         #self.prop4.print_data()
         #print()
 
-    def set_pos(self, pos):
-        self.data.mocap_pos[self.mocapid] = pos
+    #def set_pos(self, pos):
+    #    self.data.mocap_pos[self.mocapid] = pos
 
-        for i in range(len(self.prop_mocapids)):
-            self.data.mocap_pos[self.prop_mocapids[i]] = pos
 
-    def set_quat(self, quat):
-        self.data.mocap_quat[self.mocapid] = quat
+    #def set_quat(self, quat):
+    #    self.data.mocap_quat[self.mocapid] = quat
 
         #for i in range(len(self.prop_mocapids)):
         #    self.data.mocap_quat[self.prop_mocapids[i]] = quat
@@ -409,6 +407,16 @@ class DroneMocap:
     def get_qpos(self):
         return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
     
+    def set_qpos(self, pos, quat):
+        """To match the simulated (non-mocap) Drone function names
+           This drone does not have a qpos in MjData, because it's a mocap body
+           and does not have any joints.
+        """
+        self.data.mocap_pos[self.mocapid] = pos
+        self.data.mocap_quat[self.mocapid] = quat
+        # gotta update the propellers too, otherwise they get left behind
+        self.update_propellers()
+    
     def get_name_in_xml(self):
         return self.name_in_xml
     
@@ -419,12 +427,19 @@ class DroneMocap:
     def print_info(self):
         print("Mocap")
         self.print_names()
+    
+    def spin_propellers(self, control_step, spin_speed):
+        self.prop1.spin(control_step, spin_speed)
+        self.prop2.spin(control_step, spin_speed)
+        self.prop3.spin(control_step, spin_speed)
+        self.prop4.spin(control_step, spin_speed)
 
-    def update_propellers(self, control_step, spin_speed):
-        self.prop1.update(control_step, spin_speed)
-        self.prop2.update(control_step, spin_speed)
-        self.prop3.update(control_step, spin_speed)
-        self.prop4.update(control_step, spin_speed)
+
+    def update_propellers(self):
+        self.prop1.update()
+        self.prop2.update()
+        self.prop3.update()
+        self.prop4.update()
 
 
     @staticmethod
@@ -565,17 +580,17 @@ class DroneMocapHooked(DroneMocap):
         self.hook_rotation[2] = quat[2]
         self.hook_rotation[3] = quat[3]
 
-    def set_pos(self, pos):
+    def set_qpos(self, pos, quat):
         self.__set_hook_pos(pos)
-        return super().set_pos(pos)
-
-    def set_quat(self, quat):
         self.__set_hook_quat(quat)
-        return super().set_quat(quat)
+        return super().set_qpos(pos, quat)
+
 
     def print_names(self):
         super().print_names()
         print("hook name in xml: " + self.hook_name_in_xml)
+
+
 
 ################################## PropellerMocap ##################################
 class PropellerMocap():
@@ -615,9 +630,9 @@ class PropellerMocap():
     def get_spin_direction(self):
         return self.__spin_direction
     
-    def update(self, control_step, spin_speed):
-        if self.spinned:
-            self.spin_angle += (spin_speed * control_step * self.__spin_direction.value)
+    def update(self):
+        #if self.spinned:
+        #    self.spin_angle += (spin_speed * control_step * self.__spin_direction.value)
 
 
         # combine the orientation and the spin quaternion
@@ -639,3 +654,9 @@ class PropellerMocap():
         self.position[0] = self.drone_pos[0] - new_offs[0] + o[0]
         self.position[1] = self.drone_pos[1] - new_offs[1] + o[1]
         self.position[2] = self.drone_pos[2] - new_offs[2] + o[2]
+    
+    def spin(self, control_step, spin_speed):
+        if self.spinned:
+            self.spin_angle += (spin_speed * control_step * self.__spin_direction.value)
+        
+        self.update()

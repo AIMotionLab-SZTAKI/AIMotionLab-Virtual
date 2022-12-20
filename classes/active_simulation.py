@@ -87,8 +87,7 @@ class ActiveSimulator(Display):
                 drone_to_update = drone.DroneMocap.get_drone_by_name_in_motive(self.realdrones, name)
 
                 if drone_to_update is not None:
-                    drone_to_update.set_pos(obj.position)
-                    drone_to_update.set_quat(drone_orientation)
+                    drone_to_update.set_qpos(obj.position, drone_orientation)
 
         if self.activeCam == self.camFollow and len(self.drones) > 0:
             d = self.drones[self.followed_drone_idx]
@@ -97,7 +96,8 @@ class ActiveSimulator(Display):
                                             self.elev_filter_sin, self.elev_filter_cos)
         
         for m in range(len(self.realdrones)):
-            self.realdrones[m].update_propellers(self.control_step, 20)
+            self.realdrones[m].spin_propellers(self.control_step, 20)
+            
 
 
         for l in range(len(self.virtdrones)):

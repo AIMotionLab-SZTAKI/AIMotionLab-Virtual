@@ -142,7 +142,7 @@ def quaternion_from_euler(roll, pitch, yaw):
       :param yaw: The yaw (rotation around z-axis) angle in radians.
 
     Output
-      :return qx, qy, qz, qw: The orientation in quaternion [x,y,z,w] format
+      :return qw, qx, qy, qz: The orientation in quaternion [w,x,y,z] format
     """
     qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - \
         np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
@@ -200,7 +200,7 @@ def update_follow_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=Non
         orientation[0], orientation[1], orientation[2], orientation[3])
 
     new_azim = math.degrees(yaw_z)
-    new_elev = math.degrees(pitch_y) - 20
+    new_elev = -math.degrees(pitch_y) - 30
 
     cam.lookat = position
 

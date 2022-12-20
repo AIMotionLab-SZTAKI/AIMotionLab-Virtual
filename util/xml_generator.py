@@ -1,12 +1,15 @@
 import xml.etree.ElementTree as ET
 
+import util.mujoco_helper as mh
+import math
+
 
 
 PROP_OFFS = "0.047"
 PROP_OFFS_Z = "0.032"
 
-PROP_OFFS_X1_LARGE = "0.100"
-PROP_OFFS_X2_LARGE = "0.065"
+PROP_OFFS_X1_LARGE = "0.074"
+PROP_OFFS_X2_LARGE = "0.091"
 PROP_OFFS_Y_LARGE = "0.087"
 PROP_OFFS_Z_LARGE = "0.036"
 
@@ -250,9 +253,13 @@ class SceneXmlGenerator:
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
         ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.5e-3 1.45e-3 2.66e-3", mass="0.407")
         ET.SubElement(drone, "joint", name=name, type="free")
+        
+        # need to rotate the body mesh to match optitrack orientation
+        quat_mesh = mh.quaternion_from_euler(0, 0, math.radians(270))
+        quat_mesh_str = str(quat_mesh[0]) + " " + str(quat_mesh[1]) + " " + str(quat_mesh[2]) + " " + str(quat_mesh[3])
 
         #drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
-        ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", mesh="drone_body_large", rgba=color)
+        ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", quat=quat_mesh_str, mesh="drone_body_large", rgba=color)
         #ET.SubElement(drone_body, "geom", name=name + "_4_motormounts", type="mesh", mesh="drone_4_motormounts_large", rgba=color, mass="0.0001")
         #ET.SubElement(drone_body, "geom", name=name + "_4_motors", type="mesh", mesh="drone_4_motors_large", rgba=color, mass="0.0001")
 
@@ -264,25 +271,25 @@ class SceneXmlGenerator:
 
         prop_name = name + "_prop1"
         mass = "0.00001"
-        pos = PROP_OFFS_X1_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = "-" + PROP_OFFS_X1_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop1_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop1_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
 
         prop_name = name + "_prop2"
-        pos = "-" + PROP_OFFS_X2_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = PROP_OFFS_X2_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop2_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop2_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
 
         prop_name = name + "_prop3"
-        pos = "-" + PROP_OFFS_X2_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = PROP_OFFS_X2_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop3_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop3_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
 
         prop_name = name + "_prop4"
-        pos = PROP_OFFS_X1_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = "-" + PROP_OFFS_X1_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop4_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop4_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
@@ -301,27 +308,31 @@ class SceneXmlGenerator:
     def __add_mocap_bumblebee(self, name, pos, quat, color):
         
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
-        ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", mesh="drone_body_large", rgba=color)
+
+        # need to rotate the body mesh to match optitrack orientation
+        quat_mesh = mh.quaternion_from_euler(0, 0, math.radians(270))
+        quat_mesh_str = str(quat_mesh[0]) + " " + str(quat_mesh[1]) + " " + str(quat_mesh[2]) + " " + str(quat_mesh[3])
+        ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", quat=quat_mesh_str, mesh="drone_body_large", rgba=color)
 
         prop_name = name + "_prop1"
-        pos = PROP_OFFS_X1_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos_m = "-" + PROP_OFFS_X1_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
-        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", pos=pos, rgba=PROP_COLOR)
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
         prop_name = name + "_prop2"
-        pos = "-" + PROP_OFFS_X2_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos_m = PROP_OFFS_X2_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
-        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", pos=pos, rgba=PROP_COLOR)
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
         prop_name = name + "_prop3"
-        pos = "-" + PROP_OFFS_X2_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos_m = PROP_OFFS_X2_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
-        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos, rgba=PROP_COLOR)
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
         prop_name = name + "_prop4"
-        pos = PROP_OFFS_X1_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos_m = "-" + PROP_OFFS_X1_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
         prop = ET.SubElement(self.worldbody, "body", name=prop_name, pos=pos, quat=quat, mocap="true")
-        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos, rgba=PROP_COLOR)
+        ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
 
     def __add_hook_to_drone(self, drone, drone_name):

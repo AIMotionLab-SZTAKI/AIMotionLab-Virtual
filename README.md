@@ -1,8 +1,10 @@
 # 3D model of the test environment in the building
 
 ## Purpose
-Development of a simple display and model generator that can be used to add buildings and objects to the 3D scene. Currently the xml generator supports the following objects:
+Active simulator tool to simulate drones in the virtual 3D model of Sztaki 6th floor. The model currently supports the following objects:
   * Drones
+    * crazyflie (simulated and mocap)
+    * bumblebee (simulated; hooked simulated; mocap; (hooked mocap in the future))
   * Hospital
   * Post office
   * Sztaki landing zone
@@ -18,33 +20,68 @@ Development of a simple display and model generator that can be used to add buil
 ```
 $ pip install -e .
 ```
-3.
+3. Clone https://github.com/AIMotionLab-SZTAKI/crazyflie-mujoco in some folder
+Add the crazyflie-mujoco folder to path in classes/trajectory.py and scripts/test_active_simulator like so:
+
 ```
-$ python build_scene.py
+sys.path.insert(2, '/home/crazyfly/Desktop/mujoco_digital_twin/crazyflie-mujoco/')
+
+```
+4.
+
+```
+$ cd scripts
 ```
 
-## Usage
+5.
+```
+$ python3.8 test_active_simulator.py
+```
+or
+
+```
+$ python3.8 build_scene.py
+```
+or
+
+```
+$ python3.8 load_and_display_scene.py
+```
+
+## Usage build_scene.py
 
 For drone naming convention see naming_convention_in_xml.txt
 
 To add a building:
-  * Press 'b'
-  * In the pop-up window select the bulding with the dropdown list.
+  * Press 'b' (as in building)
+  * In the pop-up window select the bulding with the dropdown list
   * Specify the position and the orientation (as quaternion). Default quaternion is 1 0 0 0.
-  * Click ok, or hit enter.
+  * Click ok, or hit enter
 
 To add drones:
-  * Press 'd'
-  * The drones will be added at hard-coded positions, because they will be updated anyway, once data streaming starts from Optitrack.
+  * Press 'd' (as in drone)
+  * Select drone type in the drop down menu
+  * Set the position
+  * Set the quaternion
+  * Click ok, or press enter
 
 To name drones:
-  * Press 'n'
+  * Press 'n' (short for name)
   * In the pop-up window enter the name of the drones that are 'ticked' in Motive
   * Click ok, or hit enter
 
 To connect to Motive:
-  * Press 'c'
+  * Press 'c' (short for connect)
+
+To automatically build a scene based on Motive stream:
+  * Press 'o' (short for optitrack)
 
 To start and stop video recording:
-  * Press 'r'
-  * The location of the saved video will be printed to the terminal
+  * Press 'r' (short for record)
+  * The location of the saved video will be printed in the terminal
+
+To move the camera around, use mouse buttons and wheel.
+
+## Usage load_and_display_scene.py
+
+...

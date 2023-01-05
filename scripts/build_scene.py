@@ -162,6 +162,9 @@ def clear_scene():
 
 
 def build_from_optitrack():
+    """ Try and build a complete scene based on information from Motive
+    
+    """
     global scene, display
 
     drone_names_in_motive = []
@@ -177,11 +180,18 @@ def build_from_optitrack():
         position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0'
 
 
+        # this part needs to be tested again because scene generator's been modified
         if name.startswith("cf"):
             scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-            scene.add_drone(position, orientation, BLUE_COLOR, False, False)
+            scene.add_drone(position, orientation, BLUE_COLOR, False, "crazyflie", False)
             drone_names_in_motive += [name]
+        
+        elif name.startswith("bb"):
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+            scene.add_drone(position, orientation, BLUE_COLOR, False, "bumblebee", False)
+            drone_names_in_motive += [name]
+
 
         elif name == "bu11":
             scene.add_hospital(position, "1 0 0 0")

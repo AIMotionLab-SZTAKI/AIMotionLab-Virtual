@@ -56,8 +56,8 @@ class PassiveDisplay(Display):
 
             #print(self.data.qpos[:7])
 
-            for i in range(len(self.drones)):
-                self.spin_propellers(self.drones[i])
+            for m in range(len(self.realdrones)):
+                self.realdrones[m].spin_propellers(self.graphics_step, 20)
 
             mujoco.mj_step(self.model, self.data, 1)
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)

@@ -29,7 +29,7 @@ FLY = 3
 FLIP = 4
 
 
-class Trajectory:
+class TestTrajectory:
 
     def __init__(self, control_step, scenario = HOOK_UP_3_LOADS):
         self.control_step = control_step

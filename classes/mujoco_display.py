@@ -133,7 +133,8 @@ class Display:
     def reload_model(self, xml_file_name, drone_names_in_motive = None):
         
         self.load_model(xml_file_name)
-        self.virtdrones, self.realdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+        self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
         self.drones = self.virtdrones + self.realdrones
 
         if drone_names_in_motive is not None and len(drone_names_in_motive) > 0:

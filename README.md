@@ -1,4 +1,4 @@
-# 3D model of the test environment in the building
+# Virtual 3D model of the test environment and simulation with MuJoCo
 
 ## Purpose
 Active simulator tool to simulate drones in the virtual 3D model of Sztaki 6th floor. The model currently supports the following objects:

@@ -3,8 +3,8 @@ import tkinter as tk
 
 class DroneNameGui:
 
-    def __init__(self, drone_num=4, drone_names=[]):
-        if drone_num <= 0:
+    def __init__(self, drone_labels=[], drone_names=[]):
+        if len(drone_labels) != len(drone_names):
             return
         
         self.window = tk.Tk()
@@ -14,17 +14,21 @@ class DroneNameGui:
         self.entries = []
         self.drone_names = []
 
-        for i in range(drone_num):
-            tk.Label(self.window, text="Drone " + str(i + 1) + " name: ").grid(row=i)
+        if len(drone_names) != len(drone_labels):
+            print("[DroneNameGui.__init__()] Different number of drone names and number of drone labels")
+            return
+
+        for i in range(len(drone_labels)):
+            tk.Label(self.window, text=drone_labels[i] + ": ").grid(row=i)
             self.entries.append(tk.Entry(self.window))
             self.entries[i].grid(row=i, column=1)
-            if len(drone_names) == drone_num:
+            if len(drone_names) == len(drone_labels):
                 self.entries[i].insert(0, drone_names[i])
             else:
                 self.entries[i].insert(0, "cf" + str(i + 1))
 
 
-        tk.Button(self.window, text ="Ok", command = self.btnOk_on_press).grid(row=drone_num, column=1)
+        tk.Button(self.window, text ="Ok", command = self.btnOk_on_press).grid(row=len(drone_labels), column=1)
         self.window.bind('<Return>', lambda event: self.btnOk_on_press())
 
         

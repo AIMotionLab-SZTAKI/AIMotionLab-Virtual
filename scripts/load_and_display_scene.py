@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 import os
-import drone_passive_simulation
+from classes.passive_display import PassiveDisplay
 import tkinter
 from tkinter import filedialog
 
@@ -10,7 +10,7 @@ from tkinter import filedialog
 xml_path = "../xml_models"
 xmlBaseFileName = "scene.xml"
 
-display = drone_passive_simulation.PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
+display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
 
 
 def load_model():

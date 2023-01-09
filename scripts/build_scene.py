@@ -2,16 +2,21 @@ from dataclasses import dataclass
 import numpy as np
 import os
 from util import xml_generator
-import drone_passive_simulation
-from gui.building_input_gui import BuildingDataGui
+from classes.passive_display import PassiveDisplay
+from gui.building_input_gui import BuildingInputGui
+from gui.drone_input_gui import DroneInputGui
+from gui.cargo_input_gui import CargoInputGui
 
 
 # open the base on which we'll build
-xml_path = "../xml_models"
+xml_path = os.path.join("..", "xml_models")
 xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
+
+build_based_on_optitrack = False
+
 scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
-display = drone_passive_simulation.PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
+display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
 #display.set_drone_names()
 
 drone_counter = 0
@@ -19,12 +24,15 @@ drone_counter = 0
 drone_positions = ["-1 -1 0.5", "1 -1 0.5", "-1 1 0.5", "1 1 0.5"]
 drone_colors = ["0.1 0.9 0.1 1", "0.9 0.1 0.1 1", "0.1 0.1 0.9 1", "0.5 0.5 0.1 1"]
 
+RED_COLOR = "0.85 0.2 0.2 1.0"
+BLUE_COLOR = "0.2 0.2 0.85 1.0"
+
 landing_zone_counter = 0
 pole_counter = 0
 
 def add_building():
-    global scene
-    input_gui = BuildingDataGui()
+    global scene, display
+    input_gui = BuildingInputGui()
     input_gui.show()
 
     # add airport
@@ -74,10 +82,10 @@ def add_building():
             scene.add_landing_zone(lz_name, input_gui.position, input_gui.quaternion)
             save_and_reload_model(scene, display, save_filename)
 
-    # add tall Sztaki landing zone
-    elif input_gui.building == "Sztaki landing zone":
+    # add Sztaki
+    elif input_gui.building == "Sztaki":
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_tall_landing_zone(input_gui.position, input_gui.quaternion)
+            scene.add_sztaki(input_gui.position, input_gui.quaternion)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     # add pole
@@ -95,26 +103,124 @@ def add_building():
 
     
 def add_drone():
-    global scene, drone_counter
-    # add drone at hard-coded positions
-    # they'll be updated as soon as Optitrack data arrives
-    if drone_counter < 4:
-        drone_name = "drone" + str(drone_counter)
-        scene.add_drone(drone_name, drone_positions[drone_counter], drone_colors[drone_counter])
-        save_and_reload_model(scene, display, os.path.join(xml_path, save_filename))
-        drone_counter += 1
+    global scene, display
+    
+    input_gui = DroneInputGui()
+    input_gui.show()
+    if input_gui.drone_type == "Virtual crazyflie":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "crazyflie")
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.drone_type == "Virtual bumblebee":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", False)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.drone_type == "Virtual bb with hook":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", True)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.drone_type == "Real crazyflie":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "crazyflie")
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.drone_type == "Real bumblebee":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", False)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.drone_type == "Real bb with hook":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", True)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    
+    else:
+        #print(input_gui.drone_type)
+        print("Non-existent drone type " + input_gui.drone_type)
+
+def add_load():
+    global scene, display
+    input_gui = CargoInputGui()
+    input_gui.show()
+
+    if input_gui.position != "" and input_gui.size != "" and input_gui.mass != "" and input_gui.quaternion != "":
+        scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
+
+        save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
 
 
-def save_and_reload_model(scene, display, save_filename):
+def save_and_reload_model(scene, display, save_filename, drone_names_in_motive=None):
         scene.save_xml(save_filename)
-        display.reload_model(save_filename)
+        display.reload_model(save_filename, drone_names_in_motive)
 
+def clear_scene():
+    global scene, display, drone_counter, landing_zone_counter, pole_counter
+    scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
+    display.reload_model(os.path.join(xml_path, xmlBaseFileName))
+    
+    drone_counter = 0
+    landing_zone_counter = 0
+    pole_counter = 0
+
+
+def build_from_optitrack():
+    """ Try and build a complete scene based on information from Motive
+    
+    """
+    global scene, display
+
+    drone_names_in_motive = []
+
+    if not display.connect_to_optitrack:
+        display.connect_to_Optitrack()
+
+    display.mc.waitForNextFrame()
+    for name, obj in display.mc.rigidBodies.items():
+
+        # have to put rotation.w to the front because the order is different
+        orientation = str(obj.rotation.w) + " " + str(obj.rotation.x) + " " + str(obj.rotation.y) + " " + str(obj.rotation.z)
+        position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0'
+
+
+        # this part needs to be tested again because scene generator's been modified
+        if name.startswith("cf"):
+            scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+            scene.add_drone(position, orientation, BLUE_COLOR, False, "crazyflie", False)
+            drone_names_in_motive += [name]
+        
+        elif name.startswith("bb"):
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+            scene.add_drone(position, orientation, BLUE_COLOR, False, "bumblebee", False)
+            drone_names_in_motive += [name]
+
+
+        elif name == "bu11":
+            scene.add_hospital(position, "1 0 0 0")
+        elif name == "bu12":
+            scene.add_sztaki(position, "1 0 0 0")
+        elif name == "bu13":
+            scene.add_post_office(position, "1 0 0 0")
+        elif name == "bu14":
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.01"
+            scene.add_airport(position, "1 0 0 0")
+
+        elif name.startswith("obs"):
+            scene.add_pole(name, position, orientation)
+
+    save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), drone_names_in_motive)
 
 
 def main():
     display.set_key_b_callback(add_building)
     display.set_key_d_callback(add_drone)
+    display.set_key_o_callback(build_from_optitrack)
+    display.set_key_t_callback(add_load)
+    display.set_key_delete_callback(clear_scene)
     
+    #display.print_optitrack_data()
+
+    if build_based_on_optitrack:
+        build_from_optitrack()
+
     display.run()
 
 if __name__ == '__main__':

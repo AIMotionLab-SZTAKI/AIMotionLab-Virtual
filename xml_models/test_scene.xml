@@ -1,0 +1,9 @@
+<mujoco>
+    <include file="../xml_models/scene.xml" />
+    <compiler angle="radian"/>
+    <worldbody>
+        <body>
+            <geom name="cf_body" type="mesh" mesh="drone_ccw_prop_large"/>
+        </body>
+    </worldbody>
+</mujoco>

@@ -4,7 +4,7 @@
 Active simulator tool to simulate drones in the virtual 3D model of Sztaki 6th floor. The model currently supports the following objects:
   * Drones
     * crazyflie (simulated and mocap)
-    * bumblebee (simulated; hooked simulated; mocap; (hooked mocap in the future))
+    * bumblebee (simulated; simulated with hook; mocap; (mocap with hook in the future))
   * Hospital
   * Post office
   * Sztaki landing zone
@@ -57,7 +57,7 @@ or
 $ python3.8 load_and_display_scene.py
 ```
 
-## Usage build_scene.py
+## Usage of build_scene.py
 
 For drone naming convention see naming_convention_in_xml.txt
 
@@ -107,6 +107,24 @@ To switch back and forth between drones' "on board camera" and main camera:
 
 To move the camera around, use mouse buttons and wheel.
 
-## Usage load_and_display_scene.py
+## Usage of load_and_display_scene.py
 
-...
+To load a MuJoCo model from xml:
+  * Press 'l'
+  * In the pop-up window, select the xml file
+  * Click ok or hit enter
+
+To connect to Motive:
+  * Press 'c' (short for connect)
+
+
+To start and stop video recording:
+  * Press 'r' (short for record)
+  * The location of the saved video will be printed in the terminal
+
+To switch back and forth between drones' "on board camera" and main camera:
+  * Press TAB
+  * When in "on board mode" to switch amongst drones:
+    * Press SPACE
+
+To move the camera around, use mouse buttons and wheel.

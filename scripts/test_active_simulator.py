@@ -81,7 +81,7 @@ elif SCENARIO == traj.FLY:
 
     # initializing simulator
     sim_step, control_step, graphics_step = 0.001, 0.01, 0.02
-    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), [0, 1], sim_step, control_step, graphics_step, connect_to_optitrack=False)
+    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), [0, 1, 2, 3], sim_step, control_step, graphics_step, connect_to_optitrack=False)
 
     controller = GeomControl(simulator.model, simulator.data, drone_type='large_quad')
 

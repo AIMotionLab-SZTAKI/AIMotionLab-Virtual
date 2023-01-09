@@ -24,16 +24,16 @@ $ sudo apt install libboost-system-dev libboost-thread-dev libeigen3-dev ninja-b
 ```
 $ pip install -e .
 ```
-4. Clone https://github.com/AIMotionLab-SZTAKI/crazyflie-mujoco in some folder
+4. On Windows
+```
+$ pip install windows-curses
+```
+5. Clone https://github.com/AIMotionLab-SZTAKI/crazyflie-mujoco in some folder
 Add the crazyflie-mujoco folder to path in classes/trajectory.py and scripts/test_active_simulator like so:
 
 ```
 sys.path.insert(2, '/home/crazyfly/Desktop/mujoco_digital_twin/crazyflie-mujoco/')
 
-```
-5. On Windows
-```
-$ pip install windows-curses
 ```
 
 6.
@@ -84,10 +84,26 @@ To connect to Motive:
 
 To automatically build a scene based on Motive stream:
   * Press 'o' (short for optitrack)
+  * This will connect to Motive if not already connected and try to construct the scene based on data coming in. If Motive is not available, unfortunately the program freezes because motioncapture library does not seem to provide functionality for this possibility.
+  * Building names that the program looks for in the stream:
+    * hospital: bu11
+    * Sztaki: bu12
+    * post office: bu13
+    * airport: bu14
+    * poles: anything that starts with 'obs'
+    * A landing zone will automatically be put under each drone
+  * Drone names in the stream:
+    * crazyflie: anything that starts with 'cf'
+    * bumblebee: anything that starts with 'bb'
 
 To start and stop video recording:
   * Press 'r' (short for record)
   * The location of the saved video will be printed in the terminal
+
+To switch back and forth between drones' "on board camera" and main camera:
+  * Press TAB
+  * When in "on board mode" to switch amongst drones:
+    * Press SPACE
 
 To move the camera around, use mouse buttons and wheel.
 

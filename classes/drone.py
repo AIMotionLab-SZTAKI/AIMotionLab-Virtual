@@ -62,7 +62,7 @@ class Drone:
             alpha = None
             dalpha = None
 
-            controller_input = self.trajectory.evaluate(i, self.data.time, pos, vel, alpha, dalpha)
+            controller_input = self.trajectory.evaluate(i, self.data.time)
 
             ctrl = self.compute_control(controller_input)
             
@@ -273,7 +273,7 @@ class DroneHooked(Drone):
             alpha = self.get_hook_qpos()
             dalpha = self.get_hook_qvel()
 
-            controller_input = self.trajectory.evaluate(i, self.data.time, pos, vel, alpha, dalpha)
+            controller_input = self.trajectory.evaluate(i, self.data.time)
             
             self.set_load_mass(controller_input["load_mass"])
 

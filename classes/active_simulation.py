@@ -24,12 +24,6 @@ class ActiveSimulator(Display):
     def __init__(self, xml_file_name, video_intervals, sim_step, control_step, graphics_step, connect_to_optitrack=True):
 
         super().__init__(xml_file_name, connect_to_optitrack)
-        """
-        
-        Inputs:
-            xml_file_name:
-            video_intervals: should have even number of elements, 
-        """
         self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)
 
         self.sim_step = sim_step
@@ -37,7 +31,7 @@ class ActiveSimulator(Display):
         self.graphics_step = graphics_step
         self.is_automatic_recording = False
 
-        ## To obtain inertia matrix
+        # To obtain inertia matrix
         mujoco.mj_step(self.model, self.data)
         self.start_time = 0.0
         self.prev_time = time.time()
@@ -53,7 +47,7 @@ class ActiveSimulator(Display):
 
             else:
                 checked_video_intervals = []
-                i = 0
+                i = 0   
                 while i + 1 < len(video_intervals):
                     if video_intervals[i + 1] <= video_intervals[i]:
                         print("[ActiveSimulator] Error: end of video interval needs to be greater than its start. Excluding this interval.")
@@ -91,7 +85,7 @@ class ActiveSimulator(Display):
 
         if self.activeCam == self.camFollow and len(self.drones) > 0:
             d = self.drones[self.followed_drone_idx]
-            mujoco_helper.update_follow_cam(d.get_qpos(), self.camFollow,\
+            mujoco_helper.update_onboard_cam(d.get_qpos(), self.camFollow,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
                                             self.elev_filter_sin, self.elev_filter_cos)
         

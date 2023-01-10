@@ -127,8 +127,6 @@ class Display:
         self.scn = mujoco.MjvScene(self.model, maxgeom=MAX_GEOM)
         self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
-    def glfw_window_should_close(self):
-        return glfw.window_should_close(self.window)
     
     def reload_model(self, xml_file_name, drone_names_in_motive = None):
         
@@ -143,6 +141,8 @@ class Display:
                 self.realdrones[i].name_in_motive = drone_names_in_motive[i]
                 i += 1
 
+    def glfw_window_should_close(self):
+        return glfw.window_should_close(self.window)
 
     def set_key_b_callback(self, callback_function):
         if callable(callback_function):
@@ -247,7 +247,7 @@ class Display:
                 self.azim_filter = LiveLFilter(self.b, self.a)
                 self.elev_filter = LiveLFilter(self.b, self.a)
                 d = self.drones[self.followed_drone_idx]
-                mujoco_helper.update_follow_cam(d.get_qpos(), self.camFollow)
+                mujoco_helper.update_onboard_cam(d.get_qpos(), self.camFollow)
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
             """

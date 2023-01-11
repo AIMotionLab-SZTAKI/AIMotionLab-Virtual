@@ -247,3 +247,95 @@ Description:
 
 It is called on every update. It checks whether frames should be saved based on video_intervals. When the end of an interval is reached, it writes the saved frames as an .mp4 to hard disk on a different thread. The location of the saved video is printed to the terminal.
   
+## classes/drone.py
+
+### class SPIN_DIR(Enum)
+
+Description:
+
+The direction in which a propeller of a drone spins. Clockwise is 1 and counter clockwise is -1 so that the speed of the spin can easily be multiplied by it.
+
+### class Drone
+  
+  ```
+  __init__(self, data: mujoco.MjData, name_in_xml, trajectory, controllers, parameters = {"mass" : 0.1}):
+  ```
+  
+Inputs:
+  * data: MjData created from the loaded MjModel
+  * name_in_xml: the name that follows the naming convention of this drone in the xml
+  * trajectory: an instance of any class that is a child class of Trajectory
+  * controllers: a dictionary of controllers of that this drone needs
+  * parameters: a dictionary of parameters of this drone
+
+Description:
+
+Saves a view of the inputs in member variables. Looks for its free joint and the joint of the propellers in the data input. Saves a view of its qpos and the qpos of each propellers as member variables. Also saves a view of its control from the data input. Makes a copy of the initial propeller angle, so that the spin can be updated such that the physics does not affect it. Saves a view of its body.xquat, free_joint.qvel, and data.sensor that corresponds to this drone. These are necessary to make the methods much more readable, because in MjData, everything is stacked on top of each other, and it's a mess.
+
+  ```
+  update(self, i):
+  ```
+  
+Inputs:
+  * i: integer, the incremented loop variable
+
+Description:
+
+This needs to be called in every simulation control step. If the drone has a trajectory, it gets evaluated, and it's output is passed to the drone's controllers that compute it's control. Then the new control corresponding to this drone is set in MjData.
+
+  ```
+  compute_control(self, input_dict):
+  ```
+
+Inputs:
+  * input_dict: a dictionary that is the output of the evaluation of the trajectory
+
+Description:
+
+Depending on which controller is needed for the current part of the trajectory, the method calls the corresponding controller's control computing method.
+
+  ```
+  spin_propellers(self, angle_step):
+  ```
+  
+Inputs:
+  * angle_step: float, by how much the propeller needs to be rotated in each step
+ 
+Description:
+
+It updates the propeller angles that have been copied in the constructor each with a small difference so that it is a bit more visually convincing, and updates the joint angle of each of the four propellers.
+
+  ```
+  fake_propeller_spin(self, control_step , speed = 10):
+  ```
+
+Inputs:
+  * control_step: float, in seconds, how frequently control is updated
+  * speed: float, the speed of the spinning
+
+Description:
+
+Spins the drone's propellers if they are above 0.1m, and stops the propellers if they are below.
+
+  ```
+  parse_drones(data, joint_names): (static method)
+  ```
+
+Inputs:
+  * joint_names: a list of names of all joints in the model
+
+Returns a list of virtually simulated Drone/DroneHooked instances.
+
+Description:
+
+Looks for drones that follow the naming convention in the list of joints. If one is found it checks whether it's a crazyflie or a bumblebee, and whether it has a hook. Then it creates a corresponding Drone or DroneHooked instance, and places it in a list which it returns after it went through the joint list.
+
+  ```
+  find_hook_for_drone(names, drone_name): (static method)
+  ```
+
+Inputs:
+  * names: list of joint names in the model
+  * drone_name: name of the drone that needs a hook
+
+Returns the name of the hook in the xml, or None if it wasn't found.

@@ -450,6 +450,10 @@ It not only sets the position and orientation of the drone, but those of the hoo
 
 ### class PropellerMocap
 
+Description:
+
+This class makes it easier to spin the propellers of DroneMocap. It provides the transformations needed to keep the propellers attached to the drone. Since the propellers are separate mocap bodies in the model, it makes sense to create a separate class for them too.
+
   ```
   __init__(self, model, data, name_in_xml, drone_mocap_id, spin_direction = SPIN_DIR.CLOCKWISE):
   ```

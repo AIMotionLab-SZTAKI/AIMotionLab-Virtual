@@ -484,3 +484,27 @@ Inputs:
 Description:
 
 Increments or decrements the angle of the propeller by (spin_speed * control_step) on the horizontal plane depending on which direction it's spinning. Then it calls update, to apply the changes.
+
+## classes/passive_display.py
+
+### class PassiveDisplay(Display)
+
+Description:
+
+Child class of Display. Use if no simulated drones are needed, only mocap drones to have a digital twin of reality.
+
+  ```
+  __init__(self, xml_file_name, connect_to_optitrack=True):
+  ```
+
+Description:
+
+Same as Display's constructor.
+
+  ```
+  run(self):
+  ```
+
+Description:
+
+Contains an infinite loop that cycles at every graphics_step that's initially 0.04s. In every cycle, it grabs data from the motion capture system, and updates the vehicles' position and orientation, it rotates the propellers to immitate spinning, renders the scene, and manages video recording. If the window is closed while video is being recorded, it writes the saved frames to hard disk as mp4.

@@ -508,3 +508,41 @@ Same as Display's constructor.
 Description:
 
 Contains an infinite loop that cycles at every graphics_step that's initially 0.04s. In every cycle, it grabs data from the motion capture system, and updates the vehicles' position and orientation, it rotates the propellers to immitate spinning, renders the scene, and manages video recording. If the window is closed while video is being recorded, it writes the saved frames to hard disk as mp4.
+
+
+## classes/trajectory.py
+
+### class Trajectory
+
+Description:
+
+Base class for drone trajectories. Contains the evaluate method that trajectories must implement. This acts as an interface so that it'd be easy to equip drones with different trajectories. Each drone has a Trajectory member variable whose evaluate() method is called in the drone's update(), and the evaluate() always returns the required format for the drone's controllers.
+
+  ```
+  __init__(self, control_step):
+  ```
+
+Inputs:
+  * control_step: float, in seconds, how frequently control is updated
+
+Description:
+
+Initializes the dictionary that will be the output of each evaluate() call.
+
+  ```
+  evaluate(self, i, simtime) -> dict:
+  ```
+
+Inputs:
+  * i: the loop variable
+  * simtime: time that has passed since the simulation started
+
+Description:
+
+The method, that derived classes must implement. It evaluates the trajectory and returns the input parameters (the dictionary initialized in the constructor) for the controllers.
+
+### class TestTrajectory(Trajectory)
+
+Description:
+
+Implements Peter Antal's trajectories for the flip, flying on a Lissajous curve, and carrying 3 payloads. To select from the options, pass FLY, FLIP or HOOK_UP_3_LOADS in the constructor for scenario.

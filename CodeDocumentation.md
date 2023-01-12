@@ -602,8 +602,29 @@ Tries to build the entire scene from Motive stream. For this, all the buildings 
 
 Description:
 
-Binds the above mentioned methods to keyboard events, and runs the PassiveDisplay.
+Binds the above mentioned methods to keyboard events of PassiveDisplay, and runs the PassiveDisplay instance.
 
+## scripts/load_and_display_scene.py
 
+Description:
 
+Extends PassiveDisplay with a method to load models. The script demonstrates how to use the PassiveDisplay class. Initially the base scene model is loaded.
+
+### Methods
+
+  ```
+  load_model():
+  ```
+
+Description:
+
+Creates and shows a pop-up file dialog in which the user can select any MuJoCo xml models. Once a model is selected, it is loaded into the PassiveDisplay instance.
+
+  ```
+  main():
+  ```
+
+Description:
+
+Binds the load_model() method to PassiveDisplay's l keyboard event and runs the PassiveDisplay instance.
 

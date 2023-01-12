@@ -5,6 +5,7 @@ Active simulator tool to simulate drones in the virtual 3D model of Sztaki 6th f
   * Drones
     * crazyflie (simulated and mocap)
     * bumblebee (simulated; simulated with hook; mocap; (mocap with hook in the future))
+  * Payloads
   * Hospital
   * Post office
   * Sztaki landing zone
@@ -74,6 +75,12 @@ To add drones:
   * Set the quaternion
   * Click ok, or press enter
 
+To add payloads:
+  * Press 't' (as in teher in Hungarian)
+  * A pop-up window appears
+  * Enter its color, mass, size, position and orientation
+  * Clik ok, or hit enter
+
 To name drones:
   * Press 'n' (short for name)
   * In the pop-up window enter the name of the drones that are 'ticked' in Motive
@@ -116,7 +123,6 @@ To load a MuJoCo model from xml:
 
 To connect to Motive:
   * Press 'c' (short for connect)
-
 
 To start and stop video recording:
   * Press 'r' (short for record)

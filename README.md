@@ -21,11 +21,11 @@ Active simulator tool to simulate drones in the virtual 3D model of Sztaki 6th f
 ```
 $ sudo apt install libboost-system-dev libboost-thread-dev libeigen3-dev ninja-build
 ```
-3.
+3. Install libraries with pip
 ```
 $ pip install -e .
 ```
-4. On Windows
+4. On Windows additionally
 ```
 $ pip install windows-curses
 ```
@@ -37,24 +37,18 @@ sys.path.insert(2, '/home/crazyfly/Desktop/mujoco_digital_twin/crazyflie-mujoco/
 
 ```
 
-6.
+6. Navigate to scripts
 
 ```
 $ cd scripts
 ```
 
-7.
+7. Run one of the scripts like below
 ```
 $ python3.8 test_active_simulator.py
-```
 or
-
-```
 $ python3.8 build_scene.py
-```
 or
-
-```
 $ python3.8 load_and_display_scene.py
 ```
 

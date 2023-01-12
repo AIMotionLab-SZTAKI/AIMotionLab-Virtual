@@ -546,3 +546,38 @@ The method, that derived classes must implement. It evaluates the trajectory and
 Description:
 
 Implements Peter Antal's trajectories for the flip, flying on a Lissajous curve, and carrying 3 payloads. To select from the options, pass FLY, FLIP or HOOK_UP_3_LOADS in the constructor for scenario.
+
+# Scripts
+
+## scripts/build_scene.py
+
+Contains methods for building a scene with either GUI's or automatically from Motive stream. It uses a PassiveDisplay for visual representation, a SceneXmlGenerator to generate the model as xml, and three GUI's for adding buildings, drones, and payloads. For usage, see README.md.
+
+### Methods
+
+  ```
+  add_building():
+  ```
+
+Description:
+
+Creates and shows a BuildingInputGui pop-up window in which the user can select the kind of building, its position and orientation. It then adds the building to the xml model by the SceneXmlGenerator. Every time the user adds a new building, the xml is saved, and reloaded in MuJoCo, so that the user can see the new model visually. Some buildings can only be added once, like hospital and Sztaki, because there's only one of them in the real test environment too. Multiple poles and landing zones can be added however.
+
+
+  ```
+  add_drone():
+  ```
+
+Description:
+
+Creates and shows a DroneInputGui pop-up window in which the user can select the tye of drone, its position and orientation. Then, it adds the desired drone to the xml model via the SceneXmlGenerator, saves the xml, and gets the display to reload it so that the user can see the changes visually.
+
+  ```
+  add_load():
+  ```
+
+Description:
+
+
+
+

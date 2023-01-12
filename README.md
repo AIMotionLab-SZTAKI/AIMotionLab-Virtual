@@ -17,7 +17,7 @@ Active simulator tool to simulate drones in the virtual 3D model of Sztaki 6th f
 ## Installation
 1. Create and activate a virtual environment
 
-2. Prerequisite for motioncapture (haven't been able to get it to work on windows):
+2. Prerequisite for motioncapture library (haven't been able to get it to work on windows):
 ```
 $ sudo apt install libboost-system-dev libboost-thread-dev libeigen3-dev ninja-build
 ```
@@ -34,7 +34,6 @@ Add the crazyflie-mujoco folder to path in classes/trajectory.py and scripts/tes
 
 ```
 sys.path.insert(2, '/home/crazyfly/Desktop/mujoco_digital_twin/crazyflie-mujoco/')
-
 ```
 
 6. Navigate to scripts

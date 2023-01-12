@@ -126,3 +126,21 @@ To switch back and forth between drones' "on board camera" and main camera:
     * Press SPACE
 
 To move the camera around, use mouse buttons and wheel.
+
+## Usage of test_active_simulator.py
+
+This script demonstrates how to use the ActiveSimulator class. It's pretty well commented in the file.
+
+To connect to Motive:
+  * Press 'c' (short for connect)
+
+To start and stop video recording:
+  * Press 'r' (short for record)
+  * The location of the saved video will be printed in the terminal
+
+To switch back and forth between drones' "on board camera" and main camera:
+  * Press TAB
+  * When in "on board mode" to switch amongst drones:
+    * Press SPACE
+
+To move the camera around, use mouse buttons and wheel.

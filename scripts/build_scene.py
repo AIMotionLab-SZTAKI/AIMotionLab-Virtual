@@ -5,7 +5,7 @@ from util import xml_generator
 from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingInputGui
 from gui.drone_input_gui import DroneInputGui
-from gui.Payload_input_gui import PayloadInputGui
+from gui.payload_input_gui import PayloadInputGui
 
 
 # open the base on which we'll build

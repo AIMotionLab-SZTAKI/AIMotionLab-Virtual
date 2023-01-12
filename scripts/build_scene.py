@@ -5,7 +5,7 @@ from util import xml_generator
 from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingInputGui
 from gui.drone_input_gui import DroneInputGui
-from gui.cargo_input_gui import CargoInputGui
+from gui.Payload_input_gui import PayloadInputGui
 
 
 # open the base on which we'll build
@@ -138,7 +138,7 @@ def add_drone():
 
 def add_load():
     global scene, display
-    input_gui = CargoInputGui()
+    input_gui = PayloadInputGui()
     input_gui.show()
 
     if input_gui.position != "" and input_gui.size != "" and input_gui.mass != "" and input_gui.quaternion != "":

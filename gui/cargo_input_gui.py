@@ -10,7 +10,7 @@ COLORS = {
 }
 
 
-class CargoInputGui:
+class PayloadInputGui:
     
     def __init__(self):
         self.window = tk.Tk()

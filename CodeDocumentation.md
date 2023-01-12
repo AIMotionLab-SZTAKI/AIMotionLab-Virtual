@@ -551,7 +551,7 @@ Implements Peter Antal's trajectories for the flip, flying on a Lissajous curve,
 
 ## scripts/build_scene.py
 
-Contains methods for building a scene with either GUI's or automatically from Motive stream. It uses a PassiveDisplay for visual representation, a SceneXmlGenerator to generate the model as xml, and three GUI's for adding buildings, drones, and payloads. For usage, see README.md.
+Contains methods for building a scene with either GUI's or automatically from Motive stream. It uses a PassiveDisplay for visual representation, a SceneXmlGenerator to generate the model as xml, and three GUI's for adding buildings, drones, and payloads. At startup it loads the base xml model for pretty much all of the scenarios, that contains the 3D model of the 6th floor of Sztaki with the roundabout carpet. This xml gets included in all the generated xml's. For usage, see README.md.
 
 ### Methods
 
@@ -577,6 +577,32 @@ Creates and shows a DroneInputGui pop-up window in which the user can select the
   ```
 
 Description:
+
+Creates and shows a PayloadInputGui pop-up window in which the user can select the color of the payload, its mass, size, position and orientation. It is then added to the xml model via SceneXmlGenerator, the xml is saved to hard disk, and reloaded in PassiveDisplay to make the changes visible to the user.
+
+  ```
+  clear_scene():
+  ```
+
+Description:
+
+Reinitializes the model to the base xml model and clears counters.
+
+  ```
+  build_from_optitrack():
+  ```
+
+Description:
+
+Tries to build the entire scene from Motive stream. For this, all the buildings and vehichles that appear in the scene must be ticked in the assets pane of Motive. Objects that are a plane - like airport - have a fixed z coordinate of 0.01, so that they'd be visible. The z coordinate of the position from Motive is generally not used, except for the drones. A landing zone is put underneath each drone, because landing zones don't have markers.
+
+  ```
+  main():
+  ```
+
+Description:
+
+Binds the above mentioned methods to keyboard events, and runs the PassiveDisplay.
 
 
 

@@ -29,8 +29,7 @@ $ pip install -e .
 ```
 $ pip install windows-curses
 ```
-5. Clone https://github.com/AIMotionLab-SZTAKI/crazyflie-mujoco in some folder
-Add the crazyflie-mujoco folder to path in classes/trajectory.py and scripts/test_active_simulator like so:
+5. Clone https://github.com/AIMotionLab-SZTAKI/crazyflie-mujoco in some folder and add the crazyflie-mujoco folder to path in classes/trajectory.py and scripts/test_active_simulator like so:
 
 ```
 sys.path.insert(2, '/home/crazyfly/Desktop/mujoco_digital_twin/crazyflie-mujoco/')

@@ -5,13 +5,14 @@ from scipy.spatial.transform import Rotation
 import util.mujoco_helper as mh
 import math
 from enum import Enum
+from classes.moving_object import MovingObject
 
 class SPIN_DIR(Enum):
     CLOCKWISE = 1
     COUNTER_CLOCKWISE = -1
 
 
-class Drone:
+class Drone(MovingObject):
 
     def __init__(self, data: mujoco.MjData, name_in_xml, trajectory, controllers, parameters = {"mass" : 0.1}):
 
@@ -538,6 +539,7 @@ class DroneMocap:
 
         print()
         print(str(len(realdrones)) + " mocap drone(s) found in xml.")
+        print("______________________________")
         print()
         return realdrones
     

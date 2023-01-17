@@ -20,8 +20,8 @@ RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
 
-#SCENARIO = traj.HOOK_UP_3_LOADS
-SCENARIO = traj.FLY
+SCENARIO = traj.HOOK_UP_3_LOADS
+#SCENARIO = traj.FLY
 
 
 # init simulator

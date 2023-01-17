@@ -52,7 +52,7 @@ class Trajectory():
 
     def evaluate(self, i, simtime) -> dict:
         # must implement this method
-        raise NotImplementedError("Derived class must implement _process")
+        raise NotImplementedError("Derived class must implement evaluate()")
         
 
 

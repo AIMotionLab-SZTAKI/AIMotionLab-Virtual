@@ -11,4 +11,4 @@ class MovingObject:
 
     def update(self, i):
         # must implement this method
-        raise NotImplementedError("Derived class must implement evaluate()")
+        raise NotImplementedError("Derived class must implement update()")

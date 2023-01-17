@@ -63,7 +63,7 @@ To add a payload to the model:
 
 ```
 # arguments are position, size, mass, quaternion and color
-scene.add_load("0 0 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
+scene.add_load("0 -1 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
 ```
 
 To save the xml to hard disk:
@@ -77,3 +77,14 @@ scene.save_xml(os.path.join(xml_path, save_filename))
 
 ## classes.active_simulation.ActiveSimulator
 
+This class wraps some of the simulation capabilities of MuJoCo and manages other stuff, see CodeDocumentation.md.
+
+The constructor expects an xml file name, time intervals for video recording, time steps for simulation stepping, control updating and graphics updating, and whether or not to connect to Motive server.
+
+To initialize ActiveSimulator:
+
+```
+sim_step, control_step, graphics_step = 0.001, 0.01, 0.02
+
+simulator = ActiveSimulator(os.path.join(xml_path, "built_scene.xml"), None, sim_step, control_step, graphics_step, False)
+```

@@ -20,8 +20,8 @@ RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
 
-SCENARIO = traj.HOOK_UP_3_LOADS
-#SCENARIO = traj.FLY
+#SCENARIO = traj.HOOK_UP_3_LOADS
+SCENARIO = traj.FLY
 
 
 # init simulator
@@ -44,10 +44,10 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
     # saving the scene as xml so that the simulator can load it
     scene.save_xml(os.path.join(xml_path, save_filename))
 
-    sim_step, control_step, graphics_step = 0.001, 0.01, 0.02
+    control_step, graphics_step = 0.01, 0.02
 
     # initializing simulator
-    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, sim_step, control_step, graphics_step, connect_to_optitrack=False)
+    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, control_step, graphics_step, connect_to_optitrack=False)
 
     # creating controllers and trajectory objects for the drone
     controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
@@ -80,8 +80,8 @@ elif SCENARIO == traj.FLY:
     scene.save_xml(os.path.join(xml_path, save_filename))
 
     # initializing simulator
-    sim_step, control_step, graphics_step = 0.001, 0.01, 0.02
-    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), [0, 1, 2, 3], sim_step, control_step, graphics_step, connect_to_optitrack=False)
+    control_step, graphics_step = 0.01, 0.02
+    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), [0, 1, 2, 3], control_step, graphics_step, connect_to_optitrack=False)
 
     controller = GeomControl(simulator.model, simulator.data, drone_type='large_quad')
 

@@ -50,6 +50,7 @@ class Display:
         self.init_glfw()
         self.init_cams()
         self.load_model(xml_file_name)
+
         
         # Connect to optitrack
         if connect_to_optitrack:
@@ -126,6 +127,8 @@ class Display:
 
         self.scn = mujoco.MjvScene(self.model, maxgeom=MAX_GEOM)
         self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
+
+        self.sim_step = self.model.opt.timestep
 
     
     def reload_model(self, xml_file_name, drone_names_in_motive = None):

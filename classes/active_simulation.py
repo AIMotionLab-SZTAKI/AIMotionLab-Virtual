@@ -21,12 +21,12 @@ import classes.drone as drone
 
 class ActiveSimulator(Display):
 
-    def __init__(self, xml_file_name, video_intervals, sim_step, control_step, graphics_step, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, video_intervals, control_step, graphics_step, connect_to_optitrack=True):
 
         super().__init__(xml_file_name, connect_to_optitrack)
         self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)
 
-        self.sim_step = sim_step
+        #self.sim_step = sim_step
         self.control_step = control_step
         self.graphics_step = graphics_step
         self.is_automatic_recording = False

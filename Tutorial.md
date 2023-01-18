@@ -4,10 +4,16 @@ This tutorial demonstrates how to use the classes in the repository.
 
 ## util.xml_generator.SceneXmlGenerator
 
-The simulation process starts with creating an xml model, in which the simulated objects are present, and which the simulator can load. If there is already a pre-made model, using this class is not necessary.
+The simulation process starts with creating an xml model, in which the simulated objects are present, and which the simulator can load. If there is a pre-made model, using this class is not necessary.
 
 
-The constructor of SceneXmlGenerator expects an xml file name. This file can contain default classes, meshes, textures, materials and geoms that have fixed positions throughout the simulation. In our case, this file is xml_models/scene.xml that contains drone- and building meshes, carpet textures etc. SceneXmlGenerator will "include" this file in the generated xml. This class is necessary because MuJoCo does not yet support model creation programmatically. See MuJoCo documentation for details (https://mujoco.readthedocs.io/en/stable/overview.html).
+The constructor of SceneXmlGenerator expects an xml file name. This file can contain default classes, meshes, textures, materials and geoms that have fixed positions throughout the simulation. In our case, this file is xml_models/scene.xml that contains drone- and building meshes, carpet textures etc. Initially, scene.xml is displayed when scripts/build_scene.py is run. SceneXmlGenerator will "include" this file in the generated xml like this:
+```
+<include file="../xml_models/scene.xml" />
+```
+so that everything it contains becomes accessible for the generated xml.
+
+The SceneXmlGenerator class is necessary because MuJoCo does not yet support model creation programmatically. See MuJoCo documentation for details (https://mujoco.readthedocs.io/en/stable/overview.html).
 
 Initialize SceneXmlGenerator like so:
 
@@ -79,12 +85,31 @@ scene.save_xml(os.path.join(xml_path, save_filename))
 
 This class wraps some of the simulation capabilities of MuJoCo and manages other stuff, see CodeDocumentation.md.
 
-The constructor expects an xml file name, time intervals for video recording, time steps for simulation stepping, control updating and graphics updating, and whether or not to connect to Motive server.
+The constructor expects an xml file name, time intervals for video recording, time steps for updating control and graphics, and whether or not to connect to Motive server.
 
 To initialize ActiveSimulator:
 
 ```
-sim_step, control_step, graphics_step = 0.001, 0.01, 0.02
+control_step, graphics_step = 0.01, 0.02 # these are in seconds
 
-simulator = ActiveSimulator(os.path.join(xml_path, "built_scene.xml"), None, sim_step, control_step, graphics_step, False)
+simulator = ActiveSimulator(os.path.join(xml_path, "built_scene.xml"), None, control_step, graphics_step, False)
 ```
+
+To access the list of simulated drones:
+
+```
+simulated_drones = simulator.virtdrones
+```
+The drones in this list are in the same order as they have been added to the xml model.
+
+To run the simulator create an infinite loop with a "window should close" condition and call the simulator's update method with the incremented loop variable:
+
+```
+while not simulator.glfw_window_should_close():
+
+    simulator.update(i)
+
+    i += 1
+```
+
+

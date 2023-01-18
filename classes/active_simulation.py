@@ -65,6 +65,9 @@ class ActiveSimulator(Display):
 
     
     def update(self, i):
+
+        if i == 0:
+            self.start_time = time.time()
         
         self.manage_video_recording()
         

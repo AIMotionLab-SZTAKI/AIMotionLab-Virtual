@@ -3,6 +3,9 @@
 This tutorial demonstrates how to use the classes in the repository.
 
 ## util.xml_generator.SceneXmlGenerator
+```
+from util import xml_generator
+```
 
 The simulation process starts with creating an xml model, in which the simulated objects are present, and which the simulator can load. If there is a pre-made model, using this class is not necessary.
 
@@ -82,6 +85,9 @@ scene.save_xml(os.path.join(xml_path, save_filename))
 ```
 
 ## classes.active_simulation.ActiveSimulator
+```
+from classes.active_simulation import ActiveSimulator
+```
 
 This class wraps some of the simulation capabilities of MuJoCo and manages other stuff, see CodeDocumentation.md.
 
@@ -94,11 +100,26 @@ control_step, graphics_step = 0.01, 0.02 # these are in seconds
 
 simulator = ActiveSimulator(os.path.join(xml_path, "built_scene.xml"), None, control_step, graphics_step, False)
 ```
+At this point, a blank window should appear.
 
-To access the list of simulated drones:
+To access the list of simulated drones so that a trajectory and controllers can be assigned to each:
 
 ```
 simulated_drones = simulator.virtdrones
+
+# Controllers are in Peter Antal's repository
+from ctrl.GeomControl import GeomControl
+from ctrl.RobustGeomControl import RobustGeomControl
+from ctrl.PlanarLQRControl import PlanarLQRControl
+import classes.trajectory as traj
+
+controller = GeomControl(simulator.model, simulator.data)
+controllers = {"geom" : controller}
+
+trajectory_flip = traj.TestTrajectory(control_step, traj.FLIP)
+
+simulated_drones[0].set_controllers(controllers)
+simulated_drones[0].set_trajectory(trajectory_flip)
 ```
 The drones in this list are in the same order as they have been added to the xml model.
 
@@ -112,4 +133,4 @@ while not simulator.glfw_window_should_close():
     i += 1
 ```
 
-
+The update method of each simulated object is called in the simulators update method.

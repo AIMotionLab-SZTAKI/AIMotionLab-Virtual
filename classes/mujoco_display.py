@@ -15,14 +15,17 @@ from gui.drone_name_gui import DroneNameGui
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.drone import Drone, DroneMocap
+import ffmpeg
 
 MAX_GEOM = 200
+INIT_WWIDTH = 1280
+INIT_WHEIGHT = 720
 
 class Display:
     """ Base class for passive and active simulation
     """
 
-    def __init__(self, xml_file_name, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, graphics_step, connect_to_optitrack=True):
         print(f'Working directory:  {os.getcwd()}\n')
 
         self.key_b_callback = None
@@ -44,8 +47,10 @@ class Display:
         self.video_save_folder = os.path.join("..", "video_capture")
         self.video_file_name_base = "output"
 
-        self.graphics_step = 0.04
-        
+        self.graphics_step = graphics_step
+
+        fps = 1.0 / self.graphics_step
+
         
         self.init_glfw()
         self.init_cams()
@@ -81,7 +86,7 @@ class Display:
             return
 
         # Create a windowed mode window and its OpenGL context
-        self.window = glfw.create_window(1280, 720, self.title0, None, None)
+        self.window = glfw.create_window(INIT_WWIDTH, INIT_WHEIGHT, self.title0, None, None)
         if not self.window:
             print("Could not create glfw window...")
             glfw.terminate()
@@ -271,12 +276,27 @@ class Display:
             Start recording
             """
             if not self.is_recording:
+
+                time_stamp = time.time()
+                filename = os.path.join(self.video_save_folder, self.video_file_name_base + '_' + str(time_stamp) + '.mp4')
+
+                fps = 1.0 / self.graphics_step
+                self.video_process = (
+                                ffmpeg
+                                .input('pipe:', vsync=0, format='rawvideo', pix_fmt='rgb24', s=f'{self.viewport.width}x{self.viewport.height}', r=f'{fps}')
+                                .vflip()
+                                .output(filename)
+                                .overwrite_output()
+                                .run_async(pipe_stdin=True, overwrite_output=True)
+                            )
+                
                 self.append_title(" (Recording)")
                 self.is_recording = True
             else:
                 self.reset_title()
                 self.is_recording = False
-                self.save_video_background()
+                self.flush_video_process()
+                #self.save_video_background()
 
         if key == glfw.KEY_C and action == glfw.RELEASE:
             self.connect_to_Optitrack()
@@ -352,16 +372,26 @@ class Display:
         fps = 1 / self.graphics_step
         #print("fps: " + str(fps))
 
+
+
+
         self.append_title(" (Saving video...)")
         time_stamp = image_list[0][0].replace('.', '_')
+
         out = cv2.VideoWriter(os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time_stamp + '.mp4'),\
               cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
         for i in range(len(image_list)):
             #print(self.image_list[i][0])
             rgb = np.reshape(image_list[i][1], (height, width, 3))
-            rgb = cv2.cvtColor(np.flip(rgb, 0), cv2.COLOR_BGR2RGB)
+            rgb = np.flip(rgb, 0)
+            #self.video_process.stdin.write(rgb.tobytes())
+            rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
             out.write(rgb)
         out.release()
+        # Close and flush stdin
+        #self.video_process.stdin.close()
+        # Wait for sub-process to finish
+        #self.video_process.wait()
         print("[Display] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
         self.reset_title()
 
@@ -369,7 +399,13 @@ class Display:
         save_vid_thread = threading.Thread(target=self.save_video, args=(self.image_list.copy(), self.viewport.width, self.viewport.height))
         self.image_list = []
         save_vid_thread.start()
-        
+
+    def flush_video_process(self):
+        # Close and flush stdin
+        self.video_process.stdin.close()
+        # Wait for sub-process to finish
+        self.video_process.wait()
+
 
     def set_drone_names(self):
         

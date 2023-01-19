@@ -23,7 +23,7 @@ class ActiveSimulator(Display):
 
     def __init__(self, xml_file_name, video_intervals, control_step, graphics_step, connect_to_optitrack=True):
 
-        super().__init__(xml_file_name, connect_to_optitrack)
+        super().__init__(xml_file_name, graphics_step, connect_to_optitrack)
         self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)
 
         #self.sim_step = sim_step
@@ -117,16 +117,19 @@ class ActiveSimulator(Display):
             if self.is_recording:
                  
                 # need to create arrays with the exact size!! before passing them to mjr_readPixels()
-                rgb = np.empty(self.viewport.width * self.viewport.height * 3, dtype=np.uint8)
-                depth = np.empty(self.viewport.width * self.viewport.height, dtype=np.float32)
+                rgb = np.empty((self.viewport.width, self.viewport.height, 3), dtype=np.uint8)
+                depth = np.zeros((self.viewport.height, self.viewport.width, 1))
 
                 # draw a time stamp on the rendered image
-                stamp = str(time.time())
-                mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
+                #stamp = str(time.time())
+                #mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
                 
                 mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
                 
-                self.image_list.append([stamp, rgb])
+                #self.image_list.append([stamp, rgb])
+
+                #rgb = np.reshape(rgb, (self.viewport.height, self.viewport.width, 3))
+                self.video_process.stdin.write(rgb.tobytes())
 
             glfw.swap_buffers(self.window)
             glfw.poll_events()
@@ -171,3 +174,7 @@ class ActiveSimulator(Display):
     def close(self):
         
         glfw.terminate()
+        # Close and flush stdin
+        self.video_process.stdin.close()
+        # Wait for sub-process to finish
+        self.video_process.wait()

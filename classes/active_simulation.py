@@ -116,20 +116,7 @@ class ActiveSimulator(Display):
             mujoco.mjr_render(self.viewport, self.scn, self.con)
             if self.is_recording:
                  
-                # need to create arrays with the exact size!! before passing them to mjr_readPixels()
-                rgb = np.empty((self.viewport.width, self.viewport.height, 3), dtype=np.uint8)
-                depth = np.zeros((self.viewport.height, self.viewport.width, 1))
-
-                # draw a time stamp on the rendered image
-                #stamp = str(time.time())
-                #mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
-                
-                mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
-                
-                #self.image_list.append([stamp, rgb])
-
-                #rgb = np.reshape(rgb, (self.viewport.height, self.viewport.width, 3))
-                self.video_process.stdin.write(rgb.tobytes())
+                self.append_frame_to_list()
 
             glfw.swap_buffers(self.window)
             glfw.poll_events()

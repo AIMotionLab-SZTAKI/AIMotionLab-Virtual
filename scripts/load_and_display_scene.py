@@ -10,7 +10,7 @@ from tkinter import filedialog
 xml_path = "../xml_models"
 xmlBaseFileName = "scene.xml"
 
-display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
+display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, False)
 
 
 def load_model():

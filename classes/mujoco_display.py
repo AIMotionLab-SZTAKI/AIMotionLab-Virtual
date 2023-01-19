@@ -295,8 +295,8 @@ class Display:
             else:
                 self.reset_title()
                 self.is_recording = False
-                self.flush_video_process()
-                #self.save_video_background()
+                #self.flush_video_process()
+                self.save_video_background()
 
         if key == glfw.KEY_C and action == glfw.RELEASE:
             self.connect_to_Optitrack()
@@ -358,6 +358,21 @@ class Display:
         else:
             self.activeCam = self.cam
     
+    def append_frame_to_list(self):
+
+                 
+        # need to create arrays with the exact size!! before passing them to mjr_readPixels()
+        rgb = np.empty((self.viewport.width, self.viewport.height, 3), dtype=np.uint8)
+        depth = np.zeros((self.viewport.height, self.viewport.width, 1))
+
+        # draw a time stamp on the rendered image
+        stamp = str(time.time())
+        mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
+        
+        mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
+        
+        self.image_list.append([stamp, rgb])
+        
 
     def save_video(self, image_list, width, height):
         """
@@ -371,27 +386,23 @@ class Display:
 
         fps = 1 / self.graphics_step
         #print("fps: " + str(fps))
-
-
-
-
         self.append_title(" (Saving video...)")
         time_stamp = image_list[0][0].replace('.', '_')
 
-        out = cv2.VideoWriter(os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time_stamp + '.mp4'),\
-              cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+        #out = cv2.VideoWriter(os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time_stamp + '.mp4'),\
+        #      cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
         for i in range(len(image_list)):
-            #print(self.image_list[i][0])
-            rgb = np.reshape(image_list[i][1], (height, width, 3))
-            rgb = np.flip(rgb, 0)
-            #self.video_process.stdin.write(rgb.tobytes())
-            rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
-            out.write(rgb)
-        out.release()
+            
+            rgb = image_list[i][1]
+            #rgb = np.flip(rgb, 0)
+            self.video_process.stdin.write(rgb.tobytes())
+            #rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+            #out.write(rgb)
+        #out.release()
         # Close and flush stdin
-        #self.video_process.stdin.close()
+        self.video_process.stdin.close()
         # Wait for sub-process to finish
-        #self.video_process.wait()
+        self.video_process.wait()
         print("[Display] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
         self.reset_title()
 

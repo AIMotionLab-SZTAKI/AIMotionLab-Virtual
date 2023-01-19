@@ -16,7 +16,7 @@ save_filename = "built_scene.xml"
 build_based_on_optitrack = False
 
 scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
-display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), False)
+display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, False)
 #display.set_drone_names()
 
 drone_counter = 0

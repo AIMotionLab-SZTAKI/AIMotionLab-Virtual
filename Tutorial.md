@@ -1,6 +1,6 @@
 # Tutorial
 
-This tutorial demonstrates how to use the classes in the repository.
+This tutorial demonstrates how the simulator is constructed logically, and how to use the classes in the repository.
 
 ## util.xml_generator.SceneXmlGenerator
 ```

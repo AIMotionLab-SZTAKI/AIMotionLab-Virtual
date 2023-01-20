@@ -196,7 +196,7 @@ import mujoco
 ```
 
 To use these classes, an xml model needs to be created that contains drones that follow the naming convention in naming_convention_in_xml.txt.
-Then the parser - which is a static method of Drone - needs to be called. It returns a list of virtually simulated drones, that can contain Drone and DroneHooked instances:
+The model needs to be loaded, then the parser - which is a static method of Drone - needs to be called. It returns a list of virtually simulated drones, that can contain Drone and DroneHooked instances:
 
 ```
 model = mujoco.MjModel.from_xml_path(xmlFileName)
@@ -252,7 +252,7 @@ from classes.drone import DroneMocap, DroneMocapHooked
 import mujoco
 ```
 To use these classes, an xml model needs to be created that contains mocap drones that follow the naming convention in naming_convention_in_xml.txt.
-Then the parser - which is a static method of DroneMocap - needs to be called. It returns a list of mocap drones, that can contain DroneMocap and DroneMocapHooked instances:
+The model needs to be loaded, then the parser - which is a static method of DroneMocap - needs to be called. It returns a list of mocap drones, that can contain DroneMocap and DroneMocapHooked instances:
 
 ```
 model = mujoco.MjModel.from_xml_path(xmlFileName)

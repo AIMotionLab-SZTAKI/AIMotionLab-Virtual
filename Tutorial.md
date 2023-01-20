@@ -3,7 +3,7 @@
 This tutorial demonstrates how the simulator should be constructed, and how to use the classes in the repository.
 
 
-![class_diagram](https://user-images.githubusercontent.com/8826953/213697038-df86cce6-7b11-47af-9c46-bfc62d7b7460.png)
+![class_diagram](https://user-images.githubusercontent.com/8826953/213697386-5ebf0087-747f-423c-9f59-8e0fba8dd1ce.png)
 
 
 ## util.xml_generator.SceneXmlGenerator

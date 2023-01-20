@@ -1,6 +1,10 @@
 # Tutorial
 
-This tutorial demonstrates how the simulator is constructed logically, and how to use the classes in the repository.
+This tutorial demonstrates how the simulator should be constructed, and how to use the classes in the repository.
+
+
+![class_diagram](https://user-images.githubusercontent.com/8826953/213695898-4839aa77-7aa3-44d6-82f7-860a1ed4cd7e.png)
+
 
 ## util.xml_generator.SceneXmlGenerator
 ```

@@ -232,9 +232,9 @@ class Drone(MovingObject):
                 d = Drone(data, _name, None, None)
                 virtdrones += [d]
 
-        print()
-        print(str(len(virtdrones)) + " virtual drone(s) found in xml.")
-        print()
+        #print()
+        #print(str(len(virtdrones)) + " virtual drone(s) found in xml.")
+        #print()
         return virtdrones
 
     @staticmethod
@@ -537,10 +537,9 @@ class DroneMocap:
                 icf += 1
 
 
-        print()
-        print(str(len(realdrones)) + " mocap drone(s) found in xml.")
-        print("______________________________")
-        print()
+        #print()
+        #print(str(len(realdrones)) + " mocap drone(s) found in xml.")
+        #print()
         return realdrones
     
 

@@ -73,10 +73,6 @@ class Display:
         self.viewport = mujoco.MjrRect(0, 0, 0, 0)
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
-        self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
-        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
-        #self.drones = self.virtdrones + self.realdrones
-        self.drones = self.virtdrones + self.realdrones
         #print(self.data.qpos.size)
         
     def init_glfw(self):
@@ -135,13 +131,21 @@ class Display:
 
         self.sim_step = self.model.opt.timestep
 
+        self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
+
+        print()
+        print(str(len(self.virtdrones)) + " virtual drone(s) found in xml.")
+        print()
+        print(str(len(self.realdrones)) + " mocap drone(s) found in xml.")
+        print("______________________________")
+        #self.drones = self.virtdrones + self.realdrones
+        self.drones = self.virtdrones + self.realdrones
+
     
     def reload_model(self, xml_file_name, drone_names_in_motive = None):
         
         self.load_model(xml_file_name)
-        self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
-        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
-        self.drones = self.virtdrones + self.realdrones
 
         if drone_names_in_motive is not None and len(drone_names_in_motive) > 0:
             i = 0
@@ -276,19 +280,6 @@ class Display:
             Start recording
             """
             if not self.is_recording:
-
-                time_stamp = time.time()
-                filename = os.path.join(self.video_save_folder, self.video_file_name_base + '_' + str(time_stamp) + '.mp4')
-
-                fps = 1.0 / self.graphics_step
-                self.video_process = (
-                                ffmpeg
-                                .input('pipe:', vsync=0, format='rawvideo', pix_fmt='rgb24', s=f'{self.viewport.width}x{self.viewport.height}', r=f'{fps}')
-                                .vflip()
-                                .output(filename)
-                                .overwrite_output()
-                                .run_async(pipe_stdin=True, overwrite_output=True)
-                            )
                 
                 self.append_title(" (Recording)")
                 self.is_recording = True
@@ -362,8 +353,8 @@ class Display:
 
                  
         # need to create arrays with the exact size!! before passing them to mjr_readPixels()
-        rgb = np.empty((self.viewport.width, self.viewport.height, 3), dtype=np.uint8)
-        depth = np.zeros((self.viewport.height, self.viewport.width, 1))
+        rgb = np.empty(self.viewport.width * self.viewport.height * 3, dtype=np.uint8)
+        depth = np.zeros(self.viewport.height * self.viewport.width)
 
         # draw a time stamp on the rendered image
         stamp = str(time.time())
@@ -372,7 +363,7 @@ class Display:
         mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
         
         self.image_list.append([stamp, rgb])
-        
+
 
     def save_video(self, image_list, width, height):
         """
@@ -384,6 +375,20 @@ class Display:
             # then create folder
             os.mkdir(self.video_save_folder)
 
+
+        time_stamp = time.time()
+        filename = os.path.join(self.video_save_folder, self.video_file_name_base + '_' + str(time_stamp) + '.mp4')
+
+        fps = 1.0 / self.graphics_step
+        video_process = (
+                        ffmpeg
+                        .input('pipe:', vsync=0, format='rawvideo', pix_fmt='rgb24', s=f'{self.viewport.width}x{self.viewport.height}', r=f'{fps}')
+                        .vflip()
+                        .output(filename)
+                        .overwrite_output()
+                        .run_async(pipe_stdin=True, overwrite_output=True)
+                    )
+
         fps = 1 / self.graphics_step
         #print("fps: " + str(fps))
         self.append_title(" (Saving video...)")
@@ -393,16 +398,16 @@ class Display:
         #      cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
         for i in range(len(image_list)):
             
-            rgb = image_list[i][1]
+            rgb = np.reshape(image_list[i][1], (height, width, 3))
             #rgb = np.flip(rgb, 0)
-            self.video_process.stdin.write(rgb.tobytes())
+            video_process.stdin.write(rgb.tobytes())
             #rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
             #out.write(rgb)
         #out.release()
         # Close and flush stdin
-        self.video_process.stdin.close()
+        video_process.stdin.close()
         # Wait for sub-process to finish
-        self.video_process.wait()
+        video_process.wait()
         print("[Display] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
         self.reset_title()
 

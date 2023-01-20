@@ -161,7 +161,3 @@ class ActiveSimulator(Display):
     def close(self):
         
         glfw.terminate()
-        # Close and flush stdin
-        self.video_process.stdin.close()
-        # Wait for sub-process to finish
-        self.video_process.wait()

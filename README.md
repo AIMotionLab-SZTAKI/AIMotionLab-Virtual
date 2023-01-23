@@ -5,6 +5,7 @@ Active simulator tool to simulate drones in the virtual 3D model of Sztaki 6th f
   * Drones
     * crazyflie (simulated and mocap)
     * bumblebee (simulated; simulated with hook; mocap; (mocap with hook in the future))
+  * Payloads
   * Hospital
   * Post office
   * Sztaki landing zone
@@ -16,44 +17,36 @@ Active simulator tool to simulate drones in the virtual 3D model of Sztaki 6th f
 ## Installation
 1. Create and activate a virtual environment
 
-2. Prerequisite for motioncapture (haven't been able to get it to work on windows):
+2. Prerequisite for motioncapture library (haven't been able to get it to work on windows):
 ```
 $ sudo apt install libboost-system-dev libboost-thread-dev libeigen3-dev ninja-build
 ```
-3.
+3. Install libraries with pip
 ```
 $ pip install -e .
 ```
-4. On Windows
+4. On Windows additionally
 ```
 $ pip install windows-curses
 ```
-5. Clone https://github.com/AIMotionLab-SZTAKI/crazyflie-mujoco in some folder
-Add the crazyflie-mujoco folder to path in classes/trajectory.py and scripts/test_active_simulator like so:
+5. Clone https://github.com/AIMotionLab-SZTAKI/crazyflie-mujoco in some folder and add the crazyflie-mujoco folder to path in classes/trajectory.py and scripts/test_active_simulator like so:
 
 ```
 sys.path.insert(2, '/home/crazyfly/Desktop/mujoco_digital_twin/crazyflie-mujoco/')
-
 ```
 
-6.
+6. Navigate to scripts
 
 ```
 $ cd scripts
 ```
 
-7.
+7. Run one of the scripts like below
 ```
 $ python3.8 test_active_simulator.py
-```
 or
-
-```
 $ python3.8 build_scene.py
-```
 or
-
-```
 $ python3.8 load_and_display_scene.py
 ```
 
@@ -73,6 +66,12 @@ To add drones:
   * Set the position
   * Set the quaternion
   * Click ok, or press enter
+
+To add payloads:
+  * Press 't' (as in teher in Hungarian)
+  * A pop-up window appears
+  * Enter its color, mass, size, position and orientation
+  * Clik ok, or hit enter
 
 To name drones:
   * Press 'n' (short for name)
@@ -117,6 +116,23 @@ To load a MuJoCo model from xml:
 To connect to Motive:
   * Press 'c' (short for connect)
 
+To start and stop video recording:
+  * Press 'r' (short for record)
+  * The location of the saved video will be printed in the terminal
+
+To switch back and forth between drones' "on board camera" and main camera:
+  * Press TAB
+  * When in "on board mode" to switch amongst drones:
+    * Press SPACE
+
+To move the camera around, use mouse buttons and wheel.
+
+## Usage of test_active_simulator.py
+
+This script demonstrates how to use the ActiveSimulator class. It's pretty well commented in the file.
+
+To connect to Motive:
+  * Press 'c' (short for connect)
 
 To start and stop video recording:
   * Press 'r' (short for record)

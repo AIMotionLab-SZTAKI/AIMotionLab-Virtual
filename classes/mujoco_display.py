@@ -15,14 +15,17 @@ from gui.drone_name_gui import DroneNameGui
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.drone import Drone, DroneMocap
+import ffmpeg
 
 MAX_GEOM = 200
+INIT_WWIDTH = 1280
+INIT_WHEIGHT = 720
 
 class Display:
     """ Base class for passive and active simulation
     """
 
-    def __init__(self, xml_file_name, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, graphics_step, connect_to_optitrack=True):
         print(f'Working directory:  {os.getcwd()}\n')
 
         self.key_b_callback = None
@@ -44,12 +47,15 @@ class Display:
         self.video_save_folder = os.path.join("..", "video_capture")
         self.video_file_name_base = "output"
 
-        self.graphics_step = 0.04
-        
+        self.graphics_step = graphics_step
+
+        fps = 1.0 / self.graphics_step
+
         
         self.init_glfw()
         self.init_cams()
         self.load_model(xml_file_name)
+
         
         # Connect to optitrack
         if connect_to_optitrack:
@@ -67,10 +73,6 @@ class Display:
         self.viewport = mujoco.MjrRect(0, 0, 0, 0)
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
-        self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
-        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
-        #self.drones = self.virtdrones + self.realdrones
-        self.drones = self.virtdrones + self.realdrones
         #print(self.data.qpos.size)
         
     def init_glfw(self):
@@ -80,7 +82,7 @@ class Display:
             return
 
         # Create a windowed mode window and its OpenGL context
-        self.window = glfw.create_window(1280, 720, self.title0, None, None)
+        self.window = glfw.create_window(INIT_WWIDTH, INIT_WHEIGHT, self.title0, None, None)
         if not self.window:
             print("Could not create glfw window...")
             glfw.terminate()
@@ -127,15 +129,23 @@ class Display:
         self.scn = mujoco.MjvScene(self.model, maxgeom=MAX_GEOM)
         self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
-    def glfw_window_should_close(self):
-        return glfw.window_should_close(self.window)
+        self.sim_step = self.model.opt.timestep
+
+        self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
+        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
+
+        print()
+        print(str(len(self.virtdrones)) + " virtual drone(s) found in xml.")
+        print()
+        print(str(len(self.realdrones)) + " mocap drone(s) found in xml.")
+        print("______________________________")
+        #self.drones = self.virtdrones + self.realdrones
+        self.drones = self.virtdrones + self.realdrones
+
     
     def reload_model(self, xml_file_name, drone_names_in_motive = None):
         
         self.load_model(xml_file_name)
-        self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
-        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
-        self.drones = self.virtdrones + self.realdrones
 
         if drone_names_in_motive is not None and len(drone_names_in_motive) > 0:
             i = 0
@@ -143,6 +153,8 @@ class Display:
                 self.realdrones[i].name_in_motive = drone_names_in_motive[i]
                 i += 1
 
+    def glfw_window_should_close(self):
+        return glfw.window_should_close(self.window)
 
     def set_key_b_callback(self, callback_function):
         if callable(callback_function):
@@ -247,7 +259,7 @@ class Display:
                 self.azim_filter = LiveLFilter(self.b, self.a)
                 self.elev_filter = LiveLFilter(self.b, self.a)
                 d = self.drones[self.followed_drone_idx]
-                mujoco_helper.update_follow_cam(d.get_qpos(), self.camFollow)
+                mujoco_helper.update_onboard_cam(d.get_qpos(), self.camFollow)
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
             """
@@ -268,11 +280,13 @@ class Display:
             Start recording
             """
             if not self.is_recording:
+                
                 self.append_title(" (Recording)")
                 self.is_recording = True
             else:
                 self.reset_title()
                 self.is_recording = False
+                #self.flush_video_process()
                 self.save_video_background()
 
         if key == glfw.KEY_C and action == glfw.RELEASE:
@@ -335,6 +349,21 @@ class Display:
         else:
             self.activeCam = self.cam
     
+    def append_frame_to_list(self):
+
+                 
+        # need to create arrays with the exact size!! before passing them to mjr_readPixels()
+        rgb = np.empty(self.viewport.width * self.viewport.height * 3, dtype=np.uint8)
+        depth = np.zeros(self.viewport.height * self.viewport.width)
+
+        # draw a time stamp on the rendered image
+        stamp = str(time.time())
+        mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
+        
+        mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
+        
+        self.image_list.append([stamp, rgb])
+
 
     def save_video(self, image_list, width, height):
         """
@@ -346,19 +375,39 @@ class Display:
             # then create folder
             os.mkdir(self.video_save_folder)
 
+
+        time_stamp = time.time()
+        filename = os.path.join(self.video_save_folder, self.video_file_name_base + '_' + str(time_stamp) + '.mp4')
+
+        fps = 1.0 / self.graphics_step
+        video_process = (
+                        ffmpeg
+                        .input('pipe:', vsync=0, format='rawvideo', pix_fmt='rgb24', s=f'{self.viewport.width}x{self.viewport.height}', r=f'{fps}')
+                        .vflip()
+                        .output(filename)
+                        .overwrite_output()
+                        .run_async(pipe_stdin=True, overwrite_output=True)
+                    )
+
         fps = 1 / self.graphics_step
         #print("fps: " + str(fps))
-
         self.append_title(" (Saving video...)")
         time_stamp = image_list[0][0].replace('.', '_')
-        out = cv2.VideoWriter(os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time_stamp + '.mp4'),\
-              cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+
+        #out = cv2.VideoWriter(os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time_stamp + '.mp4'),\
+        #      cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
         for i in range(len(image_list)):
-            #print(self.image_list[i][0])
+            
             rgb = np.reshape(image_list[i][1], (height, width, 3))
-            rgb = cv2.cvtColor(np.flip(rgb, 0), cv2.COLOR_BGR2RGB)
-            out.write(rgb)
-        out.release()
+            #rgb = np.flip(rgb, 0)
+            video_process.stdin.write(rgb.tobytes())
+            #rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+            #out.write(rgb)
+        #out.release()
+        # Close and flush stdin
+        video_process.stdin.close()
+        # Wait for sub-process to finish
+        video_process.wait()
         print("[Display] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
         self.reset_title()
 
@@ -366,7 +415,13 @@ class Display:
         save_vid_thread = threading.Thread(target=self.save_video, args=(self.image_list.copy(), self.viewport.width, self.viewport.height))
         self.image_list = []
         save_vid_thread.start()
-        
+
+    def flush_video_process(self):
+        # Close and flush stdin
+        self.video_process.stdin.close()
+        # Wait for sub-process to finish
+        self.video_process.wait()
+
 
     def set_drone_names(self):
         

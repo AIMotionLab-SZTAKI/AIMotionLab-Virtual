@@ -5,13 +5,14 @@ from scipy.spatial.transform import Rotation
 import util.mujoco_helper as mh
 import math
 from enum import Enum
+from classes.moving_object import MovingObject
 
 class SPIN_DIR(Enum):
     CLOCKWISE = 1
     COUNTER_CLOCKWISE = -1
 
 
-class Drone:
+class Drone(MovingObject):
 
     def __init__(self, data: mujoco.MjData, name_in_xml, trajectory, controllers, parameters = {"mass" : 0.1}):
 
@@ -62,7 +63,7 @@ class Drone:
             alpha = None
             dalpha = None
 
-            controller_input = self.trajectory.evaluate(i, self.data.time, pos, vel, alpha, dalpha)
+            controller_input = self.trajectory.evaluate(i, self.data.time)
 
             ctrl = self.compute_control(controller_input)
             
@@ -231,9 +232,9 @@ class Drone:
                 d = Drone(data, _name, None, None)
                 virtdrones += [d]
 
-        print()
-        print(str(len(virtdrones)) + " virtual drone(s) found in xml.")
-        print()
+        #print()
+        #print(str(len(virtdrones)) + " virtual drone(s) found in xml.")
+        #print()
         return virtdrones
 
     @staticmethod
@@ -273,7 +274,7 @@ class DroneHooked(Drone):
             alpha = self.get_hook_qpos()
             dalpha = self.get_hook_qvel()
 
-            controller_input = self.trajectory.evaluate(i, self.data.time, pos, vel, alpha, dalpha)
+            controller_input = self.trajectory.evaluate(i, self.data.time)
             
             self.set_load_mass(controller_input["load_mass"])
 
@@ -407,11 +408,7 @@ class DroneMocap:
     def get_qpos(self):
         return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
     
-    def set_qpos(self, pos, quat):
-        """To match the simulated (non-mocap) Drone function names
-           This drone does not have a qpos in MjData, because it's a mocap body
-           and does not have any joints.
-        """
+    def update(self, pos, quat):
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat
         # gotta update the propellers too, otherwise they get left behind
@@ -536,9 +533,9 @@ class DroneMocap:
                 icf += 1
 
 
-        print()
-        print(str(len(realdrones)) + " mocap drone(s) found in xml.")
-        print()
+        #print()
+        #print(str(len(realdrones)) + " mocap drone(s) found in xml.")
+        #print()
         return realdrones
     
 
@@ -580,7 +577,7 @@ class DroneMocapHooked(DroneMocap):
         self.hook_rotation[2] = quat[2]
         self.hook_rotation[3] = quat[3]
 
-    def set_qpos(self, pos, quat):
+    def update(self, pos, quat):
         self.__set_hook_pos(pos)
         self.__set_hook_quat(quat)
         return super().set_qpos(pos, quat)

@@ -21,9 +21,9 @@ from classes.drone import Drone
 
 class PassiveDisplay(Display):
 
-    def __init__(self, xml_file_name, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, graphics_step, connect_to_optitrack=True):
 
-        super().__init__(xml_file_name, connect_to_optitrack)
+        super().__init__(xml_file_name, graphics_step, connect_to_optitrack)
 
     def run(self):
         # To obtain inertia matrix
@@ -50,7 +50,7 @@ class PassiveDisplay(Display):
                         drone_to_update.set_qpos(obj.position, drone_orientation)
 
             if self.activeCam == self.camFollow and len(self.drones) > 0:
-                mujoco_helper.update_follow_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow,\
+                mujoco_helper.update_onboard_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow,\
                                                self.azim_filter_sin, self.azim_filter_cos,\
                                                self.elev_filter_sin, self.elev_filter_cos)
 
@@ -67,18 +67,7 @@ class PassiveDisplay(Display):
             mujoco.mjr_render(self.viewport, self.scn, self.con)
 
             if self.is_recording:
-                 
-                # need to create arrays with the exact size!! before passing them to mjr_readPixels()
-                rgb = np.empty(self.viewport.width * self.viewport.height * 3, dtype=np.uint8)
-                depth = np.empty(self.viewport.width * self.viewport.height, dtype=np.float32)
-
-                # draw a time stamp on the rendered image
-                stamp = str(time.time())
-                mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
-                
-                mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
-                
-                self.image_list.append([stamp, rgb])
+                self.append_frame_to_list()
 
             glfw.swap_buffers(self.window)
             glfw.poll_events()

@@ -20,8 +20,8 @@ RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
 
-#SCENARIO = traj.HOOK_UP_3_LOADS
-SCENARIO = traj.FLY
+SCENARIO = traj.HOOK_UP_3_LOADS
+#SCENARIO = traj.FLY
 
 
 # init simulator
@@ -37,6 +37,7 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
 
     # adding the necessary objects to the scene
     scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
+    scene.add_drone("0 1 0", "1 0 0 0", BLUE_COLOR, False)
     scene.add_load("0 0 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
     scene.add_load("-.6 .6 0", ".075 .075 .075", ".05", "1 0 0 0", "0.1 0.9 0.1 1.0")
     scene.add_load("-.3 -.6 0", ".075 .075 .1", ".1", "1 0 0 0", "0.9 0.1 0.1 1.0")
@@ -44,10 +45,10 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
     # saving the scene as xml so that the simulator can load it
     scene.save_xml(os.path.join(xml_path, save_filename))
 
-    sim_step, control_step, graphics_step = 0.001, 0.01, 0.02
+    control_step, graphics_step = 0.01, 0.04
 
     # initializing simulator
-    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, sim_step, control_step, graphics_step, connect_to_optitrack=False)
+    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, control_step, graphics_step, connect_to_optitrack=False)
 
     # creating controllers and trajectory objects for the drone
     controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
@@ -80,8 +81,9 @@ elif SCENARIO == traj.FLY:
     scene.save_xml(os.path.join(xml_path, save_filename))
 
     # initializing simulator
-    sim_step, control_step, graphics_step = 0.001, 0.01, 0.02
-    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), [0, 1], sim_step, control_step, graphics_step, connect_to_optitrack=False)
+    control_step, graphics_step = 0.01, 0.04
+    #simulator = ActiveSimulator(os.path.join(xml_path, save_filename), [0, 1, 2, 3], control_step, graphics_step, connect_to_optitrack=False)
+    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, control_step, graphics_step, connect_to_optitrack=False)
 
     controller = GeomControl(simulator.model, simulator.data, drone_type='large_quad')
 
@@ -125,7 +127,6 @@ for d in simulator.drones:
 
 i = 0
 
-simulator.start_time = time.time()
 while not simulator.glfw_window_should_close():
 
     data = simulator.update(i)

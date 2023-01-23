@@ -28,13 +28,14 @@ HOOK_UP = 2
 FLY = 3
 FLIP = 4
 
+class Trajectory():
+    """ Base class for Drone trajectories
+    """
+    def __init__(self, control_step):
 
-class TestTrajectory:
-
-    def __init__(self, control_step, scenario = HOOK_UP_3_LOADS):
         self.control_step = control_step
-        self.scenario = scenario
 
+        # self.output needs to be updated and returned in evaluate()
         self.output = {
             "controller_name" : None,
             "load_mass" : 0.0,
@@ -47,6 +48,21 @@ class TestTrajectory:
             "target_quat_vel" : None,
             "target_pos_load" : None
         }
+    
+
+    def evaluate(self, i, simtime) -> dict:
+        # must implement this method
+        raise NotImplementedError("Derived class must implement evaluate()")
+        
+
+
+class TestTrajectory(Trajectory):
+
+    def __init__(self, control_step, scenario = HOOK_UP_3_LOADS):
+        super().__init__(control_step)
+        
+        self.scenario = scenario
+
 
         if scenario == HOOK_UP_3_LOADS:
             # Trajectory parameters
@@ -112,7 +128,7 @@ class TestTrajectory:
 
 
 
-    def evaluate(self, i, simtime, pos, vel, alpha, dalpha):
+    def evaluate(self, i, simtime) -> dict:
 
 
         if self.scenario == HOOK_UP_3_LOADS:

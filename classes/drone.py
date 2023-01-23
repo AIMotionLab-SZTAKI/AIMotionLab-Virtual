@@ -408,11 +408,7 @@ class DroneMocap:
     def get_qpos(self):
         return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
     
-    def set_qpos(self, pos, quat):
-        """To match the simulated (non-mocap) Drone function names
-           This drone does not have a qpos in MjData, because it's a mocap body
-           and does not have any joints.
-        """
+    def update(self, pos, quat):
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat
         # gotta update the propellers too, otherwise they get left behind
@@ -581,7 +577,7 @@ class DroneMocapHooked(DroneMocap):
         self.hook_rotation[2] = quat[2]
         self.hook_rotation[3] = quat[3]
 
-    def set_qpos(self, pos, quat):
+    def update(self, pos, quat):
         self.__set_hook_pos(pos)
         self.__set_hook_quat(quat)
         return super().set_qpos(pos, quat)

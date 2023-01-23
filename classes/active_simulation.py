@@ -84,7 +84,7 @@ class ActiveSimulator(Display):
                 drone_to_update = drone.DroneMocap.get_drone_by_name_in_motive(self.realdrones, name)
 
                 if drone_to_update is not None:
-                    drone_to_update.set_qpos(obj.position, drone_orientation)
+                    drone_to_update.update(obj.position, drone_orientation)
 
         if self.activeCam == self.camFollow and len(self.drones) > 0:
             d = self.drones[self.followed_drone_idx]

@@ -3,7 +3,7 @@
 This tutorial demonstrates how the simulator should be constructed, and how to use the classes in the repository.
 
 
-![class_diagram](https://user-images.githubusercontent.com/8826953/213697386-5ebf0087-747f-423c-9f59-8e0fba8dd1ce.png)
+![class_diagram](https://user-images.githubusercontent.com/8826953/214015582-3d3c230c-225f-4cc8-ae80-5b5a7cd740d8.png)
 
 
 ## util.xml_generator.SceneXmlGenerator
@@ -279,3 +279,13 @@ self.prop3 = PropellerMocap(model, data, name_in_xml + "_prop3", drone_mocapid, 
 self.prop4 = PropellerMocap(model, data, name_in_xml + "_prop4", drone_mocapid, SPIN_DIR.CLOCKWISE)
 ```
 DroneMocap provides methods for reading and changing its position and orientation.
+
+## classes.trajectory.Trajectory
+```
+import classes.trajectory.Trajectory
+```
+This is the base class or "interface" for trajectory classes. All trajectories must implement the evaluate method, because this is what the drone calls in its update method. The evaluate method must uodate return a dictionary (self.output) that's been initialized in the constuctor of the base class.
+
+The controller_name in the dictionary determines which controller the drone will use for that part of the trajectory.
+
+TestTrajectory in classes/trajectory.py is based on Peter Antal's code, and demonstrates how to use the Trajectory base class.

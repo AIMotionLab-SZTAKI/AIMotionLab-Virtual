@@ -696,7 +696,7 @@ update_onboard_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=None, 
 ```
 
 Inputs:
-  * drone_qpos: a 7 element array or list, first 3 of which are position, remaining 4 are quaternion
+  * drone_qpos: a 7 element array or list, first 3 of which are position, remaining 4 are quaternion of a drone
   * cam: camera to be updated
   * azim_filter_sin: a LiveLFilter low-pass filter for the sine component of the camera azimuth angle
   * azim_filter_cos: a LiveLFilter low-pass filter for the cosine component of the camera azimuth angle

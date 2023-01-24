@@ -7,6 +7,7 @@ from collections import deque
 
 class LiveFilter:
     """Base class for live filters.
+       from https://www.samproell.io/posts/yarppg/yarppg-live-digital-filter/
     """
 
     def process(self, x):
@@ -26,6 +27,7 @@ class LiveFilter:
 class LiveLFilter(LiveFilter):
     def __init__(self, b, a):
         """Initialize live filter based on difference equation.
+           from https://www.samproell.io/posts/yarppg/yarppg-live-digital-filter/
 
         Args:
             b (array-like): numerator coefficients obtained from scipy.

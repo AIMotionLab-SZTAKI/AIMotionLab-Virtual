@@ -551,6 +551,37 @@ Description:
 
 Implements Peter Antal's trajectories for the flip, flying on a Lissajous curve, and carrying 3 payloads. To select from the options, pass FLY, FLIP or HOOK_UP_3_LOADS in the constructor for scenario.
 
+## util/xml_generator.py
+
+### class SceneXmlGenerator
+
+Description:
+
+This class uses xml.etree.ElementTree to generate a MuJoCo model as an xml file.
+
+  ```
+  __init__(self, base_scene_filename):
+  ```
+
+Inputs:
+  * base_scene_filename: the name of the base xml file that contains default classes, assets (such as meshes, textures etc.) and some geoms whose position remains fixed throughout the simulation
+
+Description:
+
+Initializes ElementTree and the counters of the objects.
+
+#### Methods
+
+All the add methods follow the same pattern. If one of these methods is called, it adds one object to the xml model with varying degree of hard-coded information. The information that is not hard-coded in these methods, are the inputs (position, orientation, etc.) that can be different from object to object. Some objects can only be added to the model once like Sztaki, hospital, post office, parking lot, airport. And some objects can be added to the model multiple times, like drones, landing zones, poles, payloads.
+
+  ```
+  save_xml(self, file_name):
+  ```
+
+Description:
+
+Saves the xml model to hard disk at the specified file name.
+
 # Scripts
 
 ## scripts/build_scene.py
@@ -631,4 +662,3 @@ Creates and shows a pop-up file dialog in which the user can select any MuJoCo x
 Description:
 
 Binds the load_model() method to PassiveDisplay's l keyboard event and runs the PassiveDisplay instance.
-

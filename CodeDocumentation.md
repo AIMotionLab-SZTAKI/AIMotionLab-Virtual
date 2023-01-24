@@ -399,12 +399,12 @@ Description:
 Saves views of the inputs, and creates a PropellerMocap instance for each propeller.
 
   ```
-  set_qpos(self, pos, quat):
+  update(self, pos, quat):
   ```
 
 Description:
 
-To match the simulated (non-mocap) Drone method name. This drone does not have a qpos in MjData, because it's a mocap body and does not have any joints.
+Updates the position and orientation of the drone and the propellers.
 
   ```
   parse_mocap_drones(data, model, body_names): (static function)
@@ -437,7 +437,7 @@ In addition to DroneMocap's constructor, it saves hook_name_in_xml in a member v
 
 
   ```
-  set_qpos(self, pos, quat):
+  update(self, pos, quat):
   ```
 
 Inputs:
@@ -662,3 +662,50 @@ Creates and shows a pop-up file dialog in which the user can select any MuJoCo x
 Description:
 
 Binds the load_model() method to PassiveDisplay's l keyboard event and runs the PassiveDisplay instance.
+
+## Helper methods
+
+### util/mujoco_helper.py
+
+  ```
+  get_joint_name_list(mjmodel: mujoco.MjModel):
+  ```
+
+Description:
+
+Goes through a loaded MuJoCo model, and creates a list of valid joint names that appear in the model.
+
+  ```
+  get_geom_name_list(mjmodel: mujoco.MjModel):
+  ```
+
+Description:
+
+Goes through a loaded MuJoCo model, and creates a list of valid geom names that appear in the model.
+
+  ```
+  get_body_name_list(mjmodel: mujoco.MjModel):
+  ```
+
+Description:
+
+Goes through a loaded MuJoCo model, and creates a list of valid body names that appear in the model.
+
+```
+update_onboard_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None):
+```
+
+Inputs:
+  * drone_qpos: a 7 element array or list, first 3 of which are position, remaining 4 are quaternion
+  * cam: camera to be updated
+  * azim_filter_sin: a LiveLFilter low-pass filter for the sine component of the camera azimuth angle
+  * azim_filter_cos: a LiveLFilter low-pass filter for the cosine component of the camera azimuth angle
+  * elev_filter_sin: a LiveLFilter low-pass filter for the sine component of the camera elevation angle
+  * elev_filter_cos: a LiveLFilter low-pass filter for the cosine component of the camera elevation angle
+
+Description:
+
+
+Update the position and orientation of the camera that follows the drone from behind qpos is the array in which the position and orientation of all the drones are stored
+
+Smoothing the 2 angle signals with 4 low-pass filters so that the camera would not shake. It's not enough to only filter the angle signal, because when the drone turns, the angle might jump from 180 degrees to -180 degrees, and the filter tries to smooth out the jump (the camera ends up turning a 360). Instead, take the sine and the cosine of the angle, filter them, and convert them back with atan2().

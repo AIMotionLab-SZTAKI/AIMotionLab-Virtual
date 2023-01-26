@@ -16,7 +16,7 @@ from util.util import sync, FpsLimiter
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.mujoco_display import Display
-from classes.drone import Drone
+from classes.drone import Drone, DroneMocap
 
 
 class PassiveDisplay(Display):
@@ -44,10 +44,10 @@ class PassiveDisplay(Display):
                     # have to put rotation.w to the front because the order is different
                     drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-                    drone_to_update = Drone.get_drone_by_name_in_motive(self.drones, name)
+                    drone_to_update = DroneMocap.get_drone_by_name_in_motive(self.drones, name)
 
                     if drone_to_update:
-                        drone_to_update.set_qpos(obj.position, drone_orientation)
+                        drone_to_update.update(obj.position, drone_orientation)
 
             if self.activeCam == self.camFollow and len(self.drones) > 0:
                 mujoco_helper.update_onboard_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow,\

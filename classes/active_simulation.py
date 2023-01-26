@@ -86,9 +86,9 @@ class ActiveSimulator(Display):
                 if drone_to_update is not None:
                     drone_to_update.update(obj.position, drone_orientation)
 
-        if self.activeCam == self.camFollow and len(self.drones) > 0:
+        if self.activeCam == self.camOnBoard and len(self.drones) > 0:
             d = self.drones[self.followed_drone_idx]
-            mujoco_helper.update_onboard_cam(d.get_qpos(), self.camFollow,\
+            mujoco_helper.update_onboard_cam(d.get_qpos(), self.camOnBoard,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
                                             self.elev_filter_sin, self.elev_filter_cos)
         

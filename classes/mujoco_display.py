@@ -99,13 +99,13 @@ class Display:
     def init_cams(self):
 
         self.cam = mujoco.MjvCamera()
-        self.camFollow = mujoco.MjvCamera()
+        self.camOnBoard = mujoco.MjvCamera()
         self.activeCam = self.cam
         
         self.cam.azimuth, self.cam.elevation = 180, -20
         self.cam.lookat, self.cam.distance = [0, 0, .5], 5
-        self.camFollow.azimuth, self.camFollow.elevation = 180, -30
-        self.camFollow.lookat, self.camFollow.distance = [0, 0, 0], 1
+        self.camOnBoard.azimuth, self.camOnBoard.elevation = 180, -30
+        self.camOnBoard.lookat, self.camOnBoard.distance = [0, 0, 0], 1
 
         # set up low-pass filters for the camera that follows the drones
         fs = 1 / self.graphics_step  # sampling rate, Hz
@@ -181,6 +181,19 @@ class Display:
             self.key_delete_callback = callback_function
 
 
+    def set_key_left_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_left_callback = callback_function
+    def set_key_right_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_right_callback = callback_function
+    def set_key_up_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_up_callback = callback_function
+    def set_key_down_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_down_callback = callback_function
+
     def mouse_button_callback(self, window, button, action, mods):
 
         if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
@@ -251,7 +264,7 @@ class Display:
         if key == glfw.KEY_TAB and action == glfw.PRESS:
             self.change_cam()
         elif key == glfw.KEY_SPACE and action == glfw.PRESS:
-            if self.activeCam == self.camFollow:
+            if self.activeCam == self.camOnBoard:
                 if self.followed_drone_idx + 1 == len(self.drones):
                     self.followed_drone_idx = 0
                 else:
@@ -259,7 +272,7 @@ class Display:
                 self.azim_filter = LiveLFilter(self.b, self.a)
                 self.elev_filter = LiveLFilter(self.b, self.a)
                 d = self.drones[self.followed_drone_idx]
-                mujoco_helper.update_onboard_cam(d.get_qpos(), self.camFollow)
+                mujoco_helper.update_onboard_cam(d.get_qpos(), self.camOnBoard)
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
             """
@@ -322,6 +335,38 @@ class Display:
             """
             if self.key_delete_callback:
                 self.key_delete_callback()
+        
+        if key == glfw.KEY_LEFT and action == glfw.PRESS:
+            """
+            pass on this event
+            """
+            if self.key_left_callback:
+                self.key_left_callback()
+        
+
+        if key == glfw.KEY_RIGHT and action == glfw.PRESS:
+            """
+            pass on this event
+            """
+            if self.key_right_callback:
+                self.key_right_callback()
+        
+
+        if key == glfw.KEY_UP and action == glfw.PRESS:
+            """
+            pass on this event
+            """
+            if self.key_up_callback:
+                self.key_up_callback()
+        
+
+        if key == glfw.KEY_DOWN and action == glfw.PRESS:
+            """
+            pass on this event
+            """
+            if self.key_down_callback:
+                self.key_down_callback()
+
     
     def set_title(self, window_title):
         self.title0 = window_title
@@ -345,7 +390,7 @@ class Display:
         Change camera between scene cam and 'on board' cam
         """
         if self.activeCam == self.cam and len(self.drones) > 0:
-            self.activeCam = self.camFollow
+            self.activeCam = self.camOnBoard
         else:
             self.activeCam = self.cam
     

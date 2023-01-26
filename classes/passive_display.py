@@ -49,8 +49,8 @@ class PassiveDisplay(Display):
                     if drone_to_update:
                         drone_to_update.update(obj.position, drone_orientation)
 
-            if self.activeCam == self.camFollow and len(self.drones) > 0:
-                mujoco_helper.update_onboard_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow,\
+            if self.activeCam == self.camOnBoard and len(self.drones) > 0:
+                mujoco_helper.update_onboard_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camOnBoard,\
                                                self.azim_filter_sin, self.azim_filter_cos,\
                                                self.elev_filter_sin, self.elev_filter_cos)
 

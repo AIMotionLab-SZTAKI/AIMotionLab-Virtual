@@ -81,6 +81,9 @@
     <material name="mat-airport" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-airport" texuniform="true"/>
     <material name="mat-parking_lot" reflectance="0.7" texrepeat="9.524 8.696" texture="tex-parking_lot" texuniform="true"/>
     <material name="mat-sztaki" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-sztaki" texuniform="true"/>
+
+    <texture name="tex_check" builtin="checker" type="2d" width="256" height="256" rgb1=".8 .1 .1" rgb2=".1 .1 .8"/>
+    <material name="material_check" texture="tex_check" texrepeat="2 2" texuniform="true"/>
   </asset>
 
   <worldbody>

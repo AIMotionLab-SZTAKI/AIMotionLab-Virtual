@@ -6,6 +6,7 @@ from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingInputGui
 from gui.drone_input_gui import DroneInputGui
 from gui.payload_input_gui import PayloadInputGui
+from classes.test_friction import CarMocap
 
 
 # open the base on which we'll build
@@ -167,6 +168,8 @@ def build_from_optitrack():
     """
     global scene, display
 
+    car_added = False
+
     drone_names_in_motive = []
 
     if not display.connect_to_optitrack:
@@ -174,7 +177,7 @@ def build_from_optitrack():
 
     display.mc.waitForNextFrame()
     for name, obj in display.mc.rigidBodies.items():
-
+        print(name)
         # have to put rotation.w to the front because the order is different
         orientation = str(obj.rotation.w) + " " + str(obj.rotation.x) + " " + str(obj.rotation.y) + " " + str(obj.rotation.z)
         position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0'
@@ -205,8 +208,16 @@ def build_from_optitrack():
 
         elif name.startswith("obs"):
             scene.add_pole(name, position, orientation)
+        
+        elif name == "AI_car_01":
+            scene.add_mocapcar(position, orientation)
+            car_added = True
 
     save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), drone_names_in_motive)
+    if car_added:
+        mocapid = display.model.body("car0").mocapid[0]
+        car = CarMocap(display.model, display.data, mocapid, "car0", "AI_car_01")
+        display.realdrones += [car]
 
 
 def main():
@@ -218,8 +229,10 @@ def main():
     
     #display.print_optitrack_data()
 
+
     if build_based_on_optitrack:
         build_from_optitrack()
+
 
     display.run()
 

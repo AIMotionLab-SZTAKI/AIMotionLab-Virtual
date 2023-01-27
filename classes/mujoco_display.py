@@ -51,7 +51,6 @@ class Display:
 
         fps = 1.0 / self.graphics_step
 
-        
         self.init_glfw()
         self.init_cams()
         self.load_model(xml_file_name)
@@ -74,6 +73,8 @@ class Display:
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
         #print(self.data.qpos.size)
+
+        self.cars = []
         
     def init_glfw(self):
         # Initialize the library
@@ -118,6 +119,8 @@ class Display:
         self.b, self.a = scipy.signal.iirfilter(4, Wn=cutoff, fs=fs, btype="low", ftype="butter")
         self.elev_filter_sin = LiveLFilter(self.b, self.a)
         self.elev_filter_cos = LiveLFilter(self.b, self.a)
+
+        self.onBoard_elev_offset = 30
 
     
     def load_model(self, xml_file_name):
@@ -193,6 +196,19 @@ class Display:
     def set_key_down_callback(self, callback_function):
         if callable(callback_function):
             self.key_down_callback = callback_function
+
+    def set_key_left_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_left_release_callback = callback_function
+    def set_key_right_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_right_release_callback = callback_function
+    def set_key_up_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_up_release_callback = callback_function
+    def set_key_down_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_down_release_callback = callback_function
 
     def mouse_button_callback(self, window, button, action, mods):
 
@@ -342,30 +358,50 @@ class Display:
             """
             if self.key_left_callback:
                 self.key_left_callback()
-        
-
         if key == glfw.KEY_RIGHT and action == glfw.PRESS:
             """
             pass on this event
             """
             if self.key_right_callback:
                 self.key_right_callback()
-        
-
         if key == glfw.KEY_UP and action == glfw.PRESS:
             """
             pass on this event
             """
             if self.key_up_callback:
                 self.key_up_callback()
-        
-
         if key == glfw.KEY_DOWN and action == glfw.PRESS:
             """
             pass on this event
             """
             if self.key_down_callback:
                 self.key_down_callback()
+        
+
+        if key == glfw.KEY_LEFT and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_left_release_callback:
+                self.key_left_release_callback()
+        if key == glfw.KEY_RIGHT and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_right_release_callback:
+                self.key_right_release_callback()
+        if key == glfw.KEY_UP and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_up_release_callback:
+                self.key_up_release_callback()
+        if key == glfw.KEY_DOWN and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_down_release_callback:
+                self.key_down_release_callback()
 
     
     def set_title(self, window_title):

@@ -44,7 +44,7 @@ class PassiveDisplay(Display):
                     # have to put rotation.w to the front because the order is different
                     drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-                    drone_to_update = DroneMocap.get_drone_by_name_in_motive(self.drones, name)
+                    drone_to_update = DroneMocap.get_drone_by_name_in_motive(self.realdrones, name)
 
                     if drone_to_update:
                         drone_to_update.update(obj.position, drone_orientation)
@@ -52,7 +52,7 @@ class PassiveDisplay(Display):
             if self.activeCam == self.camOnBoard and len(self.drones) > 0:
                 mujoco_helper.update_onboard_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camOnBoard,\
                                                self.azim_filter_sin, self.azim_filter_cos,\
-                                               self.elev_filter_sin, self.elev_filter_cos)
+                                               self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
 
             #print(self.data.qpos[:7])
 

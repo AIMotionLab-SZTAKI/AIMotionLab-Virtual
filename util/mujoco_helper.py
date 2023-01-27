@@ -183,7 +183,7 @@ def euler_rad_to_euler_deg(array_3elem):
     return [math.degrees(array_3elem[0]), math.degrees(array_3elem[1]), math.degrees(array_3elem[2])]
 
 
-def update_onboard_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None):
+def update_onboard_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None, elev_offs=30):
     """
     Update the position and orientation of the camera that follows the drone from behind
     qpos is the array in which the position and orientation of all the drones are stored
@@ -202,7 +202,7 @@ def update_onboard_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=No
         orientation[0], orientation[1], orientation[2], orientation[3])
 
     new_azim = math.degrees(yaw_z)
-    new_elev = -math.degrees(pitch_y) - 30
+    new_elev = -math.degrees(pitch_y) - elev_offs
 
     cam.lookat = position
 

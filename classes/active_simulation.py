@@ -90,7 +90,7 @@ class ActiveSimulator(Display):
             d = self.drones[self.followed_drone_idx]
             mujoco_helper.update_onboard_cam(d.get_qpos(), self.camOnBoard,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
-                                            self.elev_filter_sin, self.elev_filter_cos)
+                                            self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
         
         for m in range(len(self.realdrones)):
             self.realdrones[m].spin_propellers(self.control_step, 20)
@@ -102,6 +102,10 @@ class ActiveSimulator(Display):
             self.virtdrones[l].fake_propeller_spin(self.control_step, 20)
 
             self.virtdrones[l].update(i)
+        
+        for l in range(len(self.cars)):
+
+            self.cars[l].update(i)
         
         
         mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))

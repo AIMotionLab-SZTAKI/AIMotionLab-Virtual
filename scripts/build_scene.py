@@ -207,7 +207,7 @@ def build_from_optitrack():
             scene.add_airport(position, "1 0 0 0")
 
         elif name.startswith("obs"):
-            scene.add_pole(name, position, orientation)
+            scene.add_pole(name, position, "1 0 0 0")
         
         elif name == "AI_car_01":
             scene.add_mocapcar(position, orientation)

@@ -469,15 +469,16 @@ class SceneXmlGenerator:
 
         ET.SubElement(car, "geom", name="car0", type="box", size=".1 .13 .02", pos= "-.07 0 0", rgba=".2 .2 .9 1.0")
         ET.SubElement(car, "geom", name="car0_front", type="box", size=".07 .07 .02", pos=".13 0 0", rgba=".2 .2 .9 1.0")
+        ET.SubElement(car, "geom", name="car_pole", type="cylinder", size="0.01 0.5", pos="-.2 0 0.5", rgba="0.3 0.3 0.3 1.0")
 
         wheelfl = ET.SubElement(car, "body", name="car0_wheelfl", pos="0.2 .12 0", quat="1 0 0 0" )
-        ET.SubElement(wheelfl, "joint", name="car0_wheelfl_steer", type="hinge", axis="0 0 1")
+        #ET.SubElement(wheelfl, "joint", name="car0_wheelfl_steer", type="hinge", axis="0 0 1")
         ET.SubElement(wheelfl, "joint", name="car0_wheelfl", type="hinge", axis="0 1 0")
 
         ET.SubElement(wheelfl, "geom", name="car0_wheelfl", type="cylinder", size=".06 .02", material="material_check", euler="1.571 0 0")
 
         wheelrl = ET.SubElement(car, "body", name="car0_wheelrl", pos="-0.2 .12 0", quat="1 0 0 0" )
-        ET.SubElement(wheelrl, "joint", name="car0_wheelrl_steer", type="hinge", axis="0 0 1")
+        #ET.SubElement(wheelrl, "joint", name="car0_wheelrl_steer", type="hinge", axis="0 0 1")
         ET.SubElement(wheelrl, "joint", name="car0_wheelrl", type="hinge", axis="0 1 0")
 
         ET.SubElement(wheelrl, "geom", name="car0_wheelrl", type="cylinder", size=".06 .02", material="material_check", euler="1.571 0 0")

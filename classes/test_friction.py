@@ -50,7 +50,7 @@ class CarMocap():
         quat = mujoco_helper.quaternion_from_euler(euler[0], euler[1], euler[2])
 
         pos = np.copy(pos)
-        pos[2] -= 0.15
+        pos[2] -= 0.12
 
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat

@@ -6,7 +6,7 @@ from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingInputGui
 from gui.drone_input_gui import DroneInputGui
 from gui.payload_input_gui import PayloadInputGui
-from classes.test_friction import CarMocap
+from classes.car import CarMocap
 
 
 # open the base on which we'll build
@@ -207,10 +207,10 @@ def build_from_optitrack():
             scene.add_airport(position, "1 0 0 0")
 
         elif name.startswith("obs"):
-            scene.add_pole(name, position, "1 0 0 0")
+            scene.add_pole(name, position, "0.3826834 0 0 0.9238795")
         
         elif name == "AI_car_01":
-            scene.add_mocapcar(position, orientation)
+            scene.add_mocapcar(position, orientation, True)
             car_added = True
 
     save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), drone_names_in_motive)

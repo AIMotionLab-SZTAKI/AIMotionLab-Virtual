@@ -471,7 +471,7 @@ class SceneXmlGenerator:
         ET.SubElement(car, "geom", name="car0_front", type="box", size=".07 .06 .02", pos=".10113 0 0", rgba=".2 .2 .9 1.0")
 
         if has_pole:
-            ET.SubElement(car, "geom", name="car_pole", type="cylinder", size="0.01 0.5", pos="-.2135 0 0.5", rgba="0.3 0.3 0.3 1.0")
+            ET.SubElement(car, "geom", name="car_pole", type="cylinder", size="0.01 0.47625", pos="-.2135 0 0.5", rgba="0.3 0.3 0.3 1.0")
 
         wheelfl = ET.SubElement(car, "body", name="car0_wheelfl", quat="1 0 0 0" )
         #ET.SubElement(wheelfl, "joint", name="car0_wheelfl_steer", type="hinge", axis="0 0 1")

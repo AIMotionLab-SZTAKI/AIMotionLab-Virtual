@@ -39,6 +39,10 @@ class CarMocap(MovingMocapObject):
         self.data = data
         self.mocapid = mocapid
         self.name_in_motive = name_in_motive
+        self.mocapid = mocapid
+    
+    def get_qpos(self):
+        return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
     
     def get_name_in_xml(self):
         return self.name_in_xml
@@ -58,12 +62,22 @@ class CarMocap(MovingMocapObject):
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat
 
-    def spin_propellers(self, control_step, speed):
-        pass
-
     @staticmethod
     def parse_mocap_cars(data, model, body_names):
-        return []
+        realcars = []
+        irc = 0
+
+        for name in body_names:
+            name_cut = name[:len(name) - 2]
+            if name.startswith("realfleet1tenth") and not name_cut.endswith("wheel"):
+                
+                mocapid = model.body(name).mocapid[0]
+                c = CarMocap(model, data, mocapid, name, "RC_car_" + str(irc))
+                
+                realcars += [c]
+                irc += 1
+        
+        return realcars
 
 class Car(MovingObject):
 

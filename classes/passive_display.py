@@ -43,15 +43,15 @@ class PassiveDisplay(Display):
                 for name, obj in self.mc.rigidBodies.items():
 
                     # have to put rotation.w to the front because the order is different
-                    drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+                    vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-                    drone_to_update = MovingMocapObject.get_object_by_name_in_motive(self.realdrones, name)
+                    vehicle_to_update = MovingMocapObject.get_object_by_name_in_motive(self.all_real_vehicles, name)
 
-                    if drone_to_update:
-                        drone_to_update.update(obj.position, drone_orientation)
+                    if vehicle_to_update:
+                        vehicle_to_update.update(obj.position, drone_orientation)
 
-            if self.activeCam == self.camOnBoard and len(self.drones) > 0:
-                mujoco_helper.update_onboard_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camOnBoard,\
+            if self.activeCam == self.camOnBoard and len(self.all_vehicles) > 0:
+                mujoco_helper.update_onboard_cam(self.all_vehicles[self.followed_vehicle_idx].get_qpos(), self.camOnBoard,\
                                                self.azim_filter_sin, self.azim_filter_cos,\
                                                self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
 

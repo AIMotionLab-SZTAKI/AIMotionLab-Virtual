@@ -103,7 +103,7 @@ def add_building():
     
 
     
-def add_drone():
+def add_vehicle():
     global scene, display
     
     input_gui = VehicleInputGui()
@@ -131,6 +131,14 @@ def add_drone():
     elif input_gui.vehicle_type == "Real bb with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", True)
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.vehicle_type == "Virtual Fleet1Tenth":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, False, "fleet1tenth")
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.vehicle_type == "Real Fleet1Tenth":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, False, "fleet1tenth")
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     else:
@@ -209,20 +217,21 @@ def build_from_optitrack():
         elif name.startswith("obs"):
             scene.add_pole(name, position, "0.3826834 0 0 0.9238795")
         
-        elif name == "AI_car_01":
-            scene.add_mocapcar(position, orientation, True)
-            car_added = True
+        elif "car" in name:
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
+            scene.add_car(position, orientation, BLUE_COLOR, False, True)
+            #car_added = True
 
     save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), drone_names_in_motive)
-    if car_added:
-        mocapid = display.model.body("car0").mocapid[0]
-        car = CarMocap(display.model, display.data, mocapid, "car0", "AI_car_01")
-        display.realdrones += [car]
+    #if car_added:
+    #    mocapid = display.model.body("car0").mocapid[0]
+    #    car = CarMocap(display.model, display.data, mocapid, "car0", "AI_car_01")
+    #    display.realdrones += [car]
 
 
 def main():
     display.set_key_b_callback(add_building)
-    display.set_key_d_callback(add_drone)
+    display.set_key_d_callback(add_vehicle)
     display.set_key_o_callback(build_from_optitrack)
     display.set_key_t_callback(add_load)
     display.set_key_delete_callback(clear_scene)

@@ -42,7 +42,7 @@ class Display:
         self.mouse_left_btn_down = False
         self.mouse_right_btn_down = False
         self.prev_x, self.prev_y = 0.0, 0.0
-        self.followed_drone_idx = 0
+        self.followed_vehicle_idx = 0
         self.title0 = "Scene"
         self.is_recording = False
         self.image_list = []
@@ -146,6 +146,10 @@ class Display:
         print(str(len(self.virtdrones)) + " virtual drone(s) found in xml.")
         print()
         print(str(len(self.realdrones)) + " mocap drone(s) found in xml.")
+        print()
+        print(str(len(self.virtcars)) + " virtual car(s) found in xml.")
+        print()
+        print(str(len(self.realcars)) + " mocap car(s) found in xml.")
         print("______________________________")
         #self.drones = self.virtdrones + self.realdrones
         self.drones = self.virtdrones + self.realdrones
@@ -284,19 +288,19 @@ class Display:
     def key_callback(self, window, key, scancode, action, mods):
         """
         Switch camera on TAB press
-        Switch among drones on SPACE press if camera is set to follow drones
+        Switch among vehicles on SPACE press if camera is set to follow vehicle
         """
         if key == glfw.KEY_TAB and action == glfw.PRESS:
             self.change_cam()
         elif key == glfw.KEY_SPACE and action == glfw.PRESS:
             if self.activeCam == self.camOnBoard:
-                if self.followed_drone_idx + 1 == len(self.drones):
-                    self.followed_drone_idx = 0
+                if self.followed_vehicle_idx + 1 == len(self.all_vehicles):
+                    self.followed_vehicle_idx = 0
                 else:
-                    self.followed_drone_idx += 1
+                    self.followed_vehicle_idx += 1
                 self.azim_filter = LiveLFilter(self.b, self.a)
                 self.elev_filter = LiveLFilter(self.b, self.a)
-                d = self.drones[self.followed_drone_idx]
+                d = self.all_vehicles[self.followed_vehicle_idx]
                 mujoco_helper.update_onboard_cam(d.get_qpos(), self.camOnBoard)
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
@@ -434,7 +438,7 @@ class Display:
         """
         Change camera between scene cam and 'on board' cam
         """
-        if self.activeCam == self.cam and len(self.drones) > 0:
+        if self.activeCam == self.cam and len(self.all_vehicles) > 0:
             self.activeCam = self.camOnBoard
         else:
             self.activeCam = self.cam
@@ -516,9 +520,9 @@ class Display:
     def set_drone_names(self):
         
         if len(self.realdrones) > 0:
-            drone_names = MovingMocapObject.get_object_names_motive(self.realdrones)
-            drone_labels = MovingMocapObject.get_object_names_in_xml(self.realdrones)
-            gui = VehicleNameGui(vehicle_labels=drone_labels, vehicle_names=drone_names)
+            object_names = MovingMocapObject.get_object_names_motive(self.all_real_vehicles)
+            object_labels = MovingMocapObject.get_object_names_in_xml(self.all_real_vehicles)
+            gui = VehicleNameGui(vehicle_labels=object_labels, vehicle_names=object_names)
             gui.show()
-            MovingMocapObject.set_object_names_motive(self.realdrones, gui.vehicle_names)
+            MovingMocapObject.set_object_names_motive(self.all_real_vehicles, gui.vehicle_names)
 

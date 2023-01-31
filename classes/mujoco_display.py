@@ -11,10 +11,12 @@ import time
 import threading
 from util import mujoco_helper
 import cv2
-from gui.drone_name_gui import DroneNameGui
+from gui.vehicle_name_gui import VehicleNameGui
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
+from classes.moving_object import MovingMocapObject
 from classes.drone import Drone, DroneMocap
+from classes.car import Car, CarMocap
 import ffmpeg
 
 MAX_GEOM = 200
@@ -73,8 +75,6 @@ class Display:
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
         #print(self.data.qpos.size)
-
-        self.cars = []
         
     def init_glfw(self):
         # Initialize the library
@@ -134,8 +134,13 @@ class Display:
 
         self.sim_step = self.model.opt.timestep
 
-        self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
-        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
+        joint_names = mujoco_helper.get_joint_name_list(self.model)
+        body_names = mujoco_helper.get_body_name_list(self.model)
+
+        self.virtdrones = Drone.parse_drones(self.data, joint_names)
+        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, body_names)
+        self.virtcars = Car.parse_cars(self.data, joint_names)
+        self.realcars = CarMocap.parse_mocap_cars(self.data, self.model, body_names)
 
         print()
         print(str(len(self.virtdrones)) + " virtual drone(s) found in xml.")
@@ -144,6 +149,10 @@ class Display:
         print("______________________________")
         #self.drones = self.virtdrones + self.realdrones
         self.drones = self.virtdrones + self.realdrones
+        self.cars = self.virtcars + self.realcars
+        self.all_virt_vehicles = self.virtdrones + self.virtcars
+        self.all_real_vehicles = self.realdrones + self.realcars
+        self.all_vehicles = self.drones + self.cars
 
     
     def reload_model(self, xml_file_name, drone_names_in_motive = None):
@@ -507,9 +516,9 @@ class Display:
     def set_drone_names(self):
         
         if len(self.realdrones) > 0:
-            drone_names = DroneMocap.get_drone_names_motive(self.realdrones)
-            drone_labels = DroneMocap.get_drone_names_in_xml(self.realdrones)
-            gui = DroneNameGui(drone_labels=drone_labels, drone_names=drone_names)
+            drone_names = MovingMocapObject.get_object_names_motive(self.realdrones)
+            drone_labels = MovingMocapObject.get_object_names_in_xml(self.realdrones)
+            gui = VehicleNameGui(vehicle_labels=drone_labels, vehicle_names=drone_names)
             gui.show()
-            DroneMocap.set_drone_names_motive(self.realdrones, gui.drone_names)
+            MovingMocapObject.set_object_names_motive(self.realdrones, gui.vehicle_names)
 

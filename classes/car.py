@@ -3,8 +3,7 @@ import numpy as np
 import util.mujoco_helper as mh
 import math
 from enum import Enum
-from classes.active_simulation import ActiveSimulator
-from classes.moving_object import MovingObject
+from classes.moving_object import MovingObject, MovingMocapObject
 import os
 from util import mujoco_helper
 
@@ -33,13 +32,16 @@ class FrontWheel(Wheel):
         self.actr_steer = self.data.actuator(self.name_in_xml + "_actr_steer")
         self.ctrl_steer = self.actr_steer.ctrl
 
-class CarMocap():
+class CarMocap(MovingMocapObject):
 
     def __init__(self, model, data, mocapid, name_in_xml, name_in_motive) -> None:
         
         self.data = data
         self.mocapid = mocapid
         self.name_in_motive = name_in_motive
+    
+    def get_name_in_xml(self):
+        return self.name_in_xml
         
     def update(self, pos, quat):
         
@@ -58,6 +60,10 @@ class CarMocap():
 
     def spin_propellers(self, control_step, speed):
         pass
+
+    @staticmethod
+    def parse_mocap_cars(data, model, body_names):
+        return []
 
 class Car(MovingObject):
 
@@ -150,3 +156,7 @@ class Car(MovingObject):
             if self.wheelfl.ctrl_steer > 0:
                 self.wheelfl.ctrl_steer -= 0.01
                 self.wheelfr.ctrl_steer -= 0.01
+        
+    @staticmethod
+    def parse_cars(data, joint_names):
+        return []

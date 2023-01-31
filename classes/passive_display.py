@@ -11,12 +11,13 @@ import numpy as np
 import time
 from util import mujoco_helper
 import cv2
-from gui.drone_name_gui import DroneNameGui
+from gui.vehicle_name_gui import VehicleNameGui
 from util.util import sync, FpsLimiter
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.mujoco_display import Display
 from classes.drone import Drone, DroneMocap
+from classes.moving_object import MovingMocapObject
 
 
 class PassiveDisplay(Display):
@@ -44,7 +45,7 @@ class PassiveDisplay(Display):
                     # have to put rotation.w to the front because the order is different
                     drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-                    drone_to_update = DroneMocap.get_drone_by_name_in_motive(self.realdrones, name)
+                    drone_to_update = MovingMocapObject.get_object_by_name_in_motive(self.realdrones, name)
 
                     if drone_to_update:
                         drone_to_update.update(obj.position, drone_orientation)

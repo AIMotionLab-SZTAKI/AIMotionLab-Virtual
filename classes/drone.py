@@ -5,7 +5,7 @@ from scipy.spatial.transform import Rotation
 import util.mujoco_helper as mh
 import math
 from enum import Enum
-from classes.moving_object import MovingObject
+from classes.moving_object import MovingObject, MovingMocapObject
 
 class SPIN_DIR(Enum):
     CLOCKWISE = 1
@@ -367,7 +367,7 @@ class DroneHooked(Drone):
             self.controllers[k].mass = self.mass + self.load_mass
 
 ################################## DroneMocap ##################################
-class DroneMocap:
+class DroneMocap(MovingMocapObject):
     def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, prop_mocapids, name_in_motive, name_in_xml):
         self.data = data
         self.name_in_xml = name_in_xml
@@ -437,44 +437,6 @@ class DroneMocap:
         self.prop2.update()
         self.prop3.update()
         self.prop4.update()
-
-
-    @staticmethod
-    def get_drone_names_motive(drones):
-        names = []
-        for d in drones:
-            names += [d.name_in_motive]
-        
-        return names
-    
-    @staticmethod
-    def set_drone_names_motive(drones, names):
-        
-        #if len(drones) != len(names):
-        #    print("[Drone.set_drone_names()] Error: too many or not enough drone names provided")
-        #    return
-        #j = 0
-        for i in range(len(drones)):
-            drones[i].name_in_motive = names[i]
-            #j += 1
-    
-
-    @staticmethod
-    def get_drone_names_in_xml(drones):
-        labels = []
-        for d in drones:
-            labels += [d.get_name_in_xml()]
-            
-        return labels
-    
-
-    @staticmethod
-    def get_drone_by_name_in_motive(drones, name: str):
-        for i in range(len(drones)):
-            if drones[i].name_in_motive == name:
-                return drones[i]
-        
-        return None
 
     @staticmethod
     def parse_mocap_drones(data, model, body_names):

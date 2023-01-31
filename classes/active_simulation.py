@@ -11,12 +11,13 @@ import numpy as np
 import time
 from util import mujoco_helper
 import cv2
-from gui.drone_name_gui import DroneNameGui
+from gui.vehicle_name_gui import VehicleNameGui
 from util.util import sync
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.mujoco_display import Display
 import classes.drone as drone
+from classes.moving_object import MovingMocapObject
 
 
 class ActiveSimulator(Display):
@@ -81,7 +82,7 @@ class ActiveSimulator(Display):
                 # only update real drones
                 drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
  
-                drone_to_update = drone.DroneMocap.get_drone_by_name_in_motive(self.realdrones, name)
+                drone_to_update = MovingMocapObject.get_object_by_name_in_motive(self.realdrones, name)
 
                 if drone_to_update is not None:
                     drone_to_update.update(obj.position, drone_orientation)

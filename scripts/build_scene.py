@@ -4,7 +4,7 @@ import os
 from util import xml_generator
 from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingInputGui
-from gui.drone_input_gui import DroneInputGui
+from gui.vehicle_input_gui import VehicleInputGui
 from gui.payload_input_gui import PayloadInputGui
 from classes.car import CarMocap
 
@@ -106,36 +106,36 @@ def add_building():
 def add_drone():
     global scene, display
     
-    input_gui = DroneInputGui()
+    input_gui = VehicleInputGui()
     input_gui.show()
-    if input_gui.drone_type == "Virtual crazyflie":
+    if input_gui.vehicle_type == "Virtual crazyflie":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "crazyflie")
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Virtual bumblebee":
+    elif input_gui.vehicle_type == "Virtual bumblebee":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", False)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Virtual bb with hook":
+    elif input_gui.vehicle_type == "Virtual bb with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", True)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Real crazyflie":
+    elif input_gui.vehicle_type == "Real crazyflie":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "crazyflie")
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Real bumblebee":
+    elif input_gui.vehicle_type == "Real bumblebee":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", False)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Real bb with hook":
+    elif input_gui.vehicle_type == "Real bb with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", True)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     else:
-        #print(input_gui.drone_type)
-        print("Non-existent drone type " + input_gui.drone_type)
+        #print(input_gui.vehicle_type)
+        print("Non-existent vehicle type: " + input_gui.vehicle_type)
 
 def add_load():
     global scene, display

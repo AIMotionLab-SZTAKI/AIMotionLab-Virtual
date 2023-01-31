@@ -1,47 +1,47 @@
 from curses import window
 import tkinter as tk
 
-class DroneNameGui:
+class VehicleNameGui:
 
-    def __init__(self, drone_labels=[], drone_names=[]):
-        if len(drone_labels) != len(drone_names):
+    def __init__(self, vehicle_labels=[], vehicle_names=[]):
+        if len(vehicle_labels) != len(vehicle_names):
             return
         
         self.window = tk.Tk()
 
-        self.window.title("Name drones")
+        self.window.title("Name vehicles")
 
         self.entries = []
-        self.drone_names = []
+        self.vehicle_names = []
 
-        if len(drone_names) != len(drone_labels):
-            print("[DroneNameGui.__init__()] Different number of drone names and number of drone labels")
+        if len(vehicle_names) != len(vehicle_labels):
+            print("[VehicleNameGui.__init__()] Different number of vehicle names and number of vehicle labels")
             return
 
-        for i in range(len(drone_labels)):
-            tk.Label(self.window, text=drone_labels[i] + ": ").grid(row=i)
+        for i in range(len(vehicle_labels)):
+            tk.Label(self.window, text=vehicle_labels[i] + ": ").grid(row=i)
             self.entries.append(tk.Entry(self.window))
             self.entries[i].grid(row=i, column=1)
-            if len(drone_names) == len(drone_labels):
-                self.entries[i].insert(0, drone_names[i])
+            if len(vehicle_names) == len(vehicle_labels):
+                self.entries[i].insert(0, vehicle_names[i])
             else:
                 self.entries[i].insert(0, "cf" + str(i + 1))
 
 
-        tk.Button(self.window, text ="Ok", command = self.btnOk_on_press).grid(row=len(drone_labels), column=1)
+        tk.Button(self.window, text ="Ok", command = self.btnOk_on_press).grid(row=len(vehicle_labels), column=1)
         self.window.bind('<Return>', lambda event: self.btnOk_on_press())
 
         
     def btnOk_on_press(self):
         for i in range(len(self.entries)):
-            self.drone_names.append(self.entries[i].get())
+            self.vehicle_names.append(self.entries[i].get())
         self.window.quit()
         self.window.destroy()
-        #print(self.drone_names)
+        #print(self.vehicle_names)
 
     def on_closing(self):
         for i in range(len(self.entries)):
-            self.drone_names.append(self.entries[i].get())
+            self.vehicle_names.append(self.entries[i].get())
         self.window.quit()
         self.window.destroy()
 

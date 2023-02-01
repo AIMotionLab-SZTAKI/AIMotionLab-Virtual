@@ -465,18 +465,18 @@ class SceneXmlGenerator:
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.08061", euler="2.74889 0 0", size="0.004 0.01378", mass=hook_mass)
 
 
-    def add_car(self, pos, quat, color, is_virtual, has_pole=False, type="fleet1tenth"):
+    def add_car(self, pos, quat, color, is_virtual, has_rod=False, type="fleet1tenth"):
         if is_virtual and type == "fleet1tenth":
             name = "virtfleet1tenth_" + str(self.__virtfleet1tenth_cntr)
-            self.__add_fleet1tenth(pos, quat, name, color, has_pole)
+            self.__add_fleet1tenth(pos, quat, name, color, has_rod)
             self.__virtfleet1tenth_cntr += 1
         
         elif not is_virtual and type == "fleet1tenth":
             name = "realfleet1tenth_" + str(self.__realfleet1tenth_cntr)
-            self.__add_mocap_fleet1tenth(pos, quat, name, color, has_pole)
+            self.__add_mocap_fleet1tenth(pos, quat, name, color, has_rod)
             self.__realfleet1tenth_cntr += 1
     
-    def __add_fleet1tenth(self, pos, quat, name, color, has_pole):
+    def __add_fleet1tenth(self, pos, quat, name, color, has_rod):
         
         car = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
 
@@ -489,11 +489,11 @@ class SceneXmlGenerator:
         ET.SubElement(car, "geom", name=name + "_front_bumper", type="box", size=".09 .005 .02", pos=".265888 0 0.02", rgba=color)
         ET.SubElement(car, "geom", name=name + "_back_bumper", type="box", size=".08 .005 .02", pos="-.265888 0 0.02", rgba=color)
 
-        if has_pole:
-            ET.SubElement(car, "geom", name=name + "_pole", type="cylinder", size="0.01 0.47625", pos="-.2135 0 0.47625", rgba="0.3 0.3 0.3 1.0")
+        if has_rod:
+            ET.SubElement(car, "geom", name=name + "_rod", type="cylinder", size="0.01 0.47625", pos="-.2135 0 0.47625", rgba="0.3 0.3 0.3 1.0")
 
         wheelfl = ET.SubElement(car, "body", name=name + "_wheelfl", quat="1 0 0 0" )
-        ET.SubElement(wheelfl, "joint", name=name + "_wheelfl_steer", type="hinge", axis="0 0 1")
+        ET.SubElement(wheelfl, "joint", name=name + "_wheelfl_steer", type="hinge", pos="0.16113 .122385 0", axis="0 0 1")
         ET.SubElement(wheelfl, "joint", name=name + "_wheelfl", type="hinge", pos="0.16113 .122385 0", axis="0 1 0")
 
         ET.SubElement(wheelfl, "geom", name=name + "_wheelfl", type="cylinder", size=".052388 .022225", pos="0.16113 .122385 0", material="material_check", euler="1.571 0 0")
@@ -505,7 +505,7 @@ class SceneXmlGenerator:
         ET.SubElement(wheelrl, "geom", name=name + "_wheelrl", type="cylinder", size=".052388 .022225", pos="-0.16113 .122385 0", material="material_check", euler="1.571 0 0")
 
         wheelfr = ET.SubElement(car, "body", name=name + "_wheelfr", quat="1 0 0 0" )
-        ET.SubElement(wheelfr, "joint", name=name + "_wheelfr_steer", type="hinge", axis="0 0 1")
+        ET.SubElement(wheelfr, "joint", name=name + "_wheelfr_steer", type="hinge", pos="0.16113 -.122385 0", axis="0 0 1")
         ET.SubElement(wheelfr, "joint", name=name + "_wheelfr", type="hinge", pos="0.16113 -.122385 0", axis="0 1 0")
 
         ET.SubElement(wheelfr, "geom", name=name + "_wheelfr", type="cylinder", size=".052388 .022225", pos="0.16113 -.122385 0", material="material_check", euler="1.571 0 0")
@@ -516,15 +516,15 @@ class SceneXmlGenerator:
 
         ET.SubElement(wheelrr, "geom", name=name + "_wheelrr", type="cylinder", size=".052388 .022225", pos="-0.16113 -.122385 0", material="material_check", euler="1.571 0 0")
 
-        ET.SubElement(self.actuator, "motor", name=name + "_actr_fl", joint=name + "_wheelfl")
-        ET.SubElement(self.actuator, "motor", name=name + "_actr_fr", joint=name + "_wheelfr")
-        ET.SubElement(self.actuator, "motor", name=name + "_actr_rl", joint=name + "_wheelrl")
-        ET.SubElement(self.actuator, "motor", name=name + "_actr_rr", joint=name + "_wheelrr")
-        ET.SubElement(self.actuator, "position", name=name + "_actr_fl_steer", joint=name + "_wheelfl_steer")
-        ET.SubElement(self.actuator, "position", name=name + "_actr_fr_steer", joint=name + "_wheelfr_steer")
+        ET.SubElement(self.actuator, "motor", name=name + "_wheelfl_actr", joint=name + "_wheelfl")
+        ET.SubElement(self.actuator, "motor", name=name + "_wheelfr_actr", joint=name + "_wheelfr")
+        ET.SubElement(self.actuator, "motor", name=name + "_wheelrl_actr", joint=name + "_wheelrl")
+        ET.SubElement(self.actuator, "motor", name=name + "_wheelrr_actr", joint=name + "_wheelrr")
+        ET.SubElement(self.actuator, "position", name=name + "_wheelfl_actr_steer", joint=name + "_wheelfl_steer")
+        ET.SubElement(self.actuator, "position", name=name + "_wheelfr_actr_steer", joint=name + "_wheelfr_steer")
 
 
-    def __add_mocap_fleet1tenth(self, pos, quat, name, color, has_pole):
+    def __add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod):
         
         car = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
 
@@ -535,8 +535,8 @@ class SceneXmlGenerator:
         ET.SubElement(car, "geom", name=name + "_front_bumper", type="box", size=".09 .005 .02", pos=".265888 0 0.02", rgba=color)
         ET.SubElement(car, "geom", name=name + "_back_bumper", type="box", size=".08 .005 .02", pos="-.265888 0 0.02", rgba=color)
 
-        if has_pole:
-            ET.SubElement(car, "geom", name=name + "_pole", type="cylinder", size="0.01 0.47625", pos="-.2135 0 0.47625", rgba="0.3 0.3 0.3 1.0")
+        if has_rod:
+            ET.SubElement(car, "geom", name=name + "_rod", type="cylinder", size="0.01 0.47625", pos="-.2135 0 0.47625", rgba="0.3 0.3 0.3 1.0")
 
         wheelfl = ET.SubElement(car, "body", name=name + "_wheelfl", quat="1 0 0 0" )
         #ET.SubElement(wheelfl, "joint", name=name + "_wheelfl_steer", type="hinge", axis="0 0 1")

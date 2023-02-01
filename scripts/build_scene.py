@@ -136,9 +136,17 @@ def add_vehicle():
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, False, "fleet1tenth")
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.vehicle_type == "Virtual F1Tenth with rod":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, "fleet1tenth")
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     elif input_gui.vehicle_type == "Real Fleet1Tenth":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, False, "fleet1tenth")
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.vehicle_type == "Real F1Tenth with rod":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, "fleet1tenth")
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     else:

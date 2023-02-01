@@ -10,7 +10,9 @@ VEHICLE_TYPE_OPTIONS = [
     "Real bumblebee",
     "Real bb with hook",
     "Virtual Fleet1Tenth",
-    "Real Fleet1Tenth"
+    "Virtual F1Tenth with rod",
+    "Real Fleet1Tenth",
+    "Real F1Tenth with rod"
 ]
 
 

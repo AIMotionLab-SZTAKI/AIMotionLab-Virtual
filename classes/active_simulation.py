@@ -80,23 +80,23 @@ class ActiveSimulator(Display):
 
                 # have to put rotation.w to the front because the order is different
                 # only update real drones
-                drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+                vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
  
-                drone_to_update = MovingMocapObject.get_object_by_name_in_motive(self.realdrones, name)
+                vehicle_to_update = MovingMocapObject.get_object_by_name_in_motive(self.realdrones, name)
 
-                if drone_to_update is not None:
-                    drone_to_update.update(obj.position, drone_orientation)
+                if vehicle_to_update is not None:
+                    vehicle_to_update.update(obj.position, vehicle_orientation)
 
-        if self.activeCam == self.camOnBoard and len(self.drones) > 0:
-            d = self.drones[self.followed_drone_idx]
-            mujoco_helper.update_onboard_cam(d.get_qpos(), self.camOnBoard,\
+        if self.activeCam == self.camOnBoard and len(self.all_vehicles) > 0:
+            v = self.all_vehicles[self.followed_vehicle_idx]
+            mujoco_helper.update_onboard_cam(v.get_qpos(), self.camOnBoard,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
                                             self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
         
         for m in range(len(self.realdrones)):
+            
             self.realdrones[m].spin_propellers(self.control_step, 20)
             
-
 
         for l in range(len(self.virtdrones)):
 
@@ -104,9 +104,9 @@ class ActiveSimulator(Display):
 
             self.virtdrones[l].update(i)
         
-        for l in range(len(self.cars)):
+        for l in range(len(self.virtcars)):
 
-            self.cars[l].update(i)
+            self.virtcars[l].update(i)
         
         
         mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))

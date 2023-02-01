@@ -1,1 +1,109 @@
-<mujoco><include file="../xml_models/scene.xml" /><worldbody><body name="realfleet1tenth_0" pos="1 1 1" quat="1 0 0 0" mocap="true"><geom name="realfleet1tenth_0_chassis_b" type="box" size=".1016 .10113 .02" pos="-.06 0 0" rgba="0.2 0.2 0.85 1.0" /><geom name="realfleet1tenth_0_chassis_f" type="box" size=".07 .06 .02" pos=".10113 0 0" rgba="0.2 0.2 0.85 1.0" /><geom name="realfleet1tenth_0_front" type="box" size=".02 .052388 .02" pos=".2135 0 0" rgba="0.2 0.2 0.85 1.0" /><geom name="realfleet1tenth_0_back" type="box" size=".02 .052388 .02" pos="-.2135 0 0" rgba="0.2 0.2 0.85 1.0" /><geom name="realfleet1tenth_0_front_bumper" type="box" size=".09 .005 .02" pos=".265888 0 0.02" rgba="0.2 0.2 0.85 1.0" /><geom name="realfleet1tenth_0_back_bumper" type="box" size=".08 .005 .02" pos="-.265888 0 0.02" rgba="0.2 0.2 0.85 1.0" /><body name="realfleet1tenth_0_wheelfl" quat="1 0 0 0"><joint name="realfleet1tenth_0_wheelfl" type="hinge" pos="0.16113 .122385 0" axis="0 1 0" /><geom name="realfleet1tenth_0_wheelfl" type="cylinder" size=".052388 .022225" pos="0.16113 .122385 0" material="material_check" euler="1.571 0 0" /></body><body name="realfleet1tenth_0_wheelrl" quat="1 0 0 0"><joint name="realfleet1tenth_0_wheelrl" type="hinge" pos="-0.16113 .122385 0" axis="0 1 0" /><geom name="realfleet1tenth_0_wheelrl" type="cylinder" size=".052388 .022225" pos="-0.16113 .122385 0" material="material_check" euler="1.571 0 0" /></body><body name="realfleet1tenth_0_wheelfr" quat="1 0 0 0"><joint name="realfleet1tenth_0_wheelfr" type="hinge" pos="0.16113 -.122385 0" axis="0 1 0" /><geom name="realfleet1tenth_0_wheelfr" type="cylinder" size=".052388 .022225" pos="0.16113 -.122385 0" material="material_check" euler="1.571 0 0" /></body><body name="realfleet1tenth_0_wheelrr" quat="1 0 0 0"><joint name="realfleet1tenth_0_wheelrr" type="hinge" pos="-0.16113 -.122385 0" axis="0 1 0" /><geom name="realfleet1tenth_0_wheelrr" type="cylinder" size=".052388 .022225" pos="-0.16113 -.122385 0" material="material_check" euler="1.571 0 0" /></body></body></worldbody><actuator /><sensor /></mujoco>
+<mujoco>
+    <include file="../xml_models/scene.xml" />
+    <worldbody>
+        <body name="virtfleet1tenth_0" pos="1 1 1" quat="1 0 0 0">
+            <joint name="virtfleet1tenth_0" type="free" />
+            <geom name="virtfleet1tenth_0_chassis_b" type="box" size=".1016 .10113 .02" pos="-.06 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_0_chassis_f" type="box" size=".07 .06 .02" pos=".10113 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_0_front" type="box" size=".02 .052388 .02" pos=".2135 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_0_back" type="box" size=".02 .052388 .02" pos="-.2135 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_0_front_bumper" type="box" size=".09 .005 .02" pos=".265888 0 0.02" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_0_back_bumper" type="box" size=".08 .005 .02" pos="-.265888 0 0.02" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_0_rod" type="cylinder" size="0.01 0.47625" pos="-.2135 0 0.47625" rgba="0.3 0.3 0.3 1.0" />
+            <body name="virtfleet1tenth_0_wheelfl" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_0_wheelfl_steer" type="hinge" pos="0.16113 .122385 0" axis="0 0 1" />
+                <joint name="virtfleet1tenth_0_wheelfl" type="hinge" pos="0.16113 .122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_0_wheelfl" type="cylinder" size=".052388 .022225" pos="0.16113 .122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+            <body name="virtfleet1tenth_0_wheelrl" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_0_wheelrl" type="hinge" pos="-0.16113 .122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_0_wheelrl" type="cylinder" size=".052388 .022225" pos="-0.16113 .122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+            <body name="virtfleet1tenth_0_wheelfr" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_0_wheelfr_steer" type="hinge" pos="0.16113 -.122385 0" axis="0 0 1" />
+                <joint name="virtfleet1tenth_0_wheelfr" type="hinge" pos="0.16113 -.122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_0_wheelfr" type="cylinder" size=".052388 .022225" pos="0.16113 -.122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+            <body name="virtfleet1tenth_0_wheelrr" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_0_wheelrr" type="hinge" pos="-0.16113 -.122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_0_wheelrr" type="cylinder" size=".052388 .022225" pos="-0.16113 -.122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+        </body>
+        <body name="virtfleet1tenth_1" pos="1 0 1" quat="1 0 0 0">
+            <joint name="virtfleet1tenth_1" type="free" />
+            <geom name="virtfleet1tenth_1_chassis_b" type="box" size=".1016 .10113 .02" pos="-.06 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_1_chassis_f" type="box" size=".07 .06 .02" pos=".10113 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_1_front" type="box" size=".02 .052388 .02" pos=".2135 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_1_back" type="box" size=".02 .052388 .02" pos="-.2135 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_1_front_bumper" type="box" size=".09 .005 .02" pos=".265888 0 0.02" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_1_back_bumper" type="box" size=".08 .005 .02" pos="-.265888 0 0.02" rgba="0.85 0.2 0.2 1.0" />
+            <body name="virtfleet1tenth_1_wheelfl" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_1_wheelfl_steer" type="hinge" pos="0.16113 .122385 0" axis="0 0 1" />
+                <joint name="virtfleet1tenth_1_wheelfl" type="hinge" pos="0.16113 .122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_1_wheelfl" type="cylinder" size=".052388 .022225" pos="0.16113 .122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+            <body name="virtfleet1tenth_1_wheelrl" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_1_wheelrl" type="hinge" pos="-0.16113 .122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_1_wheelrl" type="cylinder" size=".052388 .022225" pos="-0.16113 .122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+            <body name="virtfleet1tenth_1_wheelfr" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_1_wheelfr_steer" type="hinge" pos="0.16113 -.122385 0" axis="0 0 1" />
+                <joint name="virtfleet1tenth_1_wheelfr" type="hinge" pos="0.16113 -.122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_1_wheelfr" type="cylinder" size=".052388 .022225" pos="0.16113 -.122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+            <body name="virtfleet1tenth_1_wheelrr" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_1_wheelrr" type="hinge" pos="-0.16113 -.122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_1_wheelrr" type="cylinder" size=".052388 .022225" pos="-0.16113 -.122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+        </body>
+        <body name="virtfleet1tenth_2" pos="-1 0 1" quat="1 0 0 0">
+            <joint name="virtfleet1tenth_2" type="free" />
+            <geom name="virtfleet1tenth_2_chassis_b" type="box" size=".1016 .10113 .02" pos="-.06 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_2_chassis_f" type="box" size=".07 .06 .02" pos=".10113 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_2_front" type="box" size=".02 .052388 .02" pos=".2135 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_2_back" type="box" size=".02 .052388 .02" pos="-.2135 0 0" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_2_front_bumper" type="box" size=".09 .005 .02" pos=".265888 0 0.02" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_2_back_bumper" type="box" size=".08 .005 .02" pos="-.265888 0 0.02" rgba="0.85 0.2 0.2 1.0" />
+            <geom name="virtfleet1tenth_2_rod" type="cylinder" size="0.01 0.47625" pos="-.2135 0 0.47625" rgba="0.3 0.3 0.3 1.0" />
+            <body name="virtfleet1tenth_2_wheelfl" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_2_wheelfl_steer" type="hinge" pos="0.16113 .122385 0" axis="0 0 1" />
+                <joint name="virtfleet1tenth_2_wheelfl" type="hinge" pos="0.16113 .122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_2_wheelfl" type="cylinder" size=".052388 .022225" pos="0.16113 .122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+            <body name="virtfleet1tenth_2_wheelrl" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_2_wheelrl" type="hinge" pos="-0.16113 .122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_2_wheelrl" type="cylinder" size=".052388 .022225" pos="-0.16113 .122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+            <body name="virtfleet1tenth_2_wheelfr" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_2_wheelfr_steer" type="hinge" pos="0.16113 -.122385 0" axis="0 0 1" />
+                <joint name="virtfleet1tenth_2_wheelfr" type="hinge" pos="0.16113 -.122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_2_wheelfr" type="cylinder" size=".052388 .022225" pos="0.16113 -.122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+            <body name="virtfleet1tenth_2_wheelrr" quat="1 0 0 0">
+                <joint name="virtfleet1tenth_2_wheelrr" type="hinge" pos="-0.16113 -.122385 0" axis="0 1 0" />
+                <geom name="virtfleet1tenth_2_wheelrr" type="cylinder" size=".052388 .022225" pos="-0.16113 -.122385 0" material="material_check" euler="1.571 0 0" />
+            </body>
+        </body>
+    </worldbody>
+    <actuator>
+        <motor name="virtfleet1tenth_0_wheelfl_actr" joint="virtfleet1tenth_0_wheelfl" />
+        <motor name="virtfleet1tenth_0_wheelfr_actr" joint="virtfleet1tenth_0_wheelfr" />
+        <motor name="virtfleet1tenth_0_wheelrl_actr" joint="virtfleet1tenth_0_wheelrl" />
+        <motor name="virtfleet1tenth_0_wheelrr_actr" joint="virtfleet1tenth_0_wheelrr" />
+        <position name="virtfleet1tenth_0_wheelfl_actr_steer" joint="virtfleet1tenth_0_wheelfl_steer" />
+        <position name="virtfleet1tenth_0_wheelfr_actr_steer" joint="virtfleet1tenth_0_wheelfr_steer" />
+        <motor name="virtfleet1tenth_1_wheelfl_actr" joint="virtfleet1tenth_1_wheelfl" />
+        <motor name="virtfleet1tenth_1_wheelfr_actr" joint="virtfleet1tenth_1_wheelfr" />
+        <motor name="virtfleet1tenth_1_wheelrl_actr" joint="virtfleet1tenth_1_wheelrl" />
+        <motor name="virtfleet1tenth_1_wheelrr_actr" joint="virtfleet1tenth_1_wheelrr" />
+        <position name="virtfleet1tenth_1_wheelfl_actr_steer" joint="virtfleet1tenth_1_wheelfl_steer" />
+        <position name="virtfleet1tenth_1_wheelfr_actr_steer" joint="virtfleet1tenth_1_wheelfr_steer" />
+        <motor name="virtfleet1tenth_2_wheelfl_actr" joint="virtfleet1tenth_2_wheelfl" />
+        <motor name="virtfleet1tenth_2_wheelfr_actr" joint="virtfleet1tenth_2_wheelfr" />
+        <motor name="virtfleet1tenth_2_wheelrl_actr" joint="virtfleet1tenth_2_wheelrl" />
+        <motor name="virtfleet1tenth_2_wheelrr_actr" joint="virtfleet1tenth_2_wheelrr" />
+        <position name="virtfleet1tenth_2_wheelfl_actr_steer" joint="virtfleet1tenth_2_wheelfl_steer" />
+        <position name="virtfleet1tenth_2_wheelfr_actr_steer" joint="virtfleet1tenth_2_wheelfr_steer" />
+    </actuator>
+    <sensor />
+</mujoco>

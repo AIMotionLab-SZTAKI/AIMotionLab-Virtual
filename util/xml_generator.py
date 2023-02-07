@@ -478,10 +478,12 @@ class SceneXmlGenerator:
             self.__realfleet1tenth_cntr += 1
     
     def __add_fleet1tenth(self, pos, quat, name, color, has_rod):
+        site_name = name + SITE_NAME_END
         
         car = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
 
         ET.SubElement(car, "joint", name=name, type="free")
+        ET.SubElement(car, "site", name=site_name, pos="0 0 0")
 
         euler = "0 0 1.570796"
 
@@ -530,6 +532,9 @@ class SceneXmlGenerator:
         ET.SubElement(self.actuator, "velocity", name=name + "_wheelrr_actr", joint=name + "_wheelrr")
         ET.SubElement(self.actuator, "position", name=name + "_wheelfl_actr_steer", joint=name + "_wheelfl_steer")
         ET.SubElement(self.actuator, "position", name=name + "_wheelfr_actr_steer", joint=name + "_wheelfr_steer")
+
+
+        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_sensor0")
 
 
     def __add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod):

@@ -164,9 +164,9 @@ def add_load():
         save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
 
 
-def save_and_reload_model(scene, display, save_filename, drone_names_in_motive=None):
+def save_and_reload_model(scene, display, save_filename, drone_names_in_motive=None, car_names_in_motive=None):
         scene.save_xml(save_filename)
-        display.reload_model(save_filename, drone_names_in_motive)
+        display.reload_model(save_filename, drone_names_in_motive, car_names_in_motive)
 
 def clear_scene():
     global scene, display, drone_counter, landing_zone_counter, pole_counter
@@ -187,6 +187,7 @@ def build_from_optitrack():
     car_added = False
 
     drone_names_in_motive = []
+    car_names_in_motive = []
 
     if not display.connect_to_optitrack:
         display.connect_to_Optitrack()
@@ -225,12 +226,14 @@ def build_from_optitrack():
         elif name.startswith("obs"):
             scene.add_pole(name, position, "0.3826834 0 0 0.9238795")
         
-        elif "car" in name:
+        elif ("car" in name) or (name.startswith("Trailer")):
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
-            scene.add_car(position, orientation, BLUE_COLOR, False, True)
+            #scene.add_car(position, orientation, BLUE_COLOR, False, True)
+            scene.add_car(position, orientation, BLUE_COLOR, False, False)
+            car_names_in_motive += [name]
             #car_added = True
 
-    save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), drone_names_in_motive)
+    save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), drone_names_in_motive, car_names_in_motive)
     #if car_added:
     #    mocapid = display.model.body("car0").mocapid[0]
     #    car = CarMocap(display.model, display.data, mocapid, "car0", "AI_car_01")

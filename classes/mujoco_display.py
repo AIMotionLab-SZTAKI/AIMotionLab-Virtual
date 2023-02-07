@@ -36,6 +36,14 @@ class Display:
         self.key_o_callback = None
         self.key_t_callback = None
         self.key_delete_callback = None
+        self.key_left_callback = None
+        self.key_left_release_callback = None
+        self.key_right_callback = None
+        self.key_right_release_callback = None
+        self.key_up_callback = None
+        self.key_up_release_callback = None
+        self.key_down_callback = None
+        self.key_down_release_callback = None
 
         self.connect_to_optitrack = connect_to_optitrack
 
@@ -159,7 +167,7 @@ class Display:
         self.all_vehicles = self.drones + self.cars
 
     
-    def reload_model(self, xml_file_name, drone_names_in_motive = None):
+    def reload_model(self, xml_file_name, drone_names_in_motive = None, car_names_in_motive = None):
         
         self.load_model(xml_file_name)
 
@@ -168,6 +176,11 @@ class Display:
             for i in range(len(self.realdrones)):
                 self.realdrones[i].name_in_motive = drone_names_in_motive[i]
                 i += 1
+        
+        if car_names_in_motive is not None and len(car_names_in_motive) > 0:
+
+            for i in range(len(car_names_in_motive)):
+                self.realcars[i].name_in_motive = car_names_in_motive[i]
 
     def glfw_window_should_close(self):
         return glfw.window_should_close(self.window)
@@ -519,7 +532,7 @@ class Display:
 
     def set_drone_names(self):
         
-        if len(self.realdrones) > 0:
+        if len(self.all_real_vehicles) > 0:
             object_names = MovingMocapObject.get_object_names_motive(self.all_real_vehicles)
             object_labels = MovingMocapObject.get_object_names_in_xml(self.all_real_vehicles)
             gui = VehicleNameGui(vehicle_labels=object_labels, vehicle_names=object_names)

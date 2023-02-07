@@ -38,6 +38,8 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
     # adding the necessary objects to the scene
     scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
     scene.add_drone("0 1 0", "1 0 0 0", BLUE_COLOR, False)
+    scene.add_car("-0.5 1 0.2", "1 0 0 0", RED_COLOR, True)
+    scene.add_car("0.5 1 0.2", "1 0 0 0", BLUE_COLOR, False)
     scene.add_load("0 0 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
     scene.add_load("-.6 .6 0", ".075 .075 .075", ".05", "1 0 0 0", "0.1 0.9 0.1 1.0")
     scene.add_load("-.3 -.6 0", ".075 .075 .1", ".1", "1 0 0 0", "0.9 0.1 0.1 1.0")
@@ -74,6 +76,33 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
     d0.set_trajectory(traj_)
     d0.set_controllers(controllers)
 
+    car = simulator.virtcars[0]
+    def up_press():
+        car.up_pressed = True
+    def up_release():
+        car.up_pressed = False
+    def down_press():
+        car.down_pressed = True
+    def down_release():
+        car.down_pressed = False
+    def left_press():
+        car.left_pressed = True
+    def left_release():
+        car.left_pressed = False
+    def right_press():
+        car.right_pressed = True
+    def right_release():
+        car.right_pressed = False
+
+    simulator.set_key_up_callback(up_press)
+    simulator.set_key_up_release_callback(up_release)
+    simulator.set_key_down_callback(down_press)
+    simulator.set_key_down_release_callback(down_release)
+    simulator.set_key_left_callback(left_press)
+    simulator.set_key_left_release_callback(left_release)
+    simulator.set_key_right_callback(right_press)
+    simulator.set_key_right_release_callback(right_release)
+
 elif SCENARIO == traj.FLY:
     # no objects needed except a drone
     scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", False)
@@ -107,7 +136,7 @@ simulator.cam.distance = 3
 
 
 
-for d in simulator.drones:
+for d in simulator.all_vehicles:
     d.print_info()
     print()
 

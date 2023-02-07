@@ -27,6 +27,7 @@ class SceneXmlGenerator:
         self.root = ET.Element("mujoco")
         ET.SubElement(self.root, "include", file=base_scene_filename)
         self.worldbody = ET.SubElement(self.root, "worldbody")
+        self.contact = ET.SubElement(self.root, "contact")
         self.actuator = ET.SubElement(self.root, "actuator")
         self.sensor = ET.SubElement(self.root, "sensor")
         self.parking_lot = None
@@ -482,12 +483,14 @@ class SceneXmlGenerator:
 
         ET.SubElement(car, "joint", name=name, type="free")
 
-        ET.SubElement(car, "geom", name=name + "_chassis_b", type="box", size=".1016 .10113 .02", pos= "-.06 0 0", rgba=color)
-        ET.SubElement(car, "geom", name=name + "_chassis_f", type="box", size=".07 .06 .02", pos=".10113 0 0", rgba=color)
-        ET.SubElement(car, "geom", name=name + "_front", type="box", size=".02 .052388 .02", pos=".2135 0 0", rgba=color)
-        ET.SubElement(car, "geom", name=name + "_back", type="box", size=".02 .052388 .02", pos="-.2135 0 0", rgba=color)
-        ET.SubElement(car, "geom", name=name + "_front_bumper", type="box", size=".09 .005 .02", pos=".265888 0 0.02", rgba=color)
-        ET.SubElement(car, "geom", name=name + "_back_bumper", type="box", size=".08 .005 .02", pos="-.265888 0 0.02", rgba=color)
+        euler = "0 0 1.570796"
+
+        ET.SubElement(car, "geom", name=name + "_chassis_b", type="box", size=".1016 .10113 .02", pos= "-.06 0 0", euler=euler, rgba=color)
+        ET.SubElement(car, "geom", name=name + "_chassis_f", type="box", size=".07 .06 .02", pos=".10113 0 0", euler=euler, rgba=color)
+        ET.SubElement(car, "geom", name=name + "_front", type="box", size=".02 .052388 .02", pos=".2135 0 0", euler=euler, rgba=color)
+        ET.SubElement(car, "geom", name=name + "_back", type="box", size=".02 .052388 .02", pos="-.2135 0 0", euler=euler, rgba=color)
+        ET.SubElement(car, "geom", name=name + "_front_bumper", type="box", size=".09 .005 .02", pos=".265888 0 0.02", euler=euler, rgba=color)
+        ET.SubElement(car, "geom", name=name + "_back_bumper", type="box", size=".08 .005 .02", pos="-.265888 0 0.02", euler=euler, rgba=color)
 
         if has_rod:
             ET.SubElement(car, "geom", name=name + "_rod", type="cylinder", size="0.01 0.47625", pos="-.2135 0 0.47625", rgba="0.3 0.3 0.3 1.0")
@@ -516,10 +519,15 @@ class SceneXmlGenerator:
 
         ET.SubElement(wheelrr, "geom", name=name + "_wheelrr", type="cylinder", size=".052388 .022225", pos="-0.16113 -.122385 0", material="material_check", euler="1.571 0 0")
 
-        ET.SubElement(self.actuator, "motor", name=name + "_wheelfl_actr", joint=name + "_wheelfl")
-        ET.SubElement(self.actuator, "motor", name=name + "_wheelfr_actr", joint=name + "_wheelfr")
-        ET.SubElement(self.actuator, "motor", name=name + "_wheelrl_actr", joint=name + "_wheelrl")
-        ET.SubElement(self.actuator, "motor", name=name + "_wheelrr_actr", joint=name + "_wheelrr")
+        ET.SubElement(self.contact, "pair", geom1=name + "_wheelfl", geom2="roundabout", friction="1 1 0.005 0.0001 0.0001")
+        ET.SubElement(self.contact, "pair", geom1=name + "_wheelfr", geom2="roundabout", friction="1 1 0.005 0.0001 0.0001")
+        ET.SubElement(self.contact, "pair", geom1=name + "_wheelrl", geom2="roundabout", friction="1 1 0.005 0.0001 0.0001")
+        ET.SubElement(self.contact, "pair", geom1=name + "_wheelrr", geom2="roundabout", friction="1 1 0.005 0.0001 0.0001")
+
+        #ET.SubElement(self.actuator, "motor", name=name + "_wheelfl_actr", joint=name + "_wheelfl")
+        #ET.SubElement(self.actuator, "motor", name=name + "_wheelfr_actr", joint=name + "_wheelfr")
+        ET.SubElement(self.actuator, "velocity", name=name + "_wheelrl_actr", joint=name + "_wheelrl")
+        ET.SubElement(self.actuator, "velocity", name=name + "_wheelrr_actr", joint=name + "_wheelrr")
         ET.SubElement(self.actuator, "position", name=name + "_wheelfl_actr_steer", joint=name + "_wheelfl_steer")
         ET.SubElement(self.actuator, "position", name=name + "_wheelfr_actr_steer", joint=name + "_wheelfr_steer")
 
@@ -528,39 +536,41 @@ class SceneXmlGenerator:
         
         car = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
 
-        ET.SubElement(car, "geom", name=name + "_chassis_b", type="box", size=".1016 .10113 .02", pos= "-.06 0 0", rgba=color)
-        ET.SubElement(car, "geom", name=name + "_chassis_f", type="box", size=".07 .06 .02", pos=".10113 0 0", rgba=color)
-        ET.SubElement(car, "geom", name=name + "_front", type="box", size=".02 .052388 .02", pos=".2135 0 0", rgba=color)
-        ET.SubElement(car, "geom", name=name + "_back", type="box", size=".02 .052388 .02", pos="-.2135 0 0", rgba=color)
-        ET.SubElement(car, "geom", name=name + "_front_bumper", type="box", size=".09 .005 .02", pos=".265888 0 0.02", rgba=color)
-        ET.SubElement(car, "geom", name=name + "_back_bumper", type="box", size=".08 .005 .02", pos="-.265888 0 0.02", rgba=color)
+        euler = "0 0 1.570796"
+
+        ET.SubElement(car, "geom", name=name + "_chassis_b", type="box", size=".1016 .10113 .02", pos= "-.06 0 0", euler=euler, rgba=color)
+        ET.SubElement(car, "geom", name=name + "_chassis_f", type="box", size=".07 .06 .02", pos=".10113 0 0", euler=euler, rgba=color)
+        ET.SubElement(car, "geom", name=name + "_front", type="box", size=".02 .052388 .02", pos=".2135 0 0", euler=euler, rgba=color)
+        ET.SubElement(car, "geom", name=name + "_back", type="box", size=".02 .052388 .02", pos="-.2135 0 0", euler=euler, rgba=color)
+        ET.SubElement(car, "geom", name=name + "_front_bumper", type="box", size=".09 .005 .02", pos=".265888 0 0.02", euler=euler, rgba=color)
+        ET.SubElement(car, "geom", name=name + "_back_bumper", type="box", size=".08 .005 .02", pos="-.265888 0 0.02", euler=euler, rgba=color)
 
         if has_rod:
             ET.SubElement(car, "geom", name=name + "_rod", type="cylinder", size="0.01 0.47625", pos="-.2135 0 0.47625", rgba="0.3 0.3 0.3 1.0")
 
         wheelfl = ET.SubElement(car, "body", name=name + "_wheelfl", quat="1 0 0 0" )
         #ET.SubElement(wheelfl, "joint", name=name + "_wheelfl_steer", type="hinge", axis="0 0 1")
-        ET.SubElement(wheelfl, "joint", name=name + "_wheelfl", type="hinge", pos="0.16113 .122385 0", axis="0 1 0")
+        #ET.SubElement(wheelfl, "joint", name=name + "_wheelfl", type="hinge", pos="0.16113 .122385 0", axis="0 1 0")
 
-        ET.SubElement(wheelfl, "geom", name=name + "_wheelfl", type="cylinder", size=".052388 .022225", pos="0.16113 .122385 0", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelfl, "geom", name=name + "_wheelfl", type="cylinder", size=".052388 .022225", pos="0.16113 .122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
         wheelrl = ET.SubElement(car, "body", name=name + "_wheelrl", quat="1 0 0 0" )
         #ET.SubElement(wheelrl, "joint", name=name + "_wheelrl_steer", type="hinge", axis="0 0 1")
-        ET.SubElement(wheelrl, "joint", name=name + "_wheelrl", type="hinge", pos="-0.16113 .122385 0", axis="0 1 0")
+        #ET.SubElement(wheelrl, "joint", name=name + "_wheelrl", type="hinge", pos="-0.16113 .122385 0", axis="0 1 0")
 
-        ET.SubElement(wheelrl, "geom", name=name + "_wheelrl", type="cylinder", size=".052388 .022225", pos="-0.16113 .122385 0", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelrl, "geom", name=name + "_wheelrl", type="cylinder", size=".052388 .022225", pos="-0.16113 .122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
         wheelfr = ET.SubElement(car, "body", name=name + "_wheelfr", quat="1 0 0 0" )
         #ET.SubElement(wheelfr, "joint", name=name + "_wheelfr_steer", type="hinge", axis="0 0 1")
-        ET.SubElement(wheelfr, "joint", name=name + "_wheelfr", type="hinge", pos="0.16113 -.122385 0", axis="0 1 0")
+        #ET.SubElement(wheelfr, "joint", name=name + "_wheelfr", type="hinge", pos="0.16113 -.122385 0", axis="0 1 0")
 
-        ET.SubElement(wheelfr, "geom", name=name + "_wheelfr", type="cylinder", size=".052388 .022225", pos="0.16113 -.122385 0", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelfr, "geom", name=name + "_wheelfr", type="cylinder", size=".052388 .022225", pos="0.16113 -.122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
         wheelrr = ET.SubElement(car, "body", name=name + "_wheelrr", quat="1 0 0 0" )
         #ET.SubElement(wheelrr, "joint", name=name + "_wheelrr_steer", type="hinge", axis="0 0 1")
-        ET.SubElement(wheelrr, "joint", name=name + "_wheelrr", type="hinge", pos="-0.16113 -.122385 0", axis="0 1 0")
+        #ET.SubElement(wheelrr, "joint", name=name + "_wheelrr", type="hinge", pos="-0.16113 -.122385 0", axis="0 1 0")
 
-        ET.SubElement(wheelrr, "geom", name=name + "_wheelrr", type="cylinder", size=".052388 .022225", pos="-0.16113 -.122385 0", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelrr, "geom", name=name + "_wheelrr", type="cylinder", size=".052388 .022225", pos="-0.16113 -.122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
     def save_xml(self, file_name):
         

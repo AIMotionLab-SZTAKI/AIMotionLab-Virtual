@@ -46,9 +46,10 @@ class PassiveDisplay(Display):
                     vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
                     vehicle_to_update = MovingMocapObject.get_object_by_name_in_motive(self.all_real_vehicles, name)
+                    #print(name)
 
                     if vehicle_to_update:
-                        vehicle_to_update.update(obj.position, drone_orientation)
+                        vehicle_to_update.update(obj.position, vehicle_orientation)
 
             if self.activeCam == self.camOnBoard and len(self.all_vehicles) > 0:
                 mujoco_helper.update_onboard_cam(self.all_vehicles[self.followed_vehicle_idx].get_qpos(), self.camOnBoard,\

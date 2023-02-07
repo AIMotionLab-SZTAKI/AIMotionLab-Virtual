@@ -34,10 +34,9 @@ class FrontWheel(Wheel):
 class CarMocap(MovingMocapObject):
 
     def __init__(self, model, data, mocapid, name_in_xml, name_in_motive) -> None:
+        super().__init__(name_in_xml, name_in_motive)
         
         self.data = data
-        self.mocapid = mocapid
-        self.name_in_motive = name_in_motive
         self.mocapid = mocapid
     
     def get_qpos(self):
@@ -64,14 +63,14 @@ class CarMocap(MovingMocapObject):
     @staticmethod
     def parse_mocap_cars(data, model, body_names):
         realcars = []
-        irc = 0
+        irc = 1
 
         for name in body_names:
             name_cut = name[:len(name) - 2]
             if name.startswith("realfleet1tenth") and not name_cut.endswith("wheel"):
                 
                 mocapid = model.body(name).mocapid[0]
-                c = CarMocap(model, data, mocapid, name, "RC_car_" + str(irc))
+                c = CarMocap(model, data, mocapid, name, "RC_car_0" + str(irc))
                 
                 realcars += [c]
                 irc += 1
@@ -101,7 +100,7 @@ class Car(MovingObject):
         self.left_pressed = False
         self.right_pressed = False
 
-        self.cacc = .005
+        self.cacc = .8
     
     def get_qpos(self):
         return self.qpos
@@ -113,36 +112,43 @@ class Car(MovingObject):
 
         self.control_by_keyboard()
     
+    def print_info(self):
+        print("Virtual")
+        print("name in xml:      " + self.name_in_xml)
 
     def control_by_keyboard(self):
         if self.up_pressed:
-            if self.wheelrl.ctrl[0] < 0.05:
+            if self.wheelrl.ctrl[0] < 40:
                 self.wheelrl.ctrl[0] += self.cacc
                 self.wheelrr.ctrl[0] += self.cacc
-                self.wheelfl.ctrl[0] += self.cacc
-                self.wheelfr.ctrl[0] += self.cacc
-                print(self.wheelrl.ctrl)
+                #self.wheelfl.ctrl[0] += self.cacc
+                #self.wheelfr.ctrl[0] += self.cacc
 
         else:
             if self.wheelrl.ctrl[0] > 0:
+                if self.wheelrl.ctrl[0] < self.cacc:
+                    self.wheelrl.ctrl[0] = 0
+                    self.wheelrr.ctrl[0] = 0
                 self.wheelrl.ctrl[0] -= self.cacc
                 self.wheelrr.ctrl[0] -= self.cacc
-                self.wheelfl.ctrl[0] -= self.cacc
-                self.wheelfr.ctrl[0] -= self.cacc
+                #self.wheelfl.ctrl[0] -= self.cacc
+                #self.wheelfr.ctrl[0] -= self.cacc
+
+                #print(self.wheelrl.ctrl)
 
         if self.down_pressed:
-            if self.wheelrl.ctrl[0] > -0.05:
+            if self.wheelrl.ctrl[0] > -10:
                 self.wheelrl.ctrl[0] -= self.cacc
                 self.wheelrr.ctrl[0] -= self.cacc
-                self.wheelfl.ctrl[0] -= self.cacc
-                self.wheelfr.ctrl[0] -= self.cacc
+                #self.wheelfl.ctrl[0] -= self.cacc
+                #self.wheelfr.ctrl[0] -= self.cacc
 
         else:
             if self.wheelrl.ctrl[0] < 0:
                 self.wheelrl.ctrl[0] += self.cacc
                 self.wheelrr.ctrl[0] += self.cacc
-                self.wheelfl.ctrl[0] += self.cacc
-                self.wheelfr.ctrl[0] += self.cacc
+                #self.wheelfl.ctrl[0] += self.cacc
+                #self.wheelfr.ctrl[0] += self.cacc
 
         if self.right_pressed:
             #self.wheelfl.ctrl_steer[0] = -0.5

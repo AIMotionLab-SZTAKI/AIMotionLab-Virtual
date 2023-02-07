@@ -10,7 +10,7 @@ from util import mujoco_helper
 from classes.car import Car, CarMocap
 
 xml_path = os.path.join("..", "xml_models")
-simulator = ActiveSimulator(os.path.join(xml_path, "built_scene.xml"), None, 0.01, 0.02, False)
+simulator = ActiveSimulator(os.path.join(xml_path, "test_friction.xml"), None, 0.01, 0.02, False)
 #car = Car(simulator.model, simulator.data, "virtfleet1tenth_0")
 car = simulator.virtcars[0]
 
@@ -43,21 +43,6 @@ simulator.set_key_right_release_callback(right_release)
 
 simulator.cam.azimuth = 90
 simulator.onBoard_elev_offset = 20
-
-#simulator.virtcars += [car]
-#simulator.cars += [car]
-#simulator.all_vehicles += [car]
-#simulator.all_virt_vehicles += [car]
-
-#wheel.joint.qvel[0] = 1
-
-#print(wheelfl.actr)
-#car.wheelrl.ctrl[0] = 15
-#car.wheelrr.ctrl[0] = 15
-#car.wheelfl.ctrl[0] = 15
-#car.wheelfr.ctrl[0] = 15
-#car.wheelfl.ctrl_steer[0] = .5
-#car.wheelfr.ctrl_steer[0] = .5
 
 i = 0
 sign = 1

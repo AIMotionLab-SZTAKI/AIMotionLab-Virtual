@@ -50,18 +50,12 @@ class Drone(MovingObject):
 
         self.qvel = free_joint.qvel
 
-        self.sensor_data = self.data.sensor(self.name_in_xml + "_sensor0").data
+        self.sensor_data = self.data.sensor(self.name_in_xml + "_gyro").data
 
     
     def update(self, i):
 
         if self.trajectory is not None:
-
-            pos = self.get_qpos()[:3]
-            vel = self.get_qvel()[:3]
-
-            alpha = None
-            dalpha = None
 
             controller_input = self.trajectory.evaluate(i, self.data.time)
 

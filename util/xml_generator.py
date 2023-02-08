@@ -218,7 +218,7 @@ class SceneXmlGenerator:
         ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr2", gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-0.01 0.01")
         ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr3", gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-0.01 0.01")
 
-        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_sensor0")
+        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
 
         return drone
     
@@ -303,7 +303,7 @@ class SceneXmlGenerator:
         ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr2", gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-6 6")
         ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr3", gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-1.5 1.5")
 
-        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_sensor0")
+        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
 
         return drone
 
@@ -526,15 +526,15 @@ class SceneXmlGenerator:
         ET.SubElement(self.contact, "pair", geom1=name + "_wheelrl", geom2="roundabout", friction="1 1 0.005 0.0001 0.0001")
         ET.SubElement(self.contact, "pair", geom1=name + "_wheelrr", geom2="roundabout", friction="1 1 0.005 0.0001 0.0001")
 
-        #ET.SubElement(self.actuator, "motor", name=name + "_wheelfl_actr", joint=name + "_wheelfl")
-        #ET.SubElement(self.actuator, "motor", name=name + "_wheelfr_actr", joint=name + "_wheelfr")
-        ET.SubElement(self.actuator, "velocity", name=name + "_wheelrl_actr", joint=name + "_wheelrl")
-        ET.SubElement(self.actuator, "velocity", name=name + "_wheelrr_actr", joint=name + "_wheelrr")
+        ET.SubElement(self.actuator, "motor", name=name + "_wheelfl_actr", joint=name + "_wheelfl")
+        ET.SubElement(self.actuator, "motor", name=name + "_wheelfr_actr", joint=name + "_wheelfr")
+        ET.SubElement(self.actuator, "motor", name=name + "_wheelrl_actr", joint=name + "_wheelrl")
+        ET.SubElement(self.actuator, "motor", name=name + "_wheelrr_actr", joint=name + "_wheelrr")
         ET.SubElement(self.actuator, "position", name=name + "_wheelfl_actr_steer", joint=name + "_wheelfl_steer")
         ET.SubElement(self.actuator, "position", name=name + "_wheelfr_actr_steer", joint=name + "_wheelfr_steer")
 
 
-        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_sensor0")
+        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
 
 
     def __add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod):

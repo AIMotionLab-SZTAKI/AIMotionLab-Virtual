@@ -48,4 +48,4 @@ site for hook:
 		* realcrazyflie_69_actr3
 
 sensor for drone:
-	* drone_name_sensor0
+	* drone_name_gyro

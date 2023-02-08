@@ -100,7 +100,11 @@ class Car(MovingObject):
         self.left_pressed = False
         self.right_pressed = False
 
-        self.cacc = .8
+        self.cacc = .005
+
+        self.qvel = self.joint.qvel
+
+        self.sensor_data = self.data.sensor(self.name_in_xml + "_gyro").data
     
     def get_qpos(self):
         return self.qpos
@@ -118,37 +122,44 @@ class Car(MovingObject):
 
     def control_by_keyboard(self):
         if self.up_pressed:
-            if self.wheelrl.ctrl[0] < 40:
+            if self.wheelrl.ctrl[0] < .2:
                 self.wheelrl.ctrl[0] += self.cacc
                 self.wheelrr.ctrl[0] += self.cacc
-                #self.wheelfl.ctrl[0] += self.cacc
-                #self.wheelfr.ctrl[0] += self.cacc
+                self.wheelfl.ctrl[0] += self.cacc
+                self.wheelfr.ctrl[0] += self.cacc
 
         else:
             if self.wheelrl.ctrl[0] > 0:
                 if self.wheelrl.ctrl[0] < self.cacc:
                     self.wheelrl.ctrl[0] = 0
                     self.wheelrr.ctrl[0] = 0
+                    self.wheelfl.ctrl[0] = 0
+                    self.wheelfr.ctrl[0] = 0
                 self.wheelrl.ctrl[0] -= self.cacc
                 self.wheelrr.ctrl[0] -= self.cacc
-                #self.wheelfl.ctrl[0] -= self.cacc
-                #self.wheelfr.ctrl[0] -= self.cacc
+                self.wheelfl.ctrl[0] -= self.cacc
+                self.wheelfr.ctrl[0] -= self.cacc
 
                 #print(self.wheelrl.ctrl)
 
         if self.down_pressed:
-            if self.wheelrl.ctrl[0] > -10:
+            if self.wheelrl.ctrl[0] > -.2:
                 self.wheelrl.ctrl[0] -= self.cacc
                 self.wheelrr.ctrl[0] -= self.cacc
-                #self.wheelfl.ctrl[0] -= self.cacc
-                #self.wheelfr.ctrl[0] -= self.cacc
+                self.wheelfl.ctrl[0] -= self.cacc
+                self.wheelfr.ctrl[0] -= self.cacc
 
         else:
             if self.wheelrl.ctrl[0] < 0:
+                if self.wheelrl.ctrl[0] > -self.cacc:
+                    self.wheelrl.ctrl[0] = 0
+                    self.wheelrr.ctrl[0] = 0
+                    self.wheelfl.ctrl[0] = 0
+                    self.wheelfr.ctrl[0] = 0
                 self.wheelrl.ctrl[0] += self.cacc
                 self.wheelrr.ctrl[0] += self.cacc
-                #self.wheelfl.ctrl[0] += self.cacc
-                #self.wheelfr.ctrl[0] += self.cacc
+                self.wheelfl.ctrl[0] += self.cacc
+                self.wheelfr.ctrl[0] += self.cacc
 
         if self.right_pressed:
             #self.wheelfl.ctrl_steer[0] = -0.5

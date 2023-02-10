@@ -82,7 +82,7 @@ class ActiveSimulator(Display):
                 # only update real drones
                 vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
  
-                vehicle_to_update = MovingMocapObject.get_object_by_name_in_motive(self.realdrones, name)
+                vehicle_to_update = MovingMocapObject.get_object_by_name_in_motive(self.all_real_vehicles, name)
 
                 if vehicle_to_update is not None:
                     vehicle_to_update.update(obj.position, vehicle_orientation)
@@ -92,10 +92,6 @@ class ActiveSimulator(Display):
             mujoco_helper.update_onboard_cam(v.get_qpos(), self.camOnBoard,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
                                             self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
-        
-        for m in range(len(self.realdrones)):
-            
-            self.realdrones[m].spin_propellers(self.control_step, 20)
             
 
         for l in range(len(self.virtdrones)):

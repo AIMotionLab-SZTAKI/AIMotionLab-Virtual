@@ -56,10 +56,6 @@ class PassiveDisplay(Display):
                                                self.azim_filter_sin, self.azim_filter_cos,\
                                                self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
 
-            #print(self.data.qpos[:7])
-
-            for m in range(len(self.realdrones)):
-                self.realdrones[m].spin_propellers(self.graphics_step, 20)
 
             mujoco.mj_step(self.model, self.data, 1)
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)

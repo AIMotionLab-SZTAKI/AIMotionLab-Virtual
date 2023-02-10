@@ -184,8 +184,6 @@ def build_from_optitrack():
     """
     global scene, display
 
-    car_added = False
-
     drone_names_in_motive = []
     car_names_in_motive = []
 
@@ -226,12 +224,19 @@ def build_from_optitrack():
         elif name.startswith("obs"):
             scene.add_pole(name, position, "0.3826834 0 0 0.9238795")
         
-        elif ("car" in name) or (name.startswith("Trailer")):
+        elif ("RC_car" in name) or (name.startswith("Trailer")):
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
             #scene.add_car(position, orientation, BLUE_COLOR, False, True)
             scene.add_car(position, orientation, BLUE_COLOR, False, False)
             car_names_in_motive += [name]
             #car_added = True
+        
+        elif "AI_car" in name:
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
+            #scene.add_car(position, orientation, BLUE_COLOR, False, True)
+            scene.add_car(position, orientation, BLUE_COLOR, False, True)
+            car_names_in_motive += [name]
+
 
     save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), drone_names_in_motive, car_names_in_motive)
     #if car_added:

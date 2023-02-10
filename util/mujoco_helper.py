@@ -183,20 +183,20 @@ def euler_rad_to_euler_deg(array_3elem):
     return [math.degrees(array_3elem[0]), math.degrees(array_3elem[1]), math.degrees(array_3elem[2])]
 
 
-def update_onboard_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None, elev_offs=30):
+def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None, elev_offs=30):
     """
-    Update the position and orientation of the camera that follows the drone from behind
-    qpos is the array in which the position and orientation of all the drones are stored
+    Update the position and orientation of the camera that follows the vehicle from behind
+    qpos is the array in which the position and orientation of all the vehicles are stored
 
     Smoothing the 2 angle signals with 4 low-pass filters so that the camera would not shake.
-    It's not enough to only filter the angle signal, because when the drone turns,
+    It's not enough to only filter the angle signal, because when the vehicle turns,
     the angle might jump from 180 degrees to -180 degrees, and the filter tries to smooth out
     the jump (the camera ends up turning a 360). Instead, take the sine and the cosine of the
     angle, filter them, and convert them back with atan2().
     """
     MAX_CHANGE = 3
-    position = drone_qpos[0:3]
-    orientation = drone_qpos[3:7]
+    position = qpos[0:3]
+    orientation = qpos[3:7]
 
     roll_x, pitch_y, yaw_z = euler_from_quaternion(
         orientation[0], orientation[1], orientation[2], orientation[3])

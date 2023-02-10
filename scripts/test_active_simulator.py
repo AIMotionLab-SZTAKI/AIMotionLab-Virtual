@@ -38,6 +38,7 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
     # adding the necessary objects to the scene
     scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
     scene.add_drone("0 1 0", "1 0 0 0", BLUE_COLOR, False)
+    scene.add_drone("-1 -1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", False)
     scene.add_car("-0.5 1 0.2", "1 0 0 0", RED_COLOR, True)
     scene.add_car("0.5 1 0.2", "1 0 0 0", BLUE_COLOR, False)
     scene.add_load("0 0 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")

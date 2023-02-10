@@ -8,9 +8,26 @@ from classes.moving_object import MovingObject
 import os
 from util import mujoco_helper
 from classes.car import Car, CarMocap
+from util.xml_generator import SceneXmlGenerator
+import matplotlib.pyplot as plt
+
+RED_COLOR = "0.85 0.2 0.2 1.0"
+BLUE_COLOR = "0.2 0.2 0.85 1.0"
+# init simulator
 
 xml_path = os.path.join("..", "xml_models")
-simulator = ActiveSimulator(os.path.join(xml_path, "test_friction.xml"), None, 0.01, 0.02, False)
+xml_base_filename = "scene.xml"
+save_filename = "built_scene.xml"
+
+scene = SceneXmlGenerator(os.path.join(xml_path, xml_base_filename))
+scene.add_car("0 0 0", "1 0 0 0", RED_COLOR, True)
+scene.save_xml(os.path.join(xml_path, save_filename))
+
+simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, 0.01, 0.02, False)
+
+simulator.cam.elevation = -90
+simulator.cam.distance = 4
+
 #car = Car(simulator.model, simulator.data, "virtfleet1tenth_0")
 car = simulator.virtcars[0]
 
@@ -44,12 +61,28 @@ simulator.set_key_right_release_callback(right_release)
 simulator.cam.azimuth = 90
 simulator.onBoard_elev_offset = 20
 
+#car.up_pressed = True
+#car.left_pressed = True
+
 i = 0
 sign = 1
+
+pos_arr = []
+
 while not simulator.glfw_window_should_close():
 
     simulator.update(i)
 
+    if i > 100:
+        if (i % 10) == 0:
+            pos_arr += [np.copy(car.get_qpos()[:2])]
+
     i += 1
 
+
 simulator.close()
+
+pos_arr = np.array(pos_arr)
+print(pos_arr)
+plt.plot(pos_arr[:,0], pos_arr[:,1])
+plt.show()

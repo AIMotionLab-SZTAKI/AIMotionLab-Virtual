@@ -6,7 +6,8 @@ from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingInputGui
 from gui.vehicle_input_gui import VehicleInputGui
 from gui.payload_input_gui import PayloadInputGui
-from classes.car import CarMocap
+from classes.drone import Drone, DroneMocap
+from classes.car import Car, CarMocap
 
 
 # open the base on which we'll build
@@ -17,7 +18,10 @@ save_filename = "built_scene.xml"
 build_based_on_optitrack = False
 
 scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
-display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, False)
+
+virt_parsers = [Drone.parse, Car.parse]
+mocap_parsers = [DroneMocap.parse, CarMocap.parse]
+display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, virt_parsers, mocap_parsers, False)
 #display.set_drone_names()
 
 drone_counter = 0
@@ -164,9 +168,9 @@ def add_load():
         save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
 
 
-def save_and_reload_model(scene, display, save_filename, drone_names_in_motive=None, car_names_in_motive=None):
+def save_and_reload_model(scene, display, save_filename, vehicle_names_in_motive=None):
         scene.save_xml(save_filename)
-        display.reload_model(save_filename, drone_names_in_motive, car_names_in_motive)
+        display.reload_model(save_filename, vehicle_names_in_motive)
 
 def clear_scene():
     global scene, display, drone_counter, landing_zone_counter, pole_counter
@@ -237,8 +241,9 @@ def build_from_optitrack():
             scene.add_car(position, orientation, BLUE_COLOR, False, True)
             car_names_in_motive += [name]
 
+    vehicle_names_in_motive = drone_names_in_motive + car_names_in_motive
 
-    save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), drone_names_in_motive, car_names_in_motive)
+    save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), vehicle_names_in_motive)
     #if car_added:
     #    mocapid = display.model.body("car0").mocapid[0]
     #    car = CarMocap(display.model, display.data, mocapid, "car0", "AI_car_01")

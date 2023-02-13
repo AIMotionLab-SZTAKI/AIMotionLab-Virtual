@@ -6,6 +6,7 @@ import util.mujoco_helper as mh
 import math
 from enum import Enum
 from classes.moving_object import MovingObject, MovingMocapObject
+from util import mujoco_helper
 
 class SPIN_DIR(Enum):
     CLOCKWISE = 1
@@ -186,11 +187,13 @@ class Drone(MovingObject):
         return self.name_in_xml
 
     @staticmethod
-    def parse_drones(data, joint_names):
+    def parse(data, model):
         """
         Create a list of Drone instances from mujoco's MjData following a naming convention
         found in naming_convention_in_xml.txt
         """
+
+        joint_names = mujoco_helper.get_joint_name_list(model)
 
         virtdrones = []
         icf = 0
@@ -410,7 +413,9 @@ class DroneMocap(MovingMocapObject):
 
 
     @staticmethod
-    def parse_mocap_drones(data, model, body_names):
+    def parse(data, model):
+
+        body_names = mujoco_helper.get_body_name_list(model)
 
         realdrones = []
         icf = 0

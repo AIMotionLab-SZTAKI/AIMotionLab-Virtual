@@ -22,9 +22,9 @@ from classes.moving_object import MovingMocapObject
 
 class ActiveSimulator(Display):
 
-    def __init__(self, xml_file_name, video_intervals, control_step, graphics_step, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, video_intervals, control_step, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=True):
 
-        super().__init__(xml_file_name, graphics_step, connect_to_optitrack)
+        super().__init__(xml_file_name, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack)
         self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)
 
         #self.sim_step = sim_step
@@ -79,7 +79,7 @@ class ActiveSimulator(Display):
             for name, obj in self.mc.rigidBodies.items():
 
                 # have to put rotation.w to the front because the order is different
-                # only update real drones
+                # only update real vehicles
                 vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
  
                 vehicle_to_update = MovingMocapObject.get_object_by_name_in_motive(self.all_real_vehicles, name)
@@ -94,15 +94,10 @@ class ActiveSimulator(Display):
                                             self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
             
 
-        for l in range(len(self.virtdrones)):
+        for l in range(len(self.all_virt_vehicles)):
 
-            self.virtdrones[l].fake_propeller_spin(self.control_step, 20)
-
-            self.virtdrones[l].update(i)
+            self.all_virt_vehicles[l].update(i)
         
-        for l in range(len(self.virtcars)):
-
-            self.virtcars[l].update(i)
         
         
         mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))

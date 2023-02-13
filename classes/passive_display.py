@@ -22,9 +22,9 @@ from classes.moving_object import MovingMocapObject
 
 class PassiveDisplay(Display):
 
-    def __init__(self, xml_file_name, graphics_step, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=True):
 
-        super().__init__(xml_file_name, graphics_step, connect_to_optitrack)
+        super().__init__(xml_file_name, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack)
 
     def run(self):
         # To obtain inertia matrix

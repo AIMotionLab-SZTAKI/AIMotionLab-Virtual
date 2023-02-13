@@ -2,6 +2,7 @@ import numpy as np
 import os
 from classes.active_simulation import ActiveSimulator
 import classes.drone as drone
+import classes.car as car
 import time
 import sys
 from util.util import sync, FpsLimiter
@@ -16,12 +17,27 @@ from ctrl.RobustGeomControl import RobustGeomControl
 from ctrl.PlanarLQRControl import PlanarLQRControl
 
 
+def get_virtdrones_virtcars(vehicles):
+
+    virtdrones = []
+    virtcars = []
+
+    for i in range(len(vehicles)):
+        if isinstance(vehicles[i], car.Car):
+            virtcars += [vehicles[i]]
+        if isinstance(vehicles[i], drone.Drone):
+            virtdrones += [vehicles[i]]
+    
+    return virtdrones, virtcars
+        
+
+
 RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
 
-SCENARIO = traj.HOOK_UP_3_LOADS
-#SCENARIO = traj.FLY
+#SCENARIO = traj.HOOK_UP_3_LOADS
+SCENARIO = traj.FLY
 
 
 # init simulator
@@ -31,6 +47,9 @@ xml_base_filename = "scene.xml"
 save_filename = "built_scene.xml"
 
 scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xml_base_filename))
+
+virt_parsers = [drone.Drone.parse, car.Car.parse]
+mocap_parsers = [drone.DroneMocap.parse, car.CarMocap.parse]
 
 
 if SCENARIO == traj.HOOK_UP_3_LOADS:
@@ -51,7 +70,7 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
     control_step, graphics_step = 0.01, 0.04
 
     # initializing simulator
-    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, control_step, graphics_step, connect_to_optitrack=False)
+    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, control_step, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack=False)
 
     # creating controllers and trajectory objects for the drone
     controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
@@ -62,7 +81,10 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
 
     # grabbing the drone from the list of simulated drones
     # this time it only contains one drone as only one was added to the xml up top
-    d0 = simulator.virtdrones[0]
+
+    virt_drones, virt_cars = get_virtdrones_virtcars(simulator.all_virt_vehicles) 
+
+    d0 = virt_drones[0]
 
     # setting initial position of the drone
     d0.set_qpos(traj_.pos_ref[0, :], traj_.q0)
@@ -77,23 +99,23 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
     d0.set_trajectory(traj_)
     d0.set_controllers(controllers)
 
-    car = simulator.virtcars[0]
+    car_0 = virt_cars[0]
     def up_press():
-        car.up_pressed = True
+        car_0.up_pressed = True
     def up_release():
-        car.up_pressed = False
+        car_0.up_pressed = False
     def down_press():
-        car.down_pressed = True
+        car_0.down_pressed = True
     def down_release():
-        car.down_pressed = False
+        car_0.down_pressed = False
     def left_press():
-        car.left_pressed = True
+        car_0.left_pressed = True
     def left_release():
-        car.left_pressed = False
+        car_0.left_pressed = False
     def right_press():
-        car.right_pressed = True
+        car_0.right_pressed = True
     def right_release():
-        car.right_pressed = False
+        car_0.right_pressed = False
 
     simulator.set_key_up_callback(up_press)
     simulator.set_key_up_release_callback(up_release)
@@ -113,7 +135,7 @@ elif SCENARIO == traj.FLY:
     # initializing simulator
     control_step, graphics_step = 0.01, 0.04
     #simulator = ActiveSimulator(os.path.join(xml_path, save_filename), [0, 1, 2, 3], control_step, graphics_step, connect_to_optitrack=False)
-    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, control_step, graphics_step, connect_to_optitrack=False)
+    simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, control_step, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack=False)
 
     controller = GeomControl(simulator.model, simulator.data, drone_type='large_quad')
 
@@ -123,7 +145,9 @@ elif SCENARIO == traj.FLY:
 
     # grabbing the drone from the list of simulated drones
     # this time it only contains one drone as only one was added to the xml up top
-    d0 = simulator.virtdrones[0]
+
+    virt_drones, virt_cars = get_virtdrones_virtcars(simulator.all_virt_vehicles) 
+    d0 = virt_drones[0]
 
     d0.set_qpos(np.array((0.0, 0.0, 0.0)), np.array((1.0, 0.0, 0.0, 0.0)))
 

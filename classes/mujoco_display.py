@@ -27,8 +27,11 @@ class Display:
     """ Base class for passive and active simulation
     """
 
-    def __init__(self, xml_file_name, graphics_step, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=True):
         print(f'Working directory:  {os.getcwd()}\n')
+
+        self.virt_parsers = virt_parsers
+        self.mocap_parsers = mocap_parsers
 
         self.key_b_callback = None
         self.key_d_callback = None
@@ -116,7 +119,7 @@ class Display:
         self.camOnBoard.azimuth, self.camOnBoard.elevation = 180, -30
         self.camOnBoard.lookat, self.camOnBoard.distance = [0, 0, 0], 1
 
-        # set up low-pass filters for the camera that follows the drones
+        # set up low-pass filters for the camera that follows the vehicles
         fs = 1 / self.graphics_step  # sampling rate, Hz
         cutoff = 4
         self.b, self.a = scipy.signal.iirfilter(4, Wn=cutoff, fs=fs, btype="low", ftype="butter")
@@ -142,45 +145,36 @@ class Display:
 
         self.sim_step = self.model.opt.timestep
 
-        joint_names = mujoco_helper.get_joint_name_list(self.model)
-        body_names = mujoco_helper.get_body_name_list(self.model)
+        self.all_virt_vehicles = []
+        self.all_real_vehicles = []
 
-        self.virtdrones = Drone.parse_drones(self.data, joint_names)
-        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, body_names)
-        self.virtcars = Car.parse_cars(self.data, joint_names)
-        self.realcars = CarMocap.parse_mocap_cars(self.data, self.model, body_names)
+        if self.virt_parsers is not None:
+
+            for i in range(len(self.virt_parsers)):
+                self.all_virt_vehicles += self.virt_parsers[i](self.data, self.model)
+        
+        if self.mocap_parsers is not None:
+
+            for i in range(len(self.mocap_parsers)):
+                self.all_real_vehicles += self.mocap_parsers[i](self.data, self.model)
 
         print()
-        print(str(len(self.virtdrones)) + " virtual drone(s) found in xml.")
+        print(str(len(self.all_virt_vehicles)) + " virtual vehicle(s) found in xml.")
         print()
-        print(str(len(self.realdrones)) + " mocap drone(s) found in xml.")
-        print()
-        print(str(len(self.virtcars)) + " virtual car(s) found in xml.")
-        print()
-        print(str(len(self.realcars)) + " mocap car(s) found in xml.")
+        print(str(len(self.all_real_vehicles)) + " mocap vehicle(s) found in xml.")
         print("______________________________")
-        #self.drones = self.virtdrones + self.realdrones
-        self.drones = self.virtdrones + self.realdrones
-        self.cars = self.virtcars + self.realcars
-        self.all_virt_vehicles = self.virtdrones + self.virtcars
-        self.all_real_vehicles = self.realdrones + self.realcars
-        self.all_vehicles = self.drones + self.cars
+        
+        self.all_vehicles = self.all_virt_vehicles + self.all_real_vehicles
 
     
-    def reload_model(self, xml_file_name, drone_names_in_motive = None, car_names_in_motive = None):
+    def reload_model(self, xml_file_name, vehicle_names_in_motive):
         
         self.load_model(xml_file_name)
 
-        if drone_names_in_motive is not None and len(drone_names_in_motive) > 0:
-            i = 0
-            for i in range(len(self.realdrones)):
-                self.realdrones[i].name_in_motive = drone_names_in_motive[i]
-                i += 1
+        if vehicle_names_in_motive is not None:
+            for i in range(len(self.all_real_vehicles)):
+                self.all_real_vehicles[i].name_in_motive = vehicle_names_in_motive[i]
         
-        if car_names_in_motive is not None and len(car_names_in_motive) > 0:
-
-            for i in range(len(car_names_in_motive)):
-                self.realcars[i].name_in_motive = car_names_in_motive[i]
 
     def glfw_window_should_close(self):
         return glfw.window_should_close(self.window)
@@ -348,7 +342,7 @@ class Display:
             self.connect_to_Optitrack()
 
         if key == glfw.KEY_N and action == glfw.RELEASE:
-            self.set_drone_names()
+            self.set_vehicle_names()
 
         if key == glfw.KEY_L and action == glfw.RELEASE:
             """
@@ -530,7 +524,7 @@ class Display:
         self.video_process.wait()
 
 
-    def set_drone_names(self):
+    def set_vehicle_names(self):
         
         if len(self.all_real_vehicles) > 0:
             object_names = MovingMocapObject.get_object_names_motive(self.all_real_vehicles)

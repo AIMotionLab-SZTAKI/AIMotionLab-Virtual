@@ -8,6 +8,7 @@ from classes.moving_object import MovingObject
 import os
 from util import mujoco_helper
 from classes.car import Car, CarMocap
+from classes.drone import Drone, DroneMocap
 from util.xml_generator import SceneXmlGenerator
 import matplotlib.pyplot as plt
 
@@ -23,13 +24,25 @@ scene = SceneXmlGenerator(os.path.join(xml_path, xml_base_filename))
 scene.add_car("0 0 0", "1 0 0 0", RED_COLOR, True)
 scene.save_xml(os.path.join(xml_path, save_filename))
 
-simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, 0.01, 0.02, False)
+virt_parsers = [Drone.parse, Car.parse]
+mocap_parsers = [DroneMocap.parse, CarMocap.parse]
+
+simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
 
 simulator.cam.elevation = -90
 simulator.cam.distance = 4
 
+car = None
+
 #car = Car(simulator.model, simulator.data, "virtfleet1tenth_0")
-car = simulator.virtcars[0]
+for i in range(len(simulator.all_virt_vehicles)):
+    if isinstance(simulator.all_virt_vehicles[i], Car):
+        car = simulator.all_virt_vehicles[i]
+        break
+
+if car is None:
+    print("no car found")
+    exit()
 
 def up_press():
     car.up_pressed = True

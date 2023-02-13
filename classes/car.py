@@ -61,7 +61,7 @@ class Car(MovingObject):
         self.right_pressed = False
 
         self.cacc = .005
-        self.max_vel = 0.4
+        self.max_vel = 0.1
 
         self.qvel = self.joint.qvel
 
@@ -181,9 +181,11 @@ class Car(MovingObject):
 
         
     @staticmethod
-    def parse_cars(data, joint_names):
+    def parse(data, model):
         cars = []
         ivc = 0
+
+        joint_names = mujoco_helper.get_joint_name_list(model)
 
         for name in joint_names:
 
@@ -230,9 +232,11 @@ class CarMocap(MovingMocapObject):
         self.data.mocap_quat[self.mocapid] = quat
 
     @staticmethod
-    def parse_mocap_cars(data, model, body_names):
+    def parse(data, model):
         realcars = []
         irc = 1
+
+        body_names = mujoco_helper.get_body_name_list(model)
 
         for name in body_names:
             name_cut = name[:len(name) - 2]

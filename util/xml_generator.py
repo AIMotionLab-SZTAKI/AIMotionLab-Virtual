@@ -490,47 +490,55 @@ class SceneXmlGenerator:
         
         car = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
 
+        ET.SubElement(car, "inertial", pos="0 0 0", diaginertia=".05 .05 .08", mass="3.0")
         ET.SubElement(car, "joint", name=name, type="free")
         ET.SubElement(car, "site", name=site_name, pos="0 0 0")
 
         self.__add_fleet1tenth_body(car, name, color, has_rod)
 
+        armature = "0.05"
+        damping = "0.00001"
+        frictionloss = "0.00001"
+
         wheelfl = ET.SubElement(car, "body", name=name + "_wheelfl", quat="1 0 0 0" )
         ET.SubElement(wheelfl, "joint", name=name + "_wheelfl_steer", type="hinge", pos="0.16113 .10016 0", axis="0 0 1")
-        ET.SubElement(wheelfl, "joint", name=name + "_wheelfl", type="hinge", pos="0.16113 .122385 0", axis="0 1 0")
+        ET.SubElement(wheelfl, "joint", name=name + "_wheelfl", type="hinge", pos="0.16113 .122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
-        ET.SubElement(wheelfl, "geom", name=name + "_wheelfl", type="cylinder", size=".052388 .022225", pos="0.16113 .122385 0", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelfl, "geom", name=name + "_wheelfl", type="cylinder", size=".052388 .022225", pos="0.16113 .122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
         wheelrl = ET.SubElement(car, "body", name=name + "_wheelrl", quat="1 0 0 0" )
-        ET.SubElement(wheelrl, "joint", name=name + "_wheelrl", type="hinge", pos="-0.16113 .122385 0", axis="0 1 0")
+        ET.SubElement(wheelrl, "joint", name=name + "_wheelrl", type="hinge", pos="-0.16113 .122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
-        ET.SubElement(wheelrl, "geom", name=name + "_wheelrl", type="cylinder", size=".052388 .022225", pos="-0.16113 .122385 0", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelrl, "geom", name=name + "_wheelrl", type="cylinder", size=".052388 .022225", pos="-0.16113 .122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
         wheelfr = ET.SubElement(car, "body", name=name + "_wheelfr", quat="1 0 0 0" )
         ET.SubElement(wheelfr, "joint", name=name + "_wheelfr_steer", type="hinge", pos="0.16113 -.10016 0", axis="0 0 1")
-        ET.SubElement(wheelfr, "joint", name=name + "_wheelfr", type="hinge", pos="0.16113 -.122385 0", axis="0 1 0")
+        ET.SubElement(wheelfr, "joint", name=name + "_wheelfr", type="hinge", pos="0.16113 -.122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
-        ET.SubElement(wheelfr, "geom", name=name + "_wheelfr", type="cylinder", size=".052388 .022225", pos="0.16113 -.122385 0", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelfr, "geom", name=name + "_wheelfr", type="cylinder", size=".052388 .022225", pos="0.16113 -.122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
         wheelrr = ET.SubElement(car, "body", name=name + "_wheelrr", quat="1 0 0 0" )
-        ET.SubElement(wheelrr, "joint", name=name + "_wheelrr", type="hinge", pos="-0.16113 -.122385 0", axis="0 1 0")
+        ET.SubElement(wheelrr, "joint", name=name + "_wheelrr", type="hinge", pos="-0.16113 -.122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
-        ET.SubElement(wheelrr, "geom", name=name + "_wheelrr", type="cylinder", size=".052388 .022225", pos="-0.16113 -.122385 0", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelrr, "geom", name=name + "_wheelrr", type="cylinder", size=".052388 .022225", pos="-0.16113 -.122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
-        ET.SubElement(self.contact, "pair", geom1=name + "_wheelfl", geom2="roundabout", friction="1 1 0.005 0.1 0.1")
-        ET.SubElement(self.contact, "pair", geom1=name + "_wheelfr", geom2="roundabout", friction="1 1 0.005 0.1 0.1")
-        ET.SubElement(self.contact, "pair", geom1=name + "_wheelrl", geom2="roundabout", friction="1 1 0.005 0.1 0.1")
-        ET.SubElement(self.contact, "pair", geom1=name + "_wheelrr", geom2="roundabout", friction="1 1 0.005 0.1 0.1")
+        friction = "1 1 .005 .0001 .0001"
+
+        ET.SubElement(self.contact, "pair", geom1=name + "_wheelfl", geom2="roundabout", condim="6", friction=friction)
+        ET.SubElement(self.contact, "pair", geom1=name + "_wheelfr", geom2="roundabout", condim="6", friction=friction)
+        ET.SubElement(self.contact, "pair", geom1=name + "_wheelrl", geom2="roundabout", condim="6", friction=friction)
+        ET.SubElement(self.contact, "pair", geom1=name + "_wheelrr", geom2="roundabout", condim="6", friction=friction)
 
         ET.SubElement(self.actuator, "motor", name=name + "_wheelfl_actr", joint=name + "_wheelfl")
         ET.SubElement(self.actuator, "motor", name=name + "_wheelfr_actr", joint=name + "_wheelfr")
         ET.SubElement(self.actuator, "motor", name=name + "_wheelrl_actr", joint=name + "_wheelrl")
         ET.SubElement(self.actuator, "motor", name=name + "_wheelrr_actr", joint=name + "_wheelrr")
-        ET.SubElement(self.actuator, "position", name=name + "_wheelfl_actr_steer", joint=name + "_wheelfl_steer", kp="8")
-        ET.SubElement(self.actuator, "position", name=name + "_wheelfr_actr_steer", joint=name + "_wheelfr_steer", kp="8")
+        ET.SubElement(self.actuator, "position", name=name + "_wheelfl_actr_steer", joint=name + "_wheelfl_steer", kp="2")
+        ET.SubElement(self.actuator, "position", name=name + "_wheelfr_actr_steer", joint=name + "_wheelfr_steer", kp="2")
 
 
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
+        ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
 
 
     def __add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod):

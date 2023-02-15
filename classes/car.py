@@ -41,6 +41,10 @@ class Car(MovingObject):
         self.WB = .32226
         self.TW = .20032
 
+        self.torque = 0.0
+        self.d = 0.05
+        self.v_long = 0.0
+
         self.name_in_xml = name_in_xml
         self.data = data
 
@@ -66,6 +70,9 @@ class Car(MovingObject):
         self.qvel = self.joint.qvel
 
         self.sensor_data = self.data.sensor(self.name_in_xml + "_gyro").data
+        self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data
+
+        #self.mass = model.body(self.name_in_xml).mass
 
         self.steer_angle = 0
         self.max_steer = 0.4
@@ -77,8 +84,12 @@ class Car(MovingObject):
         self.controller = controller
 
     def update(self, i):
+        
+        self.calc_torque(self.d)
 
-        self.control_by_keyboard()
+        self.test_torque()
+
+        #self.control_by_keyboard()
         #print(self.qpos)
     
     def calc_frontwheel_angles(self, delta_in):
@@ -92,6 +103,32 @@ class Car(MovingObject):
         return delta_left, delta_right
         #return delta_in, delta_in
     
+    def test_torque(self):
+        self.wheelrl.ctrl[0] = self.torque
+        self.wheelrr.ctrl[0] = self.torque
+        self.wheelfl.ctrl[0] = self.torque
+        self.wheelfr.ctrl[0] = self.torque
+
+    
+    def calc_torque(self, d):
+
+        C_m1 = 65
+        C_m2 = 3.3
+        C_m3 = 1.05
+
+        v = self.sensor_velocimeter
+        #self.v_long = math.sqrt((v[0] * v[0]) + (v[1] * v[1]) + (v[2] * v[2]))
+
+        self.v_long = v[0]
+
+        self.torque = (C_m1 * d) - (C_m2 * self.v_long) - (C_m3 * np.sign(self.v_long))
+        #self.torque = self.clamp(self.torque, -.2, .2)
+
+        #self.torque = self.d
+
+    def clamp(self, num, min_value, max_value):
+        return max(min(num, max_value), min_value)
+
     def print_info(self):
         print("Virtual")
         print("name in xml:      " + self.name_in_xml)
@@ -194,6 +231,9 @@ class Car(MovingObject):
             if name.startswith("virtfleet1tenth") and not name.endswith("steer") and not name_cut.endswith("wheel"):
 
                 car = Car(data, name)
+
+                mass = model.body(name).mass
+                print(mass)
 
                 cars += [car]
                 ivc += 1

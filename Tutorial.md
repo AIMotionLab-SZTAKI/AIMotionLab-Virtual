@@ -68,14 +68,14 @@ orientation = "1 0 0 0"
 color = "0.2 0.2 0.85 1.0"
 
 # this will be a simulated (not a mocap), blue crazyflie drone
-scene.add_drone(position, orientation, color, True, "crazyflie", False)
+drone0_name = scene.add_drone(position, orientation, color, True, "crazyflie", False)
 
 position = "1 0 1"
 orientation = "1 0 0 0"
 color = "0.2 0.85 0.2 1.0"
 
 # this will be a simulated (not a mocap), green bumblebee drone with a hook (because last argument is True)
-scene.add_drone(position, orientation, color, True, "bumblebee", True)
+drone1_name = scene.add_drone(position, orientation, color, True, "bumblebee", True)
 
 
 position = "0 1 1"
@@ -83,7 +83,7 @@ orientation = "1 0 0 0"
 color = "0.85 0.2 0.2 1.0"
 
 # this will be a mocap (because 4th argument is False), red bumblebee drone without a hook
-scene.add_drone(position, orientation, color, False, "bumblebee", False)
+drone2_name = scene.add_drone(position, orientation, color, False, "bumblebee", False)
 ```
 
 To add a payload to the model:
@@ -128,7 +128,6 @@ At this point, a blank window should appear.
 To access the list of simulated objects so that a trajectory and controllers can be assigned to each:
 
 ```
-simulated_vehicles = simulator.all_virt_vehicles
 
 # Controllers are in Peter Antal's repository
 from ctrl.GeomControl import GeomControl
@@ -142,8 +141,9 @@ controllers = {"geom" : controller}
 
 trajectory_flip = traj.TestTrajectory(control_step, traj.FLIP)
 
-simulated_vehicles[0].set_controllers(controllers)
-simulated_vehicles[0].set_trajectory(trajectory_flip)
+drone = simulator.get_MovingObject_by_name_in_xml(drone0_name)
+drone.set_controllers(controllers)
+drone.set_trajectory(trajectory_flip)
 ```
 The vehicles in this list are in the same order as they have been added to the xml model.
 

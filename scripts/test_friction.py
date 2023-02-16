@@ -25,7 +25,7 @@ scene = SceneXmlGenerator(os.path.join(xml_path, xml_base_filename))
 
 quat = mujoco_helper.quaternion_from_euler(0, 0, math.pi)
 quat = str(quat[0]) + " " + str(quat[1]) + " " + str(quat[2]) + " " + str(quat[3])
-scene.add_car("4 0 0.05", quat, RED_COLOR, True)
+car_name = scene.add_car("4 0 0.05", quat, RED_COLOR, True)
 scene.save_xml(os.path.join(xml_path, save_filename))
 
 virt_parsers = [Drone.parse, Car.parse]
@@ -36,17 +36,8 @@ simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, 0.01, 0
 #simulator.cam.elevation = -90
 #simulator.cam.distance = 4
 
-car = None
+car = simulator.get_MovingObject_by_name_in_xml(car_name)
 
-#car = Car(simulator.model, simulator.data, "virtfleet1tenth_0")
-for i in range(len(simulator.all_virt_vehicles)):
-    if isinstance(simulator.all_virt_vehicles[i], Car):
-        car = simulator.all_virt_vehicles[i]
-        break
-
-if car is None:
-    print("no car found")
-    exit()
 
 def up_press():
     car.up_pressed = True
@@ -82,28 +73,20 @@ simulator.change_cam()
 
 #car.up_pressed = True
 #car.left_pressed = True
-
-
-
 d = 0.04
+d_increment = 0.01
 sample_t = 1.0 / 40.0
+car_init_pos_x = 4
 
-for j in range(6):
+def simulate_with_graphix(vel_arr):
     i = 0
-
-    pos_arr = []
-    vel_arr = []
-
-    car.qpos[0] = 4
-    
-    d += 0.01
-    car.d = d
+    #simulator.start_time = time.time()
     prev_sample_time = -1
 
-    simulator.start_time = time.time()
     while not simulator.glfw_window_should_close():
 
         t = time.time() - simulator.start_time
+
         simulator.update(i)
 
 
@@ -122,6 +105,52 @@ for j in range(6):
             prev_sample_time = t
 
         i += 1
+
+
+def simulate_without_graphix(vel_arr):
+    i = 0
+    #simulator.start_time = time.time()
+    prev_sample_time = -1
+
+    while not simulator.glfw_window_should_close():
+
+        t = i * simulator.sim_step
+        simulator.update_(i)
+
+
+        if t >= 6:
+            car.d = 0.0
+        
+        if t >= 8:
+            break
+
+        time_since_prev_sample = t - prev_sample_time
+        
+        if time_since_prev_sample >= sample_t:
+
+            #print(car.sensor_velocimeter)
+            vel_arr += [(t, car.sensor_velocimeter[0])]
+            prev_sample_time = t
+
+        i += 1
+
+
+
+
+
+for j in range(6):
+
+    pos_arr = []
+    vel_arr = []
+
+    car.qpos[0] = car_init_pos_x
+    
+    d += d_increment
+    car.d = d
+
+
+    #simulate_with_graphix(vel_arr)
+    simulate_without_graphix(vel_arr)
 
 
     real_data = np.loadtxt("../velocities.csv", delimiter=',', dtype=float)

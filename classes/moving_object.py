@@ -8,6 +8,8 @@ from enum import Enum
 class MovingObject:
     """ Base class for any moving vehicle or object
     """
+    def __init__(self, name_in_xml) -> None:
+        self.name_in_xml = name_in_xml
 
     def update(self, i):
         # must implement this method

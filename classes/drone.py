@@ -17,9 +17,10 @@ class Drone(MovingObject):
 
     def __init__(self, data: mujoco.MjData, name_in_xml, trajectory, controllers, parameters = {"mass" : 0.1}):
 
+        super().__init__(name_in_xml)
+
         self.data = data
 
-        self.name_in_xml = name_in_xml
 
         self.trajectory = trajectory
         self.controllers = controllers
@@ -55,6 +56,8 @@ class Drone(MovingObject):
 
     
     def update(self, i):
+
+        self.fake_propeller_spin(0.02)
 
         if self.trajectory is not None:
 
@@ -263,6 +266,7 @@ class DroneHooked(Drone):
         #return np.append(drone_qpos, self.data.joint(self.hook_name_in_xml).qpos)
     
     def update(self, i):
+        self.fake_propeller_spin(0.02)
 
         if self.trajectory is not None:
             pos = self.get_qpos()[:3]
@@ -366,6 +370,8 @@ class DroneHooked(Drone):
 ################################## DroneMocap ##################################
 class DroneMocap(MovingMocapObject):
     def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, name_in_motive, name_in_xml):
+
+        super().__init__(name_in_xml, name_in_motive)
         self.data = data
         self.name_in_xml = name_in_xml
         self.name_in_motive = name_in_motive

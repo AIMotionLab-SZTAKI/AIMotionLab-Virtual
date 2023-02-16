@@ -36,16 +36,15 @@ class Car(MovingObject):
 
     def __init__(self, data, name_in_xml):
 
-        super().__init__()
+        super().__init__(name_in_xml)
 
         self.WB = .32226
         self.TW = .20032
 
         self.torque = 0.0
-        self.d = 0.05
+        self.d = 0.0
         self.v_long = 0.0
 
-        self.name_in_xml = name_in_xml
         self.data = data
 
         self.joint = self.data.joint(self.name_in_xml)
@@ -75,7 +74,7 @@ class Car(MovingObject):
         #self.mass = model.body(self.name_in_xml).mass
 
         self.steer_angle = 0
-        self.max_steer = 0.4
+        self.max_steer = 0.5
     
     def get_qpos(self):
         return self.qpos

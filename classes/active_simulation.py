@@ -10,13 +10,8 @@ import os
 import numpy as np
 import time
 from util import mujoco_helper
-import cv2
-from gui.vehicle_name_gui import VehicleNameGui
 from util.util import sync
-import scipy.signal
-from util.mujoco_helper import LiveLFilter
 from classes.mujoco_display import Display
-import classes.drone as drone
 from classes.moving_object import MovingMocapObject
 
 
@@ -119,6 +114,18 @@ class ActiveSimulator(Display):
         sync(i, self.start_time, self.control_step)
 
         return self.data
+
+    def update_(self, i):
+        if i == 0:
+            self.start_time = time.time()
+        
+
+        for l in range(len(self.all_virt_vehicles)):
+
+            self.all_virt_vehicles[l].update(i)
+        
+        mujoco.mj_step(self.model, self.data, 1)
+
     
     def manage_video_recording(self):
         time_since_start = time.time() - self.start_time

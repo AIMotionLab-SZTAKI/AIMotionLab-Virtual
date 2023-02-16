@@ -15,8 +15,6 @@ from gui.vehicle_name_gui import VehicleNameGui
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.moving_object import MovingMocapObject
-from classes.drone import Drone, DroneMocap
-from classes.car import Car, CarMocap
 import ffmpeg
 
 MAX_GEOM = 200
@@ -165,9 +163,30 @@ class Display:
         print("______________________________")
         
         self.all_vehicles = self.all_virt_vehicles + self.all_real_vehicles
-
     
-    def reload_model(self, xml_file_name, vehicle_names_in_motive):
+
+    def get_MovingObject_by_name_in_xml(self, name):
+
+        for i in range(len(self.all_virt_vehicles)):
+
+            vehicle = self.all_virt_vehicles[i]
+            if name == vehicle.name_in_xml:
+
+                return vehicle
+
+        return None
+
+    def get_MovingMocapObject_by_name_in_xml(self, name):
+
+        for i in range(len(self.all_real_vehicles)):
+
+            vehicle = self.all_real_vehicles[i]
+            if name == vehicle.name_in_xml:
+                return vehicle
+        
+        return None
+    
+    def reload_model(self, xml_file_name, vehicle_names_in_motive = None):
         
         self.load_model(xml_file_name)
 

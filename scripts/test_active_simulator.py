@@ -17,27 +17,12 @@ from ctrl.RobustGeomControl import RobustGeomControl
 from ctrl.PlanarLQRControl import PlanarLQRControl
 
 
-def get_virtdrones_virtcars(vehicles):
-
-    virtdrones = []
-    virtcars = []
-
-    for i in range(len(vehicles)):
-        if isinstance(vehicles[i], car.Car):
-            virtcars += [vehicles[i]]
-        if isinstance(vehicles[i], drone.Drone):
-            virtdrones += [vehicles[i]]
-    
-    return virtdrones, virtcars
-        
-
-
 RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
 
-#SCENARIO = traj.HOOK_UP_3_LOADS
-SCENARIO = traj.FLY
+SCENARIO = traj.HOOK_UP_3_LOADS
+#SCENARIO = traj.FLY
 
 
 # init simulator
@@ -55,11 +40,11 @@ mocap_parsers = [drone.DroneMocap.parse, car.CarMocap.parse]
 if SCENARIO == traj.HOOK_UP_3_LOADS:
 
     # adding the necessary objects to the scene
-    scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
-    scene.add_drone("0 1 0", "1 0 0 0", BLUE_COLOR, False)
-    scene.add_drone("-1 -1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", False)
-    scene.add_car("-0.5 1 0.2", "1 0 0 0", RED_COLOR, True)
-    scene.add_car("0.5 1 0.2", "1 0 0 0", BLUE_COLOR, False)
+    drone0_name = scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
+    #scene.add_drone("0 1 0", "1 0 0 0", BLUE_COLOR, False)
+    #scene.add_drone("-1 -1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", False)
+    car0_name = scene.add_car("-0.5 1 0.2", "1 0 0 0", RED_COLOR, True)
+    #scene.add_car("0.5 1 0.2", "1 0 0 0", BLUE_COLOR, False)
     scene.add_load("0 0 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
     scene.add_load("-.6 .6 0", ".075 .075 .075", ".05", "1 0 0 0", "0.1 0.9 0.1 1.0")
     scene.add_load("-.3 -.6 0", ".075 .075 .1", ".1", "1 0 0 0", "0.9 0.1 0.1 1.0")
@@ -67,10 +52,12 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
     # saving the scene as xml so that the simulator can load it
     scene.save_xml(os.path.join(xml_path, save_filename))
 
-    control_step, graphics_step = 0.01, 0.04
+    control_step, graphics_step = 0.01, 0.02
 
     # initializing simulator
     simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, control_step, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack=False)
+
+    simulator.onBoard_elev_offset = 15
 
     # creating controllers and trajectory objects for the drone
     controller = RobustGeomControl(simulator.model, simulator.data, drone_type='large_quad')
@@ -79,12 +66,8 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
     controllers = {"geom" : controller, "lqr" : controller_lqr}
     traj_ = traj.TestTrajectory(control_step, traj.HOOK_UP_3_LOADS)
 
-    # grabbing the drone from the list of simulated drones
-    # this time it only contains one drone as only one was added to the xml up top
 
-    virt_drones, virt_cars = get_virtdrones_virtcars(simulator.all_virt_vehicles) 
-
-    d0 = virt_drones[0]
+    d0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
 
     # setting initial position of the drone
     d0.set_qpos(traj_.pos_ref[0, :], traj_.q0)
@@ -99,7 +82,9 @@ if SCENARIO == traj.HOOK_UP_3_LOADS:
     d0.set_trajectory(traj_)
     d0.set_controllers(controllers)
 
-    car_0 = virt_cars[0]
+    car_0 = simulator.get_MovingObject_by_name_in_xml(car0_name)
+    car_0.max_vel = 1
+    car_0.cacc = 0.05
     def up_press():
         car_0.up_pressed = True
     def up_release():

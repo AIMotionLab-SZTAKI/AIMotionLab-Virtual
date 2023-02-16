@@ -100,6 +100,8 @@ class SceneXmlGenerator:
 
     def add_drone(self, pos, quat, color, is_virtual = True, type="crazyflie", is_hooked = False):
 
+        name = None
+
         if is_hooked and type != "bumblebee":
             print("[SceneXmlGenerator] Error: Hooked drone can only be bumblebee...")
             return None
@@ -115,7 +117,7 @@ class SceneXmlGenerator:
                     drone = self.__add_bumblebee(name, pos, quat, color, True)
 
                     self.__virtbumblebee_hooked_cntr += 1
-                    return
+                    return name
                 
                 else:
 
@@ -123,7 +125,7 @@ class SceneXmlGenerator:
                     drone = self.__add_bumblebee(name, pos, quat, color)
 
                     self.__virtbumblebee_cntr += 1
-                    return
+                    return name
 
             elif type == "crazyflie":
                 name = "virtcrazyflie_" + str(self.__virtcrazyflie_cntr)
@@ -131,12 +133,12 @@ class SceneXmlGenerator:
                 drone = self.__add_crazyflie(name, pos, quat, color)
 
                 self.__virtcrazyflie_cntr += 1
-                return
+                return name
                 
             
             else:
                 print("[SceneXmlGenerator] Error: unknown drone type: " + str(type))
-                return
+                return None
         
         else:
             if type == "bumblebee":
@@ -149,7 +151,7 @@ class SceneXmlGenerator:
                     self.__add_mocap_hook_to_drone(drone, pos, name)
 
                     self.__realbumblebee_hooked_cntr += 1
-                    return
+                    return name
 
                 else:
 
@@ -157,7 +159,7 @@ class SceneXmlGenerator:
                     drone = self.__add_mocap_bumblebee(name, pos, quat, color)
 
                     self.__realbumblebee_cntr += 1
-                    return
+                    return name
 
             elif type == "crazyflie":
                 name = "realcrazyflie_" + str(self.__realcrazyflie_cntr)
@@ -165,11 +167,11 @@ class SceneXmlGenerator:
                 drone = self.__add_mocap_crazyflie(name, pos, quat, color)
 
                 self.__realcrazyflie_cntr += 1
-                return
+                return name
             
             else:
                 print("[SceneXmlGenerator] Error: unknown drone type: " + str(type))
-                return
+                return None
 
         
     
@@ -475,6 +477,9 @@ class SceneXmlGenerator:
 
 
     def add_car(self, pos, quat, color, is_virtual, has_rod=False, type="fleet1tenth"):
+
+        name = None
+
         if is_virtual and type == "fleet1tenth":
             name = "virtfleet1tenth_" + str(self.__virtfleet1tenth_cntr)
             self.__add_fleet1tenth(pos, quat, name, color, has_rod)
@@ -484,6 +489,8 @@ class SceneXmlGenerator:
             name = "realfleet1tenth_" + str(self.__realfleet1tenth_cntr)
             self.__add_mocap_fleet1tenth(pos, quat, name, color, has_rod)
             self.__realfleet1tenth_cntr += 1
+        
+        return name
     
     def __add_fleet1tenth(self, pos, quat, name, color, has_rod):
         site_name = name + SITE_NAME_END
@@ -498,7 +505,7 @@ class SceneXmlGenerator:
 
         armature = "0.05"
         damping = "0.00001"
-        frictionloss = "0.00001"
+        frictionloss = "0.01"
 
         wheelfl = ET.SubElement(car, "body", name=name + "_wheelfl", quat="1 0 0 0" )
         ET.SubElement(wheelfl, "joint", name=name + "_wheelfl_steer", type="hinge", pos="0.16113 .10016 0", axis="0 0 1")
@@ -564,8 +571,8 @@ class SceneXmlGenerator:
         ET.SubElement(car, "geom", name=name + "_front_bumper", type="box", size=".005 .09 .02", pos=".265888 0 0.02", rgba=color)
         ET.SubElement(car, "geom", name=name + "_back_bumper", type="box", size=".005 .08 .02", pos="-.265888 0 0.02", rgba=color)
         ET.SubElement(car, "geom", name=name + "_number", type="cylinder", size=".01984 .03", pos=".12 0 .05", rgba="0.1 0.1 0.1 1.0")
-        ET.SubElement(car, "geom", name=name + "_camera", type="box", size=".008 .06 0.02", pos=".18 0 .08")
-        ET.SubElement(car, "geom", name=name + "_camera_holder", type="box", size=".008 .008 .02", pos=".18 0 .04")
+        ET.SubElement(car, "geom", name=name + "_camera", type="box", size=".012 .06 0.02", pos=".18 0 .08")
+        ET.SubElement(car, "geom", name=name + "_camera_holder", type="box", size=".012 .008 .02", pos=".18 0 .04")
         ET.SubElement(car, "geom", name=name + "_circuits", type="box", size=".08 .06 .03", pos="-.05 0 .05", rgba=color)
         ET.SubElement(car, "geom", name=name + "_antennal", type="box", size=".007 .004 .06", pos="-.16 -.01 .105", euler="0.2 0 0", rgba=".1 .1 .1 1.0")
         ET.SubElement(car, "geom", name=name + "_antennar", type="box", size=".007 .004 .06", pos="-.16 .01 .105", euler="-0.2 0 0", rgba=".1 .1 .1 1.0")

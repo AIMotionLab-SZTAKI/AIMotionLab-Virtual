@@ -1,11 +1,10 @@
 import math
+import os
 
-import motioncapture
 import time
 import numpy as np
 import mujoco
 import glfw
-import os
 import numpy as np
 import time
 import threading
@@ -17,6 +16,9 @@ from util.mujoco_helper import LiveLFilter
 from classes.moving_object import MovingMocapObject
 import ffmpeg
 
+if os.name != "nt":
+    import motioncapture
+
 MAX_GEOM = 200
 INIT_WWIDTH = 1280
 INIT_WHEIGHT = 720
@@ -27,6 +29,10 @@ class Display:
 
     def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=True):
         print(f'Working directory:  {os.getcwd()}\n')
+
+        if connect_to_optitrack and os.name == "nt":
+            connect_to_optitrack = False
+            print("[Display] Motioncapture library is not supported on windows")
 
         self.virt_parsers = virt_parsers
         self.mocap_parsers = mocap_parsers
@@ -455,9 +461,12 @@ class Display:
 
 
     def connect_to_Optitrack(self):
-        self.connect_to_optitrack = True
-        self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
-        print("[Display] Connected to Optitrack")
+        if os.name != "nt":
+            self.connect_to_optitrack = True
+            self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
+            print("[Display] Connected to Optitrack")
+        else:
+            print("[Display] Motioncapture library is not supported on windows")
 
 
     def change_cam(self):

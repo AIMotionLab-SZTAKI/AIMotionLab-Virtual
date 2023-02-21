@@ -85,10 +85,13 @@ def simulate_with_graphix(vel_arr):
 
     while not simulator.glfw_window_should_close():
 
-        t = time.time() - simulator.start_time
+        #print(simulator.start_time)
 
         simulator.update(i)
+        
+        t = time.time() - simulator.start_time
 
+        #print(t)
 
         if t >= 6:
             car.d = 0.0
@@ -97,6 +100,9 @@ def simulate_with_graphix(vel_arr):
             break
 
         time_since_prev_sample = t - prev_sample_time
+
+
+        #print(time_since_prev_sample)
         
         if time_since_prev_sample >= sample_t:
 
@@ -136,33 +142,41 @@ def simulate_without_graphix(vel_arr):
 
 
 
+def straight_line_vel_profile():
+    global d
+
+    for j in range(6):
+
+        pos_arr = []
+        vel_arr = []
+
+        car.qpos[0] = car_init_pos_x
+        
+        d += d_increment
+        car.d = d
 
 
-for j in range(6):
-
-    pos_arr = []
-    vel_arr = []
-
-    car.qpos[0] = car_init_pos_x
-    
-    d += d_increment
-    car.d = d
+        simulate_with_graphix(vel_arr)
+        #simulate_without_graphix(vel_arr)
 
 
-    #simulate_with_graphix(vel_arr)
-    simulate_without_graphix(vel_arr)
+        real_data = np.loadtxt("../velocities.csv", delimiter=',', dtype=float)
+
+        vel_arr = np.array(vel_arr)
+        #print(vel_arr)
+        plt.subplot(2, 3, j + 1)
+        plt.plot(vel_arr[:, 0], vel_arr[:, 1])
+        plt.plot(real_data[:, 0], real_data[:, j + 1])
+        plt.title("d = {:.2f}".format(d))
+        plt.xlabel("time (s)")
+        plt.ylabel("longitudinal vel (m/s)")
+
+    simulator.close()
+    plt.show()
+
+def circular_():
+    global d
 
 
-    real_data = np.loadtxt("../velocities.csv", delimiter=',', dtype=float)
 
-    vel_arr = np.array(vel_arr)
-    #print(vel_arr)
-    plt.subplot(2, 3, j + 1)
-    plt.plot(vel_arr[:, 0], vel_arr[:, 1])
-    plt.plot(real_data[:, 0], real_data[:, j + 1])
-    plt.title("d = {:.2f}".format(d))
-    plt.xlabel("time (s)")
-    plt.ylabel("longitudinal vel (m/s)")
-
-simulator.close()
-plt.show()
+straight_line_vel_profile()

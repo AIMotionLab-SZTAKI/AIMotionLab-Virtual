@@ -540,12 +540,13 @@ class SceneXmlGenerator:
         ET.SubElement(self.actuator, "motor", name=name + "_wheelfr_actr", joint=name + "_wheelfr")
         ET.SubElement(self.actuator, "motor", name=name + "_wheelrl_actr", joint=name + "_wheelrl")
         ET.SubElement(self.actuator, "motor", name=name + "_wheelrr_actr", joint=name + "_wheelrr")
-        ET.SubElement(self.actuator, "position", name=name + "_wheelfl_actr_steer", joint=name + "_wheelfl_steer", kp="2")
-        ET.SubElement(self.actuator, "position", name=name + "_wheelfr_actr_steer", joint=name + "_wheelfr_steer", kp="2")
+        ET.SubElement(self.actuator, "position", name=name + "_wheelfl_actr_steer", joint=name + "_wheelfl_steer", kp="4")
+        ET.SubElement(self.actuator, "position", name=name + "_wheelfr_actr_steer", joint=name + "_wheelfr_steer", kp="4")
 
 
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
         ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
+        ET.SubElement(self.sensor, "framepos", objtype="site", objname=site_name, name=name + "_posimeter")
 
 
     def __add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod):

@@ -73,12 +73,10 @@ simulator.change_cam()
 
 #car.up_pressed = True
 #car.left_pressed = True
-d = 0.04
-d_increment = 0.01
-sample_t = 1.0 / 40.0
-car_init_pos_x = 4
 
-def simulate_with_graphix(vel_arr):
+SAMPLE_T = 1.0 / 40.0
+
+def simulate_with_graphix(vel_arr, pos_arr):
     i = 0
     #simulator.start_time = time.time()
     prev_sample_time = -1
@@ -104,7 +102,7 @@ def simulate_with_graphix(vel_arr):
 
         #print(time_since_prev_sample)
         
-        if time_since_prev_sample >= sample_t:
+        if time_since_prev_sample >= SAMPLE_T:
 
             #print(car.sensor_velocimeter)
             vel_arr += [(t, car.sensor_velocimeter[0])]
@@ -113,7 +111,7 @@ def simulate_with_graphix(vel_arr):
         i += 1
 
 
-def simulate_without_graphix(vel_arr):
+def simulate_without_graphix(vel_arr, pos_arr):
     i = 0
     #simulator.start_time = time.time()
     prev_sample_time = -1
@@ -132,7 +130,7 @@ def simulate_without_graphix(vel_arr):
 
         time_since_prev_sample = t - prev_sample_time
         
-        if time_since_prev_sample >= sample_t:
+        if time_since_prev_sample >= SAMPLE_T:
 
             #print(car.sensor_velocimeter)
             vel_arr += [(t, car.sensor_velocimeter[0])]
@@ -143,7 +141,9 @@ def simulate_without_graphix(vel_arr):
 
 
 def straight_line_vel_profile():
-    global d
+    d = 0.04
+    d_increment = 0.01
+    car_init_pos_x = 4
 
     for j in range(6):
 
@@ -156,7 +156,7 @@ def straight_line_vel_profile():
         car.d = d
 
 
-        simulate_with_graphix(vel_arr)
+        simulate_with_graphix(vel_arr, pos_arr)
         #simulate_without_graphix(vel_arr)
 
 
@@ -174,9 +174,145 @@ def straight_line_vel_profile():
     simulator.close()
     plt.show()
 
+
+def simulate_circular_without_graphix(vel_arr, pos_arr, d, delta):
+    i = 0
+    #simulator.start_time = time.time()
+    prev_sample_time = -1
+
+    while not simulator.glfw_window_should_close():
+
+        t = i * simulator.sim_step
+        simulator.update_(i)
+
+        if t > 0.5:
+            car.d = d
+            car.set_steer_angle(delta)
+
+        if t >= 25:
+            break
+
+        time_since_prev_sample = t - prev_sample_time
+        
+        if time_since_prev_sample >= SAMPLE_T:
+
+            #print(car.sensor_velocimeter)
+            vel_arr += [(t, car.sensor_velocimeter[0])]
+            pos_arr += [(t, car.sensor_posimeter[0], car.sensor_posimeter[1])]
+            prev_sample_time = t
+
+        i += 1
+    
+    simulator.close()
+
+def simulate_circular_with_graphix(vel_arr, pos_arr, d, delta):
+    i = 0
+    #simulator.start_time = time.time()
+    prev_sample_time = -1
+
+    while not simulator.glfw_window_should_close():
+
+        #print(simulator.start_time)
+
+        simulator.update(i)
+        
+        t = time.time() - simulator.start_time
+
+        if t > 0.5:
+            car.d = d
+            car.set_steer_angle(delta)
+
+        if t >= 25:
+            break
+
+        time_since_prev_sample = t - prev_sample_time
+
+
+        #print(time_since_prev_sample)
+        
+        if time_since_prev_sample >= SAMPLE_T:
+
+            #print(car.sensor_velocimeter)
+            vel_arr += [(t, car.sensor_velocimeter[0])]
+            pos_arr += [(t, car.sensor_posimeter[0], car.sensor_posimeter[1])]
+            prev_sample_time = t
+
+        i += 1
+    
+    simulator.close()
+    
+
+def get_filename(d, delta):
+    if delta < 0:
+        filename = "t_deln" + str(int(abs(delta) * 10))
+    else:
+        filename = "t_del" + str(int(delta * 10))
+    
+    d_conv = d * 1000
+    if d_conv < 100:
+        ending = "_d0" + str(int(d_conv)) + "_state.csv"
+    
+    else:
+        ending = "_d" + str(int(d_conv)) + "_state.csv"
+    
+    return filename + ending
+
+
 def circular_():
-    global d
+    d = 0.225
+    delta = -0.5
+    d_increment = 0.01
+    sample_t = 1.0 / 40.0
+
+    folder = os.path.join("..", "rekrmozgsf1tenth")
+
+    filename = get_filename(d, delta)
+
+    #filename = os.path.join(folder, "t_del3_d075_state.csv")
+    filename = os.path.join(folder, filename)
+
+    real_data = np.loadtxt(filename, delimiter=",", dtype=float)
+
+
+    #quat = mujoco_helper.quaternion_from_euler(0, 0, math.radians(2))
+    #print(real_data[0, 3])
+    quat = mujoco_helper.quaternion_from_euler(0, 0, real_data[0, 3])
+    car_init_pos_x = real_data[0, 1]
+    car_init_pos_y = real_data[0, 2]
+
+    #car.d = d
+    #car.set_steer_angle(delta)
+    car.qpos[0] = car_init_pos_x
+    car.qpos[1] = car_init_pos_y
+
+    car.qpos[3] = quat[0]
+    car.qpos[4] = quat[1]
+    car.qpos[5] = quat[2]
+    car.qpos[6] = quat[3]
+
+    vel_arr = []
+    pos_arr = []
+
+    simulate_circular_with_graphix(vel_arr, pos_arr, d, delta)
 
 
 
-straight_line_vel_profile()
+
+    vel_arr = np.array(vel_arr)
+    pos_arr = np.array(pos_arr)
+    #print(vel_arr)
+    #plt.subplot(2, 3, j + 1)
+    #print(pos_arr)
+    plt.plot(pos_arr[:, 1], pos_arr[:, 2])
+    plt.plot(real_data[:, 1], real_data[:, 2])
+    plt.title("d = {:.3f} ; delta = {:.2f}".format(d, delta))
+    plt.xlabel("X position")
+    plt.ylabel("Y position")
+    plt.legend(["simulated", "real"])
+
+    plt.show()
+
+
+
+#straight_line_vel_profile()
+circular_()

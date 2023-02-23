@@ -70,6 +70,7 @@ class Car(MovingObject):
 
         self.sensor_data = self.data.sensor(self.name_in_xml + "_gyro").data
         self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data
+        self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
 
         #self.mass = model.body(self.name_in_xml).mass
 
@@ -101,6 +102,14 @@ class Car(MovingObject):
 
         return delta_left, delta_right
         #return delta_in, delta_in
+    
+    def set_steer_angle(self, delta):
+        
+        delta_left, delta_right = self.calc_frontwheel_angles(delta)
+        self.wheelfl.ctrl_steer[0] = delta_left
+        self.wheelfr.ctrl_steer[0] = delta_right
+
+
     
     def test_torque(self):
         self.wheelrl.ctrl[0] = self.torque

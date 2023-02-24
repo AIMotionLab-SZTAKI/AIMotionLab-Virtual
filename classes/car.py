@@ -92,7 +92,7 @@ class Car(MovingObject):
         #self.control_by_keyboard()
         #print(self.qpos)
     
-    def calc_frontwheel_angles(self, delta_in):
+    def calc_ackerman_angles(self, delta_in):
         
         num = self.WB * math.tan(delta_in)
 
@@ -105,7 +105,7 @@ class Car(MovingObject):
     
     def set_steer_angle(self, delta):
         
-        delta_left, delta_right = self.calc_frontwheel_angles(delta)
+        delta_left, delta_right = self.calc_ackerman_angles(delta)
         self.wheelfl.ctrl_steer[0] = delta_left
         self.wheelfr.ctrl_steer[0] = delta_right
 
@@ -187,14 +187,14 @@ class Car(MovingObject):
             #self.wheelfr.ctrl_steer[0] = -0.5
             if self.steer_angle > -self.max_steer:
                 self.steer_angle -= 0.01
-                delta_left, delta_right = self.calc_frontwheel_angles(self.steer_angle)
+                delta_left, delta_right = self.calc_ackerman_angles(self.steer_angle)
                 self.wheelfl.ctrl_steer[0] = delta_left
                 self.wheelfr.ctrl_steer[0] = delta_right
         
         else:
             if self.steer_angle < 0:
                 self.steer_angle += 0.01
-                delta_left, delta_right = self.calc_frontwheel_angles(self.steer_angle)
+                delta_left, delta_right = self.calc_ackerman_angles(self.steer_angle)
                 self.wheelfl.ctrl_steer[0] = delta_left
                 self.wheelfr.ctrl_steer[0] = delta_right
 
@@ -203,7 +203,7 @@ class Car(MovingObject):
             #self.wheelfr.ctrl_steer[0] = 0.5
             if self.steer_angle < self.max_steer:
                 self.steer_angle += 0.01
-                delta_left, delta_right = self.calc_frontwheel_angles(self.steer_angle)
+                delta_left, delta_right = self.calc_ackerman_angles(self.steer_angle)
                 self.wheelfl.ctrl_steer[0] = delta_left
                 self.wheelfr.ctrl_steer[0] = delta_right
         
@@ -212,7 +212,7 @@ class Car(MovingObject):
         #    self.wheelfr.ctrl_steer[0] = 0
             if self.steer_angle > 0:
                 self.steer_angle -= 0.01
-                delta_left, delta_right = self.calc_frontwheel_angles(self.steer_angle)
+                delta_left, delta_right = self.calc_ackerman_angles(self.steer_angle)
                 self.wheelfl.ctrl_steer[0] = delta_left
                 self.wheelfr.ctrl_steer[0] = delta_right
         

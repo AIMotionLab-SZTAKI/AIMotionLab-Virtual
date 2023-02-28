@@ -509,7 +509,7 @@ class DroneMocapHooked(DroneMocap):
     def update(self, pos, quat):
         self.__set_hook_pos(pos)
         self.__set_hook_quat(quat)
-        return super().set_qpos(pos, quat)
+        return super().update(pos, quat)
 
 
     def print_names(self):

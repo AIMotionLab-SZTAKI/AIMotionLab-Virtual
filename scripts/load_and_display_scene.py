@@ -4,13 +4,17 @@ import os
 from classes.passive_display import PassiveDisplay
 import tkinter
 from tkinter import filedialog
+from classes.drone import Drone, DroneMocap
+from classes.car import Car, CarMocap
 
 
 # open the base on which we'll build
 xml_path = "../xml_models"
 xmlBaseFileName = "scene.xml"
 
-display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, False)
+virt_parsers = [Drone.parse, Car.parse]
+mocap_parsers = [DroneMocap.parse, CarMocap.parse]
+display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, virt_parsers, mocap_parsers, False)
 
 
 def load_model():

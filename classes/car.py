@@ -240,8 +240,8 @@ class Car(MovingObject):
 
                 car = Car(data, name)
 
-                mass = model.body(name).mass
-                print(mass)
+                #mass = model.body(name).mass
+                #print(mass)
 
                 cars += [car]
                 ivc += 1

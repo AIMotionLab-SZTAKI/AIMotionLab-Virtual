@@ -508,13 +508,16 @@ class SceneXmlGenerator:
         self.__add_fleet1tenth_body(car, name, color, has_rod)
 
         armature = "0.05"
+        armature_steer = "0.001"
+        fric_steer = "0.2"
+        damp_steer = "0.2"
         damping = "0.00001"
         frictionloss = "0.01"
 
         steer_range = "-0.6 0.6"
 
         wheelfl = ET.SubElement(car, "body", name=name + "_wheelfl", quat="1 0 0 0" )
-        ET.SubElement(wheelfl, "joint", name=name + "_wheelfl_steer", type="hinge", pos="0.16113 .10016 0", limited="true", frictionloss=frictionloss, range=steer_range, axis="0 0 1")
+        ET.SubElement(wheelfl, "joint", name=name + "_wheelfl_steer", type="hinge", pos="0.16113 .10016 0", limited="true", frictionloss=fric_steer, damping=damp_steer, armature=armature_steer, range=steer_range, axis="0 0 1")
         ET.SubElement(wheelfl, "joint", name=name + "_wheelfl", type="hinge", pos="0.16113 .122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
         ET.SubElement(wheelfl, "geom", name=name + "_wheelfl", type="cylinder", size=".052388 .022225", pos="0.16113 .122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
@@ -525,7 +528,7 @@ class SceneXmlGenerator:
         ET.SubElement(wheelrl, "geom", name=name + "_wheelrl", type="cylinder", size=".052388 .022225", pos="-0.16113 .122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
         wheelfr = ET.SubElement(car, "body", name=name + "_wheelfr", quat="1 0 0 0" )
-        ET.SubElement(wheelfr, "joint", name=name + "_wheelfr_steer", type="hinge", pos="0.16113 -.10016 0", limited="true", frictionloss=frictionloss, range=steer_range, axis="0 0 1")
+        ET.SubElement(wheelfr, "joint", name=name + "_wheelfr_steer", type="hinge", pos="0.16113 -.10016 0", limited="true", frictionloss=fric_steer, damping=damp_steer, armature=armature_steer, range=steer_range, axis="0 0 1")
         ET.SubElement(wheelfr, "joint", name=name + "_wheelfr", type="hinge", pos="0.16113 -.122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
         ET.SubElement(wheelfr, "geom", name=name + "_wheelfr", type="cylinder", size=".052388 .022225", pos="0.16113 -.122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
@@ -535,7 +538,7 @@ class SceneXmlGenerator:
 
         ET.SubElement(wheelrr, "geom", name=name + "_wheelrr", type="cylinder", size=".052388 .022225", pos="-0.16113 -.122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
-        friction = "2 2 .009 .0001 .0001"
+        friction = "2.5 2.5 .009 .0001 .0001"
 
         ET.SubElement(self.contact, "pair", geom1=name + "_wheelfl", geom2="roundabout", condim="6", friction=friction)
         ET.SubElement(self.contact, "pair", geom1=name + "_wheelfr", geom2="roundabout", condim="6", friction=friction)
@@ -547,9 +550,9 @@ class SceneXmlGenerator:
         ET.SubElement(self.actuator, "motor", name=name + "_wheelrl_actr", joint=name + "_wheelrl")
         ET.SubElement(self.actuator, "motor", name=name + "_wheelrr_actr", joint=name + "_wheelrr")
 
-        kp = "1.5"
-        ET.SubElement(self.actuator, "position", name=name + "_wheelfl_actr_steer", joint=name + "_wheelfl_steer", kp=kp)
-        ET.SubElement(self.actuator, "position", name=name + "_wheelfr_actr_steer", joint=name + "_wheelfr_steer", kp=kp)
+        kp = "15"
+        ET.SubElement(self.actuator, "position", forcelimited="true", forcerange="-5 5", name=name + "_wheelfl_actr_steer", joint=name + "_wheelfl_steer", kp=kp)
+        ET.SubElement(self.actuator, "position", forcelimited="true", forcerange="-5 5", name=name + "_wheelfr_actr_steer", joint=name + "_wheelfr_steer", kp=kp)
 
 
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")

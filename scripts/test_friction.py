@@ -196,9 +196,9 @@ def simulate_circular(vel_arr, pos_arr, d, delta, with_graphics=False):
 
         if t > 0.2:
             car.set_steer_angle(delta)
-        
-        if t > 2.3:
             car.d = d
+        
+        #if t > 3:
 
         if t >= 25:
             break
@@ -241,7 +241,7 @@ def get_filename(d, delta):
 
 
 def circular_():
-    d = 0.175
+    d = 0.15
     delta = -0.5
     d_increment = 0.01
     sample_t = 1.0 / 40.0

@@ -156,8 +156,8 @@ def straight_line_vel_profile():
         car.d = d
 
 
-        simulate_with_graphix(vel_arr, pos_arr)
-        #simulate_without_graphix(vel_arr)
+        #simulate_with_graphix(vel_arr, pos_arr)
+        simulate_without_graphix(vel_arr, pos_arr)
 
 
         real_data = np.loadtxt("../velocities.csv", delimiter=',', dtype=float)
@@ -241,7 +241,7 @@ def get_filename(d, delta):
 
 
 def circular_():
-    d = 0.15
+    d = 0.225
     delta = -0.5
     d_increment = 0.01
     sample_t = 1.0 / 40.0

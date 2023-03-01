@@ -98,6 +98,7 @@
     <geom name="carpet" size="7.644 7.644 .001" pos="3.16 1.115 0.0005" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet"/>
 
 
+    <!--
       <geom name="cockpit" pos="1.45 -2.8 0" type="mesh" mesh="cockpit" quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
       <geom name="fal1" pos="1.45 -2.8 0" type="mesh" mesh="fal1"       quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
       <geom name="fal2" pos="1.45 -2.8 0" type="mesh" mesh="fal2"       quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
@@ -105,8 +106,7 @@
       <geom name="oszlop2" pos="1.45 -2.8 0" type="mesh" mesh="oszlop2" quat="0 0 0.7071 0.7071" rgba="0.3 0.4 0.3 1"/>
       <geom name="oszlop3" pos="1.45 -2.8 0" type="mesh" mesh="oszlop3" quat="0 0 0.7071 0.7071" rgba="0.3 0.4 0.3 1"/>
       <geom name="oszlop4" pos="1.45 -2.8 0" type="mesh" mesh="oszlop4" quat="0 0 0.7071 0.7071" rgba="0.3 0.4 0.3 1"/>
-  
-    <!--
+    -->
     <body name="lagyi" pos="1.45 -2.3 0" childclass="lagyi">
       <geom name="cockpit" type="mesh" mesh="cockpit"/>
       <geom name="fal1" type="mesh" mesh="fal1"/>
@@ -116,7 +116,7 @@
       <geom name="oszlop3" type="mesh" mesh="oszlop3" rgba="0.3 0.3 0.3 1"/>
       <geom name="oszlop4" type="mesh" mesh="oszlop4" rgba="0.3 0.3 0.3 1"/>
     </body>
-    -->
+  
 
   </worldbody>
 

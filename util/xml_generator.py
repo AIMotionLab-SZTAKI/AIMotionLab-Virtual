@@ -325,25 +325,25 @@ class SceneXmlGenerator:
 
         prop_name = name + "_prop1"
         pos_m = "-" + PROP_OFFS_X1_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
-        prop = ET.SubElement(drone, "body", name=prop_name, quat=quat)
+        prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos_m)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
         prop_name = name + "_prop2"
         pos_m = PROP_OFFS_X2_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
-        prop = ET.SubElement(drone, "body", name=prop_name, quat=quat)
+        prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos_m)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
         prop_name = name + "_prop3"
         pos_m = PROP_OFFS_X2_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
-        prop = ET.SubElement(drone, "body", name=prop_name, quat=quat)
+        prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos_m)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
         prop_name = name + "_prop4"
         pos_m = "-" + PROP_OFFS_X1_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
-        prop = ET.SubElement(drone, "body", name=prop_name, quat=quat)
+        prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos_m)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 

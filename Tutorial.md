@@ -7,7 +7,7 @@ This tutorial describes the concept of the simulator, and provides a demonstrati
 ## Concept
 
 The scene of a specific simulation is described in a .xml file which is a MuJoCo model. The model can contain static objects, simulated objects and mocap objects. A static object takes part in the collisions, but it is fixed, so its position stays the same throughout the simulation. Simulated objects can move around in the scene, collide with each other and with static- and mocap objects. Mocap objects are treated like static objects, but their position and orientation can be updated programmatically based on a motion capture system or prerecorded data etc.
-The simulator instance keeps a list of "MovingObject" and a list of "MocapObject" instances that are the main characters of the simulation. These are the simulated and the mocap objects. Each MovingObject has an update() method in which its trajectory and control are calculated. Each MocapObject has an update() method in which its position and orientation can be updated. The simulator calls these update methods repeatedly at equal time intervals. This time interval is called control timestep (simulator.control_step).
+The simulator instance keeps a list of "MovingObject" and a list of "MocapObject" instances that are the main characters of the simulation. These are the simulated- and the mocap objects. Each MovingObject has an update() method in which its trajectory and control are calculated. Each MocapObject has an update() method in which its position and orientation can be updated. The simulator calls these update methods repeatedly at equal time intervals. This time interval is called control timestep (simulator.control_step).
 
 ### Steps of the simulation
 

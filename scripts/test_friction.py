@@ -17,6 +17,13 @@ RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
 # init simulator
 
+#for i in range(100):
+#    t1 = time.time()
+#    time.sleep(0.01)
+#    t2 = time.time()
+#
+#    print(t2 - t1)
+
 xml_path = os.path.join("..", "xml_models")
 xml_base_filename = "scene.xml"
 save_filename = "built_scene.xml"
@@ -31,7 +38,8 @@ scene.save_xml(os.path.join(xml_path, save_filename))
 virt_parsers = [Drone.parse, Car.parse]
 mocap_parsers = [DroneMocap.parse, CarMocap.parse]
 
-simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
+simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, 0.005, 0.02, virt_parsers, mocap_parsers, False)
+
 
 #simulator.cam.elevation = -90
 #simulator.cam.distance = 4
@@ -69,15 +77,16 @@ simulator.set_key_right_release_callback(right_release)
 simulator.cam.azimuth = 90
 simulator.onBoard_elev_offset = 20
 
-simulator.change_cam()
+#simulator.change_cam()
 
 #car.up_pressed = True
 #car.left_pressed = True
 
-SAMPLE_T = 1.0 / 40.0
+SAMPLE_T = 1.0 / 20.0
 
 def simulate_with_graphix(vel_arr, pos_arr):
     i = 0
+    
     #simulator.start_time = time.time()
     prev_sample_time = -1
 
@@ -87,7 +96,8 @@ def simulate_with_graphix(vel_arr, pos_arr):
 
         simulator.update(i)
         
-        t = time.time() - simulator.start_time
+        #t = time.time() - simulator.start_time
+        t = i * simulator.control_step
 
         #print(t)
 
@@ -130,7 +140,8 @@ def simulate_without_graphix(vel_arr, pos_arr):
 
         time_since_prev_sample = t - prev_sample_time
         
-        if time_since_prev_sample >= SAMPLE_T:
+        if time_since_prev_sample >= (SAMPLE_T - 0.0001):
+            #print(time_since_prev_sample)
 
             #print(car.sensor_velocimeter)
             vel_arr += [(t, car.sensor_velocimeter[0])]
@@ -200,7 +211,7 @@ def simulate_circular(vel_arr, pos_arr, d, delta, with_graphics=False):
         
         #if t > 3:
 
-        if t >= 25:
+        if t >= 8.875:
             break
 
         
@@ -241,7 +252,7 @@ def get_filename(d, delta):
 
 
 def circular_():
-    d = 0.225
+    d = 0.15
     delta = -0.5
     d_increment = 0.01
     sample_t = 1.0 / 40.0
@@ -291,7 +302,139 @@ def circular_():
 
     plt.show()
 
+def simulate_random_curve(data, vel_arr, pos_arr, with_graphics=False):
+    
+    i = 0
+    #simulator.start_time = time.time()
+    prev_sample_time = -1
+    prev_t = 0
+
+    steer_angles = []
+
+    j = 0
+
+    while not simulator.glfw_window_should_close():
+
+
+        if with_graphics:
+            simulator.update(i)
+            #t = time.time() - simulator.start_time
+            t = i * simulator.control_step
+            #print(t - prev_t)
+            #prev_t = t
+        else:
+            simulator.update_(i)
+            t = i * simulator.sim_step
+        
+        time_since_prev_sample = t - prev_sample_time
+        #print(t)
+
+        
+        if time_since_prev_sample >= (SAMPLE_T - 0.0001):
+            #print(time_since_prev_sample)
+
+            d = data[0, j]
+            delta = data[1, j]
+            
+            car.set_steer_angle(delta)
+            car.d = d
+            j += 1
+            #print(car.sensor_velocimeter)
+            vel_arr += [(t, car.sensor_velocimeter[0])]
+            pos_arr += [(t, car.sensor_posimeter[0], car.sensor_posimeter[1])]
+
+            steer_angles += [(t, car.wheelfl.joint_steer.qpos[0], car.wheelfr.joint_steer.qpos[0])]
+
+            prev_sample_time = t
+            
+            if j == data.shape[1]:
+                break
+
+        i += 1
+    
+    
+    simulator.close()
+    #steer_angles = np.array(steer_angles)
+    #plt.plot(steer_angles[:, 0], steer_angles[:, 1])
+    #plt.plot(steer_angles[:, 0], steer_angles[:, 2])
+    #plt.show()
+
+
+
+def random_curve():
+
+    global SAMPLE_T
+    
+    vel_arr = []
+    pos_arr = []
+
+    filename = os.path.join("..", "motion_2023-03-03-12-20-33.csv")
+
+    data = np.loadtxt(filename, delimiter=",", dtype=float)
+    SAMPLE_T = (data[20, 0] - data[0, 0]) / 20
+    print("Sampling time: " + str(SAMPLE_T))
+    quat = mujoco_helper.quaternion_from_euler(0, 0, data[0, 3])
+    car_init_pos_x = data[0, 1]
+    car_init_pos_y = data[0, 2]
+
+    #car.d = d
+    #car.set_steer_angle(delta)
+    car.qpos[0] = car_init_pos_x
+    car.qpos[1] = car_init_pos_y
+
+    car.qpos[3] = quat[0]
+    car.qpos[4] = quat[1]
+    car.qpos[5] = quat[2]
+    car.qpos[6] = quat[3]
+
+    control_inp = np.vstack((data[:, 8], data[:, 10]))
+    print(control_inp.shape)
+
+    simulate_random_curve(control_inp, vel_arr, pos_arr, False)
+    
+    vel_arr = np.array(vel_arr)
+    pos_arr = np.array(pos_arr)
+    #print(vel_arr)
+    #plt.subplot(2, 3, j + 1)
+    #print(pos_arr)
+    plt.subplot(2, 2, 1)
+    plt.plot(pos_arr[:, 1], pos_arr[:, 2])
+    plt.plot(data[:, 1], data[:, 2])
+    #plt.title("d = {:.3f} ; delta = {:.2f}".format(d, delta))
+    plt.xlabel("X position")
+    plt.ylabel("Y position")
+    plt.legend(["simulated", "real"])
+
+    #plt.show()
+    
+    data[:, 0] = data[:, 0] - data[0, 0]
+
+    plt.subplot(2, 2, 2)
+    plt.plot(vel_arr[:, 0], vel_arr[:, 1])
+    plt.plot(data[:, 0], data[:, 5])
+    plt.xlabel("time")
+    plt.ylabel("Longitudinal velocity")
+
+    plt.subplot(2, 2, 3)
+
+
+    plt.plot(pos_arr[:, 0], pos_arr[:, 1])
+    plt.plot(data[:, 0], data[:, 1])
+    plt.xlabel("time")
+    plt.ylabel("X position")
+
+    plt.subplot(2, 2, 4)
+
+    plt.plot(pos_arr[:, 0], pos_arr[:, 2])
+    plt.plot(data[:, 0], data[:, 2])
+    plt.xlabel("time")
+    plt.ylabel("Y position")
+
+    plt.show()
+
+
 
 
 #straight_line_vel_profile()
-circular_()
+#circular_()
+random_curve()

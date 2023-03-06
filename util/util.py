@@ -38,8 +38,12 @@ def sync(i, start_time, timestep):
     """
     #if timestep > .04 or i % (int(1 / (24 * timestep))) == 0:
     elapsed = time.time() - start_time
-    if elapsed < (i * timestep):
-        time.sleep(timestep * i - elapsed)
+    sim_time = i * timestep
+    #print(sim_time - elapsed)
+    if elapsed < sim_time:
+        delay = sim_time - elapsed
+        #print(delay)
+        time.sleep(delay)
 
 
 class FpsLimiter:

@@ -55,7 +55,7 @@ class Drone(MovingObject):
         self.sensor_data = self.data.sensor(self.name_in_xml + "_gyro").data
 
     
-    def update(self, i):
+    def update(self, i): 
 
         self.fake_propeller_spin(0.02)
 

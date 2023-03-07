@@ -144,6 +144,8 @@ class Display:
         self.model = mujoco.MjModel.from_xml_path(self.xmlFileName)
         self.data = mujoco.MjData(self.model)
 
+        self.gravity = self.model.opt.gravity
+
         self.scn = mujoco.MjvScene(self.model, maxgeom=MAX_GEOM)
         self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
 

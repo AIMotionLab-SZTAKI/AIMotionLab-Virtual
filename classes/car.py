@@ -10,7 +10,7 @@ from util import mujoco_helper
 
 class Wheel:
 
-    def __init__(self, data, name_in_xml):
+    def __init__(self, model, data, name_in_xml):
 
         self.name_in_xml = name_in_xml
         self.data = data
@@ -25,8 +25,8 @@ class Wheel:
 
 class FrontWheel(Wheel):
 
-    def __init__(self, data, name_in_xml):
-        super().__init__(data, name_in_xml)
+    def __init__(self, model, data, name_in_xml):
+        super().__init__(model, data, name_in_xml)
         
         self.actr_steer = self.data.actuator(self.name_in_xml + "_actr_steer")
         self.ctrl_steer = self.actr_steer.ctrl
@@ -34,9 +34,9 @@ class FrontWheel(Wheel):
 
 class Car(MovingObject):
 
-    def __init__(self, data, name_in_xml):
+    def __init__(self, model, data, name_in_xml):
 
-        super().__init__(name_in_xml)
+        super().__init__(model, name_in_xml)
 
         self.WB = .32226
         self.TW = .20032
@@ -50,10 +50,10 @@ class Car(MovingObject):
         self.joint = self.data.joint(self.name_in_xml)
         self.qpos = self.joint.qpos
 
-        self.wheelfl = FrontWheel(data, name_in_xml + "_wheelfl")
-        self.wheelfr = FrontWheel(data, name_in_xml + "_wheelfr")
-        self.wheelrl = Wheel(data, name_in_xml + "_wheelrl")
-        self.wheelrr = Wheel(data, name_in_xml + "_wheelrr")
+        self.wheelfl = FrontWheel(model, data, name_in_xml + "_wheelfl")
+        self.wheelfr = FrontWheel(model, data, name_in_xml + "_wheelfr")
+        self.wheelrl = Wheel(model, data, name_in_xml + "_wheelrl")
+        self.wheelrr = Wheel(model, data, name_in_xml + "_wheelrr")
 
         self.j = 0
         self.sign = 1
@@ -238,7 +238,7 @@ class Car(MovingObject):
 
             if name.startswith("virtfleet1tenth") and not name.endswith("steer") and not name_cut.endswith("wheel"):
 
-                car = Car(data, name)
+                car = Car(model, data, name)
 
                 #mass = model.body(name).mass
                 #print(mass)

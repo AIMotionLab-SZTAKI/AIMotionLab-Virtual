@@ -15,9 +15,9 @@ class SPIN_DIR(Enum):
 
 class Drone(MovingObject):
 
-    def __init__(self, data: mujoco.MjData, name_in_xml, trajectory, controllers, parameters = {"mass" : 0.1}):
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, trajectory, controllers, parameters = {"mass" : 0.1}):
 
-        super().__init__(name_in_xml)
+        super().__init__(model, name_in_xml)
 
         self.data = data
 
@@ -210,7 +210,7 @@ class Drone(MovingObject):
                 # this joint must be a drone
                 hook = Drone.find_hook_for_drone(joint_names, _name)
                 if hook:
-                    d = DroneHooked(data, name_in_xml=_name,
+                    d = DroneHooked(model, data, name_in_xml=_name,
                                     hook_name_in_xml=hook,
                                     trajectory=None,
                                     controller=None)
@@ -224,12 +224,12 @@ class Drone(MovingObject):
             elif _name.startswith("virtbumblebee") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
 
-                d = Drone(data, _name, None, None)
+                d = Drone(model, data, _name, None, None)
                 virtdrones += [d]
 
             elif _name.startswith("virtcrazyflie") and not _name_cut.endswith("prop"):
 
-                d = Drone(data, _name, None, None)
+                d = Drone(model, data, _name, None, None)
                 virtdrones += [d]
 
         #print()
@@ -251,8 +251,8 @@ class Drone(MovingObject):
 ################################## DroneHooked ##################################
 class DroneHooked(Drone):
 
-    def __init__(self, data: mujoco.MjData, name_in_xml, hook_name_in_xml, trajectory, controller, parameters = {"mass" : 0.1}):
-        super().__init__(data, name_in_xml, trajectory, controller, parameters)
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, hook_name_in_xml, trajectory, controller, parameters = {"mass" : 0.1}):
+        super().__init__(model, data, name_in_xml, trajectory, controller, parameters)
         self.hook_name_in_xml = hook_name_in_xml
 
         self.hook_qpos = self.data.joint(self.hook_name_in_xml).qpos

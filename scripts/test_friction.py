@@ -309,9 +309,16 @@ def simulate_random_curve(data, vel_arr, pos_arr, with_graphics=False):
     prev_sample_time = -1
     prev_t = 0
 
+    d = 0
+    delta = 0
+
     steer_angles = []
 
     j = 0
+
+    delej = 0.02
+
+    j_start = int(delej / simulator.control_step)
 
     while not simulator.glfw_window_should_close():
 
@@ -333,8 +340,9 @@ def simulate_random_curve(data, vel_arr, pos_arr, with_graphics=False):
         if time_since_prev_sample >= (SAMPLE_T - 0.0001):
             #print(time_since_prev_sample)
 
-            d = data[0, j]
-            delta = data[1, j]
+            if j >= j_start:
+                d = data[0, j - j_start]
+                delta = data[1, j - j_start]
             
             car.set_steer_angle(delta)
             car.d = d
@@ -368,6 +376,7 @@ def random_curve():
     vel_arr = []
     pos_arr = []
 
+    #filename = os.path.join("..", "valid_sin1.csv")
     filename = os.path.join("..", "motion_2023-03-03-12-20-33.csv")
 
     data = np.loadtxt(filename, delimiter=",", dtype=float)

@@ -8,8 +8,20 @@ from enum import Enum
 class MovingObject:
     """ Base class for any moving vehicle or object
     """
-    def __init__(self, name_in_xml) -> None:
+    def __init__(self, model, name_in_xml) -> None:
         self.name_in_xml = name_in_xml
+
+        self.mass = model.body(self.name_in_xml).mass
+        self.inertia = model.body(self.name_in_xml).inertia
+
+        self.trajectory = None
+        self.controllers = None
+    
+    def set_trajectory(self, trajectory):
+        self.trajectory = trajectory
+    
+    def set_controllers(self, controllers):
+        self.controllers = controllers
 
     def update(self, i):
         # must implement this method

@@ -45,14 +45,14 @@ simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, vir
 drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
 car0 = simulator.get_MovingObject_by_name_in_xml(car0_name)
 
-# creating trajectory and controller for drone
+# creating trajectory and controller for drone0
 drone0_trajectory = DummyDroneTrajectory()
 drone0_controller0 = DummyDroneController(drone0.mass, drone0.inertia, simulator.gravity)
 drone0_controller1 = DummyDroneController(drone0.mass, drone0.inertia, simulator.gravity)
 
 drone0_controllers = [drone0_controller0, drone0_controller1]
 
-# creating trajectory and controller for car
+# creating trajectory and controller for car0
 car0_trajectory = DummyCarTrajectory()
 car0_controller0 = DummyCarController(car0.mass, car0.inertia, simulator.gravity)
 car0_controller1 = DummyCarController(car0.mass, car0.inertia, simulator.gravity)

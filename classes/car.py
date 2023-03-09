@@ -83,7 +83,7 @@ class Car(MovingObject):
     def set_controller(self, controller):
         self.controller = controller
 
-    def update(self, i):
+    def update(self, i, control_step):
         
         self.calc_torque(self.d)
 

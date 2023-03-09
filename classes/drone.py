@@ -55,15 +55,19 @@ class Drone(MovingObject):
         self.sensor_data = self.data.sensor(self.name_in_xml + "_gyro").data
 
     
-    def update(self, i): 
+    def update(self, i, control_step):
 
         self.fake_propeller_spin(0.02)
 
         if self.trajectory is not None:
 
-            controller_input = self.trajectory.evaluate(i, self.data.time)
+            state = self.get_state()
+            setpoint = self.trajectory.evaluate(state, i, self.data.time, control_step)
 
-            ctrl = self.compute_control(controller_input)
+            self.update_controller_type(state, setpoint, self.data.time, i)
+
+            if self.controller is not None:
+                ctrl = self.controller.compute_control(state, setpoint, self.data.time)
             
             if ctrl is not None:
                 self.set_ctrl(ctrl)
@@ -71,47 +75,11 @@ class Drone(MovingObject):
             #    print("[Drone] Error: ctrl was None")
     
 
-    
-    def compute_control(self, input_dict):
-
-        target_pos = input_dict["target_pos"]
-        target_vel = input_dict["target_vel"]
-
-        pos = self.get_qpos()[:3]
-        quat = self.get_top_body_xquat()
-        vel = self.get_qvel()[:3]
-        ang_vel = self.get_sensor_data()
-
-
-        if input_dict["controller_name"] == "geom_pos":
-
-            target_rpy = input_dict["target_rpy"]
-            ctrl = self.controllers["geom"].compute_pos_control(pos, quat, vel, ang_vel, target_pos,
-                                                               target_vel=target_vel, target_rpy=target_rpy)
-        
-        elif input_dict["controller_name"] == "geom_att":
-            target_quat = input_dict["target_quat"]
-            target_acc = input_dict["target_acc"]
-            target_quat_vel = input_dict["target_quat_vel"]
-            ctrl = self.controllers["geom"].compute_att_control(pos, quat, vel, ang_vel, target_pos, target_vel, target_acc,
-                                                                target_quat=target_quat, target_quat_vel=target_quat_vel)
-        
-        else:
-            print("[Drone] Error: unknown controller")
-            return None
-        
-        return ctrl
-
-    
     def set_trajectory(self, trajectory):
         self.trajectory = trajectory
     
     def set_controllers(self, controllers):
-        if isinstance(controllers, dict):
-            self.controllers = controllers
-            
-        else:
-            print("[Drone] Error: controllers must be a dictionary")
+        self.controllers = controllers
     
     def set_mass(self, mass):
         self.mass = mass
@@ -265,21 +233,28 @@ class DroneHooked(Drone):
         #drone_qpos = self.data.joint(self.name_in_xml).qpos
         #return np.append(drone_qpos, self.data.joint(self.hook_name_in_xml).qpos)
     
-    def update(self, i):
+    def update(self, i, control_step):
         self.fake_propeller_spin(0.02)
 
-        if self.trajectory is not None:
-            pos = self.get_qpos()[:3]
-            vel = self.get_qvel()[:3]
+        #if self.trajectory is not None:
+        #    pos = self.get_qpos()[:3]
+        #    vel = self.get_qvel()[:3]
 
-            alpha = self.get_hook_qpos()
-            dalpha = self.get_hook_qvel()
-
-            controller_input = self.trajectory.evaluate(i, self.data.time)
+        #    alpha = self.get_hook_qpos()
+        #    dalpha = self.get_hook_qvel()
+        #    state = self.get_state()
+        #    setpoint = self.trajectory.evaluate(state, i, self.data.time, control_step)
             
-            self.set_load_mass(controller_input["load_mass"])
 
-            ctrl = self.compute_control(controller_input)
+        if self.trajectory is not None:
+
+            state = self.get_state()
+            setpoint = self.trajectory.evaluate(state, i, self.data.time, control_step)
+
+            self.update_controller_type(state, setpoint, self.data.time, i)
+
+            if self.controller is not None:
+                ctrl = self.controller.compute_control(state, setpoint, self.data.time)
             
             if ctrl is not None:
                 self.set_ctrl(ctrl)

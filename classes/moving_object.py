@@ -1,3 +1,4 @@
+from msilib.schema import Error
 import mujoco
 import numpy as np
 import util.mujoco_helper as mh
@@ -16,6 +17,11 @@ class MovingObject:
 
         self.trajectory = None
         self.controllers = None
+        self.controller = None
+
+        self.update_controller_type_method = None
+
+        self.sensors = []
     
     def set_trajectory(self, trajectory):
         self.trajectory = trajectory
@@ -23,9 +29,35 @@ class MovingObject:
     def set_controllers(self, controllers):
         self.controllers = controllers
 
-    def update(self, i):
+    def update(self, i, control_step):
         # must implement this method
         raise NotImplementedError("Derived class must implement update()")
+
+    def update_controller_type(self, state, setpoint, time, i):
+
+        if self.set_update_controller_type_method is not None:
+            idx = self.update_controller_type_method(state, setpoint, time, i)
+            self.controller = self.controllers[idx]
+        
+        else:
+            print("update controller type method is None")
+
+    
+    def set_update_controller_type_method(self, method):
+
+        if callable(method):
+            self.update_controller_type_method = method
+        
+        else:
+            raise Error("passed method is not callable")
+        
+    def get_state(self):
+        state = []
+        for i in range(len(self.sensors)):
+            state += [self.sensors[i].data]
+
+        return state
+
 
 
 class MovingMocapObject:

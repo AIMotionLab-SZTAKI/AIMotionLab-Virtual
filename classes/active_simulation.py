@@ -91,7 +91,7 @@ class ActiveSimulator(Display):
 
         for l in range(len(self.all_virt_vehicles)):
 
-            self.all_virt_vehicles[l].update(i)
+            self.all_virt_vehicles[l].update(i, self.control_step)
         
         
         

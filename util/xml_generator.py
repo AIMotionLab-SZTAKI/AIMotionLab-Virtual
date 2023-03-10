@@ -558,6 +558,7 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
         ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
         ET.SubElement(self.sensor, "framepos", objtype="site", objname=site_name, name=name + "_posimeter")
+        ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=name + "_orimeter")
 
 
     def __add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod):

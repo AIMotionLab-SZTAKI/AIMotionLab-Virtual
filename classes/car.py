@@ -68,11 +68,23 @@ class Car(MovingObject):
 
         self.qvel = self.joint.qvel
 
-        self.sensor_data = self.data.sensor(self.name_in_xml + "_gyro").data
+        self.sensor_gyro = self.data.sensor(self.name_in_xml + "_gyro").data
         self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data
         self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
+        self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
+
+        roll, pitch, yaw = mujoco_helper.euler_from_quaternion(self.sensor_orimeter[0], self.sensor_orimeter[1],
+                                                               self.sensor_orimeter[2], self.sensor_orimeter[3])
 
         #self.mass = model.body(self.name_in_xml).mass
+        self.state = {
+            "pos_x" : self.sensor_posimeter[0],
+            "pos_y" : self.sensor_posimeter[1],
+            "head_angle" : yaw,
+            "long_vel" : self.sensor_velocimeter[0],
+            "lat_vel" : self.sensor_velocimeter[1],
+            "yaw_rate" : self.sensor_gyro[2]
+        }
 
         self.steer_angle = 0
         self.max_steer = 0.5
@@ -109,6 +121,24 @@ class Car(MovingObject):
         self.wheelfl.ctrl_steer[0] = delta_left
         self.wheelfr.ctrl_steer[0] = delta_right
 
+    def get_state(self):
+        # x, y
+        # heading angle phi (with respect to x axis)
+        # longitudinal velocity
+        # lateral velocity
+        # yaw rate
+        
+        roll, pitch, yaw = mujoco_helper.euler_from_quaternion(self.sensor_orimeter[0], self.sensor_orimeter[1],
+                                                               self.sensor_orimeter[2], self.sensor_orimeter[3])
+
+        #self.mass = model.body(self.name_in_xml).mass
+        self.state["pos_x"] = self.sensor_posimeter[0]
+        self.state["pos_y"] = self.sensor_posimeter[1]
+        self.state["head_angle"] = yaw
+        self.state["long_vel"] = self.sensor_velocimeter[0]
+        self.state["lat_vel"] = self.sensor_velocimeter[1]
+        self.state["yaw_rate"] = self.sensor_gyro[2]
+        return self.state
 
     
     def test_torque(self):

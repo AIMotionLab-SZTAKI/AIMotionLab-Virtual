@@ -1,4 +1,5 @@
 from pickle import FALSE
+from re import M
 import mujoco
 import numpy as np
 from scipy.spatial.transform import Rotation
@@ -53,6 +54,15 @@ class Drone(MovingObject):
         self.qvel = free_joint.qvel
 
         self.sensor_data = self.data.sensor(self.name_in_xml + "_gyro").data
+
+        self.state = {
+            "pos" : np.array(3),
+            "vel" : np.array(3),
+            "acc" : np.array(3),
+            "quat" : np.array(4),
+            "ang_vel" : np.array(3),
+            "ang_acc" : np.array(3)
+        }
 
     
     def update(self, i, control_step):
@@ -228,6 +238,9 @@ class DroneHooked(Drone):
 
         self.load_mass = 0.0
         self.rod_length = 0.4
+
+        self.state["joint_ang"] = 0.0
+        self.state["joint_ang_vel"] = 0.0
 
     #def get_qpos(self):
         #drone_qpos = self.data.joint(self.name_in_xml).qpos

@@ -1,4 +1,3 @@
-import imp
 import os
 
 from classes.active_simulation import ActiveSimulator
@@ -76,9 +75,11 @@ car0.set_controllers(car0_controllers)
 
 # start simulation
 i = 0
-
+#car0.d = 0.1
+#car0.set_steer_angle(0.1)
 while not simulator.glfw_window_should_close():
     simulator.update(i)
+    #print(car0.get_state())
 
     i += 1
 

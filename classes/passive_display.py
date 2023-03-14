@@ -56,7 +56,7 @@ class PassiveDisplay(Display):
                                                self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
 
 
-            mujoco.mj_step(self.model, self.data, 1)
+            mujoco.mj_step(self.model, self.data, int(self.graphics_step / self.sim_step))
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)
             self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
             mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL,

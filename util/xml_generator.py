@@ -221,6 +221,9 @@ class SceneXmlGenerator:
         ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr3", gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-0.01 0.01")
 
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
+        ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
+        ET.SubElement(self.sensor, "framepos", objtype="site", objname=site_name, name=name + "_posimeter")
+        ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=name + "_orimeter")
 
         return drone
     
@@ -310,6 +313,9 @@ class SceneXmlGenerator:
         ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr3", gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-1.5 1.5")
 
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
+        ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
+        ET.SubElement(self.sensor, "framepos", objtype="site", objname=site_name, name=name + "_posimeter")
+        ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=name + "_orimeter")
 
         return drone
 
@@ -352,7 +358,8 @@ class SceneXmlGenerator:
         
         rod = ET.SubElement(drone, "body", name=drone_name + "_rod", pos="0 0 0")
         ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.0025", mass="0.00")
-        ET.SubElement(rod, "site", name=drone_name + "_rod_end", pos="0 0 -0.4", type="sphere", size="0.002")
+        site_name = drone_name + "_rod_end"
+        ET.SubElement(rod, "site", name=site_name, pos="0 0 -0.4", type="sphere", size="0.002")
         ET.SubElement(rod, "joint", name=drone_name + "_hook", axis="0 1 0", pos="0 0 0", damping="0.001")
         hook = ET.SubElement(rod, "body", name=drone_name + "_hook", pos="0 0 -0.4", euler="0 3.141592 -1.57")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02", mass="0.02")
@@ -360,6 +367,9 @@ class SceneXmlGenerator:
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.02598 0.07", euler="0 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0925", euler="1.0472 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01299 0.0925", euler="2.0944 0 0", size="0.005 0.018", mass="0.0001")
+        
+        ET.SubElement(self.sensor, "gyro", site=site_name, name=drone_name + "_hook_gyro")
+        ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=drone_name + "_hook_orimeter")
     
 
     def __add_mocap_hook_to_drone(self, drone, drone_pos, drone_name):

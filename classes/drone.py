@@ -53,7 +53,10 @@ class Drone(MovingObject):
 
         self.qvel = free_joint.qvel
 
-        self.sensor_data = self.data.sensor(self.name_in_xml + "_gyro").data
+        self.sensor_gyro = self.data.sensor(self.name_in_xml + "_gyro").data
+        self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data
+        self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
+        self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
 
         self.state = {
             "pos" : np.array(3),
@@ -121,8 +124,8 @@ class Drone(MovingObject):
     def get_qvel(self):
         return self.qvel
 
-    def get_sensor_data(self):
-        return self.sensor_data
+    def get_sensor_gyro(self):
+        return self.sensor_gyro
 
     def print_prop_angles(self):
         print("prop1: " + str(self.prop1_qpos))
@@ -239,8 +242,11 @@ class DroneHooked(Drone):
         self.load_mass = 0.0
         self.rod_length = 0.4
 
-        self.state["joint_ang"] = 0.0
-        self.state["joint_ang_vel"] = 0.0
+        self.sensor_hook_gyro = self.data.sensor(self.name_in_xml + "_hook_gyro").data
+        self.sensor_hook_orimeter = self.data.sensor(self.name_in_xml + "_hook_orimeter").data
+
+        self.state["joint_ang"] = self.sensor_hook_orimeter
+        self.state["joint_ang_vel"] = self.sensor_hook_gyro
 
     #def get_qpos(self):
         #drone_qpos = self.data.joint(self.name_in_xml).qpos
@@ -284,7 +290,7 @@ class DroneHooked(Drone):
         pos = self.get_qpos()[:3]
         quat = self.get_top_body_xquat()
         vel = self.get_qvel()[:3]
-        ang_vel = self.get_sensor_data()
+        ang_vel = self.get_sensor_gyro()
 
 
         if input_dict["controller_name"] == "geom_pos":

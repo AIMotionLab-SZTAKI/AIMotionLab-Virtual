@@ -9,6 +9,7 @@ from classes.car import Car, CarMocap
 
 from classes.controller_base import DummyDroneController, DummyCarController
 from classes.trajectory_base import DummyDroneTrajectory, DummyCarTrajectory
+from util import mujoco_helper
 
 
 RED_COLOR = "0.85 0.2 0.2 1.0"
@@ -80,6 +81,9 @@ i = 0
 while not simulator.glfw_window_should_close():
     simulator.update(i)
     #print(car0.get_state())
+    if i % 20 == 0:
+        print(drone0.sensor_hook_gyro)
+        #print(mujoco_helper.euler_from_quaternion(*drone0.sensor_hook_orimeter))
 
     i += 1
 

@@ -98,7 +98,7 @@ class SceneXmlGenerator:
         return pole
 
 
-    def add_drone(self, pos, quat, color, is_virtual = True, type="crazyflie", is_hooked = False):
+    def add_drone(self, pos, quat, color, is_virtual = True, type="crazyflie", is_hooked = False, hook_dof = 1):
 
         name = None
 
@@ -114,7 +114,7 @@ class SceneXmlGenerator:
                 if is_hooked:
                     name = "virtbumblebee_hooked_" + str(self.__virtbumblebee_hooked_cntr)
 
-                    drone = self.__add_bumblebee(name, pos, quat, color, True)
+                    drone = self.__add_bumblebee(name, pos, quat, color, True, hook_dof)
 
                     self.__virtbumblebee_hooked_cntr += 1
                     return name
@@ -260,7 +260,7 @@ class SceneXmlGenerator:
 
 
     
-    def __add_bumblebee(self, name, pos, quat, color, is_hooked=False):
+    def __add_bumblebee(self, name, pos, quat, color, is_hooked=False, hook_dof = 1):
 
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
         ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.5e-3 1.45e-3 2.66e-3", mass="0.407")
@@ -279,7 +279,7 @@ class SceneXmlGenerator:
         ET.SubElement(drone, "site", name=site_name, pos="0 0 0")
 
         if is_hooked:
-            self.__add_hook_to_drone(drone, name)
+            self.__add_hook_to_drone(drone, name, hook_dof)
 
         prop_name = name + "_prop1"
         mass = "0.00001"
@@ -354,13 +354,15 @@ class SceneXmlGenerator:
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
 
-    def __add_hook_to_drone(self, drone, drone_name):
+    def __add_hook_to_drone(self, drone, drone_name, hook_dof = 1):
         
         rod = ET.SubElement(drone, "body", name=drone_name + "_rod", pos="0 0 0")
         ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.0025", mass="0.00")
         site_name = drone_name + "_rod_end"
         ET.SubElement(rod, "site", name=site_name, pos="0 0 -0.4", type="sphere", size="0.002")
-        ET.SubElement(rod, "joint", name=drone_name + "_hook", axis="0 1 0", pos="0 0 0", damping="0.001")
+        ET.SubElement(rod, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
+        if hook_dof == 2:
+            ET.SubElement(rod, "joint", name=drone_name + "_hook_x", axis="1 0 0", pos="0 0 0", damping="0.001")
         hook = ET.SubElement(rod, "body", name=drone_name + "_hook", pos="0 0 -0.4", euler="0 3.141592 -1.57")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02", mass="0.02")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0475", euler="-1.0472 0 0", size="0.005 0.018", mass="0.0001")

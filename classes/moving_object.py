@@ -35,7 +35,7 @@ class MovingObject:
 
     def update_controller_type(self, state, setpoint, time, i):
 
-        if self.set_update_controller_type_method is not None:
+        if self.update_controller_type_method is not None:
             idx = self.update_controller_type_method(state, setpoint, time, i)
             self.controller = self.controllers[idx]
         

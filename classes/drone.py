@@ -16,7 +16,7 @@ class SPIN_DIR(Enum):
 
 class Drone(MovingObject):
 
-    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, trajectory, controllers, parameters = {"mass" : 0.1}):
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, trajectory, controllers):
 
         super().__init__(model, name_in_xml)
 
@@ -25,8 +25,6 @@ class Drone(MovingObject):
 
         self.trajectory = trajectory
         self.controllers = controllers
-        self.parameters = parameters
-        self.mass = parameters["mass"]
 
         free_joint = self.data.joint(self.name_in_xml)
 
@@ -187,12 +185,12 @@ class Drone(MovingObject):
 
             _name_cut = _name[:len(_name) - 1]
 
-            if _name.startswith("virtbumblebee_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+            if _name.startswith("virtbumblebee_hooked") and not _name.endswith("hook_y") and not _name.endswith("hook_x") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
-                hook = Drone.find_hook_for_drone(joint_names, _name)
-                if hook:
+                hook_names = Drone.find_hook_for_drone(joint_names, _name)
+                if len(hook_names) > 0:
                     d = DroneHooked(model, data, name_in_xml=_name,
-                                    hook_name_in_xml=hook,
+                                    hook_names_in_xml=hook_names,
                                     trajectory=None,
                                     controller=None)
 
@@ -202,7 +200,7 @@ class Drone(MovingObject):
                     print("Error: did not find hook joint for this drone: " +
                           _name + " ... Ignoring drone.")
             
-            elif _name.startswith("virtbumblebee") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+            elif _name.startswith("virtbumblebee") and not _name.endswith("hook_y") and not _name.endswith("hook_x") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
 
                 d = Drone(model, data, _name, None, None)
@@ -220,11 +218,14 @@ class Drone(MovingObject):
 
     @staticmethod
     def find_hook_for_drone(names, drone_name):
+        hook_names = []
         for n_ in names:
-            if drone_name + "_hook" == n_:
-                return n_
+            if drone_name + "_hook_x" == n_:
+                hook_names += [n_]
+            elif drone_name + "_hook_y" == n_:
+                hook_names += [n_]
         
-        return None
+        return hook_names
 
     
 
@@ -232,12 +233,18 @@ class Drone(MovingObject):
 ################################## DroneHooked ##################################
 class DroneHooked(Drone):
 
-    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, hook_name_in_xml, trajectory, controller, parameters = {"mass" : 0.1}):
-        super().__init__(model, data, name_in_xml, trajectory, controller, parameters)
-        self.hook_name_in_xml = hook_name_in_xml
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, hook_names_in_xml, trajectory, controller):
+        super().__init__(model, data, name_in_xml, trajectory, controller)
+        self.hook_names_in_xml = hook_names_in_xml
 
-        self.hook_qpos = self.data.joint(self.hook_name_in_xml).qpos
-        self.hook_qvel = self.data.joint(self.hook_name_in_xml).qvel
+        self.hook_dof = len(hook_names_in_xml)
+
+        self.hook_qpos_y = self.data.joint(self.name_in_xml + "_hook_y").qpos
+        self.hook_qvel_y = self.data.joint(self.name_in_xml + "_hook_y").qvel
+        if len(hook_names_in_xml) > 1:
+            self.hook_qpos_x = self.data.joint(self.name_in_xml + "_hook_x").qpos
+            self.hook_qvel_x = self.data.joint(self.name_in_xml + "_hook_x").qvel
+        
 
         self.load_mass = 0.0
         self.rod_length = 0.4
@@ -247,6 +254,7 @@ class DroneHooked(Drone):
 
         self.state["joint_ang"] = self.sensor_hook_orimeter
         self.state["joint_ang_vel"] = self.sensor_hook_gyro
+
 
     #def get_qpos(self):
         #drone_qpos = self.data.joint(self.name_in_xml).qpos
@@ -338,13 +346,24 @@ class DroneHooked(Drone):
         return ctrl
     
     def get_hook_qpos(self):
-        return self.hook_qpos[0]
+        if self.hook_dof == 1:
+            return self.hook_qpos_y[0]
+        elif self.hook_dof == 2:
+            return [self.hook_qpos_x[0], self.hook_qpos_y[0]]
+        
     
     def set_hook_qpos(self, q):
-        self.hook_qpos[0] = q
+        if len(self.hook_qpos > 1):
+            self.hook_qpos[0] = q[0]
+            self.hook_qpos[1] = q[1]
+        else:
+            self.hook_qpos[0] = q
 
     def get_hook_qvel(self):
-        return self.hook_qvel[0]
+        if self.hook_dof == 1:
+            return self.hook_qvel_y[0]
+        elif self.hook_dof == 2:
+            return [self.hook_qvel_x[0], self.hook_qvel_y[0]]
 
     def print_names(self):
         super().print_names()

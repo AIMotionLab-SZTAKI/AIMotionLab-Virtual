@@ -11,6 +11,9 @@ from classes.controller_base import DummyDroneController, DummyCarController
 from classes.trajectory_base import DummyDroneTrajectory, DummyCarTrajectory
 from util import mujoco_helper
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
@@ -24,7 +27,7 @@ save_filename = "built_scene.xml"
 
 # create xml with a drone and a car
 scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xml_base_filename))
-drone0_name = scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True)
+drone0_name = scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True, 2)
 car0_name = scene.add_car("-0.5 1 0.2", "1 0 0 0", RED_COLOR, True)
 
 # saving the scene as xml so that the simulator can load it
@@ -76,15 +79,26 @@ car0.set_controllers(car0_controllers)
 
 # start simulation
 i = 0
-#car0.d = 0.1
-#car0.set_steer_angle(0.1)
+sensor_data = []
+qpos_data = []
+drone0.qvel[0] = 0.1
 while not simulator.glfw_window_should_close():
     simulator.update(i)
     #print(car0.get_state())
-    if i % 20 == 0:
-        print(drone0.sensor_hook_gyro)
+    if i % 2 == 0:
+        #print(drone0.sensor_hook_gyro)
+        #print(drone0.get_hook_qpos())
         #print(mujoco_helper.euler_from_quaternion(*drone0.sensor_hook_orimeter))
+        sensor_data += [drone0.sensor_hook_gyro[0]]
+        qpos_data += [drone0.get_hook_qvel()[0]]
 
     i += 1
 
 simulator.close()
+
+sensor_data = np.array(sensor_data)
+qpos_data = np.array(qpos_data)
+plt.plot(sensor_data)
+plt.plot(qpos_data)
+plt.legend(["sensor", "qvel"])
+plt.show()

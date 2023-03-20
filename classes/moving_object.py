@@ -1,4 +1,3 @@
-from msilib.schema import Error
 import mujoco
 import numpy as np
 import util.mujoco_helper as mh

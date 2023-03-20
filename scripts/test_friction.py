@@ -24,12 +24,12 @@ BLUE_COLOR = "0.2 0.2 0.85 1.0"
 #
 #    print(t2 - t1)
 
-xml_path = os.path.join("..", "xml_models")
-xml_base_filename = "scene.xml"
+abs_path = os.path.dirname(os.path.abspath(__file__))
+xml_path = os.path.join(abs_path, "..", "xml_models")
+xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 
-scene = SceneXmlGenerator(os.path.join(xml_path, xml_base_filename))
-
+scene = SceneXmlGenerator(xmlBaseFileName)
 quat = mujoco_helper.quaternion_from_euler(0, 0, math.pi)
 quat = str(quat[0]) + " " + str(quat[1]) + " " + str(quat[2]) + " " + str(quat[3])
 car_name = scene.add_car("4 0 0.05", quat, RED_COLOR, True)
@@ -171,7 +171,7 @@ def straight_line_vel_profile():
         simulate_without_graphix(vel_arr, pos_arr)
 
 
-        real_data = np.loadtxt("../velocities.csv", delimiter=',', dtype=float)
+        real_data = np.loadtxt(os.path.join(abs_path, "..", "velocities.csv"), delimiter=',', dtype=float)
 
         vel_arr = np.array(vel_arr)
         #print(vel_arr)
@@ -257,7 +257,7 @@ def circular_():
     d_increment = 0.01
     sample_t = 1.0 / 40.0
 
-    folder = os.path.join("..", "rekrmozgsf1tenth")
+    folder = os.path.join(abs_path, "..", "rekrmozgsf1tenth")
 
     filename = get_filename(d, delta)
 
@@ -377,7 +377,7 @@ def random_curve():
     pos_arr = []
 
     #filename = os.path.join("..", "valid_sin1.csv")
-    filename = os.path.join("..", "motion_2023-03-03-12-20-33.csv")
+    filename = os.path.join(abs_path, "..", "motion_2023-03-03-12-20-33.csv")
 
     data = np.loadtxt(filename, delimiter=",", dtype=float)
     SAMPLE_T = (data[20, 0] - data[0, 0]) / 20

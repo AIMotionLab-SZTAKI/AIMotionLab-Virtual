@@ -19,14 +19,13 @@ RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
 
-xml_path = os.path.join("..", "xml_models")
-# scene.xml is required
-xml_base_filename = "scene.xml"
+abs_path = os.path.dirname(os.path.abspath(__file__))
+xml_path = os.path.join(abs_path, "..", "xml_models")
+xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 
-
 # create xml with a drone and a car
-scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xml_base_filename))
+scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True, 2)
 car0_name = scene.add_car("-0.5 1 0.2", "1 0 0 0", RED_COLOR, True)
 

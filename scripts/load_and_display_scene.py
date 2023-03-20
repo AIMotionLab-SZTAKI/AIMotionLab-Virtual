@@ -9,7 +9,8 @@ from classes.car import Car, CarMocap
 
 
 # open the base on which we'll build
-xml_path = "../xml_models"
+abs_path = os.path.dirname(os.path.abspath(__file__))
+xml_path = os.path.join(abs_path, "..", "xml_models")
 xmlBaseFileName = "scene.xml"
 
 virt_parsers = [Drone.parse, Car.parse]

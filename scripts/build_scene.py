@@ -11,13 +11,14 @@ from classes.car import Car, CarMocap
 
 
 # open the base on which we'll build
-xml_path = os.path.join("..", "xml_models")
+abs_path = os.path.dirname(os.path.abspath(__file__))
+xml_path = os.path.join(abs_path, "..", "xml_models")
 xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 
 build_based_on_optitrack = False
 
-scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
+scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 
 virt_parsers = [Drone.parse, Car.parse]
 mocap_parsers = [DroneMocap.parse, CarMocap.parse]

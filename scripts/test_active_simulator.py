@@ -27,11 +27,12 @@ SCENARIO = traj.HOOK_UP_3_LOADS
 
 # init simulator
 
-xml_path = os.path.join("..", "xml_models")
+abs_path = os.path.dirname(os.path.abspath(__file__))
+xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_filename = "scene.xml"
 save_filename = "built_scene.xml"
 
-scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xml_base_filename))
+scene = xml_generator.SceneXmlGenerator(xml_base_filename)
 
 virt_parsers = [drone.Drone.parse, car.Car.parse]
 mocap_parsers = [drone.DroneMocap.parse, car.CarMocap.parse]

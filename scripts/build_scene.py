@@ -175,7 +175,7 @@ def save_and_reload_model(scene, display, save_filename, vehicle_names_in_motive
 
 def clear_scene():
     global scene, display, drone_counter, landing_zone_counter, pole_counter
-    scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
+    scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
     display.reload_model(os.path.join(xml_path, xmlBaseFileName))
     
     drone_counter = 0

@@ -48,7 +48,7 @@ class MovingObject:
             self.update_controller_type_method = method
         
         else:
-            raise Error("passed method is not callable")
+            raise TypeError("passed method is not callable")
         
     def get_state(self):
         state = []

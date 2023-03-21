@@ -55,11 +55,13 @@ class Car(MovingObject):
         self.wheelrl = Wheel(model, data, name_in_xml + "_wheelrl")
         self.wheelrr = Wheel(model, data, name_in_xml + "_wheelrr")
 
-
         self.up_pressed = False
         self.down_pressed = False
         self.left_pressed = False
         self.right_pressed = False
+
+        self.cacc = .005
+        self.max_vel = 0.1
 
         self.qvel = self.joint.qvel
 

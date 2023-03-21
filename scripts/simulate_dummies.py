@@ -84,7 +84,7 @@ drone0.qvel[0] = 0.1
 while not simulator.glfw_window_should_close():
     simulator.update(i)
     #print(car0.get_state()["head_angle"])
-    print(car0.torque)
+    #print(car0.torque)
     if i % 2 == 0:
         #print(drone0.sensor_hook_gyro)
         #print(drone0.get_hook_qpos())

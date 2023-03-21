@@ -27,7 +27,7 @@ save_filename = "built_scene.xml"
 # create xml with a drone and a car
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True, 2)
-car0_name = scene.add_car("-0.5 1 0.2", "1 0 0 0", RED_COLOR, True)
+car0_name = scene.add_car("-0.5 1 0.6", ".3 1 0 1", RED_COLOR, True)
 
 # saving the scene as xml so that the simulator can load it
 scene.save_xml(os.path.join(xml_path, save_filename))
@@ -83,7 +83,8 @@ qpos_data = []
 drone0.qvel[0] = 0.1
 while not simulator.glfw_window_should_close():
     simulator.update(i)
-    #print(car0.get_state())
+    #print(car0.get_state()["head_angle"])
+    print(car0.torque)
     if i % 2 == 0:
         #print(drone0.sensor_hook_gyro)
         #print(drone0.get_hook_qpos())

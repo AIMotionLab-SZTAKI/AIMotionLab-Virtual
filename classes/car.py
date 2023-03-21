@@ -55,16 +55,11 @@ class Car(MovingObject):
         self.wheelrl = Wheel(model, data, name_in_xml + "_wheelrl")
         self.wheelrr = Wheel(model, data, name_in_xml + "_wheelrr")
 
-        self.j = 0
-        self.sign = 1
 
         self.up_pressed = False
         self.down_pressed = False
         self.left_pressed = False
         self.right_pressed = False
-
-        self.cacc = .005
-        self.max_vel = 0.1
 
         self.qvel = self.joint.qvel
 
@@ -73,8 +68,7 @@ class Car(MovingObject):
         self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
         self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
 
-        roll, pitch, yaw = mujoco_helper.euler_from_quaternion(self.sensor_orimeter[0], self.sensor_orimeter[1],
-                                                               self.sensor_orimeter[2], self.sensor_orimeter[3])
+        roll, pitch, yaw = mujoco_helper.euler_from_quaternion(*self.sensor_orimeter)
 
         #self.mass = model.body(self.name_in_xml).mass
         self.state = {
@@ -103,6 +97,7 @@ class Car(MovingObject):
 
         #self.control_by_keyboard()
         #print(self.qpos)
+        pass
     
     def calc_ackerman_angles(self, delta_in):
         
@@ -128,8 +123,7 @@ class Car(MovingObject):
         # lateral velocity
         # yaw rate
         
-        roll, pitch, yaw = mujoco_helper.euler_from_quaternion(self.sensor_orimeter[0], self.sensor_orimeter[1],
-                                                               self.sensor_orimeter[2], self.sensor_orimeter[3])
+        roll, pitch, yaw = mujoco_helper.euler_from_quaternion(*self.sensor_orimeter)
 
         #self.mass = model.body(self.name_in_xml).mass
         self.state["pos_x"] = self.sensor_posimeter[0]

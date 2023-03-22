@@ -93,13 +93,26 @@ class Car(MovingObject):
 
     def update(self, i, control_step):
         
-        self.calc_torque(self.d)
+        #self.calc_torque(self.d)
 
-        self.test_torque()
+        #self.test_torque()
+
+        if self.trajectory is not None:
+            state = self.get_state()
+
+            setpoint = self.trajectory.evaluate(state, i, self.data.time, control_step)
+
+            self.update_controller_type(state, setpoint, self.data.time, i)
+        
+            if self.controller is not None:
+                ctrl = self.controller.compute_control(state, setpoint, self.data.time)
+            
+            if ctrl is not None:
+                self.set_ctrl(ctrl)
+
 
         #self.control_by_keyboard()
         #print(self.qpos)
-        pass
     
     def calc_ackerman_angles(self, delta_in):
         

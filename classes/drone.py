@@ -53,8 +53,10 @@ class Drone(MovingObject):
 
         self.sensor_gyro = self.data.sensor(self.name_in_xml + "_gyro").data
         self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data
+        self.sensor_accelerometer = self.data.sensor(self.name_in_xml + "_accelerometer").data
         self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
         self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
+        self.sensor_ang_accelerometer = self.data.sensor(self.name_in_xml + "_ang_accelerometer").data
 
         self.state = {
             "pos" : np.array(3),
@@ -64,6 +66,16 @@ class Drone(MovingObject):
             "ang_vel" : np.array(3),
             "ang_acc" : np.array(3)
         }
+    
+    def get_state(self):
+        self.state["pos"] = self.sensor_posimeter
+        self.state["vel"] = self.sensor_velocimeter
+        self.state["acc"] = self.sensor_accelerometer
+        self.state["quat"] = self.sensor_orimeter
+        self.state["ang_vel"] = self.sensor_gyro
+        self.state["ang_acc"] = self.sensor_ang_accelerometer
+
+        return self.state
 
     
     def update(self, i, control_step):
@@ -241,9 +253,13 @@ class DroneHooked(Drone):
 
         self.hook_qpos_y = self.data.joint(self.name_in_xml + "_hook_y").qpos
         self.hook_qvel_y = self.data.joint(self.name_in_xml + "_hook_y").qvel
+        self.state["joint_ang"] = np.empty(1)
+        self.state["joint_ang_vel"] = np.empty(1)
         if len(hook_names_in_xml) > 1:
             self.hook_qpos_x = self.data.joint(self.name_in_xml + "_hook_x").qpos
             self.hook_qvel_x = self.data.joint(self.name_in_xml + "_hook_x").qvel
+            self.state["joint_ang"] = np.empty(2)
+            self.state["joint_ang_vel"] = np.empty(2)
         
 
         self.load_mass = 0.0
@@ -252,13 +268,21 @@ class DroneHooked(Drone):
         self.sensor_hook_gyro = self.data.sensor(self.name_in_xml + "_hook_gyro").data
         self.sensor_hook_orimeter = self.data.sensor(self.name_in_xml + "_hook_orimeter").data
 
-        self.state["joint_ang"] = self.sensor_hook_orimeter
-        self.state["joint_ang_vel"] = self.sensor_hook_gyro
 
 
     #def get_qpos(self):
         #drone_qpos = self.data.joint(self.name_in_xml).qpos
         #return np.append(drone_qpos, self.data.joint(self.hook_name_in_xml).qpos)
+    
+    def get_state(self):
+        super().get_state()
+        self.state["joint_ang"][0] = self.sensor_hook_orimeter[0]
+        self.state["joint_ang_vel"][0] = self.sensor_hook_gyro[0]
+        if self.hook_dof == 2:
+            self.state["joint_ang"][1] = self.sensor_hook_orimeter[1]
+            self.state["joint_ang_vel"][1] = self.sensor_hook_gyro[1]
+        
+        return self.state
     
     def update(self, i, control_step):
         self.fake_propeller_spin(0.02)
@@ -416,6 +440,7 @@ class DroneMocap(MovingMocapObject):
 
     
     def update(self, pos, quat):
+        self.set_propeller_speed(21.6)
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat
     

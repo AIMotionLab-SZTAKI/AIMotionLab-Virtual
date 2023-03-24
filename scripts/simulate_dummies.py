@@ -26,7 +26,7 @@ save_filename = "built_scene.xml"
 
 # create xml with a drone and a car
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
-drone0_name = scene.add_drone("1 1 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True, 2)
+drone0_name = scene.add_drone("0 0 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True, 1)
 car0_name = scene.add_car("-0.5 1 0.6", ".3 1 0 1", RED_COLOR, True)
 
 # saving the scene as xml so that the simulator can load it
@@ -79,26 +79,29 @@ car0.set_controllers(car0_controllers)
 # start simulation
 i = 0
 sensor_data = []
-qpos_data = []
-drone0.qvel[0] = 0.1
+q_data = []
+drone0.qvel[0] = -0.1
+drone0.qvel[1] = -0.1
 while not simulator.glfw_window_should_close():
     simulator.update(i)
     #print(car0.get_state()["head_angle"])
     #print(car0.torque)
-    if i % 2 == 0:
+    if i % 20 == 0:
         #print(drone0.sensor_hook_gyro)
-        #print(drone0.get_hook_qpos())
+        print(drone0.get_state())
+        print()
         #print(mujoco_helper.euler_from_quaternion(*drone0.sensor_hook_orimeter))
-        sensor_data += [drone0.sensor_hook_gyro[0]]
-        qpos_data += [drone0.get_hook_qvel()[0]]
-
+        #sensor_data += [[drone0.sensor_hook_gyro[0], drone0.sensor_hook_gyro[1]]]
+        #hook_qvel = drone0.get_hook_qvel()
+        #q_data += [[hook_qvel[0], hook_qvel[1]]]
+        #pass
     i += 1
 
 simulator.close()
 
-sensor_data = np.array(sensor_data)
-qpos_data = np.array(qpos_data)
-plt.plot(sensor_data)
-plt.plot(qpos_data)
-plt.legend(["sensor", "qvel"])
-plt.show()
+#sensor_data = np.array(sensor_data)
+#q_data = np.array(q_data)
+#plt.plot(sensor_data)
+#plt.plot(q_data)
+#plt.legend(["sensorx", "sensory", "qvelx", "qvely"])
+#plt.show()

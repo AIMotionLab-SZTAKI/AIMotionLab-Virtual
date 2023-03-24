@@ -314,8 +314,10 @@ class SceneXmlGenerator:
 
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
         ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
+        ET.SubElement(self.sensor, "accelerometer", site=site_name, name=name + "_accelerometer")
         ET.SubElement(self.sensor, "framepos", objtype="site", objname=site_name, name=name + "_posimeter")
         ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=name + "_orimeter")
+        ET.SubElement(self.sensor, "frameangacc ", objtype="site", objname=site_name, name=name + "_ang_accelerometer")
 
         return drone
 
@@ -363,6 +365,8 @@ class SceneXmlGenerator:
         ET.SubElement(rod, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
         if hook_dof == 2:
             ET.SubElement(rod, "joint", name=drone_name + "_hook_x", axis="1 0 0", pos="0 0 0", damping="0.001")
+        elif hook_dof != 1:
+            print("Too many or not enough degrees of freedom for hook joint. 1 degree of freedom assumed.")
         hook = ET.SubElement(rod, "body", name=drone_name + "_hook", pos="0 0 -0.4", euler="0 3.141592 -1.57")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02", mass="0.02")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0475", euler="-1.0472 0 0", size="0.005 0.018", mass="0.0001")

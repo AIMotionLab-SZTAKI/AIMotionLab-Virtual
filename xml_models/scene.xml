@@ -46,12 +46,15 @@
     <mesh file="../3d_models/lagyi_oszlop2.stl" name="oszlop2" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
     <mesh file="../3d_models/lagyi_oszlop3.stl" name="oszlop3" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
     <mesh file="../3d_models/lagyi_oszlop4.stl" name="oszlop4" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
+    
+    <mesh file="../3d_models/bucket/Bucket3.obj" name="bucket" smoothnormal="false" scale="0.035 0.035 0.035"/>
 
     <mesh file="../meshes/cf_body.stl" name="drone_body" smoothnormal="true" scale="1.5 1.5 1.5"/>
     <mesh file="../meshes/4_motormounts.stl" name="drone_4_motormounts" smoothnormal="true" scale="1.5 1.5 1.5"/>
     <mesh file="../meshes/4_motors.stl" name="drone_4_motors" smoothnormal="true" scale="1.5 1.5 1.5"/>
     <mesh file="../meshes/ccw_prop.stl" name="drone_ccw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
     <mesh file="../meshes/cw_prop.stl" name="drone_cw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
+
 <!--
     <mesh file="../meshes/cf_body.stl" name="drone_body_large" smoothnormal="true" scale="5 5 5"/>
     <mesh file="../meshes/4_motormounts.stl" name="drone_4_motormounts_large" smoothnormal="true" scale="5 5 5"/>
@@ -96,6 +99,9 @@
     <!--<geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="0 0 0.001" type="plane" material="mat-roundabout" condim="3"/>-->
     <geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="0 0 0.001" type="plane" material="mat-roundabout" condim="3"/>
     <geom name="carpet" size="7.644 7.644 .001" pos="3.16 1.115 0.0005" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet"/>
+
+    <geom name="bucket1" type="mesh" mesh="bucket" pos="3 -2 .142" euler="1.57 0 0" rgba=".20 .5 .5 1.0" />
+    <geom name="bucket2" type="mesh" mesh="bucket" pos="-2 -2 .142" euler="1.57 0 0" rgba=".3 .3 .3 1.0" />
 
 
     <!--

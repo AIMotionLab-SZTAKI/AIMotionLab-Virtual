@@ -93,9 +93,9 @@ class Car(MovingObject):
 
     def update(self, i, control_step):
         
-        #self.calc_torque(self.d)
+        #self.calc_torque()
 
-        #self.test_torque()
+        #self.set_torque()
 
         if self.trajectory is not None:
             state = self.get_state()
@@ -114,6 +114,17 @@ class Car(MovingObject):
         #self.control_by_keyboard()
         #print(self.qpos)
     
+    def set_ctrl(self, ctrl):
+        self.d = ctrl[0]
+        self.delta = ctrl[1]
+
+        self.calc_torque()
+        self.set_torque()
+
+        self.set_steer_angle()
+
+
+    
     def calc_ackerman_angles(self, delta_in):
         
         num = self.WB * math.tan(delta_in)
@@ -125,9 +136,9 @@ class Car(MovingObject):
         return delta_left, delta_right
         #return delta_in, delta_in
     
-    def set_steer_angle(self, delta):
+    def set_steer_angle(self):
         
-        delta_left, delta_right = self.calc_ackerman_angles(delta)
+        delta_left, delta_right = self.calc_ackerman_angles(self.delta)
         self.wheelfl.ctrl_steer[0] = delta_left
         self.wheelfr.ctrl_steer[0] = delta_right
 
@@ -150,14 +161,16 @@ class Car(MovingObject):
         return self.state
 
     
-    def test_torque(self):
+    def set_torque(self):
         self.wheelrl.ctrl[0] = self.torque
         self.wheelrr.ctrl[0] = self.torque
         self.wheelfl.ctrl[0] = self.torque
         self.wheelfr.ctrl[0] = self.torque
 
     
-    def calc_torque(self, d):
+    def calc_torque(self):
+        
+        d = self.d
 
         C_m1 = 65
         C_m2 = 3.3

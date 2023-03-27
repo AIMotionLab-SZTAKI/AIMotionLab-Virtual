@@ -9,7 +9,6 @@ import os
 import numpy as np
 import time
 from util import mujoco_helper
-import cv2
 from gui.vehicle_name_gui import VehicleNameGui
 from util.util import sync, FpsLimiter
 import scipy.signal

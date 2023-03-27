@@ -60,7 +60,7 @@ class Display:
         self.title0 = "Scene"
         self.is_recording = False
         self.image_list = []
-        self.abs_path = os.path.abspath(__file__)
+        self.abs_path = os.path.dirname(os.path.abspath(__file__))
         self.video_save_folder = os.path.join(self.abs_path, "..", "video_capture")
         self.video_file_name_base = "output"
 
@@ -539,7 +539,7 @@ class Display:
         video_process.stdin.close()
         # Wait for sub-process to finish
         video_process.wait()
-        print("[Display] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
+        print("[Display] Saved video in " + os.path.normpath(self.video_save_folder))
         self.reset_title()
 
     def save_video_background(self):

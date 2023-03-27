@@ -9,7 +9,6 @@ import numpy as np
 import time
 import threading
 from util import mujoco_helper
-import cv2
 from gui.vehicle_name_gui import VehicleNameGui
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
@@ -61,7 +60,8 @@ class Display:
         self.title0 = "Scene"
         self.is_recording = False
         self.image_list = []
-        self.video_save_folder = os.path.join("..", "video_capture")
+        self.abs_path = os.path.abspath(__file__)
+        self.video_save_folder = os.path.join(self.abs_path, "..", "video_capture")
         self.video_file_name_base = "output"
 
         self.graphics_step = graphics_step

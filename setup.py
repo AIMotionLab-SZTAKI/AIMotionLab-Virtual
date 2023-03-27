@@ -30,6 +30,6 @@ setup(name='mujoco-simulation',
         #'mosek==9.3.21',
         #'control==0.9.2',
         #'cvxopt @ https://github.com/AIMotionLab-SZTAKI/cvxopt/raw/mosek_handler/dist/cvxopt-0%2Buntagged.55.gc611b51.dirty-cp38-cp38-linux_x86_64.whl'
-        'ffmpeg==1.4'
+        'ffmpeg-python==0.2.0'
         ]
       )

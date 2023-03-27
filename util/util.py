@@ -1,5 +1,18 @@
 from typing import Union, Callable
 import time
+import math
+
+
+def carHeading2quaternion(phi: float)-> str:
+    """Converts the car heading angle (rotation around Z-axis) to quaternions that can be handled by the Mujoco Simulator
+
+    Args:
+        phi (int): Heading angle of the car (measured from the X-axis, in radians)
+
+    Returns:
+        str: Sting of the 4 quaternions
+    """
+    return str(math.cos( phi / 2 ))+" 0 0 "+ str(math.sin( phi / 2 ))
 
 
 def linear_schedule(initial_value: Union[float, str]) -> Callable[[float], float]:

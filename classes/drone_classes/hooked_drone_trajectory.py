@@ -4,7 +4,7 @@ import scipy.interpolate as si
 import cvxopt as opt
 import os
 import pickle
-import sys, os
+import sys
 from classes.trajectory_base import TrajectoryBase
 
 
@@ -32,6 +32,7 @@ class HookedDroneTrajectory(TrajectoryBase):
             "target_rpy": np.array([0, 0, self.traj['yaw'][i]]),
             "target_vel": self.traj['vel'][i],
             "target_acc": None,
+            "target_ang_vel": np.zeros(3),
             "target_quat": None,
             "target_quat_vel": None,
             "target_pos_load": target_pos_load

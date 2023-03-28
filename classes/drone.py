@@ -267,12 +267,6 @@ class DroneHooked(Drone):
 
         self.sensor_hook_gyro = self.data.sensor(self.name_in_xml + "_hook_gyro").data
         self.sensor_hook_orimeter = self.data.sensor(self.name_in_xml + "_hook_orimeter").data
-
-
-
-    #def get_qpos(self):
-        #drone_qpos = self.data.joint(self.name_in_xml).qpos
-        #return np.append(drone_qpos, self.data.joint(self.hook_name_in_xml).qpos)
     
     def get_state(self):
         super().get_state()
@@ -292,16 +286,6 @@ class DroneHooked(Drone):
     def update(self, i, control_step):
         self.fake_propeller_spin(0.02)
 
-        #if self.trajectory is not None:
-        #    pos = self.get_qpos()[:3]
-        #    vel = self.get_qvel()[:3]
-
-        #    alpha = self.get_hook_qpos()
-        #    dalpha = self.get_hook_qvel()
-        #    state = self.get_state()
-        #    setpoint = self.trajectory.evaluate(state, i, self.data.time, control_step)
-            
-
         if self.trajectory is not None:
 
             state = self.get_state()
@@ -317,62 +301,6 @@ class DroneHooked(Drone):
             #else:
             #    print("[DroneHooked] Error: ctrl was None")
     
-    def compute_control(self, input_dict):
-
-        target_pos = input_dict["target_pos"]
-        target_vel = input_dict["target_vel"]
-        target_rpy = input_dict["target_rpy"]
-        target_pos_load = input_dict["target_pos_load"]
-
-        pos = self.get_qpos()[:3]
-        quat = self.get_top_body_xquat()
-        vel = self.get_qvel()[:3]
-        ang_vel = self.get_sensor_gyro()
-
-
-        if input_dict["controller_name"] == "geom_pos":
-
-            ctrl = self.controllers["geom"].compute_pos_control(pos, quat, vel, ang_vel, target_pos,
-                                                               target_vel=target_vel, target_rpy=target_rpy)
-
-        elif input_dict["controller_name"] == "lqr":
-
-            alpha = self.get_hook_qpos()
-            dalpha = self.get_hook_qvel()
-
-            pos_ = pos.copy()
-            vel_ = vel.copy()
-            R_plane = np.array([[np.cos(target_rpy[2]), -np.sin(target_rpy[2])],
-                                [np.sin(target_rpy[2]), np.cos(target_rpy[2])]])
-            pos_[0:2] = R_plane.T @ pos_[0:2]
-            vel_[0:2] = R_plane.T @ vel_[0:2]
-            hook_pos = pos_ + self.rod_length * np.array([-np.sin(alpha), 0, -np.cos(alpha)])
-            hook_vel = vel_ + self.rod_length * dalpha * np.array([-np.cos(alpha), 0, np.sin(alpha)])
-            hook_pos = np.take(hook_pos, [0, 2])
-            hook_vel = np.take(hook_vel, [0, 2])
-
-            phi_Q = Rotation.from_quat(np.roll(quat, -1)).as_euler('xyz')[1]
-            dphi_Q = ang_vel[1]
-
-            ctrl = self.controllers["geom"].compute_pos_control(pos, quat, vel, ang_vel, target_pos,
-                                                               target_vel=target_vel, target_rpy=target_rpy)
-
-            ctrl_lqr = self.controllers["lqr"].compute_control(hook_pos,
-                                                                hook_vel,
-                                                                alpha,
-                                                                dalpha,
-                                                                phi_Q,
-                                                                dphi_Q,
-                                                                target_pos_load)
-
-            ctrl[0] = ctrl_lqr[0]
-            ctrl[2] = ctrl_lqr[2]
-        
-        else:
-            print("[DroneHooked] Error: unknown controller")
-            return None
-        
-        return ctrl
     
     def get_hook_qpos(self):
         if self.hook_dof == 1:

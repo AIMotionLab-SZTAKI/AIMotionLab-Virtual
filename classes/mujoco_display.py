@@ -27,7 +27,7 @@ class Display:
     """
 
     def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=True):
-        print(f'Working directory:  {os.getcwd()}\n')
+        #print(f'Working directory:  {os.getcwd()}\n')
 
         if connect_to_optitrack and os.name == "nt":
             connect_to_optitrack = False

@@ -365,7 +365,7 @@ class SceneXmlGenerator:
     def __add_hook_to_drone(self, drone, drone_name, hook_dof = 1):
         
         rod = ET.SubElement(drone, "body", name=drone_name + "_rod", pos="0 0 0")
-        ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.0025", mass="0.00")
+        ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.005", mass="0.00")
         site_name = drone_name + "_rod_end"
         ET.SubElement(rod, "site", name=site_name, pos="0 0 -0.4", type="sphere", size="0.002")
         ET.SubElement(rod, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
@@ -374,7 +374,7 @@ class SceneXmlGenerator:
         elif hook_dof != 1:
             print("Too many or not enough degrees of freedom for hook joint. 1 degree of freedom assumed.")
         hook = ET.SubElement(rod, "body", name=drone_name + "_hook", pos="0 0 -0.4", euler="0 3.141592 -1.57")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02", mass="0.02")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.005 0.02", mass="0.02")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0475", euler="-1.0472 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.02598 0.07", euler="0 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0925", euler="1.0472 0 0", size="0.005 0.018", mass="0.0001")

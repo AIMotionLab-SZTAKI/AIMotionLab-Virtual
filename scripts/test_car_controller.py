@@ -19,12 +19,12 @@ BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
-xml_base_filename = "scene.xml"
+xml_base_filename = "car_obstackle_scene.xml"
 save_filename = "built_scene.xml"
 
 # create xml with a car
 scene = xml_generator.SceneXmlGenerator(xml_base_filename)
-car0_name = scene.add_car(pos="0 0 0", quat=carHeading2quaternion(0.7854), color=RED_COLOR, is_virtual=True, has_rod=False)
+car0_name = scene.add_car(pos="0 0 0.052", quat=carHeading2quaternion(0.64424), color=RED_COLOR, is_virtual=True, has_rod=False)
  
 
 # saving the scene as xml so that the simulator can load it
@@ -38,8 +38,17 @@ virt_parsers = [Car.parse]
 control_step, graphics_step = 0.025, 0.025 # the car controller operates in 40 Hz
 xml_filename = os.path.join(xml_path, save_filename)
 
+# recording interval for automatic video capture
+rec_interval=[1,25]
+#rec_interval = None # no video capture
+
 # initializing simulator
-simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers=None, connect_to_optitrack=False)
+simulator = ActiveSimulator(xml_filename, rec_interval, control_step, graphics_step, virt_parsers, mocap_parsers=None, connect_to_optitrack=False)
+
+# ONLY for recording
+#simulator.activeCam
+#simulator.activeCam.distance=9
+#simulator.activeCam.azimuth=230
 
 # grabbing the drone and the car
 car0 = simulator.get_MovingObject_by_name_in_xml(car0_name)
@@ -75,8 +84,9 @@ path_points = np.array(
     ]
 )
 
-car0_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=0.01, path_degree=4, const_speed=0.8)
+car0_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=0.01, path_degree=4, const_speed=2.2)
 car0_trajectory.plot_trajectory()
+
 
 
 car0_controller = CarLPVController(car0.mass, car0.inertia) # kiszedtem a gravitációt, az a kocsit nem érdekli

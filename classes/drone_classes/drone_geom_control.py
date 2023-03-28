@@ -45,13 +45,14 @@ class GeomControl(ControllerBase):
         target_vel = setpoint['target_vel']
         target_rpy = setpoint['target_rpy']
         target_rpy_rates = setpoint['target_ang_vel']
+        mass = self.mass + setpoint['load_mass']
         pos_e = cur_pos - target_pos
         vel_e = cur_vel - target_vel
         target_acc = np.zeros(3)
         target_yaw = target_rpy[2]
 
-        A = -self.k_r*pos_e - self.k_v*vel_e + \
-            self.mass*self.gravity*np.array([0, 0, 1]) + self.mass*target_acc + self._mu_r(pos_e, vel_e)
+        A = -self.k_r*pos_e - self.k_v*vel_e - \
+            mass*self.gravity*np.array([0, 0, 1]) + self.mass*target_acc + self._mu_r(pos_e, vel_e)
         r3 = A / np.linalg.norm(A)
         if np.abs(target_yaw) < 1e-3:  # speed up cross product if yaw target is zero
             cross_temp = self._my_cross(r3)
@@ -72,7 +73,7 @@ class GeomControl(ControllerBase):
             rot_e = np.zeros(3)
         ang_vel_e = cur_ang_vel - np.dot(np.dot(cur_rotation.transpose(), target_rotation), target_rpy_rates)
         target_torques = -self.k_R * rot_e - self.k_w * ang_vel_e + np.cross(cur_ang_vel,
-                         np.dot(self.inertia, cur_ang_vel)) - self.inertia @ self._mu_R(cur_quat, cur_ang_vel, rot_e, ang_vel_e)
+                         self.inertia * cur_ang_vel) - self.inertia @ self._mu_R(cur_quat, cur_ang_vel, rot_e, ang_vel_e)
         thrust = np.dot(A, np.dot(cur_rotation, np.array([0, 0, 1])))
 
         ctrl = np.zeros(4)

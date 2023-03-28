@@ -11,26 +11,31 @@ from classes.trajectory_base import TrajectoryBase
 class HookedDroneTrajectory(TrajectoryBase):
     def __init__(self):
         super().__init__()
-        self.a_max = 0.3
+        self.a_max = 0.4
         self.v_max = 1.46
         self.lam = 0.0875
-        self.control_step = 0.01  # TODO: how do we know here the control step?
+        self.control_step = 0.01  # TODO: write setter
         self.num_lqr_steps = 300
-        self.load_mass = 0.1
-        self.rod_len = 0.4  # TODO: how do we know the length of the rod?
+        self.load_mass = 0.0
+        self.rod_len = 0.4  # TODO: get from mujoco model, write setter
         self.traj = {}
 
     def evaluate(self, state, i, time, control_step) -> dict:
-        planar_rotation = np.array([[np.cos(self.traj['yaw'][i]), -np.sin(self.traj['yaw'][i])],
-                                    [np.sin(self.traj['yaw'][i]), np.cos(self.traj['yaw'][i])]])
-        target_pos_ = self.traj['pos'][i].copy()
+        cur_idx = min((i, self.traj['pos'].shape[0]-1))
+        planar_rotation = np.array([[np.cos(self.traj['yaw'][cur_idx]), -np.sin(self.traj['yaw'][cur_idx])],
+                                    [np.sin(self.traj['yaw'][cur_idx]), np.cos(self.traj['yaw'][cur_idx])]])
+        target_pos_ = self.traj['pos'][cur_idx].copy()
         target_pos_[0:2] = planar_rotation.T @ target_pos_[0:2]
         target_pos_load = np.take(target_pos_, [0, 2]) - np.array([0, self.rod_len])
+        if 'load' in self.traj['ctrl_type'][cur_idx] or 'lqr' in self.traj['ctrl_type'][cur_idx]:
+            self.load_mass = float(self.traj['ctrl_type'][cur_idx][-5:])
+        else:
+            self.load_mass = 0
         self.output = {
             "load_mass": self.load_mass,
-            "target_pos": self.traj['pos'][i],
-            "target_rpy": np.array([0, 0, self.traj['yaw'][i]]),
-            "target_vel": self.traj['vel'][i],
+            "target_pos": self.traj['pos'][cur_idx],
+            "target_rpy": np.array([0, 0, self.traj['yaw'][cur_idx]]),
+            "target_vel": self.traj['vel'][cur_idx],
             "target_acc": None,
             "target_ang_vel": np.zeros(3),
             "target_quat": None,
@@ -112,21 +117,25 @@ class HookedDroneTrajectory(TrajectoryBase):
         spl = list(zip(*[spl_ + [yaw_spl_] for spl_, yaw_spl_ in zip(spl, yaw_spl)]))
         return spl
 
-    def construct(self, init_pos, load_target, plot_result=False, save_result=False):
+    def construct(self, drone_init_pos, load_init_pos, load_target_pos, load_mass, plot_result=False,
+                  save_result=False):
         save_splines = save_result
         enable_plotting = plot_result
+        # Convert to relative position
+        drone_init_pos[0:3] -= load_init_pos
+        load_target_pos -= load_init_pos
         invert_traj = False
         hook_yaw = 0
         final_yaw = 0
-        final_pos = [p + o for p, o in zip(load_target, [-0.3 * np.cos(final_yaw), -0.3 * np.sin(final_yaw), 0])]
-        if init_pos[0] > 0:
+        final_pos = [p + o for p, o in zip(load_target_pos, [-0.3 * np.cos(final_yaw), -0.3 * np.sin(final_yaw), 0])]
+        if drone_init_pos[0] > 0:
             hook_yaw = np.pi
             invert_traj = True
-            init_pos[0] = -1 * init_pos[0]
-            init_pos[1] = -1 * init_pos[1]
-            load_target[0] = -1 * load_target[0]
-            load_target[1] = -1 * load_target[1]
-            final_pos = [p + o for p, o in zip(load_target, [0.3 * np.cos(final_yaw), 0.3 * np.sin(final_yaw), 0])]
+            drone_init_pos[0] = -1 * drone_init_pos[0]
+            drone_init_pos[1] = -1 * drone_init_pos[1]
+            load_target_pos[0] = -1 * load_target_pos[0]
+            load_target_pos[1] = -1 * load_target_pos[1]
+            final_pos = [p + o for p, o in zip(load_target_pos, [0.3 * np.cos(final_yaw), 0.3 * np.sin(final_yaw), 0])]
         # init_pos_list = [[-1.5, 2, 0.6], [-1, 0, 1.2], [0, 1.2, 0.6], [-0.3, 0.3, 1]]
         # load_target_list = [[1.5, 1.5, -0.01], [0.5, 2, -0.01], [1.8, 0, -0.01], [1, -1, -0.01]]
         # for init_pos, load_target in zip(init_pos_list, load_target_list):
@@ -149,10 +158,10 @@ class HookedDroneTrajectory(TrajectoryBase):
         xs = -0.3
         zs = 0.1
         dzs = 0.12
-        bc[0] = {'init_pos': init_pos[0:3], 'init_vel': [0, 0, 0], 'init_acc': [0, 0, 0],
+        bc[0] = {'init_pos': drone_init_pos[0:3], 'init_vel': [0, 0, 0], 'init_acc': [0, 0, 0],
                  'final_pos': [xs, 0, [0, zs]], 'final_vel': [[None, 0.3], 0, [None, 0.2]],
                  'final_dir': [[0.2, None], 0, [-dzs, dzs]],
-                 'final_curve': [None, 0, None], 'init_yaw': init_pos[3], 'final_yaw': hook_yaw}
+                 'final_curve': [None, 0, None], 'init_yaw': drone_init_pos[3], 'final_yaw': hook_yaw}
         params = [bc, n, k, rho, w, K, a_max, v_max, lam]
         params = [list(x) for x in zip(*params)]
         planner[0] = self._TrajectoryPlanner(*params[0])
@@ -187,7 +196,7 @@ class HookedDroneTrajectory(TrajectoryBase):
         final_der[1] = 0
         bc[2] = {'init_pos': [xyz[1][-1, 0], 0, xyz[1][-1, 2]],
                  'init_vel': planner[1].vel_traj[-1] * final_der / np.linalg.norm(final_der), 'final_vel': 3 * [0.0],
-                 'final_pos': load_target + np.array([0.0, 0.0, 0.45]), 'init_curve': [None, None, [0.2, None]], 'final_dir': [0.0, 0.0, [None, -0.2]],#'final_curve': [0.0, 0.0, 0.0],
+                 'final_pos': load_target_pos + np.array([0.0, 0.0, 0.45]), 'init_curve': [None, None, [0.2, None]], 'final_dir': [0.0, 0.0, [None, -0.2]],#'final_curve': [0.0, 0.0, 0.0],
                  'init_dir': [[0.5, None], 0, 0], 'init_yaw': hook_yaw, 'final_yaw': 0}
         params = [bc, n, k, rho, w, K, a_max, v_max, lam]
         params = [list(x) for x in zip(*params)]
@@ -198,7 +207,7 @@ class HookedDroneTrajectory(TrajectoryBase):
 
         bc[3] = {'init_pos': [xyz[2][-1, 0], xyz[2][-1, 1], xyz[2][-1, 2]],
                  'init_vel': 3 * [0], 'final_vel': 3 * [0],
-                 'final_pos': load_target, 'init_dir': [0.0, 0.0, -0.01],
+                 'final_pos': load_target_pos, 'init_dir': [0.0, 0.0, -0.01],
                  'init_yaw': 0}
         w[3] = 1e-5
         params = [bc, n, k, rho, w, K, a_max, v_max, lam]
@@ -239,8 +248,8 @@ class HookedDroneTrajectory(TrajectoryBase):
 
         vel = [planner_.eval_trajectory(t_, 1)[0] for planner_, t_ in zip(planner, t)]
         acc = [planner_.eval_trajectory(t_, 2)[0] for planner_, t_ in zip(planner, t)]
-        ctrl_type = sum([len(pos[i]) for i in range(2)]) * ['geom'] + len(pos[2]) * ['geom_load' + "{:.3f}".format(self.load_mass)] + \
-                    self.num_lqr_steps * ['lqr' + "{:.3f}".format(self.load_mass)] + len(pos[3]) * ['geom_load' + "{:.3f}".format(self.load_mass)] + len(pos[4]) * ['geom']
+        ctrl_type = sum([len(pos[i]) for i in range(2)]) * ['geom'] + len(pos[2]) * ['geom_load' + "{:.3f}".format(load_mass)] + \
+                    self.num_lqr_steps * ['lqr' + "{:.3f}".format(load_mass)] + len(pos[3]) * ['geom_load' + "{:.3f}".format(load_mass)] + len(pos[4]) * ['geom']
         pos = pos[0:3] + self.num_lqr_steps*[pos[2][-1, :]] + pos[3:]
         pos = np.vstack(pos)
         vel = vel[0:3] + self.num_lqr_steps * [np.zeros(3)] + vel[3:]
@@ -249,6 +258,8 @@ class HookedDroneTrajectory(TrajectoryBase):
         yaw = yaw[0:3] + self.num_lqr_steps*[yaw[2][-1]] + yaw[3:]
         yaw = np.hstack(yaw)
 
+        pos += load_init_pos
+
         if save_splines:
             from datetime import datetime
             now = datetime.now()
@@ -256,7 +267,7 @@ class HookedDroneTrajectory(TrajectoryBase):
 
         if enable_plotting:
             tle = 'Duration of trajectory: ' + "{:.2f}".format(sum(T)) + ' seconds'
-            self.__plot_3d_trajectory(xyz[:, 0], xyz[:, 1], xyz[:, 2], vel_traj, tle, load_target)
+            self.__plot_3d_trajectory(xyz[:, 0], xyz[:, 1], xyz[:, 2], vel_traj, tle, load_target_pos)
             import matplotlib.pyplot as plt
             t = np.arange(0, sum(T) + 0.01, 0.01)
             plot_len = min((t.shape[0], pos.shape[0])) - 1

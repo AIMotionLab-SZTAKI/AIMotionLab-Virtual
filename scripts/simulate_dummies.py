@@ -80,15 +80,19 @@ car0.set_controllers(car0_controllers)
 i = 0
 sensor_data = []
 q_data = []
-drone0.qvel[0] = -0.1
-drone0.qvel[1] = -0.1
+drone0.qvel[0] = -0.2
+drone0.qvel[1] = 0.2
 while not simulator.glfw_window_should_close():
     simulator.update(i)
     #print(car0.get_state()["head_angle"])
     #print(car0.torque)
     if i % 5 == 0:
-        sensor_data += [drone0.sensor_velocimeter[2]]
-        q_data += [drone0.qvel[2]]
+        hook_roll, hook_pitch, hook_yaw = mujoco_helper.euler_from_quaternion(*drone0.sensor_hook_orimeter)
+
+        #sensor_data += [hook_pitch]
+        sensor_data += [[drone0.get_state()["joint_ang"][0]]]
+        q_data += [drone0.get_hook_qpos()]
+        
         #print(mujoco_helper.euler_from_quaternion(*drone0.sensor_hook_orimeter))
         #sensor_data += [[drone0.sensor_hook_gyro[0], drone0.sensor_hook_gyro[1]]]
         #hook_qvel = drone0.get_hook_qvel()
@@ -98,9 +102,7 @@ while not simulator.glfw_window_should_close():
 
 simulator.close()
 
-sensor_data = np.array(sensor_data)
-q_data = np.array(q_data)
 plt.plot(sensor_data)
 plt.plot(q_data)
-#plt.legend(["sensorx", "sensory", "qvelx", "qvely"])
+plt.legend(["sensor_joint_ang", "q_joint_ang" ])
 plt.show()

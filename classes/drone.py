@@ -276,10 +276,15 @@ class DroneHooked(Drone):
     
     def get_state(self):
         super().get_state()
-        self.state["joint_ang"][0] = self.sensor_hook_orimeter[0]
-        self.state["joint_ang_vel"][0] = self.sensor_hook_gyro[0]
-        if self.hook_dof == 2:
-            self.state["joint_ang"][1] = self.sensor_hook_orimeter[1]
+        roll, pitch, yaw = mujoco_helper.euler_from_quaternion(*self.sensor_hook_orimeter)
+        if self.hook_dof == 1:
+            # not sure why, bit in case of 1 dog, pitch is the joint angle
+            self.state["joint_ang"][0] = pitch
+            self.state["joint_ang_vel"][0] = self.sensor_hook_gyro[0]
+        elif self.hook_dof == 2:
+            self.state["joint_ang"][0] = roll
+            self.state["joint_ang"][1] = pitch
+            self.state["joint_ang_vel"][0] = self.sensor_hook_gyro[0]
             self.state["joint_ang_vel"][1] = self.sensor_hook_gyro[1]
         
         return self.state
@@ -377,7 +382,7 @@ class DroneHooked(Drone):
         
     
     def set_hook_qpos(self, q):
-        if len(self.hook_qpos > 1):
+        if len(self.hook_qpos) > 1:
             self.hook_qpos[0] = q[0]
             self.hook_qpos[1] = q[1]
         else:

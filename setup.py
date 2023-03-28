@@ -27,9 +27,9 @@ setup(name='mujoco-simulation',
         #'opencv-python==4.6.0.66',
         #'motioncapture==1.0a1',
         'sympy==1.10.1',
-        #'mosek==9.3.21',
-        #'control==0.9.2',
-        #'cvxopt @ https://github.com/AIMotionLab-SZTAKI/cvxopt/raw/mosek_handler/dist/cvxopt-0%2Buntagged.55.gc611b51.dirty-cp38-cp38-linux_x86_64.whl'
+        'mosek==9.3.21',
+        'control==0.9.2',
+        'cvxopt',  # @ https://github.com/AIMotionLab-SZTAKI/cvxopt/raw/mosek_handler/dist/cvxopt-0%2Buntagged.55.gc611b51.dirty-cp38-cp38-linux_x86_64.whl'
         'ffmpeg-python==0.2.0'
         ]
       )

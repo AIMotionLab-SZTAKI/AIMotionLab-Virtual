@@ -1,3 +1,4 @@
+from typing import Union
 from classes.trajectory_base import TrajectoryBase
 from classes.controller_base import ControllerBase
 import numpy as np
@@ -163,7 +164,7 @@ class CarTrajectory(TrajectoryBase):
 
 
     @staticmethod
-    def _clamp(value: float|int, bound: int|float|list|tuple|np.ndarray) -> float|int:
+    def _clamp(value: Union[float,int], bound: Union[int,float,list,tuple,np.ndarray]) -> float:
         """Helper function that clamps the given value with the specified bounds
 
         Args:
@@ -172,20 +173,20 @@ class CarTrajectory(TrajectoryBase):
                                                If tuple| list | np.ndarray the value is constained into the range of [bound[0],bound[1]]
 
         Returns:
-            float|int: The clamped value
+            float: The clamped value
         """
         if isinstance(bound, int) or isinstance(bound, float):
             if value < -bound:
-                return -bound
+                return float(-bound)
             elif value > bound:
-                return bound
-            return value
+                return float(bound)
+            return float(value)
         elif isinstance(bound, tuple) or isinstance(bound,list) or isinstance(bound, np.ndarray):
             if value < bound[0]:
-                return bound[0]
+                return float(bound[0])
             elif value > bound[1]:
-                return bound[1]
-            return value
+                return float(bound[1])
+            return float(value)
     
 
     @staticmethod
@@ -219,7 +220,7 @@ class CarTrajectory(TrajectoryBase):
 
 
 class CarLPVController(ControllerBase):
-    def __init__(self, mass: float, inertia: tuple|np.ndarray|list, long_gains: np.ndarray | None =None, lat_gains:np.ndarray | None =None, **kwargs):
+    def __init__(self, mass: float, inertia: Union[tuple,np.ndarray,list], long_gains: Union[np.ndarray, None] =None, lat_gains: Union[np.ndarray, None] = None, **kwargs):
         """Trajectory tracking LPV feedback controller, based on the decoupled longitudinal and lateral dynamics
 
         Args:
@@ -347,7 +348,7 @@ class CarLPVController(ControllerBase):
 
         
     @staticmethod
-    def _clamp(value: float|int, bound: int|float|list|tuple|np.ndarray) -> float|int:
+    def _clamp(value: Union[float,int], bound: Union[int,float,list,tuple,np.ndarray]) -> float:
         """Helper function that clamps the given value with the specified bounds
 
         Args:
@@ -356,20 +357,20 @@ class CarLPVController(ControllerBase):
                                                If tuple| list | np.ndarray the value is constained into the range of [bound[0],bound[1]]
 
         Returns:
-            float|int: The clamped value
+            float: The clamped value
         """
         if isinstance(bound, int) or isinstance(bound, float):
             if value < -bound:
-                return -bound
+                return float(-bound)
             elif value > bound:
-                return bound
-            return value
-        elif isinstance(bound, tuple):
+                return float(bound)
+            return float(value)
+        elif isinstance(bound, tuple) or isinstance(bound,list) or isinstance(bound, np.ndarray):
             if value < bound[0]:
-                return bound[0]
+                return float(bound[0])
             elif value > bound[1]:
-                return bound[1]
-            return value
+                return float(bound[1])
+            return float(value)
     
 
     @staticmethod

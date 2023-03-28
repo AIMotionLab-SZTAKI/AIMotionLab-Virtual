@@ -629,7 +629,7 @@ class SceneXmlGenerator:
         tree = ET.ElementTree(self.root)
         #ET.indent(tree, space="\t", level=0) # uncomment this if python version >= 3.9
         tree.write(file_name)
-        print("Scene xml file saved at: " + os.path.normpath(file_name))
+        print("[SceneXmlGenerator] Scene xml file saved at: " + os.path.normpath(file_name))
 
 
 """

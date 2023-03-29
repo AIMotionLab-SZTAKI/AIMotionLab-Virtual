@@ -52,6 +52,7 @@ class SceneXmlGenerator:
         self.__realfleet1tenth_cntr = 0
         
         self.__load_cntr = 0
+        self.__mocap_load_cntr = 0
 
 
     def add_airport(self, pos, quat=None):
@@ -371,6 +372,8 @@ class SceneXmlGenerator:
         ET.SubElement(rod, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
         if hook_dof == 2:
             ET.SubElement(rod, "joint", name=drone_name + "_hook_x", axis="1 0 0", pos="0 0 0", damping="0.001")
+            ET.SubElement(self.sensor, "jointvel", joint=drone_name + "_hook_x", name=drone_name + "_hook_jointvel_x")
+            ET.SubElement(self.sensor, "jointpos", joint=drone_name + "_hook_x", name=drone_name + "_hook_jointpos_x")
         elif hook_dof != 1:
             print("Too many or not enough degrees of freedom for hook joint. 1 degree of freedom assumed.")
         hook = ET.SubElement(rod, "body", name=drone_name + "_hook", pos="0 0 -0.4", euler="0 3.141592 -1.57")
@@ -380,8 +383,8 @@ class SceneXmlGenerator:
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0925", euler="1.0472 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01299 0.0925", euler="2.0944 0 0", size="0.005 0.018", mass="0.0001")
         
-        ET.SubElement(self.sensor, "gyro", site=site_name, name=drone_name + "_hook_gyro")
-        ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=drone_name + "_hook_orimeter")
+        ET.SubElement(self.sensor, "jointvel", joint=drone_name + "_hook_y", name=drone_name + "_hook_jointvel_y")
+        ET.SubElement(self.sensor, "jointpos", joint=drone_name + "_hook_y", name=drone_name + "_hook_jointpos_y")
     
 
     def __add_mocap_hook_to_drone(self, drone, drone_pos, drone_name):
@@ -496,6 +499,33 @@ class SceneXmlGenerator:
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.09561", euler="1.17810 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01061 0.09561", euler="1.96350 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.08061", euler="2.74889 0 0", size="0.004 0.01378", mass=hook_mass)
+    
+    def add_mocap_load(self, pos, size, quat, color):
+
+        name = "loadmocap_" + str(self.__mocap_load_cntr)
+        self.__mocap_load_cntr += 1
+
+        box_pos = "0 0 " + size.split()[2]
+
+        load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
+        ET.SubElement(load, "geom", type="box", size=size, pos=box_pos, rgba=color)
+
+        hook_pos = "0 0 " + str(2 * float(size.split()[2]))
+        hook = ET.SubElement(load, "body", name=name + "_hook", pos=hook_pos)
+
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02")
+
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01173 0.04565", euler="-1.12200 0 0", size="0.004 0.01562")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.04439", euler="-1.17810 0 0", size="0.004 0.01378")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02561 0.05939", euler="-0.39270 0 0", size="0.004 0.01378")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02561 0.08061", euler="0.39270 0 0", size="0.004 0.01378")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.09561", euler="1.17810 0 0", size="0.004 0.01378")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01061 0.09561", euler="1.96350 0 0", size="0.004 0.01378")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.08061", euler="2.74889 0 0", size="0.004 0.01378")
+
+        return name
+
+
 
 
     def add_car(self, pos, quat, color, is_virtual, has_rod=False, type="fleet1tenth"):

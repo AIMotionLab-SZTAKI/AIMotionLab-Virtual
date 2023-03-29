@@ -59,21 +59,15 @@ class Drone(MovingObject):
         self.sensor_ang_accelerometer = self.data.sensor(self.name_in_xml + "_ang_accelerometer").data
 
         self.state = {
-            "pos" : np.array(3),
-            "vel" : np.array(3),
-            "acc" : np.array(3),
-            "quat" : np.array(4),
-            "ang_vel" : np.array(3),
-            "ang_acc" : np.array(3)
+            "pos" : self.sensor_posimeter,
+            "vel" : self.sensor_velocimeter,
+            "acc" : self.sensor_accelerometer,
+            "quat" : self.sensor_orimeter,
+            "ang_vel" : self.sensor_gyro,
+            "ang_acc" : self.sensor_ang_accelerometer
         }
     
     def get_state(self):
-        self.state["pos"] = self.sensor_posimeter
-        self.state["vel"] = self.sensor_velocimeter
-        self.state["acc"] = self.sensor_accelerometer
-        self.state["quat"] = self.sensor_orimeter
-        self.state["ang_vel"] = self.sensor_gyro
-        self.state["ang_acc"] = self.sensor_ang_accelerometer
 
         return self.state
 
@@ -253,34 +247,31 @@ class DroneHooked(Drone):
 
         self.hook_qpos_y = self.data.joint(self.name_in_xml + "_hook_y").qpos
         self.hook_qvel_y = self.data.joint(self.name_in_xml + "_hook_y").qvel
-        self.state["joint_ang"] = np.empty(1)
-        self.state["joint_ang_vel"] = np.empty(1)
-        if len(hook_names_in_xml) > 1:
+        self.sensor_hook_jointpos_y = self.data.sensor(self.name_in_xml + "_hook_jointpos_y").data
+        self.sensor_hook_jointvel_y = self.data.sensor(self.name_in_xml + "_hook_jointvel_y").data
+        self.state["joint_ang"] = np.array(self.sensor_hook_jointpos_y)
+        self.state["joint_ang_vel"] = np.array(self.sensor_hook_jointvel_y)
+        if self.hook_dof == 2:
             self.hook_qpos_x = self.data.joint(self.name_in_xml + "_hook_x").qpos
             self.hook_qvel_x = self.data.joint(self.name_in_xml + "_hook_x").qvel
-            self.state["joint_ang"] = np.empty(2)
-            self.state["joint_ang_vel"] = np.empty(2)
+            self.sensor_hook_jointvel_x = self.data.sensor(self.name_in_xml + "_hook_jointvel_x").data
+            self.sensor_hook_jointpos_x = self.data.sensor(self.name_in_xml + "_hook_jointpos_x").data
+            self.state["joint_ang"] = np.array((self.sensor_hook_jointpos_y, self.sensor_hook_jointpos_x))
+            self.state["joint_ang_vel"] = np.array((self.sensor_hook_jointvel_y, self.sensor_hook_jointvel_x))
         
 
         self.load_mass = 0.0
         self.rod_length = 0.4
 
-        self.sensor_hook_gyro = self.data.sensor(self.name_in_xml + "_hook_gyro").data
-        self.sensor_hook_orimeter = self.data.sensor(self.name_in_xml + "_hook_orimeter").data
     
     def get_state(self):
-        super().get_state()
-        roll, pitch, yaw = mujoco_helper.euler_from_quaternion(*self.sensor_hook_orimeter)
+        #super().get_state()
         if self.hook_dof == 1:
-            # not sure why, bit in case of 1 dog, pitch is the joint angle
-            self.state["joint_ang"][0] = pitch
-            self.state["joint_ang_vel"][0] = self.sensor_hook_gyro[0]
+            self.state["joint_ang"] = np.array(self.sensor_hook_jointpos_y[0])
+            self.state["joint_ang_vel"] = np.array(self.sensor_hook_jointvel_y[0])
         elif self.hook_dof == 2:
-            self.state["joint_ang"][0] = roll
-            self.state["joint_ang"][1] = pitch
-            self.state["joint_ang_vel"][0] = self.sensor_hook_gyro[0]
-            self.state["joint_ang_vel"][1] = self.sensor_hook_gyro[1]
-        
+            self.state["joint_ang"] = np.array((self.sensor_hook_jointpos_y[0], self.sensor_hook_jointpos_x[0]))
+            self.state["joint_ang_vel"] = np.array((self.sensor_hook_jointvel_y[0], self.sensor_hook_jointvel_x[0]))
         return self.state
     
     def update(self, i, control_step):
@@ -290,7 +281,7 @@ class DroneHooked(Drone):
 
             state = self.get_state()
             setpoint = self.trajectory.evaluate(state, i, self.data.time, control_step)
-
+            
             self.update_controller_type(state, setpoint, self.data.time, i)
 
             if self.controller is not None:
@@ -310,11 +301,11 @@ class DroneHooked(Drone):
         
     
     def set_hook_qpos(self, q):
-        if len(self.hook_qpos) > 1:
-            self.hook_qpos[0] = q[0]
-            self.hook_qpos[1] = q[1]
+        if self.hook_dof == 1:
+            self.hook_qpos_x[0] = q
         else:
-            self.hook_qpos[0] = q
+            self.hook_qpos_x[0] = q[0]
+            self.hook_qpos_y[0] = q[1]
 
     def get_hook_qvel(self):
         if self.hook_dof == 1:

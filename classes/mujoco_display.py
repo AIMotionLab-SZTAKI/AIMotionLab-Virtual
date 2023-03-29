@@ -165,9 +165,9 @@ class Display:
                 self.all_real_vehicles += self.mocap_parsers[i](self.data, self.model)
 
         print()
-        print(str(len(self.all_virt_vehicles)) + " virtual vehicle(s) found in xml.")
+        print(str(len(self.all_virt_vehicles)) + " virtual object(s) found in xml.")
         print()
-        print(str(len(self.all_real_vehicles)) + " mocap vehicle(s) found in xml.")
+        print(str(len(self.all_real_vehicles)) + " mocap objects(s) found in xml.")
         print("______________________________")
         
         self.all_vehicles = self.all_virt_vehicles + self.all_real_vehicles

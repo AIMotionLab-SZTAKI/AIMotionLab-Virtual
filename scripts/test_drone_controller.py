@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     # Set scenario parameters
     drone_init_pos = np.array([-0.76, 1.13, 1, 0])  # initial drone position and yaw angle
-    load_init_pos = np.array([0, -1, 0.77])  # TODO: Do some transformations in z direction
+    load_init_pos = np.array([0, -1, 0.8])  # TODO: Do some transformations in z direction
     load_target_pos = np.array([0.76, 1.13, 0.77])
     load_mass = 0.1
 
@@ -53,6 +53,8 @@ if __name__ == '__main__':
 
     # creating trajectory and controller for drone0
     drone0_trajectory = HookedDroneTrajectory()
+    drone0_trajectory.set_control_step(control_step)
+    drone0_trajectory.set_rod_length(drone0.rod_length)
     drone0_controller = GeomControl(drone0.mass, drone0.inertia, simulator.gravity)
 
     drone0_controllers = [drone0_controller]

@@ -14,10 +14,10 @@ class HookedDroneTrajectory(TrajectoryBase):
         self.a_max = 0.4
         self.v_max = 1.46
         self.lam = 0.0875
-        self.control_step = 0.01  # TODO: write setter
+        self.control_step = 0.01
         self.num_lqr_steps = 300
         self.load_mass = 0.0
-        self.rod_len = 0.4  # TODO: get from mujoco model, write setter
+        self.rod_length = 0.4
         self.traj = {}
 
     def evaluate(self, state, i, time, control_step) -> dict:
@@ -26,7 +26,7 @@ class HookedDroneTrajectory(TrajectoryBase):
                                     [np.sin(self.traj['yaw'][cur_idx]), np.cos(self.traj['yaw'][cur_idx])]])
         target_pos_ = self.traj['pos'][cur_idx].copy()
         target_pos_[0:2] = planar_rotation.T @ target_pos_[0:2]
-        target_pos_load = np.take(target_pos_, [0, 2]) - np.array([0, self.rod_len])
+        target_pos_load = np.take(target_pos_, [0, 2]) - np.array([0, self.rod_length])
         if 'load' in self.traj['ctrl_type'][cur_idx] or 'lqr' in self.traj['ctrl_type'][cur_idx]:
             self.load_mass = float(self.traj['ctrl_type'][cur_idx][-5:])
         else:
@@ -43,6 +43,12 @@ class HookedDroneTrajectory(TrajectoryBase):
             "target_pos_load": target_pos_load
         }
         return self.output
+
+    def set_control_step(self, control_step):
+        self.control_step = control_step
+
+    def set_rod_length(self, rod_length):
+        self.rod_length = rod_length
 
     @staticmethod
     def __plot_3d_trajectory(x, y, z, vel, title, load_target):

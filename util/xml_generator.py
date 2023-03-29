@@ -269,7 +269,7 @@ class SceneXmlGenerator:
     def __add_bumblebee(self, name, pos, quat, color, is_hooked=False, hook_dof = 1):
 
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
-        ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.5e-3 1.45e-3 2.66e-3", mass="0.407")
+        ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.5e-3 1.45e-3 2.66e-3", mass="0.605")
         ET.SubElement(drone, "joint", name=name, type="free")
         
         # need to rotate the body mesh to match optitrack orientation

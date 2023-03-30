@@ -14,6 +14,7 @@ from util import mujoco_helper
 
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 
 RED_COLOR = "0.85 0.2 0.2 1.0"
@@ -29,7 +30,7 @@ save_filename = "built_scene.xml"
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone("0 0 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True, 1)
 car0_name = scene.add_car("-0.5 1 0.6", "1 0 0 0", RED_COLOR, True)
-mocap_load0 = scene.add_mocap_load("-1 0 0", ".1 .1 .1", "1 0 0 0", BLUE_COLOR)
+mocap_load0_name = scene.add_mocap_load("-1 0 0", ".1 .1 .1", "1 0 0 0", BLUE_COLOR)
 
 # saving the scene as xml so that the simulator can load it
 scene.save_xml(os.path.join(xml_path, save_filename))
@@ -48,6 +49,7 @@ simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, vir
 # grabbing the drone and the car
 drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
 car0 = simulator.get_MovingObject_by_name_in_xml(car0_name)
+mocap_load0 = simulator.get_MovingMocapObject_by_name_in_xml(mocap_load0_name)
 
 # creating trajectory and controller for drone0
 drone0_trajectory = DummyDroneTrajectory()
@@ -85,12 +87,15 @@ while not simulator.glfw_window_should_close():
     #print(car0.get_state()["head_angle"])
     #print(car0.torque)
     if i % 5 == 0:
-        print(drone0.get_state()["vel"])
+        
         #hook_roll, hook_pitch, hook_yaw = mujoco_helper.euler_from_quaternion(*drone0.sensor_hook_orimeter)
 
         #sensor_data += [hook_pitch]
         sensor_data += [drone0.get_state()["joint_ang"]]
         q_data += [drone0.get_hook_qpos()]
+
+        pos = [0.001 * i, math.sin(0.01 * i), 0.001 * i]
+        mocap_load0.update(pos, [1, 0, 0, 0])
         
         #print(mujoco_helper.euler_from_quaternion(*drone0.sensor_hook_orimeter))
         #sensor_data += [[drone0.sensor_hook_gyro[0], drone0.sensor_hook_gyro[1]]]

@@ -446,10 +446,13 @@ class DroneMocapHooked(DroneMocap):
 
         self.hook_name_in_xml = hook_name_in_xml
 
-        self.hook_mocapid = model.body(name_in_xml + "_hook").mocapid[0]
+        #self.hook_mocapid = model.body(name_in_xml + "_hook").mocapid[0]
 
-        self.hook_position = data.mocap_pos[self.hook_mocapid]
-        self.hook_rotation = data.mocap_quat[self.hook_mocapid]
+        #self.hook_qpos = self.data.joint(self.name_in_xml + "_hook_y").qpos
+        #self.hook = HookMocap(self.name_in_xml + "_hook_y", )
+
+        #self.hook_position = data.mocap_pos[self.hook_mocapid]
+        #self.hook_rotation = data.mocap_quat[self.hook_mocapid]
     
     def get_hook_pos(self):
         return self.hook_position
@@ -469,11 +472,49 @@ class DroneMocapHooked(DroneMocap):
         self.hook_rotation[3] = quat[3]
 
     def update(self, pos, quat):
-        self.__set_hook_pos(pos)
-        self.__set_hook_quat(quat)
+        #self.__set_hook_pos(pos)
+        #self.__set_hook_quat(quat)
+        #self.hook_qpos[0] = 0.5
         return super().update(pos, quat)
 
 
     def print_names(self):
         super().print_names()
         print("hook name in xml: " + self.hook_name_in_xml)
+
+
+class HookMocap(MovingMocapObject):
+
+    def __init__(self, model, data, hook_mocapid, name_in_xml, name_in_motive) -> None:
+        super().__init__(name_in_xml, name_in_motive)
+        self.data = data
+        self.name_in_xml = name_in_xml
+        self.name_in_motive = name_in_motive
+        self.mocapid = hook_mocapid
+    
+
+    def update(self, pos, quat):
+        pos_ = pos.copy()
+        pos_[2] = pos_[2] + .03
+        self.data.mocap_pos[self.mocapid] = pos_
+        self.data.mocap_quat[self.mocapid] = quat
+
+    @staticmethod
+    def parse(data, model):
+
+        body_names = mujoco_helper.get_body_name_list(model)
+        ih = 1
+        hooks = []
+        for _name in body_names:
+            
+            if _name.startswith("real") and _name.endswith("hook"):
+
+                mocapid = model.body(_name).mocapid[0]
+                h = HookMocap(model, data, mocapid, _name, "hook_mocap" + str(ih))
+
+                hooks += [h]
+
+                ih += 1
+        
+
+        return hooks

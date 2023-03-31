@@ -156,6 +156,7 @@ class SceneXmlGenerator:
 
                     drone = self.__add_mocap_bumblebee(name, pos, quat, color)
                     self.__add_mocap_hook_to_drone(drone, pos, name)
+                    #self.__add_hook_to_drone(drone, name)
 
                     self.__realbumblebee_hooked_cntr += 1
                     return name
@@ -337,6 +338,7 @@ class SceneXmlGenerator:
         quat_mesh = mh.quaternion_from_euler(0, 0, math.radians(270))
         quat_mesh_str = str(quat_mesh[0]) + " " + str(quat_mesh[1]) + " " + str(quat_mesh[2]) + " " + str(quat_mesh[3])
         ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", quat=quat_mesh_str, mesh="drone_body_large", rgba=color)
+        ET.SubElement(drone, "geom", type="box", size="0.0475 0.025 0.025", pos="0.01 0 -0.02", rgba=color)
 
         prop_name = name + "_prop1"
         pos_m = "-" + PROP_OFFS_X1_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
@@ -361,6 +363,8 @@ class SceneXmlGenerator:
         prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos_m)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos_m, rgba=PROP_COLOR)
+
+        return drone
 
 
     def __add_hook_to_drone(self, drone, drone_name, hook_dof = 1):
@@ -387,16 +391,16 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "jointpos", joint=drone_name + "_hook_y", name=drone_name + "_hook_jointpos_y")
     
 
-    def __add_mocap_hook_to_drone(self, drone, drone_pos, drone_name):
-
+    def __add_mocap_hook_to_drone(self, drone, drone_pos, drone_name, hook_dof=1):
 
         splt = drone_pos.split()
 
         pos_z = float(splt[2])
         pos_z -= ROD_LENGTH
-        #hook_pos = splt[0] + " " + splt[1] + " " + str(pos_z)
+        hook_pos = splt[0] + " " + splt[1] + " " + str(pos_z)
         
         hook = ET.SubElement(self.worldbody, "body", name=drone_name + "_hook", pos=drone_pos, mocap="true")
+        #ET.SubElement(hook, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
         ET.SubElement(hook, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.0025")
         #hook = ET.SubElement(self.worldbody, "body", name=drone_name + "_hook", pos=hook_pos, euler="0 3.141592 -1.57", mocap="true")
         
@@ -475,7 +479,7 @@ class SceneXmlGenerator:
         else:
             print("[SceneXmlGenerator] Sztaki already added")
     
-    def add_load(self, pos, size, mass, quat, color):
+    def add_load(self, pos, size, mass, quat, color, mesh_name=None):
 
         name = "load_" + str(self.__load_cntr)
         self.__load_cntr += 1
@@ -500,7 +504,7 @@ class SceneXmlGenerator:
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01061 0.09561", euler="1.96350 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.08061", euler="2.74889 0 0", size="0.004 0.01378", mass=hook_mass)
     
-    def add_mocap_load(self, pos, size, quat, color):
+    def add_mocap_load(self, pos, size, quat, color, mesh_name=None):
 
         name = "loadmocap_" + str(self.__mocap_load_cntr)
         self.__mocap_load_cntr += 1
@@ -508,10 +512,15 @@ class SceneXmlGenerator:
         box_pos = "0 0 " + size.split()[2]
 
         load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
-        ET.SubElement(load, "geom", type="box", size=size, pos=box_pos, rgba=color)
+        if mesh_name is None:
+            ET.SubElement(load, "geom", type="box", size=size, pos=box_pos, rgba=color)
+            hook_pos = "0 0 " + str(2 * float(size.split()[2]))
+        else:
+            ET.SubElement(load, "geom", type="mesh", mesh=mesh_name, pos="0 0 0.04", rgba=color, euler="1.57 0 0")
+            hook_pos = "0 0 0.05"
+            
 
-        hook_pos = "0 0 " + str(2 * float(size.split()[2]))
-        hook = ET.SubElement(load, "body", name=name + "_hook", pos=hook_pos)
+        hook = ET.SubElement(load, "body", name=name + "_hook", pos=hook_pos, euler="0 0 3")
 
         ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02")
 

@@ -50,6 +50,8 @@
     
     <mesh file="../3d_models/bucket/Bucket3.obj" name="bucket" smoothnormal="false" scale="0.035 0.035 0.035"/>
 
+    <mesh file="../meshes/payload_simplified.stl" name="payload_simplified" smoothnormal="false" scale="0.00115 0.00115 0.00115"/>
+
     <mesh file="../meshes/cf_body.stl" name="drone_body" smoothnormal="true" scale="1.5 1.5 1.5"/>
     <mesh file="../meshes/4_motormounts.stl" name="drone_4_motormounts" smoothnormal="true" scale="1.5 1.5 1.5"/>
     <mesh file="../meshes/4_motors.stl" name="drone_4_motors" smoothnormal="true" scale="1.5 1.5 1.5"/>

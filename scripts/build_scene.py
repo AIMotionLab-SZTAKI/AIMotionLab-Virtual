@@ -6,8 +6,9 @@ from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingInputGui
 from gui.vehicle_input_gui import VehicleInputGui
 from gui.payload_input_gui import PayloadInputGui
-from classes.drone import Drone, DroneMocap
+from classes.drone import Drone, DroneMocap, HookMocap
 from classes.car import Car, CarMocap
+from classes.payload import PAYLOAD_TYPES, PayloadMocap
 
 
 # open the base on which we'll build
@@ -21,7 +22,7 @@ build_based_on_optitrack = False
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 
 virt_parsers = [Drone.parse, Car.parse]
-mocap_parsers = [DroneMocap.parse, CarMocap.parse]
+mocap_parsers = [DroneMocap.parse, CarMocap.parse, PayloadMocap.parse, HookMocap.parse]
 display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, virt_parsers, mocap_parsers, False)
 #display.set_drone_names()
 
@@ -163,8 +164,18 @@ def add_load():
     input_gui = PayloadInputGui()
     input_gui.show()
 
-    if input_gui.position != "" and input_gui.size != "" and input_gui.mass != "" and input_gui.quaternion != "":
-        scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
+    if input_gui.position != "" and input_gui.quaternion != "":
+        if input_gui.is_mocap:
+            if input_gui.type == PAYLOAD_TYPES.Box.value and input_gui.size != "":
+                scene.add_mocap_load(input_gui.position, input_gui.size, input_gui.quaternion, input_gui.color)
+            else:
+                scene.add_mocap_load(input_gui.position, input_gui.size, input_gui.quaternion, input_gui.color, input_gui.type)
+        else:
+            if input_gui.mass != "":
+                if input_gui.type == PAYLOAD_TYPES.Box.value and input_gui.size != "":
+                    scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
+                else:
+                    scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color, input_gui.type)
 
         save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
 

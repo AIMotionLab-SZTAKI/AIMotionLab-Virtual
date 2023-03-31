@@ -1,5 +1,12 @@
 from classes.moving_object import MovingMocapObject
 from util import mujoco_helper
+from enum import Enum
+import numpy as np
+
+
+class PAYLOAD_TYPES(Enum):
+    Box = "Box"
+    Teardrop = "Teardrop"
 
 class PayloadMocap(MovingMocapObject):
 
@@ -14,6 +21,9 @@ class PayloadMocap(MovingMocapObject):
 
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat
+    
+    def get_qpos(self):
+        return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
 
     @staticmethod
     def parse(data, model):

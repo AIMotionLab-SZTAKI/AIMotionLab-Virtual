@@ -498,6 +498,9 @@ class HookMocap(MovingMocapObject):
         pos_[2] = pos_[2] + .03
         self.data.mocap_pos[self.mocapid] = pos_
         self.data.mocap_quat[self.mocapid] = quat
+        
+    def get_qpos(self):
+        return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
 
     @staticmethod
     def parse(data, model):

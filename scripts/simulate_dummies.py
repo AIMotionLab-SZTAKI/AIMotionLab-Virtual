@@ -6,7 +6,7 @@ from util import xml_generator
 
 from classes.drone import Drone, DroneMocap, HookMocap
 from classes.car import Car, CarMocap
-from classes.payload import PayloadMocap
+from classes.payload import PayloadMocap, PAYLOAD_TYPES
 
 from classes.controller_base import DummyDroneController, DummyCarController
 from classes.trajectory_base import DummyDroneTrajectory, DummyCarTrajectory
@@ -32,7 +32,8 @@ scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone("-5 0 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True, 1)
 dronemocap0_name = scene.add_drone("1 1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", True, 1)
 car0_name = scene.add_car("-5 1 0.6", "1 0 0 0", RED_COLOR, True)
-mocap_load0_name = scene.add_mocap_load("-1 0 0", ".1 .1 .1", "1 0 0 0", BLACK_COLOR, "payload_simplified")
+mocap_load0_name = scene.add_mocap_load("-1 0 0", ".1 .1 .1", "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop.value)
+mocap_load0_name = scene.add_load("1 0 0", ".1 .1 .1", ".1", "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop.value)
 
 # saving the scene as xml so that the simulator can load it
 scene.save_xml(os.path.join(xml_path, save_filename))

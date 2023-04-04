@@ -481,21 +481,36 @@ class SceneXmlGenerator:
         else:
             print("[SceneXmlGenerator] Sztaki already added")
     
-    def add_load(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box.value):
+    def add_load(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box.value, is_mocap=False):
 
-        name = "load_" + str(self.__load_cntr)
-        self.__load_cntr += 1
+        if is_mocap:
+            name = "loadmocap_" + str(self.__mocap_load_cntr)
+            self.__mocap_load_cntr += 1
+            load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
+            
+            if type == PAYLOAD_TYPES.Box.value:
+                box_pos = "0 0 " + size.split()[2]
+                ET.SubElement(load, "geom", type="box", size=size, pos=box_pos, rgba=color)
+                hook_pos = "0 0 " + str(2 * float(size.split()[2]))
+            elif type == PAYLOAD_TYPES.Teardrop.value:
+                ET.SubElement(load, "geom", type="mesh", mesh="payload_simplified", pos="0 0 0.0405", rgba=color, euler="1.57 0 0")
+                hook_pos = "0 0 0.05"
+        
+        else:
+            name = "load_" + str(self.__load_cntr)
+            self.__load_cntr += 1
+            
+            load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
 
+            if type == PAYLOAD_TYPES.Box.value:
+                box_pos = "0 0 " + size.split()[2]
+                ET.SubElement(load, "geom", type="box", size=size, pos=box_pos, mass=mass, rgba=color)
+                hook_pos = "0 0 " + str(2 * float(size.split()[2]))
+            elif type == PAYLOAD_TYPES.Teardrop.value:
+                ET.SubElement(load, "geom", type="mesh", mesh="payload_simplified", pos="0 0 0.0405", mass=mass, rgba=color, euler="1.57 0 0")
+                hook_pos = "0 0 0.05"
 
-        load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
-        if type == PAYLOAD_TYPES.Box.value:
-            box_pos = "0 0 " + size.split()[2]
-            ET.SubElement(load, "geom", type="box", size=size, pos=box_pos, rgba=color)
-            hook_pos = "0 0 " + str(2 * float(size.split()[2]))
-        elif type == PAYLOAD_TYPES.Teardrop.value:
-            ET.SubElement(load, "geom", type="mesh", mesh="payload_simplified", pos="0 0 0.04", rgba=color, euler="1.57 0 0")
-            hook_pos = "0 0 0.05"
-        ET.SubElement(load, "joint", type="free")
+            ET.SubElement(load, "joint", type="free")
 
         hook = ET.SubElement(load, "body", name=name + "_hook", pos=hook_pos, euler="0 0 3")
 
@@ -509,6 +524,8 @@ class SceneXmlGenerator:
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.09561", euler="1.17810 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01061 0.09561", euler="1.96350 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.08061", euler="2.74889 0 0", size="0.004 0.01378", mass=hook_mass)
+
+        return name
     
     def add_mocap_load(self, pos, size, quat, color, type=PAYLOAD_TYPES.Box.value):
 

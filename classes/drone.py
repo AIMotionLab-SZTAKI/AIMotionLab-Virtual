@@ -50,6 +50,9 @@ class Drone(MovingObject):
         self.top_body_xquat = self.data.body(self.name_in_xml).xquat
 
         self.qvel = free_joint.qvel
+        self.qacc = free_joint.qacc
+        self.qfrc_passive = free_joint.qfrc_passive
+        self.qfrc_applied = free_joint.qfrc_applied
 
         self.sensor_gyro = self.data.sensor(self.name_in_xml + "_gyro").data
         self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data

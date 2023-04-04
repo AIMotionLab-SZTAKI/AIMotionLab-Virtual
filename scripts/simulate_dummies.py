@@ -1,3 +1,4 @@
+from lib2to3.pgen2 import driver
 import os
 
 from classes.active_simulation import ActiveSimulator
@@ -81,32 +82,16 @@ car0.set_controllers(car0_controllers)
 i = 0
 sensor_data = []
 q_data = []
-drone0.qvel[0] = 0.0
-drone0.qvel[1] = 0.0
-drone0.hook_qvel_y[0] = 1
+# print(drone0.qacc)
+#drone0.qvel[1] = 0.0
+#drone0.hook_qvel_y[0] = 1
 #drone0.hook_qvel_x[0] = -0.1
+drone0.qfrc_applied[5] += .01
 while not simulator.glfw_window_should_close():
     simulator.update(i)
-    #print(car0.get_state()["head_angle"])
-    #print(car0.torque)
-    #if i % 5 == 0:
-        
-        #hook_roll, hook_pitch, hook_yaw = mujoco_helper.euler_from_quaternion(*drone0.sensor_hook_orimeter)
+    if i % 10 == 0:
+        print(drone0.qfrc_applied)
 
-        #sensor_data += [hook_pitch]
-        #sensor_data += [drone0.get_state()["joint_ang"]]
-        #q_data += [drone0.get_hook_qpos()]
-
-        #pos = [0.001 * i, math.sin(0.01 * i), 0.001 * i]
-        #mocap_load0.update(pos, [1, 0, 0, 0])
-        
-        #print(mujoco_helper.euler_from_quaternion(*drone0.sensor_hook_orimeter))
-        #sensor_data += [[drone0.sensor_hook_gyro[0], drone0.sensor_hook_gyro[1]]]
-        #hook_qvel = drone0.get_hook_qvel()
-        #q_data += [[hook_qvel[0], hook_qvel[1]]]
-        #pass
-    #if i == 400:
-    #    drone0.set_hook_qpos([0, 0])
     i += 1
 
 simulator.close()

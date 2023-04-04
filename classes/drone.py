@@ -516,7 +516,11 @@ class HookMocap(MovingMocapObject):
             if _name.startswith("real") and _name.endswith("hook"):
 
                 mocapid = model.body(_name).mocapid[0]
-                h = HookMocap(model, data, mocapid, _name, "hook_mocap" + str(ih))
+                if ih == 1:
+                    name_in_motive = "hook"
+                else:
+                    name_in_motive = "hook_" + str(ih)
+                h = HookMocap(model, data, mocapid, _name, name_in_motive=name_in_motive)
 
                 hooks += [h]
 

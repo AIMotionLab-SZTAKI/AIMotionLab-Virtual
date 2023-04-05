@@ -166,16 +166,28 @@ def add_load():
 
     if input_gui.position != "" and input_gui.quaternion != "":
         if input_gui.is_mocap:
-            if input_gui.type == PAYLOAD_TYPES.Box.value and input_gui.size != "":
-                scene.add_mocap_load(input_gui.position, input_gui.size, input_gui.quaternion, input_gui.color)
+            if input_gui.type == PAYLOAD_TYPES.Box.value:
+                if input_gui.size == "":
+                    print("Payload size was unspecified...")
+                    return
+                scene.add_load(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
+            elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
+                scene.add_load(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
             else:
-                scene.add_mocap_load(input_gui.position, input_gui.size, input_gui.quaternion, input_gui.color, input_gui.type)
+                print("Unknown payload type...")
         else:
             if input_gui.mass != "":
-                if input_gui.type == PAYLOAD_TYPES.Box.value and input_gui.size != "":
+                if input_gui.type == PAYLOAD_TYPES.Box.value:
+                    if input_gui.size == "":
+                        print("Payload size was unspecified...")
+                        return
                     scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
-                else:
+                elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
                     scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color, input_gui.type)
+                else:
+                    print("Unknown payload type...")
+            else:
+                print("Payload mass was unspecified...")
 
         save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
 

@@ -8,7 +8,7 @@ from gui.vehicle_input_gui import VehicleInputGui
 from gui.payload_input_gui import PayloadInputGui
 from classes.drone import Drone, DroneMocap, HookMocap
 from classes.car import Car, CarMocap
-from classes.payload import PAYLOAD_TYPES, PayloadMocap
+from classes.payload import PAYLOAD_TYPES, PayloadMocap, Payload
 
 
 # open the base on which we'll build
@@ -21,7 +21,7 @@ build_based_on_optitrack = False
 
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 
-virt_parsers = [Drone.parse, Car.parse]
+virt_parsers = [Drone.parse, Car.parse, Payload.parse]
 mocap_parsers = [DroneMocap.parse, CarMocap.parse, PayloadMocap.parse, HookMocap.parse]
 display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, virt_parsers, mocap_parsers, False)
 #display.set_drone_names()

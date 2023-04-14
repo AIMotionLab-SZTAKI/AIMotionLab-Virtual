@@ -10,6 +10,7 @@ class MovingObject:
     """
     def __init__(self, model, name_in_xml) -> None:
         self.name_in_xml = name_in_xml
+        self.model = model
 
         self.mass = model.body(self.name_in_xml).mass
         self.inertia = model.body(self.name_in_xml).inertia

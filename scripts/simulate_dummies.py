@@ -7,7 +7,7 @@ from util import xml_generator
 
 from classes.drone import Drone, DroneMocap, HookMocap
 from classes.car import Car, CarMocap
-from classes.payload import PayloadMocap, PAYLOAD_TYPES
+from classes.payload import PayloadMocap, PAYLOAD_TYPES, Payload
 
 from classes.controller_base import DummyDroneController, DummyCarController
 from classes.trajectory_base import DummyDroneTrajectory, DummyCarTrajectory
@@ -33,14 +33,14 @@ scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone("-5 0 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True, 1)
 dronemocap0_name = scene.add_drone("1 1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", True, 1)
 car0_name = scene.add_car("-5 1 0.6", "1 0 0 0", RED_COLOR, True)
-mocap_load0_name = scene.add_mocap_load("-1 0 0", ".1 .1 .1", "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop.value)
-mocap_load0_name = scene.add_load("1 0 0", ".1 .1 .1", ".1", "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop.value)
+mocap_load0_name = scene.add_load("-1 0 0", ".1 .1 .1", None, "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop.value, True)
+load0_name = scene.add_load("1 0 15", ".1 .1 .5", ".1", "1 1 0 1", BLACK_COLOR, PAYLOAD_TYPES.Box.value)
 
 # saving the scene as xml so that the simulator can load it
 scene.save_xml(os.path.join(xml_path, save_filename))
 
 # create list of parsers
-virt_parsers = [Drone.parse, Car.parse]
+virt_parsers = [Drone.parse, Car.parse, Payload.parse]
 mocap_parsers = [DroneMocap.parse, CarMocap.parse, PayloadMocap.parse, HookMocap.parse]
 
 
@@ -54,6 +54,7 @@ simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, vir
 drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
 car0 = simulator.get_MovingObject_by_name_in_xml(car0_name)
 mocap_load0 = simulator.get_MovingMocapObject_by_name_in_xml(mocap_load0_name)
+load0 = simulator.get_MovingObject_by_name_in_xml(load0_name)
 
 # creating trajectory and controller for drone0
 drone0_trajectory = DummyDroneTrajectory()
@@ -90,7 +91,8 @@ drone0.qfrc_applied[5] += .01
 while not simulator.glfw_window_should_close():
     simulator.update(i)
     if i % 10 == 0:
-        print(drone0.qfrc_applied)
+        #print(drone0.qfrc_applied)
+        print(load0.sensor_posimeter)
 
     i += 1
 

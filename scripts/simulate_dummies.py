@@ -1,4 +1,3 @@
-from lib2to3.pgen2 import driver
 import os
 
 from classes.active_simulation import ActiveSimulator
@@ -34,7 +33,7 @@ drone0_name = scene.add_drone("-5 0 1", "1 0 0 0", RED_COLOR, True, "bumblebee",
 dronemocap0_name = scene.add_drone("1 1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", True, 1)
 car0_name = scene.add_car("-5 1 0.6", "1 0 0 0", RED_COLOR, True)
 mocap_load0_name = scene.add_load("-1 0 0", ".1 .1 .1", None, "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop.value, True)
-load0_name = scene.add_load("1 0 15", ".1 .1 .5", ".1", "1 1 0 1", BLACK_COLOR, PAYLOAD_TYPES.Box.value)
+load0_name = scene.add_load("1 0 15", ".15 .12 .5", ".1", "1 1 0 1", BLACK_COLOR, PAYLOAD_TYPES.Box.value)
 
 # saving the scene as xml so that the simulator can load it
 scene.save_xml(os.path.join(xml_path, save_filename))
@@ -88,12 +87,13 @@ q_data = []
 #drone0.hook_qvel_y[0] = 1
 #drone0.hook_qvel_x[0] = -0.1
 drone0.qfrc_applied[5] += .01
+print(load0.get_top_position_at(50, 50))
 while not simulator.glfw_window_should_close():
     simulator.update(i)
     if i % 10 == 0:
         #print(drone0.qfrc_applied)
-        print(load0.sensor_posimeter)
-
+        #print(load0.sensor_posimeter)
+        pass
     i += 1
 
 simulator.close()

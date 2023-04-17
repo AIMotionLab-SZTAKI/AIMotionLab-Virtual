@@ -63,6 +63,9 @@ class Payload(MovingObject):
         
         self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
         self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
+
+        self.set_top_subdivision(top_subdivision_x, top_subdivision_y)
+
     
     def update(self, i, control_step):
         
@@ -72,6 +75,7 @@ class Payload(MovingObject):
         self.__top_subdivision_x = top_subdivision_x
         self.__top_subdivision_y = top_subdivision_y
         self.top_miniractangle_area = self.top_surface_area / (top_subdivision_x * top_subdivision_y)
+        self.__calc_minirectangle_positions()
 
     
     def __calc_minirectangle_positions(self):
@@ -80,22 +84,30 @@ class Payload(MovingObject):
         self.__minirectangle_positions = np.zeros((self.__top_subdivision_x, self.__top_subdivision_y, 3))
 
 
+        pos_z = self.size[2] # no need to divide by 2, because it's half
+        division_size_x = (2 * self.size[0]) / self.__top_subdivision_x
+        division_size_y = (2 * self.size[1]) / self.__top_subdivision_y
+
         for i in range(self.__top_subdivision_x):
-            division_size_x = (2 * self.size[0]) / self.__top_subdivision_x
-            distance_x = i * division_size_x + (division_size_x / 2)
+            distance_x = i * division_size_x + (division_size_x / 2.0)
+            pos_x = distance_x - self.size[0]
 
             for j in range(self.__top_subdivision_y):
                 
-
-                distance_z = self.size[2] # no need to divide by 2, because it's half size
-
-                #self.__minirectangle_positions[i, j] = 
+                distance_y = j * division_size_y + (division_size_y / 2.0)
+                pos_y = distance_y - self.size[1]
+                self.__minirectangle_positions[i, j] = np.array((pos_x, pos_y, pos_z))
 
     
     def get_top_position_at(self, i, j):
-        """ get the center in world coordinates of a small rectangle on the top of the box"""
+        """ get the center in world coordinates of a small rectangle on the top of the box """
 
-        # 
+        return self.__minirectangle_positions[i, j]
+    
+    def get_top_surface_normal(self):
+
+        # rotate (0, 0, 1) vector by rotation quaternion
+        return np.array((0, 0, 0))
     
 
     @staticmethod

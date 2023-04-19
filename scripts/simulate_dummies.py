@@ -33,7 +33,7 @@ drone0_name = scene.add_drone("-5 0 1", "1 0 0 0", RED_COLOR, True, "bumblebee",
 dronemocap0_name = scene.add_drone("1 1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", True, 1)
 car0_name = scene.add_car("-5 1 0.6", "1 0 0 0", RED_COLOR, True)
 mocap_load0_name = scene.add_load("-1 0 0", ".1 .1 .1", None, "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop.value, True)
-load0_name = scene.add_load("1 0 15", ".15 .12 .5", ".1", "1 1 0 1", BLACK_COLOR, PAYLOAD_TYPES.Box.value)
+load0_name = scene.add_load("0 0 15", ".15 .12 .5", ".1", "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Box.value)
 
 # saving the scene as xml so that the simulator can load it
 scene.save_xml(os.path.join(xml_path, save_filename))
@@ -93,6 +93,7 @@ while not simulator.glfw_window_should_close():
     if i % 10 == 0:
         #print(drone0.qfrc_applied)
         #print(load0.sensor_posimeter)
+        print(load0.get_minirectangle_data_at(99, 99))
         pass
     i += 1
 

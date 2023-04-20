@@ -124,7 +124,7 @@ class ActiveSimulator(Display):
 
             self.all_virt_vehicles[l].update(i, self.control_step)
         
-        mujoco.mj_step(self.model, self.data, 1)
+        mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
 
     
     def manage_video_recording(self):

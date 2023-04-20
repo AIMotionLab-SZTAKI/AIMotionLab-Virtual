@@ -1,0 +1,131 @@
+<mujoco model="Lagyi">
+
+  <default class="main">
+    <!-- 
+    rotate by 90 degrees about the vertical axis
+    to match the optitrack coordinate system
+    -->
+    <!--<geom quat="0.7071 0 0 0.7071"/>-->
+
+    <default class="lagyi">
+      <geom quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
+    </default>
+
+    <default class="pole">
+      <geom rgba="0.1 0.1 0.1 1"/>
+      <default class="pole_top">
+        <geom type="cylinder" size="0.022 0.5" pos="0 0 0.5"/>
+      </default>
+      <default class="pole_bottom1">
+        <geom type="box" size="0.02 0.205 0.02" quat="0.7071 0 0 0.7071" pos="0 0 0.02"/>
+        <default class="pole_bottom2">
+          <geom quat="1 0 0 0"/>
+        </default>
+      </default>
+    </default>
+    
+    <default class="landing_zone">
+      <geom type="box" pos="0 0 0.01" size="0.1175 0.0975 0.01" rgba="0.8 0.8 0.8 1.0"/>
+    </default>
+  </default>
+  
+
+  <compiler angle="radian" meshdir=""/>
+  <option timestep="0.001"/>
+  <visual>
+    <quality shadowsize="4096"/>
+  </visual>
+
+  <asset>
+    <mesh file="../3d_models/cf2_assembly.stl" name="drone" smoothnormal="true" scale="1.5 1.5 1.5"/>
+    <mesh file="../3d_models/cf2_assembly.stl" name="drone_large" smoothnormal="true" scale="5 5 5"/>
+    <mesh file="../3d_models/lagyi_cockpit.stl" name="cockpit" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
+    <mesh file="../3d_models/lagyi_fal1.stl" name="fal1" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
+    <mesh file="../3d_models/lagyi_fal2.stl" name="fal2" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
+    <mesh file="../3d_models/lagyi_oszlop1.stl" name="oszlop1" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
+    <mesh file="../3d_models/lagyi_oszlop2.stl" name="oszlop2" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
+    <mesh file="../3d_models/lagyi_oszlop3.stl" name="oszlop3" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
+    <mesh file="../3d_models/lagyi_oszlop4.stl" name="oszlop4" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
+    
+    <mesh file="../3d_models/bucket/Bucket3.obj" name="bucket" smoothnormal="false" scale="0.035 0.035 0.035"/>
+
+    <mesh file="../meshes/cf_body.stl" name="drone_body" smoothnormal="true" scale="1.5 1.5 1.5"/>
+    <mesh file="../meshes/4_motormounts.stl" name="drone_4_motormounts" smoothnormal="true" scale="1.5 1.5 1.5"/>
+    <mesh file="../meshes/4_motors.stl" name="drone_4_motors" smoothnormal="true" scale="1.5 1.5 1.5"/>
+    <mesh file="../meshes/ccw_prop.stl" name="drone_ccw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
+    <mesh file="../meshes/cw_prop.stl" name="drone_cw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
+
+<!--
+    <mesh file="../meshes/cf_body.stl" name="drone_body_large" smoothnormal="true" scale="5 5 5"/>
+    <mesh file="../meshes/4_motormounts.stl" name="drone_4_motormounts_large" smoothnormal="true" scale="5 5 5"/>
+    <mesh file="../meshes/4_motors.stl" name="drone_4_motors_large" smoothnormal="true" scale="5 5 5"/>
+    <mesh file="../meshes/ccw_prop.stl" name="drone_ccw_prop_large" smoothnormal="true" scale="5 5 5"/>
+    <mesh file="../meshes/cw_prop.stl" name="drone_cw_prop_large" smoothnormal="true" scale="5 5 5"/>
+-->
+
+    <mesh file="../meshes/quad_model_no_prop_simplified.stl" name="drone_body_large" smoothnormal="true" scale="0.001 0.001 0.001"/>
+    <mesh file="../meshes/ccw_propeller_simplified.stl" name="drone_ccw_prop_large" smoothnormal="true" scale="0.001 0.001 0.001"/>
+    <mesh file="../meshes/cw_propeller_simplified.stl" name="drone_cw_prop_large" smoothnormal="true" scale="0.001 0.001 0.001"/>
+
+    <texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512"/>
+    <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .1 .1" rgb2=".2 .2 .2"/>
+    <texture name="tex-carpet" type="2d" file="../textures/carpet_lagyi4.png"/>
+    <texture name="tex-roundabout" type="2d" file="../textures/roundabout.png"/>
+    <texture name="tex-hospital" type="2d" file="../textures/hospital.png"/>
+    <texture name="tex-post_office" type="2d" file="../textures/post_office.png"/>
+    <texture name="tex-airport" type="2d" file="../textures/airport.png"/>
+    <texture name="tex-parking_lot" type="2d" file="../textures/parking_lot.png"/>
+    <texture name="tex-sztaki" type="2d" file="../textures/sztaki.png"/>
+    <material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".05"/>
+    <material name="mat-carpet" shininess="0.1" texrepeat="0.1308 0.1308" texture="tex-carpet" texuniform="true"/>
+    <material name="mat-roundabout" reflectance="0.7" texrepeat="0.667 0.667" texture="tex-roundabout" texuniform="true"/>
+    <material name="mat-hospital" reflectance="0.7" texrepeat="7.843 7.692" texture="tex-hospital" texuniform="true"/>
+    <material name="mat-post_office" reflectance="0.7" texrepeat="7.843 7.843" texture="tex-post_office" texuniform="true"/>
+    <material name="mat-airport" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-airport" texuniform="true"/>
+    <material name="mat-parking_lot" reflectance="0.7" texrepeat="9.524 8.696" texture="tex-parking_lot" texuniform="true"/>
+    <material name="mat-sztaki" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-sztaki" texuniform="true"/>
+
+    <texture name="tex_check" builtin="checker" type="2d" width="256" height="256" rgb1=".8 .1 .1" rgb2=".1 .1 .8"/>
+    <material name="material_check" texture="tex_check" texrepeat="2 2" texuniform="true"/>
+  </asset>
+
+  <worldbody>
+    <camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958"/>
+    <geom size="20 20 .05" type="plane" rgba="0.6 0.6 0.6 1.0" condim="3"/>
+
+    <light dir="0 -0.3 -1" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="1 1 15" cutoff="70"/>
+    <light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70"/>
+    
+    <!--<geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="0 0 0.001" type="plane" material="mat-roundabout" condim="3"/>-->
+    <geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="0 0 0.001" type="plane" material="mat-roundabout" condim="3"/>
+
+    <!--
+    <geom name="carpet" size="7.644 7.644 .001" pos="3.16 1.115 0.0005" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet"/>
+    -->
+
+
+    <!--
+      <geom name="cockpit" pos="1.45 -2.8 0" type="mesh" mesh="cockpit" quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
+      <geom name="fal1" pos="1.45 -2.8 0" type="mesh" mesh="fal1"       quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
+      <geom name="fal2" pos="1.45 -2.8 0" type="mesh" mesh="fal2"       quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1"/>
+      <geom name="oszlop1" pos="1.45 -2.8 0" type="mesh" mesh="oszlop1" quat="0 0 0.7071 0.7071" rgba="0.3 0.4 0.3 1"/>
+      <geom name="oszlop2" pos="1.45 -2.8 0" type="mesh" mesh="oszlop2" quat="0 0 0.7071 0.7071" rgba="0.3 0.4 0.3 1"/>
+      <geom name="oszlop3" pos="1.45 -2.8 0" type="mesh" mesh="oszlop3" quat="0 0 0.7071 0.7071" rgba="0.3 0.4 0.3 1"/>
+      <geom name="oszlop4" pos="1.45 -2.8 0" type="mesh" mesh="oszlop4" quat="0 0 0.7071 0.7071" rgba="0.3 0.4 0.3 1"/>
+
+    <body name="lagyi" pos="1.45 -2.8 0" childclass="lagyi">
+      <geom name="cockpit" type="mesh" mesh="cockpit"/>
+      <geom name="fal1" type="mesh" mesh="fal1"/>
+      <geom name="fal2" type="mesh" mesh="fal2"/>
+      <geom name="oszlop1" type="mesh" mesh="oszlop1" rgba="0.3 0.3 0.3 1"/>
+      <geom name="oszlop2" type="mesh" mesh="oszlop2" rgba="0.3 0.3 0.3 1"/>
+      <geom name="oszlop3" type="mesh" mesh="oszlop3" rgba="0.3 0.3 0.3 1"/>
+      <geom name="oszlop4" type="mesh" mesh="oszlop4" rgba="0.3 0.3 0.3 1"/>
+    </body>
+    
+    -->
+  
+
+  </worldbody>
+
+</mujoco>

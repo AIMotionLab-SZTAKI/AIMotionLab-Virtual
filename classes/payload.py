@@ -2,6 +2,7 @@ from classes.moving_object import MovingMocapObject, MovingObject
 from util import mujoco_helper
 from enum import Enum
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 
 class PAYLOAD_TYPES(Enum):
@@ -70,6 +71,9 @@ class Payload(MovingObject):
     def update(self, i, control_step):
         
         return
+    
+    def get_qpos(self):
+        return np.append(self.sensor_posimeter, self.sensor_orimeter)
 
     def set_top_subdivision(self, top_subdivision_x, top_subdivision_y):
         self.__top_subdivision_x = top_subdivision_x
@@ -99,16 +103,29 @@ class Payload(MovingObject):
                 self.__minirectangle_positions[i, j] = np.array((pos_x, pos_y, pos_z))
 
     
-    def get_top_position_at(self, i, j):
+    def __get_top_position_at(self, i, j):
         """ get the center in world coordinates of a small rectangle on the top of the box """
-
         return self.__minirectangle_positions[i, j]
     
-    def get_top_surface_normal(self):
+    #def get_top_surface_normal(self):
 
         # rotate (0, 0, 1) vector by rotation quaternion
-        return np.array((0, 0, 0))
+        #rot_matrix = Rotation.from_quat(self.sensor_orimeter)
+        #return rot_matrix.apply(np.array((0, 0, 1)))
+    #    return np.array((0, 0, 1))
     
+    def get_minirectangle_data_at(self, i, j):
+
+        """ returns position of the center of the minirectangle, normal vector of the surface and area of the surface """
+
+        # position with respect to the center of the box
+        position = np.copy(self.__get_top_position_at(i, j))
+        # rotate it
+        position = mujoco_helper.qv_mult(self.sensor_orimeter, position)
+        # add position of the center
+        position = self.sensor_posimeter + position
+        normal = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((0, 0, 1)))
+        return position, normal, self.top_miniractangle_area
 
     @staticmethod
     def parse(data, model):

@@ -26,6 +26,7 @@ class DummyDroneTrajectory(TrajectoryBase):
             "target_rpy" : np.zeros(3),
             "target_vel" : np.zeros(3),
             "target_acc" : None,
+            "target_ang_vel": np.zeros(3),
             "target_quat" : None,
             "target_quat_vel" : None,
             "target_pos_load" : None

@@ -63,8 +63,9 @@ simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, vir
 
 
 drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
+payload0 = simulator.get_MovingObject_by_name_in_xml(payload0_name)
 
-drone0_trajectory = DummyHoverTraj(load_mass, drone_init_pos[0:3])
+drone0_trajectory = DummyHoverTraj(payload0.mass, drone_init_pos[0:3])
 drone0_controller = GeomControl(drone0.mass, drone0.inertia, simulator.gravity)
 
 

@@ -138,9 +138,9 @@ class Payload(MovingObject):
             if name.startswith("load"):
                 
                 
-                c = Payload(model, data, name, 100, 100)
+                p = Payload(model, data, name, 100, 100)
                 
-                payloads += [c]
+                payloads += [p]
                 plc += 1
         
         return payloads

@@ -2,9 +2,6 @@ from pickle import FALSE
 from re import M
 import mujoco
 import numpy as np
-from scipy.spatial.transform import Rotation
-import util.mujoco_helper as mh
-import math
 from enum import Enum
 from classes.moving_object import MovingObject, MovingMocapObject
 from util import mujoco_helper

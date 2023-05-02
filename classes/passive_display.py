@@ -1,20 +1,10 @@
-from ast import Pass
-import math
-
-import time
 import numpy as np
 import mujoco
 import glfw
-import os
 import numpy as np
-import time
 from util import mujoco_helper
-from gui.vehicle_name_gui import VehicleNameGui
 from util.util import sync, FpsLimiter
-import scipy.signal
-from util.mujoco_helper import LiveLFilter
 from classes.mujoco_display import Display
-from classes.drone import Drone, DroneMocap
 from classes.moving_object import MovingMocapObject
 
 

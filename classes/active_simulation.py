@@ -1,13 +1,6 @@
-from ast import Pass
-import math
-
-
 import time
-import numpy as np
 import mujoco
 import glfw
-import os
-import numpy as np
 import time
 from util import mujoco_helper
 from util.util import sync

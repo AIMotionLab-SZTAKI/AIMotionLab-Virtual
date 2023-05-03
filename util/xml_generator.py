@@ -232,8 +232,10 @@ class SceneXmlGenerator:
 
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
         ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
+        ET.SubElement(self.sensor, "accelerometer", site=site_name, name=name + "_accelerometer")
         ET.SubElement(self.sensor, "framepos", objtype="site", objname=site_name, name=name + "_posimeter")
         ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=name + "_orimeter")
+        ET.SubElement(self.sensor, "frameangacc ", objtype="site", objname=site_name, name=name + "_ang_accelerometer")
 
         return drone
     

@@ -178,10 +178,24 @@ def qv_mult(q1, v1):
     q2 = np.append(0.0, v1)
     return quaternion_multiply(q_conjugate(q1), quaternion_multiply(q2, q1))[1:]
 
+def qv_mult_passive(q1, v1):
+    q2 = np.append(0.0, v1)
+    return quaternion_multiply(quaternion_multiply(q1, q2), q_conjugate(q1))[1:]
+
 
 def euler_rad_to_euler_deg(array_3elem):
     return [math.degrees(array_3elem[0]), math.degrees(array_3elem[1]), math.degrees(array_3elem[2])]
 
+
+def force_from_pressure(normal, pressure, area):
+    """by Adam Weinhardt"""
+    F = -normal * pressure * area
+    return F
+
+def torque_from_force(r, force):
+    """by Adam Weinhardt"""
+    M = np.cross(r, force)
+    return M
 
 def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None, elev_offs=30):
     """

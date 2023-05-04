@@ -74,6 +74,9 @@ class Payload(MovingObject):
     
     def get_qpos(self):
         return np.append(self.sensor_posimeter, self.sensor_orimeter)
+    
+    def get_top_subdiv(self):
+        return self.__top_subdivision_x, self.__top_subdivision_y
 
     def set_top_subdivision(self, top_subdivision_x, top_subdivision_y):
         self.__top_subdivision_x = top_subdivision_x
@@ -116,7 +119,12 @@ class Payload(MovingObject):
     
     def get_minirectangle_data_at(self, i, j):
 
-        """ returns position of the center of the minirectangle, normal vector of the surface and area of the surface """
+        """
+        returns:
+        - position (in world coordinates) of the center of the minirectangle,
+        - normal vector of the surface
+        - and area of the surface
+        """
 
         # position with respect to the center of the box
         position = np.copy(self.__get_top_position_at(i, j))
@@ -138,7 +146,7 @@ class Payload(MovingObject):
             if name.startswith("load"):
                 
                 
-                p = Payload(model, data, name, 100, 100)
+                p = Payload(model, data, name, 10, 10)
                 
                 payloads += [p]
                 plc += 1

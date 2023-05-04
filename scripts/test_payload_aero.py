@@ -1,14 +1,16 @@
 import os
 import numpy as np
 from classes import payload
+from classes import pressure_sampler
 from util import xml_generator
 from classes.drone import Drone
-from classes.payload import Payload
+from classes.payload import PAYLOAD_TYPES, Payload, PayloadMocap
 from classes.active_simulation import ActiveSimulator
 #from classes.drone_classes.hooked_drone_trajectory import HookedDroneTrajectory
 from classes.drone_classes.drone_geom_control import GeomControl
 from classes.trajectory_base import DummyDroneTrajectory
 from random import seed, random
+from classes.pressure_sampler import PressureSampler
 
 class DummyHoverTraj(DummyDroneTrajectory):
 
@@ -31,6 +33,7 @@ class DummyHoverTraj(DummyDroneTrajectory):
 RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
+
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
 xmlBaseFileName = "scene.xml"
@@ -38,32 +41,36 @@ save_filename = "built_scene.xml"
 
 # Set scenario parameters
 drone_init_pos = np.array([0.0, 0.0, 2.2, 0])  # initial drone position and yaw angle
-load_mass = 0.2
-load_size = np.array([.8, .8, .4])
+load_mass = 0.15
+load_size = np.array([.1, .1, .05])
 load_initpos = np.array([drone_init_pos[0], drone_init_pos[1], drone_init_pos[2] - (2 * load_size[2]) - .57 ])
 
 # create xml with a drone and a car
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
-                                True, 1)
+                                True, 2)
 #payload0_name = scene.add_load("0.0 0.0 0.83", ".8 .8 .3", str(load_mass), "1 0 0 0", BLUE_COLOR)
 payload0_name = scene.add_load(np.array2string(load_initpos)[1:-1], np.array2string(load_size)[1:-1], str(load_mass), "1 0 0 0", BLUE_COLOR)
+
+#tpmocap_name = scene.add_load("-2 -2 1", ".03 .03 .15", None, ".924 .383 0 0", RED_COLOR, PAYLOAD_TYPES.Box.value, True)
 
 
 scene.save_xml(os.path.join(xml_path, save_filename))
 
 virt_parsers = [Drone.parse, Payload.parse]
+mocap_parsers = [PayloadMocap.parse]
 
 control_step, graphics_step = 0.01, 0.02
 xml_filename = os.path.join(xml_path, save_filename)
 
 
-simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers=None,
+simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers,
                             connect_to_optitrack=False)
 
 
 drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
 payload0 = simulator.get_MovingObject_by_name_in_xml(payload0_name)
+#tpmocap = simulator.get_MovingMocapObject_by_name_in_xml(tpmocap_name)
 
 drone0_trajectory = DummyHoverTraj(payload0.mass, drone_init_pos[0:3])
 drone0_controller = GeomControl(drone0.mass, drone0.inertia, simulator.gravity)
@@ -74,18 +81,45 @@ drone0.set_trajectory(drone0_trajectory)
 drone0.set_controllers(drone0_controllers)
 
 payload0 = simulator.get_MovingObject_by_name_in_xml(payload0_name)
+
+
+pressure_sampl = PressureSampler(os.path.join(abs_path, "..", "dynamic_pressure_field_processed_new.csv"), drone0)
+
+
 i = 0
 
+drone0_pos = drone0.sensor_posimeter
+drone0_quat = drone0.sensor_orimeter
+prop_pos = drone0.prop1_joint_pos
 
 while not simulator.glfw_window_should_close():
     simulator.update(i)
-    if i % 10 == 0:
-        payload0.qfrc_applied[0] = (random() - .5) / 5.0
-        payload0.qfrc_applied[1] = (random() - .5) / 5.0
-        payload0.qfrc_applied[2] = (random() - .5) / 5.0
-        payload0.qfrc_applied[3] = (random() - .5) / 20.0
-        payload0.qfrc_applied[4] = (random() - .5) / 20.0
-        payload0.qfrc_applied[5] = (random() - .5) / 20.0
+
+    #pos, quat = pressure_sampl.get_position_orientation()
+    #p, n, a = payload0.get_minirectangle_data_at(0, 0)
+    #print(p)
+
+    #print(pressure_sampl.get_position_orientation())
+    #print(payload0.get_minirectangle_data_at(0, 0))
+
+    force, torque = pressure_sampl.generate_forces(payload0)
+    #print("force: " + str(force))
+    #print("torque: " + str(torque))
+    payload0.qfrc_applied[0] = force[0]
+    payload0.qfrc_applied[1] = force[1]
+    payload0.qfrc_applied[2] = force[2]
+    payload0.qfrc_applied[3] = torque[0]
+    payload0.qfrc_applied[4] = torque[1]
+    payload0.qfrc_applied[5] = torque[2]
+    #tpmocap.update(drone0_pos + np.array([prop_pos[0], prop_pos[1], -.45]), drone0_quat)
+
+    #if i % 10 == 0:
+    #    payload0.qfrc_applied[0] = (random() - .5) / 5.0
+    #    payload0.qfrc_applied[1] = (random() - .5) / 5.0
+    #    payload0.qfrc_applied[2] = (random() - .5) / 5.0
+    #    payload0.qfrc_applied[3] = (random() - .5) / 20.0
+    #    payload0.qfrc_applied[4] = (random() - .5) / 20.0
+    #    payload0.qfrc_applied[5] = (random() - .5) / 20.0
     #print(payload0.get_minirectangle_data_at(0, 0))
     i += 1
 

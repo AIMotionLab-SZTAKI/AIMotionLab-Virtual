@@ -1,3 +1,4 @@
+import math
 from pickle import FALSE
 from re import M
 import mujoco
@@ -31,6 +32,11 @@ class Drone(MovingObject):
         self.prop2_qpos = self.data.joint(self.name_in_xml + "_prop2").qpos
         self.prop3_qpos = self.data.joint(self.name_in_xml + "_prop3").qpos
         self.prop4_qpos = self.data.joint(self.name_in_xml + "_prop4").qpos
+        
+        self.prop1_joint = self.data.joint(self.name_in_xml + "_prop1")
+        self.prop2_joint = self.data.joint(self.name_in_xml + "_prop2")
+        self.prop3_joint = self.data.joint(self.name_in_xml + "_prop3")
+        self.prop4_joint = self.data.joint(self.name_in_xml + "_prop4")
 
         self.ctrl0 = self.data.actuator(self.name_in_xml + "_actr0").ctrl
         self.ctrl1 = self.data.actuator(self.name_in_xml + "_actr1").ctrl
@@ -45,6 +51,8 @@ class Drone(MovingObject):
         self.prop4_angle = self.prop4_qpos[0]
 
         self.top_body_xquat = self.data.body(self.name_in_xml).xquat
+
+        self.prop1_joint_pos = self.model.joint(self.name_in_xml + "_prop1").pos
 
         self.qvel = free_joint.qvel
         self.qacc = free_joint.qacc
@@ -74,7 +82,12 @@ class Drone(MovingObject):
     
     def update(self, i, control_step):
 
-        self.fake_propeller_spin(0.02)
+        #self.fake_propeller_spin(0.02)
+        self.prop1_joint.qvel = -100 * math.pi
+        self.prop2_joint.qvel = -100 * math.pi
+        self.prop3_joint.qvel =  100 * math.pi
+        self.prop4_joint.qvel =  100 * math.pi
+
 
         if self.trajectory is not None:
 

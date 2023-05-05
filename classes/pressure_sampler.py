@@ -28,6 +28,7 @@ class PressureSampler:
         self.drone_orientation = owning_drone.sensor_orimeter
         self.offset_from_drone_center = np.copy(owning_drone.prop1_joint_pos)
         
+        # shifting the cube's middle to the rotor
         self.offset_from_drone_center[0] -= self.cube_size / 200.0
         self.offset_from_drone_center[1] -= self.cube_size / 200.0
         self.offset_from_drone_center[2] -= self.cube_size / 100.0
@@ -53,7 +54,7 @@ class PressureSampler:
         for x in range(payload_subdiv_x):
             for y in range(payload_subdiv_y):
 
-                pos, normal, area = payload.get_minirectangle_data_at(x, y)
+                pos, pos_in_own_frame, normal, area = payload.get_minirectangle_data_at(x, y)
 
                 # transforming them into pressure volume coordinate system
                 pos_traffed = pos - selfposition
@@ -77,7 +78,7 @@ class PressureSampler:
                     force = mujoco_helper.force_from_pressure(normal, pressure, area)
                     force_sum += force
                     # calculate torque
-                    torque_sum += mujoco_helper.torque_from_force(pos - payload.sensor_posimeter, force)
+                    torque_sum += mujoco_helper.torque_from_force(pos_in_own_frame, force)
 
         return force_sum, torque_sum
     

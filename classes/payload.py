@@ -67,6 +67,11 @@ class Payload(MovingObject):
 
         self.set_top_subdivision(top_subdivision_x, top_subdivision_y)
 
+        #self.__minirectangle_positions_world = np.zeros_like(self.__minirectangle_positions)
+        #self.__minirectangle_positions_own_frame = np.zeros_like(self.__minirectangle_positions)
+        #self.__minirectangle_normals = np.zeros_like(self.__minirectangle_positions)
+        #self.__minirectangle_areas = np.zeros_like(len(self.__minirectangle_positions))
+
     
     def update(self, i, control_step):
         
@@ -122,18 +127,33 @@ class Payload(MovingObject):
         """
         returns:
         - position (in world coordinates) of the center of the minirectangle,
+        - position in payload frame of the center of the minirectangle
         - normal vector of the surface
         - and area of the surface
+        at index i, j
         """
 
-        # position with respect to the center of the box
-        position = np.copy(self.__get_top_position_at(i, j))
-        # rotate it
-        position = mujoco_helper.qv_mult(self.sensor_orimeter, position)
+        # rotate position with respect to the center of the box
+        position_in_own_frame = mujoco_helper.qv_mult(self.sensor_orimeter, self.__get_top_position_at(i, j))
         # add position of the center
-        position = self.sensor_posimeter + position
+        position = self.sensor_posimeter + position_in_own_frame
         normal = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((0, 0, 1)))
-        return position, normal, self.top_miniractangle_area
+        return position, position_in_own_frame, normal, self.top_miniractangle_area
+    
+    def get_minirectangle_data(self):
+        pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self.__minirectangle_positions)
+        normal = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((0, 0, 1)))
+        return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normal, self.top_miniractangle_area
+               
+
+    def set_force_torque(self, force, torque):
+
+        self.qfrc_applied[0] = force[0]
+        self.qfrc_applied[1] = force[1]
+        self.qfrc_applied[2] = force[2]
+        self.qfrc_applied[3] = torque[0]
+        self.qfrc_applied[4] = torque[1]
+        self.qfrc_applied[5] = torque[2]
 
     @staticmethod
     def parse(data, model):

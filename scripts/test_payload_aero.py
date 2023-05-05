@@ -80,47 +80,19 @@ drone0_controllers = [drone0_controller]
 drone0.set_trajectory(drone0_trajectory)
 drone0.set_controllers(drone0_controllers)
 
-payload0 = simulator.get_MovingObject_by_name_in_xml(payload0_name)
-
 
 pressure_sampl = PressureSampler(os.path.join(abs_path, "..", "dynamic_pressure_field_processed_new.csv"), drone0)
-
+payload0.set_top_subdivision(20, 20)
 
 i = 0
 
-drone0_pos = drone0.sensor_posimeter
-drone0_quat = drone0.sensor_orimeter
-prop_pos = drone0.prop1_joint_pos
 
 while not simulator.glfw_window_should_close():
     simulator.update(i)
-
-    #pos, quat = pressure_sampl.get_position_orientation()
-    #p, n, a = payload0.get_minirectangle_data_at(0, 0)
-    #print(p)
-
-    #print(pressure_sampl.get_position_orientation())
-    #print(payload0.get_minirectangle_data_at(0, 0))
-
+    
     force, torque = pressure_sampl.generate_forces(payload0)
-    #print("force: " + str(force))
-    #print("torque: " + str(torque))
-    payload0.qfrc_applied[0] = force[0]
-    payload0.qfrc_applied[1] = force[1]
-    payload0.qfrc_applied[2] = force[2]
-    payload0.qfrc_applied[3] = torque[0]
-    payload0.qfrc_applied[4] = torque[1]
-    payload0.qfrc_applied[5] = torque[2]
-    #tpmocap.update(drone0_pos + np.array([prop_pos[0], prop_pos[1], -.45]), drone0_quat)
-
-    #if i % 10 == 0:
-    #    payload0.qfrc_applied[0] = (random() - .5) / 5.0
-    #    payload0.qfrc_applied[1] = (random() - .5) / 5.0
-    #    payload0.qfrc_applied[2] = (random() - .5) / 5.0
-    #    payload0.qfrc_applied[3] = (random() - .5) / 20.0
-    #    payload0.qfrc_applied[4] = (random() - .5) / 20.0
-    #    payload0.qfrc_applied[5] = (random() - .5) / 20.0
-    #print(payload0.get_minirectangle_data_at(0, 0))
+    
+    payload0.set_force_torque(force, torque)
     i += 1
 
 simulator.close()

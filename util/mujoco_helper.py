@@ -157,6 +157,10 @@ def quaternion_from_euler(roll, pitch, yaw):
 
     return [qw, qx, qy, qz]
 
+def q_conjugate(q):
+    w, x, y, z = q
+    return [w, -x, -y, -z]
+
 
 def quaternion_multiply(quaternion0, quaternion1):
     """Return multiplication of two quaternions.
@@ -169,40 +173,96 @@ def quaternion_multiply(quaternion0, quaternion1):
                     -x1*z0 + y1*w0 + z1*x0 + w1*y0,
                     x1*y0 - y1*x0 + z1*w0 + w1*z0), dtype=np.float64)
 
-def q_conjugate(q):
-    w, x, y, z = q
-    return [w, -x, -y, -z]
 
 def qv_mult(q1, v1):
     """For active rotation. If passive rotation is needed, use q1 * q2 * q1^(-1)"""
     q2 = np.append(0.0, v1)
     return quaternion_multiply(q_conjugate(q1), quaternion_multiply(q2, q1))[1:]
 
+def qv_mult_passive(q1, v1):
+    q2 = np.append(0.0, v1)
+    return quaternion_multiply(quaternion_multiply(q1, q2), q_conjugate(q1))[1:]
+
+
+
+def quat_array_conjugate(quat_array):
+    quat_array[:, 1] *= -1
+    quat_array[:, 2] *= -1
+    quat_array[:, 3] *= -1
+    return quat_array
+
+def quat_array_quat_multiply(quat_array, quat):
+    
+    w0, x0, y0, z0 = quat_array[:, 0], quat_array[:, 1], quat_array[:, 2], quat_array[:, 3]
+    w1, x1, y1, z1 = quat
+    return np.stack((-x1*x0 - y1*y0 - z1*z0 + w1*w0,
+                      x1*w0 + y1*z0 - z1*y0 + w1*x0,
+                     -x1*z0 + y1*w0 + z1*x0 + w1*y0,
+                      x1*y0 - y1*x0 + z1*w0 + w1*z0), axis=1)
+
+def quat_quat_array_multiply(quat, quat_array):
+
+    w0, x0, y0, z0 = quat
+    w1, x1, y1, z1 = quat_array[:, 0], quat_array[:, 1], quat_array[:, 2], quat_array[:, 3]
+    return np.stack((-x1*x0 - y1*y0 - z1*z0 + w1*w0,
+                      x1*w0 + y1*z0 - z1*y0 + w1*x0,
+                     -x1*z0 + y1*w0 + z1*x0 + w1*y0,
+                      x1*y0 - y1*x0 + z1*w0 + w1*z0), axis=1)
+
+
+def quat_array_quat_array_multiply(quat_array0, quat_array1):
+
+    w0, x0, y0, z0 = quat_array0[:, 0], quat_array0[:, 1], quat_array0[:, 2], quat_array0[:, 3]
+    w1, x1, y1, z1 = quat_array1[:, 0], quat_array1[:, 1], quat_array1[:, 2], quat_array1[:, 3]
+    return np.stack((-x1*x0 - y1*y0 - z1*z0 + w1*w0,
+                      x1*w0 + y1*z0 - z1*y0 + w1*x0,
+                     -x1*z0 + y1*w0 + z1*x0 + w1*y0,
+                      x1*y0 - y1*x0 + z1*w0 + w1*z0), axis=1)
+
+def quat_vect_array_mult(q, v_array):
+    q_array = np.append(np.zeros((v_array.shape[0], 1)), v_array, axis=1)
+    return quat_quat_array_multiply(q_conjugate(q), quat_array_quat_multiply(q_array, q))[:, 1:]
+
+
+def quat_vect_array_mult_passive(q, v_array):
+    q_array = np.append(np.zeros((v_array.shape[0], 1)), v_array, axis=1)
+    return quat_array_quat_multiply(quat_quat_array_multiply(q, q_array), q_conjugate(q))[:, 1:]
+
 
 def euler_rad_to_euler_deg(array_3elem):
     return [math.degrees(array_3elem[0]), math.degrees(array_3elem[1]), math.degrees(array_3elem[2])]
 
 
-def update_onboard_cam(drone_qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None):
+def force_from_pressure(normal, pressure, area):
+    """by Adam Weinhardt"""
+    F = -normal * pressure * area
+    return F
+
+def torque_from_force(r, force):
+    """by Adam Weinhardt"""
+    M = np.cross(r, force)
+    return M
+
+def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None, elev_offs=30):
     """
-    Update the position and orientation of the camera that follows the drone from behind
-    qpos is the array in which the position and orientation of all the drones are stored
+    Update the position and orientation of the camera that follows the vehicle from behind
+    qpos is the array in which the position and orientation of all the vehicles are stored
 
     Smoothing the 2 angle signals with 4 low-pass filters so that the camera would not shake.
-    It's not enough to only filter the angle signal, because when the drone turns,
+    It's not enough to only filter the angle signal, because when the vehicle turns,
     the angle might jump from 180 degrees to -180 degrees, and the filter tries to smooth out
     the jump (the camera ends up turning a 360). Instead, take the sine and the cosine of the
     angle, filter them, and convert them back with atan2().
     """
     MAX_CHANGE = 3
-    position = drone_qpos[0:3]
-    orientation = drone_qpos[3:7]
+    position = qpos[0:3]
+    orientation = qpos[3:7]
 
     roll_x, pitch_y, yaw_z = euler_from_quaternion(
         orientation[0], orientation[1], orientation[2], orientation[3])
 
     new_azim = math.degrees(yaw_z)
-    new_elev = -math.degrees(pitch_y) - 30
+    new_elev = -math.degrees(pitch_y) - elev_offs
 
     cam.lookat = position
 

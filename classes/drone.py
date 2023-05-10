@@ -1,11 +1,11 @@
+import math
 from pickle import FALSE
+from re import M
 import mujoco
 import numpy as np
-from scipy.spatial.transform import Rotation
-import util.mujoco_helper as mh
-import math
 from enum import Enum
-from classes.moving_object import MovingObject
+from classes.moving_object import MovingObject, MovingMocapObject
+from util import mujoco_helper
 
 class SPIN_DIR(Enum):
     CLOCKWISE = 1
@@ -14,16 +14,15 @@ class SPIN_DIR(Enum):
 
 class Drone(MovingObject):
 
-    def __init__(self, data: mujoco.MjData, name_in_xml, trajectory, controllers, parameters = {"mass" : 0.1}):
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, trajectory, controllers):
+
+        super().__init__(model, name_in_xml)
 
         self.data = data
 
-        self.name_in_xml = name_in_xml
 
         self.trajectory = trajectory
         self.controllers = controllers
-        self.parameters = parameters
-        self.mass = parameters["mass"]
 
         free_joint = self.data.joint(self.name_in_xml)
 
@@ -33,6 +32,11 @@ class Drone(MovingObject):
         self.prop2_qpos = self.data.joint(self.name_in_xml + "_prop2").qpos
         self.prop3_qpos = self.data.joint(self.name_in_xml + "_prop3").qpos
         self.prop4_qpos = self.data.joint(self.name_in_xml + "_prop4").qpos
+        
+        self.prop1_joint = self.data.joint(self.name_in_xml + "_prop1")
+        self.prop2_joint = self.data.joint(self.name_in_xml + "_prop2")
+        self.prop3_joint = self.data.joint(self.name_in_xml + "_prop3")
+        self.prop4_joint = self.data.joint(self.name_in_xml + "_prop4")
 
         self.ctrl0 = self.data.actuator(self.name_in_xml + "_actr0").ctrl
         self.ctrl1 = self.data.actuator(self.name_in_xml + "_actr1").ctrl
@@ -48,24 +52,52 @@ class Drone(MovingObject):
 
         self.top_body_xquat = self.data.body(self.name_in_xml).xquat
 
-        self.qvel = free_joint.qvel
+        self.prop1_joint_pos = self.model.joint(self.name_in_xml + "_prop1").pos
 
-        self.sensor_data = self.data.sensor(self.name_in_xml + "_sensor0").data
+        self.qvel = free_joint.qvel
+        self.qacc = free_joint.qacc
+        self.qfrc_passive = free_joint.qfrc_passive
+        self.qfrc_applied = free_joint.qfrc_applied
+
+        self.sensor_gyro = self.data.sensor(self.name_in_xml + "_gyro").data
+        self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data
+        self.sensor_accelerometer = self.data.sensor(self.name_in_xml + "_accelerometer").data
+        self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
+        self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
+        self.sensor_ang_accelerometer = self.data.sensor(self.name_in_xml + "_ang_accelerometer").data
+
+        self.state = {
+            "pos" : self.sensor_posimeter,
+            "vel" : self.sensor_velocimeter,
+            "acc" : self.sensor_accelerometer,
+            "quat" : self.sensor_orimeter,
+            "ang_vel" : self.sensor_gyro,
+            "ang_acc" : self.sensor_ang_accelerometer
+        }
+    
+    def get_state(self):
+
+        return self.state
 
     
-    def update(self, i):
+    def update(self, i, control_step):
+
+        #self.fake_propeller_spin(0.02)
+        self.prop1_joint.qvel = -100 * math.pi
+        self.prop2_joint.qvel = -100 * math.pi
+        self.prop3_joint.qvel =  100 * math.pi
+        self.prop4_joint.qvel =  100 * math.pi
+
 
         if self.trajectory is not None:
 
-            pos = self.get_qpos()[:3]
-            vel = self.get_qvel()[:3]
+            state = self.get_state()
+            setpoint = self.trajectory.evaluate(state, i, self.data.time, control_step)
 
-            alpha = None
-            dalpha = None
+            self.update_controller_type(state, setpoint, self.data.time, i)
 
-            controller_input = self.trajectory.evaluate(i, self.data.time)
-
-            ctrl = self.compute_control(controller_input)
+            if self.controller is not None:
+                ctrl = self.controller.compute_control(state, setpoint, self.data.time)
             
             if ctrl is not None:
                 self.set_ctrl(ctrl)
@@ -73,47 +105,11 @@ class Drone(MovingObject):
             #    print("[Drone] Error: ctrl was None")
     
 
-    
-    def compute_control(self, input_dict):
-
-        target_pos = input_dict["target_pos"]
-        target_vel = input_dict["target_vel"]
-
-        pos = self.get_qpos()[:3]
-        quat = self.get_top_body_xquat()
-        vel = self.get_qvel()[:3]
-        ang_vel = self.get_sensor_data()
-
-
-        if input_dict["controller_name"] == "geom_pos":
-
-            target_rpy = input_dict["target_rpy"]
-            ctrl = self.controllers["geom"].compute_pos_control(pos, quat, vel, ang_vel, target_pos,
-                                                               target_vel=target_vel, target_rpy=target_rpy)
-        
-        elif input_dict["controller_name"] == "geom_att":
-            target_quat = input_dict["target_quat"]
-            target_acc = input_dict["target_acc"]
-            target_quat_vel = input_dict["target_quat_vel"]
-            ctrl = self.controllers["geom"].compute_att_control(pos, quat, vel, ang_vel, target_pos, target_vel, target_acc,
-                                                                target_quat=target_quat, target_quat_vel=target_quat_vel)
-        
-        else:
-            print("[Drone] Error: unknown controller")
-            return None
-        
-        return ctrl
-
-    
     def set_trajectory(self, trajectory):
         self.trajectory = trajectory
     
     def set_controllers(self, controllers):
-        if isinstance(controllers, dict):
-            self.controllers = controllers
-            
-        else:
-            print("[Drone] Error: controllers must be a dictionary")
+        self.controllers = controllers
     
     def set_mass(self, mass):
         self.mass = mass
@@ -145,8 +141,8 @@ class Drone(MovingObject):
     def get_qvel(self):
         return self.qvel
 
-    def get_sensor_data(self):
-        return self.sensor_data
+    def get_sensor_gyro(self):
+        return self.sensor_gyro
 
     def print_prop_angles(self):
         print("prop1: " + str(self.prop1_qpos))
@@ -192,11 +188,13 @@ class Drone(MovingObject):
         return self.name_in_xml
 
     @staticmethod
-    def parse_drones(data, joint_names):
+    def parse(data, model):
         """
         Create a list of Drone instances from mujoco's MjData following a naming convention
         found in naming_convention_in_xml.txt
         """
+
+        joint_names = mujoco_helper.get_joint_name_list(model)
 
         virtdrones = []
         icf = 0
@@ -206,12 +204,12 @@ class Drone(MovingObject):
 
             _name_cut = _name[:len(_name) - 1]
 
-            if _name.startswith("virtbumblebee_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+            if _name.startswith("virtbumblebee_hooked") and not _name.endswith("hook_y") and not _name.endswith("hook_x") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
-                hook = Drone.find_hook_for_drone(joint_names, _name)
-                if hook:
-                    d = DroneHooked(data, name_in_xml=_name,
-                                    hook_name_in_xml=hook,
+                hook_names = Drone.find_hook_for_drone(joint_names, _name)
+                if len(hook_names) > 0:
+                    d = DroneHooked(model, data, name_in_xml=_name,
+                                    hook_names_in_xml=hook_names,
                                     trajectory=None,
                                     controller=None)
 
@@ -221,15 +219,15 @@ class Drone(MovingObject):
                     print("Error: did not find hook joint for this drone: " +
                           _name + " ... Ignoring drone.")
             
-            elif _name.startswith("virtbumblebee") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
+            elif _name.startswith("virtbumblebee") and not _name.endswith("hook_y") and not _name.endswith("hook_x") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
 
-                d = Drone(data, _name, None, None)
+                d = Drone(model, data, _name, None, None)
                 virtdrones += [d]
 
             elif _name.startswith("virtcrazyflie") and not _name_cut.endswith("prop"):
 
-                d = Drone(data, _name, None, None)
+                d = Drone(model, data, _name, None, None)
                 virtdrones += [d]
 
         #print()
@@ -239,11 +237,14 @@ class Drone(MovingObject):
 
     @staticmethod
     def find_hook_for_drone(names, drone_name):
+        hook_names = []
         for n_ in names:
-            if drone_name + "_hook" == n_:
-                return n_
+            if drone_name + "_hook_x" == n_:
+                hook_names += [n_]
+            elif drone_name + "_hook_y" == n_:
+                hook_names += [n_]
         
-        return None
+        return hook_names
 
     
 
@@ -251,105 +252,79 @@ class Drone(MovingObject):
 ################################## DroneHooked ##################################
 class DroneHooked(Drone):
 
-    def __init__(self, data: mujoco.MjData, name_in_xml, hook_name_in_xml, trajectory, controller, parameters = {"mass" : 0.1}):
-        super().__init__(data, name_in_xml, trajectory, controller, parameters)
-        self.hook_name_in_xml = hook_name_in_xml
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, hook_names_in_xml, trajectory, controller):
+        super().__init__(model, data, name_in_xml, trajectory, controller)
+        self.hook_names_in_xml = hook_names_in_xml
 
-        self.hook_qpos = self.data.joint(self.hook_name_in_xml).qpos
-        self.hook_qvel = self.data.joint(self.hook_name_in_xml).qvel
+        self.hook_dof = len(hook_names_in_xml)
+
+        self.hook_qpos_y = self.data.joint(self.name_in_xml + "_hook_y").qpos
+        self.hook_qvel_y = self.data.joint(self.name_in_xml + "_hook_y").qvel
+        self.sensor_hook_jointpos_y = self.data.sensor(self.name_in_xml + "_hook_jointpos_y").data
+        self.sensor_hook_jointvel_y = self.data.sensor(self.name_in_xml + "_hook_jointvel_y").data
+        self.state["joint_ang"] = np.array(self.sensor_hook_jointpos_y)
+        self.state["joint_ang_vel"] = np.array(self.sensor_hook_jointvel_y)
+        if self.hook_dof == 2:
+            self.hook_qpos_x = self.data.joint(self.name_in_xml + "_hook_x").qpos
+            self.hook_qvel_x = self.data.joint(self.name_in_xml + "_hook_x").qvel
+            self.sensor_hook_jointvel_x = self.data.sensor(self.name_in_xml + "_hook_jointvel_x").data
+            self.sensor_hook_jointpos_x = self.data.sensor(self.name_in_xml + "_hook_jointpos_x").data
+            self.state["joint_ang"] = np.array((self.sensor_hook_jointpos_y, self.sensor_hook_jointpos_x))
+            self.state["joint_ang_vel"] = np.array((self.sensor_hook_jointvel_y, self.sensor_hook_jointvel_x))
+        
 
         self.load_mass = 0.0
         self.rod_length = 0.4
 
-    #def get_qpos(self):
-        #drone_qpos = self.data.joint(self.name_in_xml).qpos
-        #return np.append(drone_qpos, self.data.joint(self.hook_name_in_xml).qpos)
     
-    def update(self, i):
+    def get_state(self):
+        #super().get_state()
+        if self.hook_dof == 1:
+            self.state["joint_ang"] = np.array(self.sensor_hook_jointpos_y[0])
+            self.state["joint_ang_vel"] = np.array(self.sensor_hook_jointvel_y[0])
+        elif self.hook_dof == 2:
+            self.state["joint_ang"] = np.array((self.sensor_hook_jointpos_y[0], self.sensor_hook_jointpos_x[0]))
+            self.state["joint_ang_vel"] = np.array((self.sensor_hook_jointvel_y[0], self.sensor_hook_jointvel_x[0]))
+        return self.state
+    
+    def update(self, i, control_step):
+        self.fake_propeller_spin(0.02)
 
         if self.trajectory is not None:
-            pos = self.get_qpos()[:3]
-            vel = self.get_qvel()[:3]
 
-            alpha = self.get_hook_qpos()
-            dalpha = self.get_hook_qvel()
-
-            controller_input = self.trajectory.evaluate(i, self.data.time)
+            state = self.get_state()
+            setpoint = self.trajectory.evaluate(state, i, self.data.time, control_step)
             
-            self.set_load_mass(controller_input["load_mass"])
+            self.update_controller_type(state, setpoint, self.data.time, i)
 
-            ctrl = self.compute_control(controller_input)
+            if self.controller is not None:
+                ctrl = self.controller.compute_control(state, setpoint, self.data.time)
             
             if ctrl is not None:
                 self.set_ctrl(ctrl)
             #else:
             #    print("[DroneHooked] Error: ctrl was None")
     
-    def compute_control(self, input_dict):
-
-        target_pos = input_dict["target_pos"]
-        target_vel = input_dict["target_vel"]
-        target_rpy = input_dict["target_rpy"]
-        target_pos_load = input_dict["target_pos_load"]
-
-        pos = self.get_qpos()[:3]
-        quat = self.get_top_body_xquat()
-        vel = self.get_qvel()[:3]
-        ang_vel = self.get_sensor_data()
-
-
-        if input_dict["controller_name"] == "geom_pos":
-
-            ctrl = self.controllers["geom"].compute_pos_control(pos, quat, vel, ang_vel, target_pos,
-                                                               target_vel=target_vel, target_rpy=target_rpy)
-
-        elif input_dict["controller_name"] == "lqr":
-
-            alpha = self.get_hook_qpos()
-            dalpha = self.get_hook_qvel()
-
-            pos_ = pos.copy()
-            vel_ = vel.copy()
-            R_plane = np.array([[np.cos(target_rpy[2]), -np.sin(target_rpy[2])],
-                                [np.sin(target_rpy[2]), np.cos(target_rpy[2])]])
-            pos_[0:2] = R_plane.T @ pos_[0:2]
-            vel_[0:2] = R_plane.T @ vel_[0:2]
-            hook_pos = pos_ + self.rod_length * np.array([-np.sin(alpha), 0, -np.cos(alpha)])
-            hook_vel = vel_ + self.rod_length * dalpha * np.array([-np.cos(alpha), 0, np.sin(alpha)])
-            hook_pos = np.take(hook_pos, [0, 2])
-            hook_vel = np.take(hook_vel, [0, 2])
-
-            phi_Q = Rotation.from_quat(np.roll(quat, -1)).as_euler('xyz')[1]
-            dphi_Q = ang_vel[1]
-
-            ctrl = self.controllers["geom"].compute_pos_control(pos, quat, vel, ang_vel, target_pos,
-                                                               target_vel=target_vel, target_rpy=target_rpy)
-
-            ctrl_lqr = self.controllers["lqr"].compute_control(hook_pos,
-                                                                hook_vel,
-                                                                alpha,
-                                                                dalpha,
-                                                                phi_Q,
-                                                                dphi_Q,
-                                                                target_pos_load)
-
-            ctrl[0] = ctrl_lqr[0]
-            ctrl[2] = ctrl_lqr[2]
-        
-        else:
-            print("[DroneHooked] Error: unknown controller")
-            return None
-        
-        return ctrl
     
     def get_hook_qpos(self):
-        return self.hook_qpos[0]
+        if self.hook_dof == 1:
+            return self.hook_qpos_y[0]
+        elif self.hook_dof == 2:
+            return [self.hook_qpos_x[0], self.hook_qpos_y[0]]
+        
     
     def set_hook_qpos(self, q):
-        self.hook_qpos[0] = q
+        if self.hook_dof == 1:
+            self.hook_qpos_x[0] = q
+        else:
+            self.hook_qpos_x[0] = q[0]
+            self.hook_qpos_y[0] = q[1]
 
     def get_hook_qvel(self):
-        return self.hook_qvel[0]
+        if self.hook_dof == 1:
+            return self.hook_qvel_y[0]
+        elif self.hook_dof == 2:
+            return [self.hook_qvel_x[0], self.hook_qvel_y[0]]
 
     def print_names(self):
         super().print_names()
@@ -367,37 +342,23 @@ class DroneHooked(Drone):
             self.controllers[k].mass = self.mass + self.load_mass
 
 ################################## DroneMocap ##################################
-class DroneMocap:
-    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, prop_mocapids, name_in_motive, name_in_xml):
+class DroneMocap(MovingMocapObject):
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, name_in_motive, name_in_xml):
+
+        super().__init__(name_in_xml, name_in_motive)
         self.data = data
         self.name_in_xml = name_in_xml
         self.name_in_motive = name_in_motive
         self.mocapid = drone_mocapid
-        self.prop_mocapids = prop_mocapids
+        #print(name_in_xml)
 
-        self.prop1 = PropellerMocap(model, data, name_in_xml + "_prop1", drone_mocapid, SPIN_DIR.COUNTER_CLOCKWISE)
-        self.prop2 = PropellerMocap(model, data, name_in_xml + "_prop2", drone_mocapid, SPIN_DIR.COUNTER_CLOCKWISE)
-        self.prop3 = PropellerMocap(model, data, name_in_xml + "_prop3", drone_mocapid, SPIN_DIR.CLOCKWISE)
-        self.prop4 = PropellerMocap(model, data, name_in_xml + "_prop4", drone_mocapid, SPIN_DIR.CLOCKWISE)
+        self.prop1_jnt = data.joint(name_in_xml + "_prop1")
+        self.prop2_jnt = data.joint(name_in_xml + "_prop2")
+        self.prop3_jnt = data.joint(name_in_xml + "_prop3")
+        self.prop4_jnt = data.joint(name_in_xml + "_prop4")
 
-        #self.prop1.print_data()
-        #print()
-        #self.prop2.print_data()
-        #print()
-        #self.prop3.print_data()
-        #print()
-        #self.prop4.print_data()
-        #print()
-
-    #def set_pos(self, pos):
-    #    self.data.mocap_pos[self.mocapid] = pos
-
-
-    #def set_quat(self, quat):
-    #    self.data.mocap_quat[self.mocapid] = quat
-
-        #for i in range(len(self.prop_mocapids)):
-        #    self.data.mocap_quat[self.prop_mocapids[i]] = quat
+        self.set_propeller_speed(21.6)
+        
 
     def get_pos(self):
         return self.data.mocap_pos[self.mocapid]
@@ -408,11 +369,17 @@ class DroneMocap:
     def get_qpos(self):
         return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
     
+    def set_propeller_speed(self, speed):
+        self.prop1_jnt.qvel[0] = -speed
+        self.prop2_jnt.qvel[0] = -speed
+        self.prop3_jnt.qvel[0] = speed
+        self.prop4_jnt.qvel[0] = speed
+
+    
     def update(self, pos, quat):
+        self.set_propeller_speed(21.6)
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat
-        # gotta update the propellers too, otherwise they get left behind
-        self.update_propellers()
     
     def get_name_in_xml(self):
         return self.name_in_xml
@@ -424,60 +391,12 @@ class DroneMocap:
     def print_info(self):
         print("Mocap")
         self.print_names()
-    
-    def spin_propellers(self, control_step, spin_speed):
-        self.prop1.spin(control_step, spin_speed)
-        self.prop2.spin(control_step, spin_speed)
-        self.prop3.spin(control_step, spin_speed)
-        self.prop4.spin(control_step, spin_speed)
-
-
-    def update_propellers(self):
-        self.prop1.update()
-        self.prop2.update()
-        self.prop3.update()
-        self.prop4.update()
 
 
     @staticmethod
-    def get_drone_names_motive(drones):
-        names = []
-        for d in drones:
-            names += [d.name_in_motive]
-        
-        return names
-    
-    @staticmethod
-    def set_drone_names_motive(drones, names):
-        
-        #if len(drones) != len(names):
-        #    print("[Drone.set_drone_names()] Error: too many or not enough drone names provided")
-        #    return
-        #j = 0
-        for i in range(len(drones)):
-            drones[i].name_in_motive = names[i]
-            #j += 1
-    
+    def parse(data, model):
 
-    @staticmethod
-    def get_drone_names_in_xml(drones):
-        labels = []
-        for d in drones:
-            labels += [d.get_name_in_xml()]
-            
-        return labels
-    
-
-    @staticmethod
-    def get_drone_by_name_in_motive(drones, name: str):
-        for i in range(len(drones)):
-            if drones[i].name_in_motive == name:
-                return drones[i]
-        
-        return None
-
-    @staticmethod
-    def parse_mocap_drones(data, model, body_names):
+        body_names = mujoco_helper.get_body_name_list(model)
 
         realdrones = []
         icf = 0
@@ -490,14 +409,9 @@ class DroneMocap:
                 hook = DroneMocap.find_mocap_hook_for_drone(body_names, _name)
                 if hook:
 
-                    prop_mocapids = []
                     drone_mocapid = model.body(_name).mocapid[0]
-                    prop_mocapids += [model.body(_name + "_prop1").mocapid[0]]
-                    prop_mocapids += [model.body(_name + "_prop2").mocapid[0]]
-                    prop_mocapids += [model.body(_name + "_prop3").mocapid[0]]
-                    prop_mocapids += [model.body(_name + "_prop4").mocapid[0]]
 
-                    d = DroneMocapHooked(model, data, drone_mocapid, prop_mocapids, "bb" + str(ibb + 1), _name, hook)
+                    d = DroneMocapHooked(model, data, drone_mocapid, "bb" + str(ibb + 1), _name, hook)
 
                     realdrones += [d]
                     ibb += 1
@@ -508,27 +422,17 @@ class DroneMocap:
 
             elif _name.startswith("realbumblebee") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
 
-                prop_mocapids = []
                 drone_mocapid = model.body(_name).mocapid[0]
-                prop_mocapids += [model.body(_name + "_prop1").mocapid[0]]
-                prop_mocapids += [model.body(_name + "_prop2").mocapid[0]]
-                prop_mocapids += [model.body(_name + "_prop3").mocapid[0]]
-                prop_mocapids += [model.body(_name + "_prop4").mocapid[0]]
 
-                d = DroneMocap(model, data, drone_mocapid, prop_mocapids, "bb" + str(ibb + 1), _name)
+                d = DroneMocap(model, data, drone_mocapid, "bb" + str(ibb + 1), _name)
                 realdrones += [d]
                 ibb += 1
 
             elif _name.startswith("realcrazyflie") and not _name_cut.endswith("prop"):
 
-                prop_mocapids = []
                 drone_mocapid = model.body(_name).mocapid[0]
-                prop_mocapids += [model.body(_name + "_prop1").mocapid[0]]
-                prop_mocapids += [model.body(_name + "_prop2").mocapid[0]]
-                prop_mocapids += [model.body(_name + "_prop3").mocapid[0]]
-                prop_mocapids += [model.body(_name + "_prop4").mocapid[0]]
 
-                d = DroneMocap(model, data, drone_mocapid, prop_mocapids, "cf" + str(icf + 1), _name)
+                d = DroneMocap(model, data, drone_mocapid, "cf" + str(icf + 1), _name)
                 realdrones += [d]
                 icf += 1
 
@@ -550,15 +454,18 @@ class DroneMocap:
 
 ################################## DroneMocapHooked ##################################
 class DroneMocapHooked(DroneMocap):
-    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, prop_mocapids, name_in_motive, name_in_xml, hook_name_in_xml):
-        super().__init__(model, data, drone_mocapid, prop_mocapids, name_in_motive, name_in_xml)
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, name_in_motive, name_in_xml, hook_name_in_xml):
+        super().__init__(model, data, drone_mocapid, name_in_motive, name_in_xml)
 
         self.hook_name_in_xml = hook_name_in_xml
 
-        self.hook_mocapid = model.body(name_in_xml + "_hook").mocapid[0]
+        #self.hook_mocapid = model.body(name_in_xml + "_hook").mocapid[0]
 
-        self.hook_position = data.mocap_pos[self.hook_mocapid]
-        self.hook_rotation = data.mocap_quat[self.hook_mocapid]
+        #self.hook_qpos = self.data.joint(self.name_in_xml + "_hook_y").qpos
+        #self.hook = HookMocap(self.name_in_xml + "_hook_y", )
+
+        #self.hook_position = data.mocap_pos[self.hook_mocapid]
+        #self.hook_rotation = data.mocap_quat[self.hook_mocapid]
     
     def get_hook_pos(self):
         return self.hook_position
@@ -578,9 +485,10 @@ class DroneMocapHooked(DroneMocap):
         self.hook_rotation[3] = quat[3]
 
     def update(self, pos, quat):
-        self.__set_hook_pos(pos)
-        self.__set_hook_quat(quat)
-        return super().set_qpos(pos, quat)
+        #self.__set_hook_pos(pos)
+        #self.__set_hook_quat(quat)
+        #self.hook_qpos[0] = 0.5
+        return super().update(pos, quat)
 
 
     def print_names(self):
@@ -588,72 +496,45 @@ class DroneMocapHooked(DroneMocap):
         print("hook name in xml: " + self.hook_name_in_xml)
 
 
+class HookMocap(MovingMocapObject):
 
-################################## PropellerMocap ##################################
-class PropellerMocap():
-    def __init__(self, model, data, name_in_xml, drone_mocap_id, spin_direction = SPIN_DIR.CLOCKWISE):
-
-        self.set_spin_direction(spin_direction)
-        
+    def __init__(self, model, data, hook_mocapid, name_in_xml, name_in_motive) -> None:
+        super().__init__(name_in_xml, name_in_motive)
+        self.data = data
         self.name_in_xml = name_in_xml
-        self.mocapid = model.body(name_in_xml).mocapid[0]
+        self.name_in_motive = name_in_motive
+        self.mocapid = hook_mocapid
+    
 
-        #print(model.geom(name_in_xml))
+    def update(self, pos, quat):
+        pos_ = pos.copy()
+        pos_[2] = pos_[2] + .03
+        self.data.mocap_pos[self.mocapid] = pos_
+        self.data.mocap_quat[self.mocapid] = quat
         
-        self.position = data.mocap_pos[self.mocapid]
-        self.rotation = data.mocap_quat[self.mocapid]
-        self.OFFSET = model.geom(name_in_xml).pos
+    def get_qpos(self):
+        return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
 
-        self.drone_pos = data.mocap_pos[drone_mocap_id]
-        self.drone_rot = data.mocap_quat[drone_mocap_id]
+    @staticmethod
+    def parse(data, model):
 
-        self.spin_angle = 0.0
+        body_names = mujoco_helper.get_body_name_list(model)
+        ih = 1
+        hooks = []
+        for _name in body_names:
+            
+            if _name.startswith("real") and _name.endswith("hook"):
 
-        self.spinned = True
+                mocapid = model.body(_name).mocapid[0]
+                if ih == 1:
+                    name_in_motive = "hook"
+                else:
+                    name_in_motive = "hook_" + str(ih)
+                h = HookMocap(model, data, mocapid, _name, name_in_motive=name_in_motive)
 
+                hooks += [h]
 
-    def print_data(self):
-        print("name in xml ", self.name_in_xml)
-        print("mocapid     ", self.mocapid)
-        print("position    ", self.position)
-        print("rotation    ", self.rotation)
-        print("offset      ", self.OFFSET)
-        print("drone pos   ", self.drone_pos)
-        print("drone rot   ", self.drone_rot)
-    
-    def set_spin_direction(self, spin_dir: SPIN_DIR):
-        self.__spin_direction = spin_dir
-    
-    def get_spin_direction(self):
-        return self.__spin_direction
-    
-    def update(self):
-        #if self.spinned:
-        #    self.spin_angle += (spin_speed * control_step * self.__spin_direction.value)
-
-
-        # combine the orientation and the spin quaternion
-        quat = mh.quaternion_from_euler(0, 0, self.spin_angle)
-        quat = mh.quaternion_multiply(quat, self.drone_rot)
-
-        # set new rotation
-        self.rotation[0] = quat[0]
-        self.rotation[1] = quat[1]
-        self.rotation[2] = quat[2]
-        self.rotation[3] = quat[3]
+                ih += 1
         
-        # compensate for the shift caused by the spin
-        # as the origin of the propeller coordinate frame is the same as the drone's
-        new_offs = mh.qv_mult(quat, self.OFFSET)
 
-        o = mh.qv_mult(self.drone_rot, self.OFFSET)
-
-        self.position[0] = self.drone_pos[0] - new_offs[0] + o[0]
-        self.position[1] = self.drone_pos[1] - new_offs[1] + o[1]
-        self.position[2] = self.drone_pos[2] - new_offs[2] + o[2]
-    
-    def spin(self, control_step, spin_speed):
-        if self.spinned:
-            self.spin_angle += (spin_speed * control_step * self.__spin_direction.value)
-        
-        self.update()
+        return hooks

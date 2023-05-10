@@ -42,7 +42,6 @@ class Trajectory():
             "target_pos" : None,
             "target_rpy" : np.zeros(3),
             "target_vel" : np.zeros(3),
-            "target_pos" : None,
             "target_acc" : None,
             "target_quat" : None,
             "target_quat_vel" : None,

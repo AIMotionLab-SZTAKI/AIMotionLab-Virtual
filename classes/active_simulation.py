@@ -1,29 +1,18 @@
-from ast import Pass
-import math
-
-import motioncapture
 import time
-import numpy as np
 import mujoco
 import glfw
-import os
-import numpy as np
 import time
 from util import mujoco_helper
-import cv2
-from gui.drone_name_gui import DroneNameGui
 from util.util import sync
-import scipy.signal
-from util.mujoco_helper import LiveLFilter
 from classes.mujoco_display import Display
-import classes.drone as drone
+from classes.moving_object import MovingMocapObject
 
 
 class ActiveSimulator(Display):
 
-    def __init__(self, xml_file_name, video_intervals, control_step, graphics_step, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, video_intervals, control_step, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=True):
 
-        super().__init__(xml_file_name, graphics_step, connect_to_optitrack)
+        super().__init__(xml_file_name, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack)
         self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)
 
         #self.sim_step = sim_step
@@ -78,30 +67,25 @@ class ActiveSimulator(Display):
             for name, obj in self.mc.rigidBodies.items():
 
                 # have to put rotation.w to the front because the order is different
-                # only update real drones
-                drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+                # only update real vehicles
+                vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
  
-                drone_to_update = drone.DroneMocap.get_drone_by_name_in_motive(self.realdrones, name)
+                vehicle_to_update = MovingMocapObject.get_object_by_name_in_motive(self.all_real_vehicles, name)
 
-                if drone_to_update is not None:
-                    drone_to_update.update(obj.position, drone_orientation)
+                if vehicle_to_update is not None:
+                    vehicle_to_update.update(obj.position, vehicle_orientation)
 
-        if self.activeCam == self.camFollow and len(self.drones) > 0:
-            d = self.drones[self.followed_drone_idx]
-            mujoco_helper.update_onboard_cam(d.get_qpos(), self.camFollow,\
+        if self.activeCam == self.camOnBoard and len(self.all_vehicles) > 0:
+            v = self.all_vehicles[self.followed_vehicle_idx]
+            mujoco_helper.update_onboard_cam(v.get_qpos(), self.camOnBoard,\
                                             self.azim_filter_sin, self.azim_filter_cos,\
-                                            self.elev_filter_sin, self.elev_filter_cos)
-        
-        for m in range(len(self.realdrones)):
-            self.realdrones[m].spin_propellers(self.control_step, 20)
+                                            self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
             
 
+        for l in range(len(self.all_virt_vehicles)):
 
-        for l in range(len(self.virtdrones)):
-
-            self.virtdrones[l].fake_propeller_spin(self.control_step, 20)
-
-            self.virtdrones[l].update(i)
+            self.all_virt_vehicles[l].update(i, self.control_step)
+        
         
         
         mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
@@ -123,6 +107,18 @@ class ActiveSimulator(Display):
         sync(i, self.start_time, self.control_step)
 
         return self.data
+
+    def update_(self, i):
+        if i == 0:
+            self.start_time = time.time()
+        
+
+        for l in range(len(self.all_virt_vehicles)):
+
+            self.all_virt_vehicles[l].update(i, self.control_step)
+        
+        mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
+
     
     def manage_video_recording(self):
         time_since_start = time.time() - self.start_time

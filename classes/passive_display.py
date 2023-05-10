@@ -1,29 +1,18 @@
-from ast import Pass
-import math
-
-import motioncapture
-import time
 import numpy as np
 import mujoco
 import glfw
-import os
 import numpy as np
-import time
 from util import mujoco_helper
-import cv2
-from gui.drone_name_gui import DroneNameGui
 from util.util import sync, FpsLimiter
-import scipy.signal
-from util.mujoco_helper import LiveLFilter
 from classes.mujoco_display import Display
-from classes.drone import Drone
+from classes.moving_object import MovingMocapObject
 
 
 class PassiveDisplay(Display):
 
-    def __init__(self, xml_file_name, graphics_step, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=True):
 
-        super().__init__(xml_file_name, graphics_step, connect_to_optitrack)
+        super().__init__(xml_file_name, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack)
 
     def run(self):
         # To obtain inertia matrix
@@ -42,24 +31,21 @@ class PassiveDisplay(Display):
                 for name, obj in self.mc.rigidBodies.items():
 
                     # have to put rotation.w to the front because the order is different
-                    drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+                    vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-                    drone_to_update = Drone.get_drone_by_name_in_motive(self.drones, name)
+                    vehicle_to_update = MovingMocapObject.get_object_by_name_in_motive(self.all_real_vehicles, name)
+                    #print(name)
 
-                    if drone_to_update:
-                        drone_to_update.set_qpos(obj.position, drone_orientation)
+                    if vehicle_to_update:
+                        vehicle_to_update.update(obj.position, vehicle_orientation)
 
-            if self.activeCam == self.camFollow and len(self.drones) > 0:
-                mujoco_helper.update_onboard_cam(self.drones[self.followed_drone_idx].get_qpos(), self.camFollow,\
+            if self.activeCam == self.camOnBoard and len(self.all_vehicles) > 0:
+                mujoco_helper.update_onboard_cam(self.all_vehicles[self.followed_vehicle_idx].get_qpos(), self.camOnBoard,\
                                                self.azim_filter_sin, self.azim_filter_cos,\
-                                               self.elev_filter_sin, self.elev_filter_cos)
+                                               self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
 
-            #print(self.data.qpos[:7])
 
-            for m in range(len(self.realdrones)):
-                self.realdrones[m].spin_propellers(self.graphics_step, 20)
-
-            mujoco.mj_step(self.model, self.data, 1)
+            mujoco.mj_step(self.model, self.data, int(self.graphics_step / self.sim_step))
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)
             self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
             mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL,

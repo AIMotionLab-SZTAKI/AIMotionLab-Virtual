@@ -4,19 +4,26 @@ import os
 from util import xml_generator
 from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingInputGui
-from gui.drone_input_gui import DroneInputGui
+from gui.vehicle_input_gui import VehicleInputGui
 from gui.payload_input_gui import PayloadInputGui
+from classes.drone import Drone, DroneMocap, HookMocap
+from classes.car import Car, CarMocap
+from classes.payload import PAYLOAD_TYPES, PayloadMocap, Payload
 
 
 # open the base on which we'll build
-xml_path = os.path.join("..", "xml_models")
+abs_path = os.path.dirname(os.path.abspath(__file__))
+xml_path = os.path.join(abs_path, "..", "xml_models")
 xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 
 build_based_on_optitrack = False
 
-scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
-display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, False)
+scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
+
+virt_parsers = [Drone.parse, Car.parse, Payload.parse]
+mocap_parsers = [DroneMocap.parse, CarMocap.parse, PayloadMocap.parse, HookMocap.parse]
+display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, virt_parsers, mocap_parsers, False)
 #display.set_drone_names()
 
 drone_counter = 0
@@ -102,58 +109,96 @@ def add_building():
     
 
     
-def add_drone():
+def add_vehicle():
     global scene, display
     
-    input_gui = DroneInputGui()
+    input_gui = VehicleInputGui()
     input_gui.show()
-    if input_gui.drone_type == "Virtual crazyflie":
+    if input_gui.vehicle_type == "Virtual crazyflie":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "crazyflie")
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Virtual bumblebee":
+    elif input_gui.vehicle_type == "Virtual bumblebee":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", False)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Virtual bb with hook":
+    elif input_gui.vehicle_type == "Virtual bb with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", True)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Real crazyflie":
+    elif input_gui.vehicle_type == "Real crazyflie":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "crazyflie")
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Real bumblebee":
+    elif input_gui.vehicle_type == "Real bumblebee":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", False)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
-    elif input_gui.drone_type == "Real bb with hook":
+    elif input_gui.vehicle_type == "Real bb with hook":
         if input_gui.position != "" and input_gui.quaternion != "":
             scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", True)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.vehicle_type == "Virtual Fleet1Tenth":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, False, "fleet1tenth")
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.vehicle_type == "Virtual F1Tenth with rod":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, "fleet1tenth")
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.vehicle_type == "Real Fleet1Tenth":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, False, "fleet1tenth")
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
+    elif input_gui.vehicle_type == "Real F1Tenth with rod":
+        if input_gui.position != "" and input_gui.quaternion != "":
+            scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, "fleet1tenth")
+            save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     else:
-        #print(input_gui.drone_type)
-        print("Non-existent drone type " + input_gui.drone_type)
+        #print(input_gui.vehicle_type)
+        print("Non-existent vehicle type: " + input_gui.vehicle_type)
 
 def add_load():
     global scene, display
     input_gui = PayloadInputGui()
     input_gui.show()
 
-    if input_gui.position != "" and input_gui.size != "" and input_gui.mass != "" and input_gui.quaternion != "":
-        scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
+    if input_gui.position != "" and input_gui.quaternion != "":
+        if input_gui.is_mocap:
+            if input_gui.type == PAYLOAD_TYPES.Box.value:
+                if input_gui.size == "":
+                    print("Payload size was unspecified...")
+                    return
+                scene.add_load(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
+            elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
+                scene.add_load(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
+            else:
+                print("Unknown payload type...")
+        else:
+            if input_gui.mass != "":
+                if input_gui.type == PAYLOAD_TYPES.Box.value:
+                    if input_gui.size == "":
+                        print("Payload size was unspecified...")
+                        return
+                    scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
+                elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
+                    scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color, input_gui.type)
+                else:
+                    print("Unknown payload type...")
+            else:
+                print("Payload mass was unspecified...")
 
         save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
 
 
-def save_and_reload_model(scene, display, save_filename, drone_names_in_motive=None):
+def save_and_reload_model(scene, display, save_filename, vehicle_names_in_motive=None):
         scene.save_xml(save_filename)
-        display.reload_model(save_filename, drone_names_in_motive)
+        display.reload_model(save_filename, vehicle_names_in_motive)
 
 def clear_scene():
     global scene, display, drone_counter, landing_zone_counter, pole_counter
-    scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xmlBaseFileName))
+    scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
     display.reload_model(os.path.join(xml_path, xmlBaseFileName))
     
     drone_counter = 0
@@ -168,13 +213,14 @@ def build_from_optitrack():
     global scene, display
 
     drone_names_in_motive = []
+    car_names_in_motive = []
 
     if not display.connect_to_optitrack:
         display.connect_to_Optitrack()
 
     display.mc.waitForNextFrame()
     for name, obj in display.mc.rigidBodies.items():
-
+        print(name)
         # have to put rotation.w to the front because the order is different
         orientation = str(obj.rotation.w) + " " + str(obj.rotation.x) + " " + str(obj.rotation.y) + " " + str(obj.rotation.z)
         position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0'
@@ -204,22 +250,43 @@ def build_from_optitrack():
             scene.add_airport(position, "1 0 0 0")
 
         elif name.startswith("obs"):
-            scene.add_pole(name, position, orientation)
+            scene.add_pole(name, position, "0.3826834 0 0 0.9238795")
+        
+        elif ("RC_car" in name) or (name.startswith("Trailer")):
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
+            #scene.add_car(position, orientation, BLUE_COLOR, False, True)
+            scene.add_car(position, orientation, BLUE_COLOR, False, False)
+            car_names_in_motive += [name]
+            #car_added = True
+        
+        elif "AI_car" in name:
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
+            #scene.add_car(position, orientation, BLUE_COLOR, False, True)
+            scene.add_car(position, orientation, BLUE_COLOR, False, True)
+            car_names_in_motive += [name]
 
-    save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), drone_names_in_motive)
+    vehicle_names_in_motive = drone_names_in_motive + car_names_in_motive
+
+    save_and_reload_model(scene, display, os.path.join(xml_path,save_filename), vehicle_names_in_motive)
+    #if car_added:
+    #    mocapid = display.model.body("car0").mocapid[0]
+    #    car = CarMocap(display.model, display.data, mocapid, "car0", "AI_car_01")
+    #    display.realdrones += [car]
 
 
 def main():
     display.set_key_b_callback(add_building)
-    display.set_key_d_callback(add_drone)
+    display.set_key_d_callback(add_vehicle)
     display.set_key_o_callback(build_from_optitrack)
     display.set_key_t_callback(add_load)
     display.set_key_delete_callback(clear_scene)
     
     #display.print_optitrack_data()
 
+
     if build_based_on_optitrack:
         build_from_optitrack()
+
 
     display.run()
 

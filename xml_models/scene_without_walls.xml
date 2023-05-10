@@ -32,7 +32,6 @@
 
   <compiler angle="radian" meshdir=""/>
   <option timestep="0.001"/>
-  <!--<option gravity="0 0 0"/>-->
   <visual>
     <quality shadowsize="4096"/>
   </visual>
@@ -49,8 +48,6 @@
     <mesh file="../3d_models/lagyi_oszlop4.stl" name="oszlop4" smoothnormal="true" scale="0.0085 0.0085 0.0085"/>
     
     <mesh file="../3d_models/bucket/Bucket3.obj" name="bucket" smoothnormal="false" scale="0.035 0.035 0.035"/>
-
-    <mesh file="../meshes/payload_simplified.stl" name="payload_simplified" smoothnormal="false" scale="0.00115 0.00115 0.00115"/>
 
     <mesh file="../meshes/cf_body.stl" name="drone_body" smoothnormal="true" scale="1.5 1.5 1.5"/>
     <mesh file="../meshes/4_motormounts.stl" name="drone_4_motormounts" smoothnormal="true" scale="1.5 1.5 1.5"/>
@@ -94,17 +91,17 @@
 
   <worldbody>
     <camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958"/>
-    <geom size="20 20 .05" type="plane" material="grid" condim="3"/>
+    <geom size="20 20 .05" type="plane" rgba="0.6 0.6 0.6 1.0" condim="3"/>
 
     <light dir="0 -0.3 -1" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="1 1 15" cutoff="70"/>
     <light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70"/>
     
     <!--<geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="0 0 0.001" type="plane" material="mat-roundabout" condim="3"/>-->
     <geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="0 0 0.001" type="plane" material="mat-roundabout" condim="3"/>
-    <geom name="carpet" size="7.644 7.644 .001" pos="3.16 1.115 0.0005" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet"/>
 
-    <geom name="bucket1" type="mesh" mesh="bucket" pos="3 -2 .142" euler="1.57 0 0" rgba=".20 .5 .5 1.0" />
-    <geom name="bucket2" type="mesh" mesh="bucket" pos="-2 -2 .142" euler="1.57 0 0" rgba=".3 .3 .3 1.0" />
+    <!--
+    <geom name="carpet" size="7.644 7.644 .001" pos="3.16 1.115 0.0005" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet"/>
+    -->
 
 
     <!--
@@ -115,7 +112,7 @@
       <geom name="oszlop2" pos="1.45 -2.8 0" type="mesh" mesh="oszlop2" quat="0 0 0.7071 0.7071" rgba="0.3 0.4 0.3 1"/>
       <geom name="oszlop3" pos="1.45 -2.8 0" type="mesh" mesh="oszlop3" quat="0 0 0.7071 0.7071" rgba="0.3 0.4 0.3 1"/>
       <geom name="oszlop4" pos="1.45 -2.8 0" type="mesh" mesh="oszlop4" quat="0 0 0.7071 0.7071" rgba="0.3 0.4 0.3 1"/>
-    -->
+
     <body name="lagyi" pos="1.45 -2.8 0" childclass="lagyi">
       <geom name="cockpit" type="mesh" mesh="cockpit"/>
       <geom name="fal1" type="mesh" mesh="fal1"/>
@@ -125,6 +122,8 @@
       <geom name="oszlop3" type="mesh" mesh="oszlop3" rgba="0.3 0.3 0.3 1"/>
       <geom name="oszlop4" type="mesh" mesh="oszlop4" rgba="0.3 0.3 0.3 1"/>
     </body>
+    
+    -->
   
 
   </worldbody>

@@ -1,18 +1,7 @@
 # Virtual 3D model of the test environment and simulation with MuJoCo
 
-## Purpose
-Active simulator tool to simulate drones in the virtual 3D model of Sztaki 6th floor. The model currently supports the following objects:
-  * Drones
-    * crazyflie (simulated and mocap)
-    * bumblebee (simulated; simulated with hook; mocap; (mocap with hook in the future))
-  * Payloads
-  * Hospital
-  * Post office
-  * Sztaki landing zone
-  * Poles
-  * Landing zones
-  * Airport
-  * Parking lot
+The documentation can be accessed here:
+[Docs](https://github.com/AIMotionLab-SZTAKI/Mujoco-Simulator/wiki)
 
 ## Installation
 1. Create and activate a virtual environment
@@ -98,6 +87,11 @@ To automatically build a scene based on Motive stream:
 To start and stop video recording:
   * Press 'r' (short for record)
   * The location of the saved video will be printed in the terminal
+  > Note: In order to create video recording on a windows platform, the ffmpeg binaries also need to be installed! The latest build can be accessed [here](https://www.gyan.dev/ffmpeg/builds/). After, the zip file has been successfully downloaded extract it to a convinient location (C drive is recommended) and set the environment path variable for 'ffmpeg' by running
+  	
+```
+  $ setx /m PATH "<your-path-to-the-unzipped-folder>/ffmpeg\bin;%PATH%"
+```
 
 To switch back and forth between drones' "on board camera" and main camera:
   * Press TAB

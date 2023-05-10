@@ -1,8 +1,7 @@
-Replace 'n' with drone index
+Replace 'n' with vehicle index
 
 real crazyflie:
 	* body name: realcrazyflie_n
-	* free joint name: realcrazyflie_n
 
 virtual crazyflie:
 	* body name: virtcrazyflie_n
@@ -10,7 +9,6 @@ virtual crazyflie:
 
 real bumblebee:
 	* body name: realbumblebee_n
-	* free joint name: realbumblebee_n
 	
 virtual bumblebee:
 	* body name: virtbumblebee_n
@@ -18,13 +16,20 @@ virtual bumblebee:
 
 real bumblebee with hook:
 	* body name: realbumblebee_hooked_n
-	* free joint name: realbumblebee_hooked_n
 	* hook joint name: realdrone_hooked_n_hook
 
 virtual bumblebee with hook:
 	* body name: virtbumblebee_hooked_n
 	* free joint name: virtbumblebee_hooked_n
 	* hook joint name: virtbumblebee_hooked_n_hook
+
+real fleet1tenth:
+	* body name: realfleet1tenth_n
+
+virtual fleet1tenth:
+	* body name: virtfleet1tenth_n
+	* free joint name: virtfleet1tenth_n
+	* to be completed!!!
 
 site for drone:
 	drone_name_cog
@@ -48,4 +53,4 @@ site for hook:
 		* realcrazyflie_69_actr3
 
 sensor for drone:
-	* drone_name_sensor0
+	* drone_name_gyro

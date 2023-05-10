@@ -1,10 +1,29 @@
 # Tutorial
 
-This tutorial demonstrates how the simulator should be constructed, and how to use the classes in the repository.
+This tutorial describes the concept of the simulator, and provides a demonstration to how the simulator needs to be constructed programmatically.
 
+![class_diagram](https://user-images.githubusercontent.com/8826953/219118911-b0a9fa62-8df8-49c5-86db-a87f5957f0ab.png)
 
-![class_diagram](https://user-images.githubusercontent.com/8826953/214015582-3d3c230c-225f-4cc8-ae80-5b5a7cd740d8.png)
+## Concept
 
+The scene of a specific simulation is described in a .xml file which is a MuJoCo model. The model can contain static objects, simulated objects and mocap objects. A static object takes part in the collisions, but it is fixed, so its position stays the same throughout the simulation. Simulated objects can move around in the scene, collide with each other and with static- and mocap objects. Mocap objects are treated like static objects, but their position and orientation can be updated programmatically based on a motion capture system or prerecorded data etc.
+The simulator instance keeps a list of "MovingObject" and a list of "MocapObject" instances that are the main characters of the simulation. These are the simulated- and the mocap objects. Each MovingObject has an update() method in which its trajectory and control are calculated. Each MocapObject has an update() method in which its position and orientation can be updated. The simulator calls these update methods repeatedly at equal time intervals. This time interval is called control timestep (simulator.control_step).
+
+### Steps of the simulation
+
+1. Generate a MuJoCo xml model with the objects required for the simulation. The simulated- and mocap objects need to follow a naming convention, so that the parsers can dig them out of the model.
+2. For each simuated- and mocap object type, create a parser method (such as Drone.parse), that can recognize the objects in the MuJoCo model based on the naming convention, and generate the python "wrapper" object that corresponds to the MuJoCo model object. The parser method must return a list of objects of a particular kind so that the simulator can add them to its own list of simulated and mocap objects.
+3. Pass these parser methods to the simulator instance. The simulator calls each of these parsers, and strings the returned lists of objects together for updating each object later during the simulation.
+4. Go through the generated list of simulated python objects, and assign them a controller and/or a trajectory if either is necessary for the simulation.
+5. The controller and trajectory classes also need to implement a sort of interface, because their compute_control() and evaluate() methods are called with fixed inputs in the owning object's update method.
+6. During the simulation, the simulator goes through its list of simulated objects at each control step, and calls their update() method, that computes their new control based on their trajectory. If motioncapture is enabled, the simulator also goes through its list of mocap objects at each control step, and updates their position and orientation if necessary.
+
+#### If the simulation of a new kind of object is needed
+
+1. Come up with a naming convention for the object and its parts (bodies, joints, geoms, actuators, etc... whatever is needed). (See naming_convention_in_xml.txt for examples)
+2. Create a python wrapper class that contains all the needed functionality for simulation, and that implents the MovingObject base class, i.e. has an update method that will be called at every control step to compute new control and do whatever else is necessary.
+3. Create a parser method, that can generate the python instances based on the loaded MuJoCo model. Add the parser method to the list that is passed to the simulators constructor so that it can be called inside the simulator. The inputs of the parser method must be MjData and MjModel of the loaded MuJoCo model. It must return a list of the generated instances of the new object type.
+4. The simulator will treat this new object type like a MovingObject, therefore it only knows that the object has an update() method.
 
 ## util.xml_generator.SceneXmlGenerator
 ```
@@ -54,14 +73,14 @@ orientation = "1 0 0 0"
 color = "0.2 0.2 0.85 1.0"
 
 # this will be a simulated (not a mocap), blue crazyflie drone
-scene.add_drone(position, orientation, color, True, "crazyflie", False)
+drone0_name = scene.add_drone(position, orientation, color, True, "crazyflie", False)
 
 position = "1 0 1"
 orientation = "1 0 0 0"
 color = "0.2 0.85 0.2 1.0"
 
 # this will be a simulated (not a mocap), green bumblebee drone with a hook (because last argument is True)
-scene.add_drone(position, orientation, color, True, "bumblebee", True)
+drone1_name = scene.add_drone(position, orientation, color, True, "bumblebee", True)
 
 
 position = "0 1 1"
@@ -69,7 +88,7 @@ orientation = "1 0 0 0"
 color = "0.85 0.2 0.2 1.0"
 
 # this will be a mocap (because 4th argument is False), red bumblebee drone without a hook
-scene.add_drone(position, orientation, color, False, "bumblebee", False)
+drone2_name = scene.add_drone(position, orientation, color, False, "bumblebee", False)
 ```
 
 To add a payload to the model:
@@ -91,30 +110,35 @@ scene.save_xml(os.path.join(xml_path, save_filename))
 ## classes.active_simulation.ActiveSimulator
 ```
 from classes.active_simulation import ActiveSimulator
+from classes.drone import Drone, DroneMocap
+from classes.car import Car, CarMocap
 ```
 
 This class wraps some of the simulation capabilities of MuJoCo and manages other stuff, see CodeDocumentation.md.
 
-The constructor expects an xml file name, time intervals for video recording, time steps for updating control and graphics, and whether or not to connect to Motive server.
+The constructor expects an xml file name, time intervals for video recording, time steps for updating control and graphics, a list of virtual object parser methods, a list of mocap object parser methods, and whether or not to connect to Motive server.
 
 To initialize ActiveSimulator:
 
 ```
 control_step, graphics_step = 0.01, 0.02 # these are in seconds
 
-simulator = ActiveSimulator(os.path.join(xml_path, "built_scene.xml"), None, control_step, graphics_step, False)
+virt_parsers = [Drone.parse, Car.parse]
+mocap_parsers = [DroneMocap.parse, CarMocap.parse]
+
+simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, control_step, graphics_step, virt_parsers, mocap_parsers, False)
 ```
 At this point, a blank window should appear.
 
-To access the list of simulated drones so that a trajectory and controllers can be assigned to each:
+To access the list of simulated objects so that a trajectory and controllers can be assigned to each:
 
 ```
-simulated_drones = simulator.virtdrones
 
 # Controllers are in Peter Antal's repository
 from ctrl.GeomControl import GeomControl
 from ctrl.RobustGeomControl import RobustGeomControl
 from ctrl.PlanarLQRControl import PlanarLQRControl
+
 import classes.trajectory as traj
 
 controller = GeomControl(simulator.model, simulator.data)
@@ -122,10 +146,11 @@ controllers = {"geom" : controller}
 
 trajectory_flip = traj.TestTrajectory(control_step, traj.FLIP)
 
-simulated_drones[0].set_controllers(controllers)
-simulated_drones[0].set_trajectory(trajectory_flip)
+drone = simulator.get_MovingObject_by_name_in_xml(drone0_name)
+drone.set_controllers(controllers)
+drone.set_trajectory(trajectory_flip)
 ```
-The drones in this list are in the same order as they have been added to the xml model.
+The vehicles in this list are in the same order as they have been added to the xml model.
 
 To run the simulator create an infinite loop with a "window should close" condition and call the simulator's update method with the incremented loop variable:
 
@@ -174,7 +199,7 @@ glfw.swap_buffers(self.window)
 glfw.poll_events()
 ```
 
-If displaying motion capture objects is needed (at the moment only drones have been implemented):
+If displaying motion capture objects is needed (at the moment only drones and cars have been implemented):
 
 ```
 # getting data from optitrack server
@@ -184,12 +209,13 @@ if self.connect_to_optitrack:
     for name, obj in self.mc.rigidBodies.items():
 
         # have to put rotation.w to the front because the order is different
-        drone_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+        # only update real vehicles
+        vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-        drone_to_update = Drone.get_drone_by_name_in_motive(self.drones, name)
+        vehicle_to_update = MovingMocapObject.get_object_by_name_in_motive(self.all_real_vehicles, name)
 
-        if drone_to_update:
-            drone_to_update.set_qpos(obj.position, drone_orientation)
+        if vehicle_to_update is not None:
+            vehicle_to_update.update(obj.position, vehicle_orientation)
 ```
 
 ## classes.drone.Drone, classes.drone.DroneHooked
@@ -208,7 +234,7 @@ data = mujoco.MjData(model)
 
 # each drone is searched in the model by its free joint name,
 # therefore a list of joint names is passed to the parser
-virtdrones = Drone.parse_drones(data, mujoco_helper.get_joint_name_list(model))
+virtdrones = Drone.parse(data, model)
 ```
 
 When a Drone or DroneHooked instance is created, all its required variables are mined out of the model's MjData (such as qpos, ctrl, qvel, sensor data), and class methods are provided to read or change these atributes in MjData. For example:
@@ -264,20 +290,11 @@ data = mujoco.MjData(model)
 
 # each drone is searched in the model by its body name,
 # therefore a list of body names is passed to the parser
-realdrones = DroneMocap.parse_mocap_drones(data, model, mujoco_helper.get_body_name_list(model))
+realdrones = DroneMocap.parse(data, model, model)
 ```
 
-Each mocap drone is made of separate mocap bodies in the MuJoCo model, to be able to have spinning propellers, because mocap bodies cannot have child mocap bodies. There are a mocap body for the drone body, four mocap bodies for the propellers, and optionally a mocap body for the hook.
+The propellers are attached to the mocap drone with a joint that has one degree of freedom for spinning. If an angular velocity is set at this joint, the propellers will spin indefinitely, unless some collision happens. Therefore it's worth resetting this veocity from time to time.
 
-
-When a DroneMocap or DroneMocapHooked instance is created, four PropellerMocap instances are created and saved as member variable for the four propellers:
-```
-# in the constructor of DroneMocap
-self.prop1 = PropellerMocap(model, data, name_in_xml + "_prop1", drone_mocapid, SPIN_DIR.COUNTER_CLOCKWISE)
-self.prop2 = PropellerMocap(model, data, name_in_xml + "_prop2", drone_mocapid, SPIN_DIR.COUNTER_CLOCKWISE)
-self.prop3 = PropellerMocap(model, data, name_in_xml + "_prop3", drone_mocapid, SPIN_DIR.CLOCKWISE)
-self.prop4 = PropellerMocap(model, data, name_in_xml + "_prop4", drone_mocapid, SPIN_DIR.CLOCKWISE)
-```
 DroneMocap provides methods for reading and changing its position and orientation.
 
 ## classes.trajectory.Trajectory

@@ -1,5 +1,18 @@
 from typing import Union, Callable
 import time
+import math
+
+
+def carHeading2quaternion(phi: float)-> str:
+    """Converts the car heading angle (rotation around Z-axis) to quaternions that can be handled by the Mujoco Simulator
+
+    Args:
+        phi (int): Heading angle of the car (measured from the X-axis, in radians)
+
+    Returns:
+        str: Sting of the 4 quaternions
+    """
+    return str(math.cos( phi / 2 ))+" 0 0 "+ str(math.sin( phi / 2 ))
 
 
 def linear_schedule(initial_value: Union[float, str]) -> Callable[[float], float]:
@@ -38,8 +51,12 @@ def sync(i, start_time, timestep):
     """
     #if timestep > .04 or i % (int(1 / (24 * timestep))) == 0:
     elapsed = time.time() - start_time
-    if elapsed < (i * timestep):
-        time.sleep(timestep * i - elapsed)
+    sim_time = i * timestep
+    #print(sim_time - elapsed)
+    if elapsed < sim_time:
+        delay = sim_time - elapsed
+        #print(delay)
+        time.sleep(delay)
 
 
 class FpsLimiter:

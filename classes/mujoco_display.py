@@ -1,21 +1,25 @@
 import math
+import os
+import sys
 
-import motioncapture
 import time
 import numpy as np
 import mujoco
 import glfw
-import os
 import numpy as np
 import time
 import threading
 from util import mujoco_helper
-import cv2
-from gui.drone_name_gui import DroneNameGui
+from gui.vehicle_name_gui import VehicleNameGui
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
-from classes.drone import Drone, DroneMocap
+from classes.moving_object import MovingMocapObject
 import ffmpeg
+
+can_import_motioncapture = sys.version_info.major == 3 and sys.version_info.minor < 10
+
+if can_import_motioncapture:
+    import motioncapture
 
 MAX_GEOM = 200
 INIT_WWIDTH = 1280
@@ -25,8 +29,15 @@ class Display:
     """ Base class for passive and active simulation
     """
 
-    def __init__(self, xml_file_name, graphics_step, connect_to_optitrack=True):
-        print(f'Working directory:  {os.getcwd()}\n')
+    def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=True):
+        #print(f'Working directory:  {os.getcwd()}\n')
+
+        if connect_to_optitrack and can_import_motioncapture:
+            connect_to_optitrack = False
+            print("[Display] Motioncapture library is not supported on windows")
+
+        self.virt_parsers = virt_parsers
+        self.mocap_parsers = mocap_parsers
 
         self.key_b_callback = None
         self.key_d_callback = None
@@ -34,24 +45,32 @@ class Display:
         self.key_o_callback = None
         self.key_t_callback = None
         self.key_delete_callback = None
+        self.key_left_callback = None
+        self.key_left_release_callback = None
+        self.key_right_callback = None
+        self.key_right_release_callback = None
+        self.key_up_callback = None
+        self.key_up_release_callback = None
+        self.key_down_callback = None
+        self.key_down_release_callback = None
 
         self.connect_to_optitrack = connect_to_optitrack
 
         self.mouse_left_btn_down = False
         self.mouse_right_btn_down = False
         self.prev_x, self.prev_y = 0.0, 0.0
-        self.followed_drone_idx = 0
+        self.followed_vehicle_idx = 0
         self.title0 = "Scene"
         self.is_recording = False
         self.image_list = []
-        self.video_save_folder = os.path.join("..", "video_capture")
+        self.abs_path = os.path.dirname(os.path.abspath(__file__))
+        self.video_save_folder = os.path.join(self.abs_path, "..", "video_capture")
         self.video_file_name_base = "output"
 
         self.graphics_step = graphics_step
 
         fps = 1.0 / self.graphics_step
 
-        
         self.init_glfw()
         self.init_cams()
         self.load_model(xml_file_name)
@@ -99,15 +118,15 @@ class Display:
     def init_cams(self):
 
         self.cam = mujoco.MjvCamera()
-        self.camFollow = mujoco.MjvCamera()
+        self.camOnBoard = mujoco.MjvCamera()
         self.activeCam = self.cam
         
         self.cam.azimuth, self.cam.elevation = 180, -20
         self.cam.lookat, self.cam.distance = [0, 0, .5], 5
-        self.camFollow.azimuth, self.camFollow.elevation = 180, -30
-        self.camFollow.lookat, self.camFollow.distance = [0, 0, 0], 1
+        self.camOnBoard.azimuth, self.camOnBoard.elevation = 180, -30
+        self.camOnBoard.lookat, self.camOnBoard.distance = [0, 0, 0], 1
 
-        # set up low-pass filters for the camera that follows the drones
+        # set up low-pass filters for the camera that follows the vehicles
         fs = 1 / self.graphics_step  # sampling rate, Hz
         cutoff = 4
         self.b, self.a = scipy.signal.iirfilter(4, Wn=cutoff, fs=fs, btype="low", ftype="butter")
@@ -119,6 +138,8 @@ class Display:
         self.elev_filter_sin = LiveLFilter(self.b, self.a)
         self.elev_filter_cos = LiveLFilter(self.b, self.a)
 
+        self.onBoard_elev_offset = 30
+
     
     def load_model(self, xml_file_name):
         self.xmlFileName = xml_file_name
@@ -126,32 +147,64 @@ class Display:
         self.model = mujoco.MjModel.from_xml_path(self.xmlFileName)
         self.data = mujoco.MjData(self.model)
 
+        self.gravity = self.model.opt.gravity
+
         self.scn = mujoco.MjvScene(self.model, maxgeom=MAX_GEOM)
         self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
         self.sim_step = self.model.opt.timestep
 
-        self.virtdrones = Drone.parse_drones(self.data, mujoco_helper.get_joint_name_list(self.model))
-        self.realdrones = DroneMocap.parse_mocap_drones(self.data, self.model, mujoco_helper.get_body_name_list(self.model))
+        self.all_virt_vehicles = []
+        self.all_real_vehicles = []
+
+        if self.virt_parsers is not None:
+
+            for i in range(len(self.virt_parsers)):
+                self.all_virt_vehicles += self.virt_parsers[i](self.data, self.model)
+        
+        if self.mocap_parsers is not None:
+
+            for i in range(len(self.mocap_parsers)):
+                self.all_real_vehicles += self.mocap_parsers[i](self.data, self.model)
 
         print()
-        print(str(len(self.virtdrones)) + " virtual drone(s) found in xml.")
+        print(str(len(self.all_virt_vehicles)) + " virtual object(s) found in xml.")
         print()
-        print(str(len(self.realdrones)) + " mocap drone(s) found in xml.")
+        print(str(len(self.all_real_vehicles)) + " mocap objects(s) found in xml.")
         print("______________________________")
-        #self.drones = self.virtdrones + self.realdrones
-        self.drones = self.virtdrones + self.realdrones
-
+        
+        self.all_vehicles = self.all_virt_vehicles + self.all_real_vehicles
     
-    def reload_model(self, xml_file_name, drone_names_in_motive = None):
+
+    def get_MovingObject_by_name_in_xml(self, name):
+
+        for i in range(len(self.all_virt_vehicles)):
+
+            vehicle = self.all_virt_vehicles[i]
+            if name == vehicle.name_in_xml:
+
+                return vehicle
+
+        return None
+
+    def get_MovingMocapObject_by_name_in_xml(self, name):
+
+        for i in range(len(self.all_real_vehicles)):
+
+            vehicle = self.all_real_vehicles[i]
+            if name == vehicle.name_in_xml:
+                return vehicle
+        
+        return None
+    
+    def reload_model(self, xml_file_name, vehicle_names_in_motive = None):
         
         self.load_model(xml_file_name)
 
-        if drone_names_in_motive is not None and len(drone_names_in_motive) > 0:
-            i = 0
-            for i in range(len(self.realdrones)):
-                self.realdrones[i].name_in_motive = drone_names_in_motive[i]
-                i += 1
+        if vehicle_names_in_motive is not None:
+            for i in range(len(self.all_real_vehicles)):
+                self.all_real_vehicles[i].name_in_motive = vehicle_names_in_motive[i]
+        
 
     def glfw_window_should_close(self):
         return glfw.window_should_close(self.window)
@@ -180,6 +233,32 @@ class Display:
         if callable(callback_function):
             self.key_delete_callback = callback_function
 
+
+    def set_key_left_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_left_callback = callback_function
+    def set_key_right_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_right_callback = callback_function
+    def set_key_up_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_up_callback = callback_function
+    def set_key_down_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_down_callback = callback_function
+
+    def set_key_left_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_left_release_callback = callback_function
+    def set_key_right_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_right_release_callback = callback_function
+    def set_key_up_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_up_release_callback = callback_function
+    def set_key_down_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_down_release_callback = callback_function
 
     def mouse_button_callback(self, window, button, action, mods):
 
@@ -246,20 +325,20 @@ class Display:
     def key_callback(self, window, key, scancode, action, mods):
         """
         Switch camera on TAB press
-        Switch among drones on SPACE press if camera is set to follow drones
+        Switch among vehicles on SPACE press if camera is set to follow vehicle
         """
         if key == glfw.KEY_TAB and action == glfw.PRESS:
             self.change_cam()
         elif key == glfw.KEY_SPACE and action == glfw.PRESS:
-            if self.activeCam == self.camFollow:
-                if self.followed_drone_idx + 1 == len(self.drones):
-                    self.followed_drone_idx = 0
+            if self.activeCam == self.camOnBoard:
+                if self.followed_vehicle_idx + 1 == len(self.all_vehicles):
+                    self.followed_vehicle_idx = 0
                 else:
-                    self.followed_drone_idx += 1
+                    self.followed_vehicle_idx += 1
                 self.azim_filter = LiveLFilter(self.b, self.a)
                 self.elev_filter = LiveLFilter(self.b, self.a)
-                d = self.drones[self.followed_drone_idx]
-                mujoco_helper.update_onboard_cam(d.get_qpos(), self.camFollow)
+                d = self.all_vehicles[self.followed_vehicle_idx]
+                mujoco_helper.update_onboard_cam(d.get_qpos(), self.camOnBoard)
         
         if key == glfw.KEY_B and action == glfw.RELEASE:
             """
@@ -293,7 +372,7 @@ class Display:
             self.connect_to_Optitrack()
 
         if key == glfw.KEY_N and action == glfw.RELEASE:
-            self.set_drone_names()
+            self.set_vehicle_names()
 
         if key == glfw.KEY_L and action == glfw.RELEASE:
             """
@@ -322,6 +401,58 @@ class Display:
             """
             if self.key_delete_callback:
                 self.key_delete_callback()
+        
+        if key == glfw.KEY_LEFT and action == glfw.PRESS:
+            """
+            pass on this event
+            """
+            if self.key_left_callback:
+                self.key_left_callback()
+        if key == glfw.KEY_RIGHT and action == glfw.PRESS:
+            """
+            pass on this event
+            """
+            if self.key_right_callback:
+                self.key_right_callback()
+        if key == glfw.KEY_UP and action == glfw.PRESS:
+            """
+            pass on this event
+            """
+            if self.key_up_callback:
+                self.key_up_callback()
+        if key == glfw.KEY_DOWN and action == glfw.PRESS:
+            """
+            pass on this event
+            """
+            if self.key_down_callback:
+                self.key_down_callback()
+        
+
+        if key == glfw.KEY_LEFT and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_left_release_callback:
+                self.key_left_release_callback()
+        if key == glfw.KEY_RIGHT and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_right_release_callback:
+                self.key_right_release_callback()
+        if key == glfw.KEY_UP and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_up_release_callback:
+                self.key_up_release_callback()
+        if key == glfw.KEY_DOWN and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_down_release_callback:
+                self.key_down_release_callback()
+
     
     def set_title(self, window_title):
         self.title0 = window_title
@@ -335,17 +466,20 @@ class Display:
 
 
     def connect_to_Optitrack(self):
-        self.connect_to_optitrack = True
-        self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
-        print("[Display] Connected to Optitrack")
+        if can_import_motioncapture:
+            self.connect_to_optitrack = True
+            self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
+            print("[Display] Connected to Optitrack")
+        else:
+            print("[Display] Motioncapture library is not supported on python version > 3.9")
 
 
     def change_cam(self):
         """
         Change camera between scene cam and 'on board' cam
         """
-        if self.activeCam == self.cam and len(self.drones) > 0:
-            self.activeCam = self.camFollow
+        if self.activeCam == self.cam and len(self.all_vehicles) > 0:
+            self.activeCam = self.camOnBoard
         else:
             self.activeCam = self.cam
     
@@ -408,7 +542,7 @@ class Display:
         video_process.stdin.close()
         # Wait for sub-process to finish
         video_process.wait()
-        print("[Display] Saved video in " + os.path.normpath(os.path.join(os.getcwd(), self.video_save_folder)))
+        print("[Display] Saved video in " + os.path.normpath(self.video_save_folder))
         self.reset_title()
 
     def save_video_background(self):
@@ -423,12 +557,12 @@ class Display:
         self.video_process.wait()
 
 
-    def set_drone_names(self):
+    def set_vehicle_names(self):
         
-        if len(self.realdrones) > 0:
-            drone_names = DroneMocap.get_drone_names_motive(self.realdrones)
-            drone_labels = DroneMocap.get_drone_names_in_xml(self.realdrones)
-            gui = DroneNameGui(drone_labels=drone_labels, drone_names=drone_names)
+        if len(self.all_real_vehicles) > 0:
+            object_names = MovingMocapObject.get_object_names_motive(self.all_real_vehicles)
+            object_labels = MovingMocapObject.get_object_names_in_xml(self.all_real_vehicles)
+            gui = VehicleNameGui(vehicle_labels=object_labels, vehicle_names=object_names)
             gui.show()
-            DroneMocap.set_drone_names_motive(self.realdrones, gui.drone_names)
+            MovingMocapObject.set_object_names_motive(self.all_real_vehicles, gui.vehicle_names)
 

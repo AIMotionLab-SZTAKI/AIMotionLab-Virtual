@@ -1,18 +1,7 @@
 # Virtual 3D model of the test environment and simulation with MuJoCo
 
-## Purpose
-Active simulator tool to simulate drones in the virtual 3D model of Sztaki 6th floor. The model currently supports the following objects:
-  * Drones
-    * crazyflie (simulated and mocap)
-    * bumblebee (simulated; simulated with hook; mocap; (mocap with hook in the future))
-  * Payloads
-  * Hospital
-  * Post office
-  * Sztaki landing zone
-  * Poles
-  * Landing zones
-  * Airport
-  * Parking lot
+The documentation can be accessed here:
+[Docs](https://github.com/AIMotionLab-SZTAKI/Mujoco-Simulator/wiki)
 
 ## Installation
 1. Create and activate a virtual environment

@@ -40,8 +40,8 @@ xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 
 # Set scenario parameters
-drone_init_pos = np.array([0.0, 0.0, 2.2, 0])  # initial drone position and yaw angle
-load_mass = 0.15
+drone_init_pos = np.array([0.0, 0.0, 1.4, 0])  # initial drone position and yaw angle
+load_mass = 1
 load_size = np.array([.1, .1, .05])
 load_initpos = np.array([drone_init_pos[0], drone_init_pos[1], drone_init_pos[2] - (2 * load_size[2]) - .57 ])
 
@@ -82,7 +82,7 @@ drone0.set_controllers(drone0_controllers)
 
 
 pressure_sampl = PressureSampler(os.path.join(abs_path, "..", "dynamic_pressure_field_processed_new.csv"), drone0)
-payload0.set_top_subdivision(20, 20)
+payload0.set_top_subdivision(10, 10)
 
 i = 0
 

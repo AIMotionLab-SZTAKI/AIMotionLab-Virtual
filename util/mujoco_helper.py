@@ -51,6 +51,14 @@ class LiveLFilter(LiveFilter):
         return y
 
 
+def skipper(fname):
+    with open(fname) as fin:
+        no_comments = (line for line in fin if not line.lstrip().startswith('#'))
+        next(no_comments, None) # skip header
+        for row in no_comments:
+            yield row
+
+
 def update_drone(data, droneID, position, orientation):
     """
     Old, do not use this anymore!

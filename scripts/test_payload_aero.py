@@ -1,5 +1,7 @@
 import os
+import math
 import numpy as np
+import matplotlib.pylab as plt
 from classes import payload
 from classes import pressure_sampler
 from util import xml_generator
@@ -40,15 +42,15 @@ xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 
 # Set scenario parameters
-drone_init_pos = np.array([0.0, 0.0, 1.4, 0])  # initial drone position and yaw angle
-load_mass = 1
-load_size = np.array([.1, .1, .05])
+drone_init_pos = np.array([0.0, 0.0, 2.4, 0])  # initial drone position and yaw angle
+load_mass = 0.020
+load_size = np.array([.05, .05, .025])
 load_initpos = np.array([drone_init_pos[0], drone_init_pos[1], drone_init_pos[2] - (2 * load_size[2]) - .57 ])
 
 # create xml with a drone and a car
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
-                                True, 2)
+                                True, 1)
 #payload0_name = scene.add_load("0.0 0.0 0.83", ".8 .8 .3", str(load_mass), "1 0 0 0", BLUE_COLOR)
 payload0_name = scene.add_load(np.array2string(load_initpos)[1:-1], np.array2string(load_size)[1:-1], str(load_mass), "1 0 0 0", BLUE_COLOR)
 
@@ -81,18 +83,28 @@ drone0.set_trajectory(drone0_trajectory)
 drone0.set_controllers(drone0_controllers)
 
 
-pressure_sampl = PressureSampler(os.path.join(abs_path, "..", "dynamic_pressure_field_processed_new.csv"), drone0)
+pressure_sampl = PressureSampler(os.path.join(abs_path, "..", "combined_data.txt"), drone0)
 payload0.set_top_subdivision(10, 10)
 
 i = 0
+lsize=500
+log_ff=[]
 
-
+payload0.set_force_torque(np.array([0, 0, 0]), np.array([-0.01, 0, 0]))
 while not simulator.glfw_window_should_close():
     simulator.update(i)
     
     force, torque = pressure_sampl.generate_forces(payload0)
+
+    if i < lsize:
+        total_force=math.sqrt(force[0]**2+force[1]**2+force[2]**2)
+        log_ff.append(torque)
     
     payload0.set_force_torque(force, torque)
     i += 1
+
+
+plt.plot(log_ff)
+plt.show()
 
 simulator.close()

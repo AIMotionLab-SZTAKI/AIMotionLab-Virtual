@@ -5,28 +5,23 @@ from classes.drone import Drone
 from classes.payload import Payload
 from util import mujoco_helper
 
-def skipper(fname):
-    with open(fname) as fin:
-        no_comments = (line for line in fin if not line.lstrip().startswith('#'))
-        next(no_comments, None) # skip header
-        for row in no_comments:
-            yield row
-
 
 class PressureSampler:
 
     def __init__(self, data_file_name : str, owning_drone : Drone):
         
-        tmp = np.loadtxt(skipper(data_file_name), delimiter=',', dtype=np.float)
+        #tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float)
+        tmp = np.loadtxt(data_file_name)
         # transform data into 3D array
         self.cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
-        self.data = np.reshape(tmp[:, 4], (self.cube_size, self.cube_size, self.cube_size))
+        self.data = np.reshape(tmp, (self.cube_size, self.cube_size, self.cube_size))
         print(self.data.shape)
 
         self.drone = owning_drone
         self.drone_position = owning_drone.sensor_posimeter
         self.drone_orientation = owning_drone.sensor_orimeter
-        self.offset_from_drone_center = np.copy(owning_drone.prop1_joint_pos)
+        #self.offset_from_drone_center = np.copy(owning_drone.prop1_joint_pos)
+        self.offset_from_drone_center = np.zeros_like(owning_drone.prop1_joint_pos)
         
         # shifting the cube's middle to the rotor
         self.offset_from_drone_center[0] -= self.cube_size / 200.0
@@ -66,7 +61,7 @@ class PressureSampler:
 
                 #if y % 20 == 0:
                 #    print(k)
-                k += 25
+                k += 15
 
                 if i < self.cube_size and i >= 0 and\
                    j < self.cube_size and j >= 0 and\

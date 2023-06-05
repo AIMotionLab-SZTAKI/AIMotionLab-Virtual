@@ -4,28 +4,18 @@ import util.mujoco_helper as mh
 import math
 
 from classes.payload import PAYLOAD_TYPES
+from classes.drone import DRONE_TYPES, BUMBLEBEE_PROP, CRAZYFLIE_PROP 
+from classes.car import F1T_PROP
 
 import os
 
 
-
-PROP_OFFS = "0.047"
-PROP_OFFS_Z = "0.032"
-
-PROP_OFFS_X1_LARGE = "0.074"
-PROP_OFFS_X2_LARGE = "0.091"
-PROP_OFFS_Y_LARGE = "0.087"
-PROP_OFFS_Z_LARGE = "0.036"
 
 PROP_COLOR = "0.1 0.1 0.1 1.0"
 PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
 
 SITE_NAME_END = "_cog"
 
-
-F1T_WHEEL_RADIUS = ".052388"
-F1T_WHEEL_WIDTH = ".022225"
-F1T_WHEEL_SIZE = F1T_WHEEL_RADIUS + " " + F1T_WHEEL_WIDTH
 
 ROD_LENGTH = 0.4
 
@@ -201,34 +191,34 @@ class SceneXmlGenerator:
 
         prop_name = name + "_prop1"
         mass = "0.00001"
-        pos = PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
+        #
+        pos = CRAZYFLIE_PROP.OFFSET.value + " -" + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
         prop1_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop1_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+        ET.SubElement(self.actuator, "general", joint=prop_name, name=name + "_actr1", gear=" 0 0 1 0 0 " + CRAZYFLIE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + CRAZYFLIE_PROP.MAX_THRUST.value)
 
         prop_name = name + "_prop2"
-        pos = "-" + PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
+        pos = "-" + CRAZYFLIE_PROP.OFFSET.value + " -" + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
         prop2_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop2_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
+        ET.SubElement(self.actuator, "general", joint=prop_name, name=name + "_actr2", gear=" 0 0 1 0 0 -" + CRAZYFLIE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + CRAZYFLIE_PROP.MAX_THRUST.value)
 
         prop_name = name + "_prop3"
-        pos = "-" + PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
+        pos = "-" + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
         prop3_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop3_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
+        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
+        ET.SubElement(self.actuator, "general", joint=prop_name, name=name + "_actr3", gear=" 0 0 1 0 0 " + CRAZYFLIE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + CRAZYFLIE_PROP.MAX_THRUST.value)
 
         prop_name = name + "_prop4"
-        pos = PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
+        
+        pos = CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
         prop4_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop4_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
-
-        
-        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr0", gear=" 0 0 1 0 0 0", ctrllimited="true", ctrlrange="0 0.64")
-        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr1", gear=" 0 0 0 1 0 0", ctrllimited="true", ctrlrange="-0.01 0.01")
-        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr2", gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-0.01 0.01")
-        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr3", gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-0.01 0.01")
+        ET.SubElement(self.actuator, "general", joint=prop_name, name=name + "_actr4", gear=" 0 0 1 0 0 -" + CRAZYFLIE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + CRAZYFLIE_PROP.MAX_THRUST.value)
 
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
         ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
@@ -247,25 +237,25 @@ class SceneXmlGenerator:
         ET.SubElement(drone, "geom", name=name + "_4_motors", type="mesh", mesh="drone_4_motors", rgba=color)
 
         prop_name = name + "_prop1"
-        pos = PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
+        pos = CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
         prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
 
         prop_name = name + "_prop2"
-        pos = "-" + PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
+        pos = "-" + CRAZYFLIE_PROP.OFFSET.value + " -" + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
         prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
 
         prop_name = name + "_prop3"
-        pos = "-" + PROP_OFFS + " " + PROP_OFFS + " " + PROP_OFFS_Z
+        pos = "-" + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
         prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
 
         prop_name = name + "_prop4"
-        pos = PROP_OFFS + " -" + PROP_OFFS + " " + PROP_OFFS_Z
+        pos = CRAZYFLIE_PROP.OFFSET.value + " -" + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
         prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop", pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
@@ -295,34 +285,36 @@ class SceneXmlGenerator:
 
         prop_name = name + "_prop1"
         mass = "0.00001"
-        pos = "-" + PROP_OFFS_X1_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = BUMBLEBEE_PROP.OFFSET_X2.value + " -" + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
         prop1_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop1_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
+        ET.SubElement(drone, "site", name=prop_name, pos=pos)
+        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr1", gear=" 0 0 1 0 0 " + BUMBLEBEE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + BUMBLEBEE_PROP.MAX_THRUST.value)
 
         prop_name = name + "_prop2"
-        pos = PROP_OFFS_X2_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = "-" + BUMBLEBEE_PROP.OFFSET_X1.value + " -" + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
         prop2_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop2_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
+        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
+        ET.SubElement(drone, "site", name=prop_name, pos=pos)
+        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr2", gear=" 0 0 1 0 0 -" + BUMBLEBEE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + BUMBLEBEE_PROP.MAX_THRUST.value)
 
         prop_name = name + "_prop3"
-        pos = PROP_OFFS_X2_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = "-" + BUMBLEBEE_PROP.OFFSET_X1.value + " " + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
         prop3_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop3_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
+        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
+        ET.SubElement(drone, "site", name=prop_name, pos=pos)
+        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr3", gear=" 0 0 1 0 0 " + BUMBLEBEE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + BUMBLEBEE_PROP.MAX_THRUST.value)
 
         prop_name = name + "_prop4"
-        pos = "-" + PROP_OFFS_X1_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos = BUMBLEBEE_PROP.OFFSET_X2.value + " " + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
         prop4_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop4_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
         ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
-
-
-        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr0", gear=" 0 0 1 0 0 0", ctrllimited="true", ctrlrange="0 67.2")
-        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr1", gear=" 0 0 0 1 0 0", ctrllimited="true", ctrlrange="-6 6")
-        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr2", gear=" 0 0 0 0 1 0", ctrllimited="true", ctrlrange="-6 6")
-        ET.SubElement(self.actuator, "general", site=site_name, name=name + "_actr3", gear=" 0 0 0 0 0 1", ctrllimited="true", ctrlrange="-1.5 1.5")
+        ET.SubElement(drone, "site", name=prop_name, pos=pos)
+        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr4", gear=" 0 0 1 0 0 -" + BUMBLEBEE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + BUMBLEBEE_PROP.MAX_THRUST.value)
 
         ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
         ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
@@ -345,25 +337,25 @@ class SceneXmlGenerator:
         ET.SubElement(drone, "geom", type="box", size="0.0475 0.025 0.025", pos="0.01 0 -0.02", rgba=color)
 
         prop_name = name + "_prop1"
-        pos_m = "-" + PROP_OFFS_X1_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos_m = "-" + BUMBLEBEE_PROP.OFFSET_X1.value + " " + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
         prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos_m)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
         prop_name = name + "_prop2"
-        pos_m = PROP_OFFS_X2_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos_m = BUMBLEBEE_PROP.OFFSET_X2.value + " -" + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
         prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos_m)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_ccw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
         prop_name = name + "_prop3"
-        pos_m = PROP_OFFS_X2_LARGE + " " + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos_m = BUMBLEBEE_PROP.OFFSET_X2.value + " " + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
         prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos_m)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos_m, rgba=PROP_COLOR)
 
         prop_name = name + "_prop4"
-        pos_m = "-" + PROP_OFFS_X1_LARGE + " -" + PROP_OFFS_Y_LARGE + " " + PROP_OFFS_Z_LARGE
+        pos_m = "-" + BUMBLEBEE_PROP.OFFSET_X1.value + " -" + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
         prop = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop, "joint", name=prop_name, axis="0 0 1", pos=pos_m)
         ET.SubElement(prop, "geom", name=prop_name, type="mesh", mesh="drone_cw_prop_large", pos=pos_m, rgba=PROP_COLOR)
@@ -385,7 +377,7 @@ class SceneXmlGenerator:
         elif hook_dof != 1:
             print("Too many or not enough degrees of freedom for hook joint. 1 degree of freedom assumed.")
         hook = ET.SubElement(rod, "body", name=drone_name + "_hook", pos="0 0 -0.4", euler="0 3.141592 -1.57")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.005 0.02", mass="0.02")
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.005 0.02", mass="0.01")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0475", euler="-1.0472 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.02598 0.07", euler="0 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0925", euler="1.0472 0 0", size="0.005 0.018", mass="0.0001")
@@ -589,7 +581,7 @@ class SceneXmlGenerator:
         site_name = name + SITE_NAME_END
 
         posxyz = str.split(pos)
-        pos = posxyz[0] + " " + posxyz[1] + " " + F1T_WHEEL_RADIUS
+        pos = posxyz[0] + " " + posxyz[1] + " " + F1T_PROP.WHEEL_RADIUS.value
         
         car = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
 
@@ -613,23 +605,23 @@ class SceneXmlGenerator:
         ET.SubElement(wheelfl, "joint", name=name + "_wheelfl_steer", type="hinge", pos="0.16113 .10016 0", limited="true", frictionloss=fric_steer, damping=damp_steer, armature=armature_steer, range=steer_range, axis="0 0 1")
         ET.SubElement(wheelfl, "joint", name=name + "_wheelfl", type="hinge", pos="0.16113 .122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
-        ET.SubElement(wheelfl, "geom", name=name + "_wheelfl", type="cylinder", size=F1T_WHEEL_SIZE, pos="0.16113 .122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelfl, "geom", name=name + "_wheelfl", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="0.16113 .122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
         wheelrl = ET.SubElement(car, "body", name=name + "_wheelrl", quat="1 0 0 0" )
         ET.SubElement(wheelrl, "joint", name=name + "_wheelrl", type="hinge", pos="-0.16113 .122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
-        ET.SubElement(wheelrl, "geom", name=name + "_wheelrl", type="cylinder", size=F1T_WHEEL_SIZE, pos="-0.16113 .122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelrl, "geom", name=name + "_wheelrl", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="-0.16113 .122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
         wheelfr = ET.SubElement(car, "body", name=name + "_wheelfr", quat="1 0 0 0" )
         ET.SubElement(wheelfr, "joint", name=name + "_wheelfr_steer", type="hinge", pos="0.16113 -.10016 0", limited="true", frictionloss=fric_steer, damping=damp_steer, armature=armature_steer, range=steer_range, axis="0 0 1")
         ET.SubElement(wheelfr, "joint", name=name + "_wheelfr", type="hinge", pos="0.16113 -.122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
-        ET.SubElement(wheelfr, "geom", name=name + "_wheelfr", type="cylinder", size=F1T_WHEEL_SIZE, pos="0.16113 -.122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelfr, "geom", name=name + "_wheelfr", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="0.16113 -.122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
         wheelrr = ET.SubElement(car, "body", name=name + "_wheelrr", quat="1 0 0 0" )
         ET.SubElement(wheelrr, "joint", name=name + "_wheelrr", type="hinge", pos="-0.16113 -.122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
-        ET.SubElement(wheelrr, "geom", name=name + "_wheelrr", type="cylinder", size=F1T_WHEEL_SIZE, pos="-0.16113 -.122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
+        ET.SubElement(wheelrr, "geom", name=name + "_wheelrr", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="-0.16113 -.122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
         friction = "2.5 2.5 .009 .0001 .0001"
 
@@ -657,19 +649,19 @@ class SceneXmlGenerator:
     def __add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod):
 
         posxyz = str.split(pos)
-        pos = posxyz[0] + " " + posxyz[1] + " " + F1T_WHEEL_RADIUS
+        pos = posxyz[0] + " " + posxyz[1] + " " + F1T_PROP.WHEEL_RADIUS.value
         
         car = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
 
         self.__add_fleet1tenth_body(car, name, color, has_rod)
 
-        ET.SubElement(car, "geom", name=name + "_wheelfl", type="cylinder", size=F1T_WHEEL_SIZE, pos="0.16113 .122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
+        ET.SubElement(car, "geom", name=name + "_wheelfl", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="0.16113 .122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
-        ET.SubElement(car, "geom", name=name + "_wheelrl", type="cylinder", size=F1T_WHEEL_SIZE, pos="-0.16113 .122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
+        ET.SubElement(car, "geom", name=name + "_wheelrl", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="-0.16113 .122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
-        ET.SubElement(car, "geom", name=name + "_wheelfr", type="cylinder", size=F1T_WHEEL_SIZE, pos="0.16113 -.122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
+        ET.SubElement(car, "geom", name=name + "_wheelfr", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="0.16113 -.122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
-        ET.SubElement(car, "geom", name=name + "_wheelrr", type="cylinder", size=F1T_WHEEL_SIZE, pos="-0.16113 -.122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
+        ET.SubElement(car, "geom", name=name + "_wheelrr", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="-0.16113 -.122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
     
     def __add_fleet1tenth_body(self, car, name, color, has_rod):

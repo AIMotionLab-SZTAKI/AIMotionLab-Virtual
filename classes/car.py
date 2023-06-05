@@ -7,6 +7,10 @@ from classes.moving_object import MovingObject, MovingMocapObject
 import os
 from util import mujoco_helper
 
+class F1T_PROP(Enum):
+    WHEEL_RADIUS = ".052388"
+    WHEEL_WIDTH = ".022225"
+    WHEEL_SIZE = WHEEL_RADIUS + " " + WHEEL_WIDTH
 
 class Wheel:
 

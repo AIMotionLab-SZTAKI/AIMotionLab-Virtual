@@ -11,10 +11,28 @@ class SPIN_DIR(Enum):
     CLOCKWISE = 1
     COUNTER_CLOCKWISE = -1
 
+class CRAZYFLIE_PROP(Enum):
+    OFFSET = "0.047"
+    OFFSET_Z = "0.032"
+    MOTOR_PARAM = "0.02514"
+    MAX_THRUST = "0.16"
+
+class BUMBLEBEE_PROP(Enum):
+    OFFSET_X1 = "0.074"
+    OFFSET_X2 = "0.091"
+    OFFSET_Y = "0.087"
+    OFFSET_Z = "0.036"
+    MOTOR_PARAM = "0.5954"
+    MAX_THRUST = "15"
+
+class DRONE_TYPES(Enum):
+    CRAZYFLIE = 0
+    BUMBLEBEE = 1
+
 
 class Drone(MovingObject):
 
-    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, trajectory, controllers):
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, trajectory, controllers, drone_type = DRONE_TYPES.CRAZYFLIE):
 
         super().__init__(model, name_in_xml)
 
@@ -38,10 +56,10 @@ class Drone(MovingObject):
         self.prop3_joint = self.data.joint(self.name_in_xml + "_prop3")
         self.prop4_joint = self.data.joint(self.name_in_xml + "_prop4")
 
-        self.ctrl0 = self.data.actuator(self.name_in_xml + "_actr0").ctrl
-        self.ctrl1 = self.data.actuator(self.name_in_xml + "_actr1").ctrl
-        self.ctrl2 = self.data.actuator(self.name_in_xml + "_actr2").ctrl
-        self.ctrl3 = self.data.actuator(self.name_in_xml + "_actr3").ctrl
+        self.ctrl0 = self.data.actuator(self.name_in_xml + "_actr1").ctrl
+        self.ctrl1 = self.data.actuator(self.name_in_xml + "_actr2").ctrl
+        self.ctrl2 = self.data.actuator(self.name_in_xml + "_actr3").ctrl
+        self.ctrl3 = self.data.actuator(self.name_in_xml + "_actr4").ctrl
 
         # make a copy now, so that mj_step() does not affect these
         # needed to fake spinning propellers
@@ -74,6 +92,26 @@ class Drone(MovingObject):
             "ang_vel" : self.sensor_gyro,
             "ang_acc" : self.sensor_ang_accelerometer
         }
+
+        self.type = drone_type
+
+        if drone_type == DRONE_TYPES.CRAZYFLIE:
+            self.Lx1 = float(CRAZYFLIE_PROP.OFFSET.value)
+            self.Lx2 = float(CRAZYFLIE_PROP.OFFSET.value)
+            self.Ly = float(CRAZYFLIE_PROP.OFFSET.value)
+            self.motor_param = float(CRAZYFLIE_PROP.MOTOR_PARAM.value)
+        
+        elif drone_type == DRONE_TYPES.BUMBLEBEE:
+            self.Lx1 = float(BUMBLEBEE_PROP.OFFSET_X1.value)
+            self.Lx2 = float(BUMBLEBEE_PROP.OFFSET_X2.value)
+            self.Ly = float(BUMBLEBEE_PROP.OFFSET_Y.value)
+            self.motor_param = float(BUMBLEBEE_PROP.MOTOR_PARAM.value)
+
+
+        self.input_mtx = np.array([[1/4, -1/(4*self.Ly), -1/(4*self.Lx2),  1 / (4*self.motor_param)],
+                                  [1/4, -1/(4*self.Ly),   1/(4*self.Lx1), -1 / (4*self.motor_param)],
+                                  [1/4,  1/(4*self.Ly),   1/(4*self.Lx1),  1 / (4*self.motor_param)],
+                                  [1/4,  1/(4*self.Ly),  -1/(4*self.Lx2), -1 / (4*self.motor_param)]])
     
     def get_state(self):
 
@@ -100,7 +138,8 @@ class Drone(MovingObject):
                 ctrl = self.controller.compute_control(state, setpoint, self.data.time)
             
             if ctrl is not None:
-                self.set_ctrl(ctrl)
+                motor_thrusts = self.input_mtx @ ctrl
+                self.set_ctrl(motor_thrusts)
             #else:
             #    print("[Drone] Error: ctrl was None")
     
@@ -222,12 +261,12 @@ class Drone(MovingObject):
             elif _name.startswith("virtbumblebee") and not _name.endswith("hook_y") and not _name.endswith("hook_x") and not _name_cut.endswith("prop"):
                 # this joint must be a drone
 
-                d = Drone(model, data, _name, None, None)
+                d = Drone(model, data, _name, None, None, DRONE_TYPES.BUMBLEBEE)
                 virtdrones += [d]
 
             elif _name.startswith("virtcrazyflie") and not _name_cut.endswith("prop"):
 
-                d = Drone(model, data, _name, None, None)
+                d = Drone(model, data, _name, None, None, DRONE_TYPES.CRAZYFLIE)
                 virtdrones += [d]
 
         #print()
@@ -253,7 +292,7 @@ class Drone(MovingObject):
 class DroneHooked(Drone):
 
     def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, hook_names_in_xml, trajectory, controller):
-        super().__init__(model, data, name_in_xml, trajectory, controller)
+        super().__init__(model, data, name_in_xml, trajectory, controller, DRONE_TYPES.BUMBLEBEE)
         self.hook_names_in_xml = hook_names_in_xml
 
         self.hook_dof = len(hook_names_in_xml)
@@ -301,7 +340,9 @@ class DroneHooked(Drone):
                 ctrl = self.controller.compute_control(state, setpoint, self.data.time)
             
             if ctrl is not None:
-                self.set_ctrl(ctrl)
+                
+                motor_thrusts = self.input_mtx @ ctrl
+                self.set_ctrl(motor_thrusts)
             #else:
             #    print("[DroneHooked] Error: ctrl was None")
     

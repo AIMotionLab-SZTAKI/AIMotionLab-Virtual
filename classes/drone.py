@@ -6,6 +6,7 @@ import numpy as np
 from enum import Enum
 from classes.moving_object import MovingObject, MovingMocapObject
 from util import mujoco_helper
+from scipy.spatial.transform import Rotation
 
 class SPIN_DIR(Enum):
     CLOCKWISE = 1
@@ -308,9 +309,18 @@ class DroneHooked(Drone):
             self.hook_qvel_x = self.data.joint(self.name_in_xml + "_hook_x").qvel
             self.sensor_hook_jointvel_x = self.data.sensor(self.name_in_xml + "_hook_jointvel_x").data
             self.sensor_hook_jointpos_x = self.data.sensor(self.name_in_xml + "_hook_jointpos_x").data
+            self.sensor_hook_pos = self.data.sensor(self.name_in_xml + "_hook_pos").data
+            self.sensor_hook_vel = self.data.sensor(self.name_in_xml + "_hook_vel").data
+            self.sensor_hook_quat = self.data.sensor(self.name_in_xml + "_hook_quat").data
+            self.sensor_hook_ang_vel = self.data.sensor(self.name_in_xml + "_hook_angvel").data
             self.state["joint_ang"] = np.array((self.sensor_hook_jointpos_y, self.sensor_hook_jointpos_x))
             self.state["joint_ang_vel"] = np.array((self.sensor_hook_jointvel_y, self.sensor_hook_jointvel_x))
-        
+            self.state["load_pos"] = np.array(self.sensor_hook_pos)
+            self.state["load_vel"] = np.array(self.sensor_hook_vel)
+            # if np.linalg.norm(self.sensor_hook_quat) < 1e-4:
+            #     self.sensor_hook_quat = np.array([0, 0, 0, 1])
+            self.state["pole_eul"] = np.zeros(2) #Rotation.from_quat(np.roll(np.array(self.sensor_hook_quat), -1)).as_euler('XYZ')[0:2]
+            self.state["pole_ang_vel"] = np.array(self.sensor_hook_ang_vel)[0:2]
 
         self.load_mass = 0.0
         self.rod_length = 0.4
@@ -324,6 +334,10 @@ class DroneHooked(Drone):
         elif self.hook_dof == 2:
             self.state["joint_ang"] = np.array((self.sensor_hook_jointpos_y[0], self.sensor_hook_jointpos_x[0]))
             self.state["joint_ang_vel"] = np.array((self.sensor_hook_jointvel_y[0], self.sensor_hook_jointvel_x[0]))
+            self.state["load_pos"] = np.array(self.sensor_hook_pos)
+            self.state["load_vel"] = np.array(self.sensor_hook_vel)
+            self.state["pole_eul"] = Rotation.from_quat(np.roll(np.array(self.sensor_hook_quat), -1)).as_euler('XYZ')[0:2]
+            self.state["pole_ang_vel"] = np.array(self.sensor_hook_ang_vel)[0:2]
         return self.state
     
     def update(self, i, control_step):

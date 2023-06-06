@@ -6,6 +6,7 @@ import os
 import pickle
 import sys
 from classes.trajectory_base import TrajectoryBase
+from classes.drone_classes.differential_flatness import compute_state_trajectory_from_splines
 
 
 class HookedDroneTrajectory(TrajectoryBase):
@@ -13,7 +14,7 @@ class HookedDroneTrajectory(TrajectoryBase):
         super().__init__()
         self.a_max = 0.4
         self.v_max = 1.46
-        self.lam = 0.0875
+        self.lam = 0.02
         self.control_step = 0.01
         self.num_lqr_steps = 300
         self.load_mass = 0.0
@@ -21,27 +22,29 @@ class HookedDroneTrajectory(TrajectoryBase):
         self.traj = {}
 
     def evaluate(self, state, i, time, control_step) -> dict:
-        cur_idx = min((i, self.traj['pos'].shape[0]-1))
-        planar_rotation = np.array([[np.cos(self.traj['yaw'][cur_idx]), -np.sin(self.traj['yaw'][cur_idx])],
-                                    [np.sin(self.traj['yaw'][cur_idx]), np.cos(self.traj['yaw'][cur_idx])]])
+        cur_idx = min((i, self.traj['pos'].shape[0]-50))
+        # planar_rotation = np.array([[np.cos(self.traj['yaw'][cur_idx]), -np.sin(self.traj['yaw'][cur_idx])],
+        #                             [np.sin(self.traj['yaw'][cur_idx]), np.cos(self.traj['yaw'][cur_idx])]])
         target_pos_ = self.traj['pos'][cur_idx].copy()
-        target_pos_[0:2] = planar_rotation.T @ target_pos_[0:2]
+        # target_pos_[0:2] = planar_rotation.T @ target_pos_[0:2]
         target_pos_load = np.take(target_pos_, [0, 2]) - np.array([0, self.rod_length])
         if 'load' in self.traj['ctrl_type'][cur_idx] or 'lqr' in self.traj['ctrl_type'][cur_idx]:
             self.load_mass = float(self.traj['ctrl_type'][cur_idx][-5:])
         else:
-            self.load_mass = 0
-        self.output = {
-            "load_mass": self.load_mass,
-            "target_pos": self.traj['pos'][cur_idx],
-            "target_rpy": np.array([0, 0, self.traj['yaw'][cur_idx]]),
-            "target_vel": self.traj['vel'][cur_idx],
-            "target_acc": None,
-            "target_ang_vel": np.zeros(3),
-            "target_quat": None,
-            "target_quat_vel": None,
-            "target_pos_load": target_pos_load
-        }
+            self.load_mass = 0.01
+        self.output["load_mass"] = self.load_mass
+        self.output["target_pos"] = self.traj['pos'][cur_idx]
+        self.output["target_rpy"] = np.array([0, 0, self.traj['yaw'][cur_idx]])
+        self.output["target_vel"] = self.traj['vel'][cur_idx]
+        self.output["target_acc"] = None
+        self.output["target_quat"] = None
+        self.output["target_ang_vel"] = np.zeros(3)
+        self.output["target_quat_vel"] = None
+        self.output["target_pos_load"] = target_pos_load
+        self.output["target_eul"] = self.states[cur_idx, 6:9]
+        self.output["target_ang_vel"] = self.states[cur_idx, 9:12]
+        self.output["target_pole_eul"] = self.states[cur_idx, 12:14]
+        self.output["target_pole_ang_vel"] = self.states[cur_idx, 14:16]
         return self.output
 
     def set_control_step(self, control_step):
@@ -124,7 +127,7 @@ class HookedDroneTrajectory(TrajectoryBase):
         return spl
 
     def construct(self, drone_init_pos, load_init_pos, load_target_pos, load_mass, plot_result=False,
-                  save_result=False):
+                  save_result=False, inertia=np.diag((1.5e-3, 1.45e-3, 2.66e-3))):
         save_splines = save_result
         enable_plotting = plot_result
         # Convert to relative position
@@ -189,6 +192,7 @@ class HookedDroneTrajectory(TrajectoryBase):
         params = [bc, n, k, rho, w, K, a_max, v_max, lam]
         params = [list(x) for x in zip(*params)]
         planner[1] = self._TrajectoryPlanner(*params[1])
+        planner[1].a_max = 0.1
         planner[1].construct_trajectory()
         xyz[1] = np.array(si.splev(planner[1].s_arr, planner[1].spl)).T
         yaw[1] = self.__compute_yaw_setpoints(bc[1]['init_yaw'], bc[1]['final_yaw'], planner[1].t_arr[-1])
@@ -327,6 +331,10 @@ class HookedDroneTrajectory(TrajectoryBase):
             vel[:, 1] = -1*vel[:, 1]
         T[3] = T[3] + self.num_lqr_steps * self.control_step
         self.traj = {'pos': pos, 'vel': vel, 'yaw': yaw, 'ctrl_type': ctrl_type}
+
+        self.states, self.inputs, self.payload_mass = compute_state_trajectory_from_splines(spl, 0.605, 0.01, load_mass,
+                                                                                            0.4, 9.81, np.diag(inertia),
+                                                                                            0.01)
 
     @staticmethod
     def __save(data, filename='pickle/optimal_trajectory.pickle'):

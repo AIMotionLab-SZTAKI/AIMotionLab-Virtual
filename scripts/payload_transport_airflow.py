@@ -27,8 +27,8 @@ if __name__ == '__main__':
 
     # Set scenario parameters
     drone_init_pos = np.array([-0.76, 1.13, 1, 0])  # initial drone position and yaw angle
-    load_init_pos = np.array([0, -1, 0.65])  # TODO: Do some transformations in z direction
-    load_target_pos = np.array([0.76, 1.13, 0.67])
+    load_init_pos = np.array([0, -1, 0.6])  # TODO: Do some transformations in z direction
+    load_target_pos = np.array([0.76, 1.13, 0.62])
     load_mass = 0.02
 
     # create xml with a drone and a car

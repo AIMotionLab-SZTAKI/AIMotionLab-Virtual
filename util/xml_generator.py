@@ -384,8 +384,9 @@ class SceneXmlGenerator:
         
         ET.SubElement(self.sensor, "jointvel", joint=drone_name + "_hook_y", name=drone_name + "_hook_jointvel_y")
         ET.SubElement(self.sensor, "jointpos", joint=drone_name + "_hook_y", name=drone_name + "_hook_jointpos_y")
-        
+
         ET.SubElement(self.sensor, "framepos", objtype="site", objname=site_name, name=drone_name + "_hook_pos")
+        ET.SubElement(self.sensor, "framelinvel", objtype="site", objname=site_name, name=drone_name + "_hook_vel")
         ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=drone_name + "_hook_quat")
         ET.SubElement(self.sensor, "frameangvel", objtype="site", objname=site_name, name=drone_name + "_hook_angvel")
     

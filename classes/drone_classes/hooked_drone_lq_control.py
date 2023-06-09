@@ -10,7 +10,7 @@ class LqrLoadControl(ControllerBase):
         super().__init__(mass, inertia, gravity)
         self.gravity = np.abs(self.gravity[2])
         self.mass = self.mass[0]
-        self.payload_mass = 0.01
+        self.payload_mass = 0.05
         self.L = 0.4
 
         # Weight matrices for discrete time LQR

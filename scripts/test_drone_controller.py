@@ -28,15 +28,15 @@ if __name__ == '__main__':
 
     # Set scenario parameters
     drone_init_pos = np.array([-0.76, 1.13, 1, 0])  # initial drone position and yaw angle
-    load_init_pos = np.array([0, -1, 0.35])  # np.array([0, -1, 0.77])  # TODO: Do some transformations in z direction
-    load_target_pos = np.array([0.76, 1.13, 0.35])  # np.array([0.76, 1.13, 0.75])
-    load_mass = 0.1
+    load_init_pos = np.array([0, -1, 0.75-0.15])  # np.array([0, -1, 0.77])  # TODO: Do some transformations in z direction
+    load_target_pos = np.array([0.76, 1.13, 0.75-0.15])  # np.array([0.76, 1.13, 0.75])
+    load_mass = 0.02
 
     # create xml with a drone and a car
     scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
     drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3] + np.array([0, 0, 0.4]))[1:-2], "1 0 0 0", RED_COLOR, True, "bumblebee",
                                   True, 2)
-    payload0_name = scene.add_load(np.array2string(load_init_pos)[1:-2], ".1 .1 .1", str(load_mass), "1 0 0 0", BLUE_COLOR)
+    payload0_name = scene.add_load(np.array2string(load_init_pos)[1:-2], ".05 .05 .025", str(load_mass), "1 0 0 0", BLUE_COLOR)
 
     # saving the scene as xml so that the simulator can load it
     scene.save_xml(os.path.join(xml_path, save_filename))
@@ -59,7 +59,8 @@ if __name__ == '__main__':
     drone0_trajectory = HookedDroneTrajectory()
     drone0_trajectory.set_control_step(control_step)
     drone0_trajectory.set_rod_length(drone0.rod_length)
-    drone0_controller = LtvLqrLoadControl(drone0.mass, drone0.inertia, simulator.gravity) #GeomControl(drone0.mass, drone0.inertia, simulator.gravity)  #
+    # drone0_controller = LtvLqrLoadControl(drone0.mass, drone0.inertia, simulator.gravity)
+    drone0_controller = GeomControl(drone0.mass, drone0.inertia, simulator.gravity)
 
     drone0_controllers = [drone0_controller]
 
@@ -75,8 +76,8 @@ if __name__ == '__main__':
     drone0.qvel[0] = 0
     drone0.qvel[1] = 0
 
-    # pressure_sampl = PressureSampler(os.path.join(abs_path, "..", "combined_data.txt"), drone0)
-    # payload0.set_top_subdivision(10, 10)
+    pressure_sampl = PressureSampler(os.path.join(abs_path, "..", "combined_data.txt"), drone0)
+    payload0.set_top_subdivision(10, 10)
 
     # Plan trajectory
     drone0_trajectory.construct(drone_init_pos, load_init_pos, load_target_pos, load_mass)
@@ -86,8 +87,8 @@ if __name__ == '__main__':
     while not simulator.glfw_window_should_close():
         simulator.update(i)
 
-        # force, torque = pressure_sampl.generate_forces(payload0)
-        # payload0.set_force_torque(force, torque)
+        force, torque = pressure_sampl.generate_forces(payload0)
+        payload0.set_force_torque(force, torque)
 
         # state = drone0.get_state()
         # setpoint = drone0_trajectory.evaluate(state, i, i*control_step, control_step)

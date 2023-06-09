@@ -10,6 +10,7 @@ from classes.payload import PAYLOAD_TYPES, Payload, PayloadMocap
 from classes.active_simulation import ActiveSimulator
 #from classes.drone_classes.hooked_drone_trajectory import HookedDroneTrajectory
 from classes.drone_classes.drone_geom_control import GeomControl
+from classes.drone_classes.hooked_drone_lq_control import LqrLoadControl
 from classes.trajectory_base import DummyDroneTrajectory
 from random import seed, random
 from classes.pressure_sampler import PressureSampler
@@ -29,6 +30,10 @@ class DummyHoverTraj(DummyDroneTrajectory):
         self.output["target_rpy"] = np.array((0.0, 0.0, 0.0))
         self.output["target_vel"] = np.array((0.0, 0.0, 0.0))
         self.output["target_pos_load"] = np.array((0.0, 0.0, 0.0))
+        self.output["target_eul"] = np.zeros(3)
+        self.output["target_pole_eul"] = np.zeros(2)
+        self.output["target_ang_vel"] = np.zeros(3)
+        self.output["target_pole_ang_vel"] = np.zeros(2)
         return self.output
 
 
@@ -50,7 +55,7 @@ load_initpos = np.array([drone_init_pos[0], drone_init_pos[1], drone_init_pos[2]
 # create xml with a drone and a car
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
-                                True, 1)
+                                True, 2)
 #payload0_name = scene.add_load("0.0 0.0 0.83", ".8 .8 .3", str(load_mass), "1 0 0 0", BLUE_COLOR)
 payload0_name = scene.add_load(np.array2string(load_initpos)[1:-1], np.array2string(load_size)[1:-1], str(load_mass), "1 0 0 0", BLUE_COLOR)
 
@@ -76,6 +81,7 @@ payload0 = simulator.get_MovingObject_by_name_in_xml(payload0_name)
 
 drone0_trajectory = DummyHoverTraj(payload0.mass, drone_init_pos[0:3])
 drone0_controller = GeomControl(drone0.mass, drone0.inertia, simulator.gravity)
+# drone0_controller = LqrLoadControl(drone0.mass, drone0.inertia, simulator.gravity)
 
 
 drone0_controllers = [drone0_controller]

@@ -58,7 +58,7 @@ class ActiveSimulator(Display):
         if i == 0:
             self.start_time = time.time()
         
-        self.manage_video_recording()
+        self.manage_video_recording(i)
         
         # getting data from optitrack server
         if self.connect_to_optitrack:
@@ -120,8 +120,8 @@ class ActiveSimulator(Display):
         mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
 
     
-    def manage_video_recording(self):
-        time_since_start = time.time() - self.start_time
+    def manage_video_recording(self, i):
+        time_since_start = i * self.control_step
 
         if self.video_intervals is not None and self.vid_rec_cntr < len(self.video_intervals):
             if time_since_start >= self.video_intervals[self.vid_rec_cntr + 1] and self.is_recording and self.is_automatic_recording:

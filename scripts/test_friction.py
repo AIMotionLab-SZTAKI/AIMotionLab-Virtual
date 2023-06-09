@@ -167,8 +167,8 @@ def straight_line_vel_profile():
         car.d = d
 
 
-        #simulate_with_graphix(vel_arr, pos_arr)
-        simulate_without_graphix(vel_arr, pos_arr)
+        simulate_with_graphix(vel_arr, pos_arr)
+        #simulate_without_graphix(vel_arr, pos_arr)
 
 
         real_data = np.loadtxt(os.path.join(abs_path, "..", "velocities.csv"), delimiter=',', dtype=float)
@@ -181,6 +181,7 @@ def straight_line_vel_profile():
         plt.title("d = {:.2f}".format(d))
         plt.xlabel("time (s)")
         plt.ylabel("longitudinal vel (m/s)")
+        plt.legend(["simulated", "real"])
 
     simulator.close()
     plt.show()
@@ -344,8 +345,9 @@ def simulate_random_curve(data, vel_arr, pos_arr, with_graphics=False):
                 d = data[0, j - j_start]
                 delta = data[1, j - j_start]
             
-            car.set_steer_angle(delta)
-            car.d = d
+            car.delta = delta
+            car.set_steer_angle()
+            car.d = d + 0.005
             j += 1
             #print(car.sensor_velocimeter)
             vel_arr += [(t, car.sensor_velocimeter[0])]
@@ -377,7 +379,7 @@ def random_curve():
     pos_arr = []
 
     #filename = os.path.join("..", "valid_sin1.csv")
-    filename = os.path.join(abs_path, "..", "motion_2023-03-03-12-20-33.csv")
+    filename = os.path.join(abs_path, "..", "motion_2023-03-03-12-22-06.csv")
 
     data = np.loadtxt(filename, delimiter=",", dtype=float)
     SAMPLE_T = (data[20, 0] - data[0, 0]) / 20
@@ -399,7 +401,7 @@ def random_curve():
     control_inp = np.vstack((data[:, 8], data[:, 10]))
     print(control_inp.shape)
 
-    simulate_random_curve(control_inp, vel_arr, pos_arr, False)
+    simulate_random_curve(control_inp, vel_arr, pos_arr, True)
     
     vel_arr = np.array(vel_arr)
     pos_arr = np.array(pos_arr)

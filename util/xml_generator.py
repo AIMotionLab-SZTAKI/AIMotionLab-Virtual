@@ -316,11 +316,11 @@ class SceneXmlGenerator:
         ET.SubElement(drone, "site", name=prop_name, pos=pos)
         ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr4", gear=" 0 0 1 0 0 -" + BUMBLEBEE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + BUMBLEBEE_PROP.MAX_THRUST.value)
 
-        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
-        ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
+        ET.SubElement(self.sensor, "gyro", noise="0.0027", site=site_name, name=name + "_gyro")
+        ET.SubElement(self.sensor, "velocimeter", noise="0.00078", site=site_name, name=name + "_velocimeter")
         ET.SubElement(self.sensor, "accelerometer", site=site_name, name=name + "_accelerometer")
-        ET.SubElement(self.sensor, "framepos", objtype="site", objname=site_name, name=name + "_posimeter")
-        ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=name + "_orimeter")
+        ET.SubElement(self.sensor, "framepos", noise="0.00014", objtype="site", objname=site_name, name=name + "_posimeter")
+        ET.SubElement(self.sensor, "framequat", noise="0.00026", objtype="site", objname=site_name, name=name + "_orimeter")
         ET.SubElement(self.sensor, "frameangacc ", objtype="site", objname=site_name, name=name + "_ang_accelerometer")
 
         return drone
@@ -606,24 +606,24 @@ class SceneXmlGenerator:
         steer_range = "-0.6 0.6"
 
 
-        wheelfl = ET.SubElement(car, "body", name=name + "_wheelfl", quat="1 0 0 0" )
+        wheelfl = ET.SubElement(car, "body", name=name + "_wheelfl" )
         ET.SubElement(wheelfl, "joint", name=name + "_wheelfl_steer", type="hinge", pos="0.16113 .10016 0", limited="true", frictionloss=fric_steer, damping=damp_steer, armature=armature_steer, range=steer_range, axis="0 0 1")
         ET.SubElement(wheelfl, "joint", name=name + "_wheelfl", type="hinge", pos="0.16113 .122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
         ET.SubElement(wheelfl, "geom", name=name + "_wheelfl", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="0.16113 .122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
-        wheelrl = ET.SubElement(car, "body", name=name + "_wheelrl", quat="1 0 0 0" )
+        wheelrl = ET.SubElement(car, "body", name=name + "_wheelrl" )
         ET.SubElement(wheelrl, "joint", name=name + "_wheelrl", type="hinge", pos="-0.16113 .122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
         ET.SubElement(wheelrl, "geom", name=name + "_wheelrl", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="-0.16113 .122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
-        wheelfr = ET.SubElement(car, "body", name=name + "_wheelfr", quat="1 0 0 0" )
+        wheelfr = ET.SubElement(car, "body", name=name + "_wheelfr" )
         ET.SubElement(wheelfr, "joint", name=name + "_wheelfr_steer", type="hinge", pos="0.16113 -.10016 0", limited="true", frictionloss=fric_steer, damping=damp_steer, armature=armature_steer, range=steer_range, axis="0 0 1")
         ET.SubElement(wheelfr, "joint", name=name + "_wheelfr", type="hinge", pos="0.16113 -.122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
         ET.SubElement(wheelfr, "geom", name=name + "_wheelfr", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="0.16113 -.122385 0", mass="0.1", material="material_check", euler="1.571 0 0")
 
-        wheelrr = ET.SubElement(car, "body", name=name + "_wheelrr", quat="1 0 0 0" )
+        wheelrr = ET.SubElement(car, "body", name=name + "_wheelrr" )
         ET.SubElement(wheelrr, "joint", name=name + "_wheelrr", type="hinge", pos="-0.16113 -.122385 0", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature, limited="false")
 
         ET.SubElement(wheelrr, "geom", name=name + "_wheelrr", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="-0.16113 -.122385 0", mass="0.1", material="material_check", euler="1.571 0 0")

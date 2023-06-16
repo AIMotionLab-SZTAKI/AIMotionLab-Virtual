@@ -243,7 +243,8 @@ def euler_rad_to_euler_deg(array_3elem):
 
 def force_from_pressure(normal, pressure, area):
     """by Adam Weinhardt"""
-    F = -normal * pressure * area
+    f = np.array([0., 0., -1.])
+    F = np.dot(-normal, f) * f * pressure * area
     return F
 
 def torque_from_force(r, force):

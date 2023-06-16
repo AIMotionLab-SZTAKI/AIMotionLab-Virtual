@@ -55,7 +55,7 @@ load_initpos = np.array([drone_init_pos[0], drone_init_pos[1], drone_init_pos[2]
 # create xml with a drone and a car
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
-                                True, 2)
+                                True, 1)
 #payload0_name = scene.add_load("0.0 0.0 0.83", ".8 .8 .3", str(load_mass), "1 0 0 0", BLUE_COLOR)
 payload0_name = scene.add_load(np.array2string(load_initpos)[1:-1], np.array2string(load_size)[1:-1], str(load_mass), "1 0 0 0", BLUE_COLOR)
 
@@ -96,7 +96,7 @@ i = 0
 lsize=500
 log_ff=[]
 
-payload0.set_force_torque(np.array([0, 0, 0]), np.array([-0.01, 0, 0]))
+payload0.set_force_torque(np.array([0, 0, 0]), np.array([-0.02, 0, 0]))
 while not simulator.glfw_window_should_close():
     simulator.update(i)
     

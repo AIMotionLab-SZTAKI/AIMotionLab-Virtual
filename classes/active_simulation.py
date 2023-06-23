@@ -18,7 +18,7 @@ class ActiveSimulator(Display):
         #self.sim_step = sim_step
         self.control_step = control_step
         self.graphics_step = graphics_step
-        self.is_automatic_recording = False
+        self.is_recording_automatically = False
 
         # To obtain inertia matrix
         mujoco.mj_step(self.model, self.data)
@@ -124,17 +124,17 @@ class ActiveSimulator(Display):
         time_since_start = i * self.control_step
 
         if self.video_intervals is not None and self.vid_rec_cntr < len(self.video_intervals):
-            if time_since_start >= self.video_intervals[self.vid_rec_cntr + 1] and self.is_recording and self.is_automatic_recording:
+            if time_since_start >= self.video_intervals[self.vid_rec_cntr + 1] and self.is_recording and self.is_recording_automatically:
                 self.is_recording = False
-                self.is_automatic_recording = False
+                self.is_recording_automatically = False
                 self.vid_rec_cntr += 2
                 self.reset_title()
                 self.save_video_background()
 
             elif time_since_start >= self.video_intervals[self.vid_rec_cntr] and time_since_start < self.video_intervals[self.vid_rec_cntr + 1]:
-                if not self.is_automatic_recording:
+                if not self.is_recording_automatically:
                     self.is_recording = True
-                    self.is_automatic_recording = True
+                    self.is_recording_automatically = True
                     self.append_title(" (Recording automatically...)")
 
     

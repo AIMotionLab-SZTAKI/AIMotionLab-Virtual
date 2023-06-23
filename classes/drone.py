@@ -514,35 +514,7 @@ class DroneMocapHooked(DroneMocap):
 
         self.hook_name_in_xml = hook_name_in_xml
 
-        #self.hook_mocapid = model.body(name_in_xml + "_hook").mocapid[0]
-
-        #self.hook_qpos = self.data.joint(self.name_in_xml + "_hook_y").qpos
-        #self.hook = HookMocap(self.name_in_xml + "_hook_y", )
-
-        #self.hook_position = data.mocap_pos[self.hook_mocapid]
-        #self.hook_rotation = data.mocap_quat[self.hook_mocapid]
-    
-    def get_hook_pos(self):
-        return self.hook_position
-    
-    def __set_hook_pos(self, pos):
-        self.hook_position[0] = pos[0]
-        self.hook_position[1] = pos[1]
-        self.hook_position[2] = pos[2]
-    
-    def get_hook_quat(self):
-        return self.hook_rotation
-    
-    def __set_hook_quat(self, quat):
-        self.hook_rotation[0] = quat[0]
-        self.hook_rotation[1] = quat[1]
-        self.hook_rotation[2] = quat[2]
-        self.hook_rotation[3] = quat[3]
-
     def update(self, pos, quat):
-        #self.__set_hook_pos(pos)
-        #self.__set_hook_quat(quat)
-        #self.hook_qpos[0] = 0.5
         return super().update(pos, quat)
 
 

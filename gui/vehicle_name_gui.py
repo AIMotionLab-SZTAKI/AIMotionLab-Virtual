@@ -13,6 +13,7 @@ class VehicleNameGui:
 
         self.entries = []
         self.vehicle_names = []
+        self.initial_names = vehicle_names
 
         if len(vehicle_names) != len(vehicle_labels):
             print("[VehicleNameGui.__init__()] Different number of vehicle names and number of vehicle labels")
@@ -40,8 +41,9 @@ class VehicleNameGui:
         #print(self.vehicle_names)
 
     def on_closing(self):
-        for i in range(len(self.entries)):
-            self.vehicle_names.append(self.entries[i].get())
+        #for i in range(len(self.entries)):
+        #    self.vehicle_names.append(self.entries[i].get())
+        self.vehicle_names = self.initial_names
         self.window.quit()
         self.window.destroy()
 

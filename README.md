@@ -1,7 +1,6 @@
 # Virtual 3D model of the test environment and simulation with MuJoCo
 
-The documentation can be accessed here:
-[Docs](https://github.com/AIMotionLab-SZTAKI/Mujoco-Simulator/wiki)
+The documentation can be accessed [here](https://github.com/AIMotionLab-SZTAKI/Mujoco-Simulator/wiki).
 
 ## Installation
 1. Create and activate a virtual environment

@@ -52,29 +52,14 @@ class LiveLFilter(LiveFilter):
 
 
 def skipper(fname):
+    """
+    Skips the header of 
+    """
     with open(fname) as fin:
         no_comments = (line for line in fin if not line.lstrip().startswith('#'))
         next(no_comments, None) # skip header
         for row in no_comments:
             yield row
-
-
-def update_drone(data, droneID, position, orientation):
-    """
-    Old, do not use this anymore!
-    Update the position and orientation of a drone
-    first drone's position is data.qpos[:3], orientation is data.qpos[3:7]
-    second drone's position is data.qpos[7:10], orientation is data.qpos[10:14]
-    and so on
-    droneID should be 0 for the first drone defined in the xml, 1 for the second etc.
-    """
-    startIdx = droneID * 7
-    if startIdx + 6 >= data.qpos.size:
-        print("Drone id: " + str(droneID) +
-              " out of bounds of data.qpos. (Not enough drones defined in the xml)")
-        return
-    data.qpos[startIdx:startIdx + 3] = position
-    data.qpos[startIdx + 3:startIdx + 7] = orientation
 
 
 def get_joint_name_list(mjmodel: mujoco.MjModel):
@@ -87,6 +72,19 @@ def get_joint_name_list(mjmodel: mujoco.MjModel):
         o_name = mjmodel.joint(i).name
         if o_name != "":
             name_list.append(o_name)
+
+    return name_list
+
+def get_freejoint_name_list(mjmodel: mujoco.MjModel):
+    """
+    Create a list of valid free joint names of a mujoco model
+    """
+    n = mjmodel.njnt
+    name_list = []
+    for i in range(n):
+        joint = mjmodel.joint(i)
+        if joint.name != "" and joint.type[0] == mujoco.mjtJoint.mjJNT_FREE:
+            name_list.append(joint.name)
 
     return name_list
 
@@ -118,6 +116,19 @@ def get_body_name_list(mjmodel: mujoco.MjModel):
 
     return name_list
 
+def get_mocapbody_name_list(mjmodel: mujoco.MjModel):
+    """
+    Create a list of valid mocap body names of a mujoco model
+    """
+    n = mjmodel.nbody
+    name_list = []
+    for i in range(n):
+        body = mjmodel.body(i)
+        body_name = body.name
+        if body_name != "" and body.mocapid[0] > -1:
+            name_list.append(body_name)
+
+    return name_list
 
 def euler_from_quaternion(w, x, y, z):
     """

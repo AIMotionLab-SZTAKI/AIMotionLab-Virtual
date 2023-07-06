@@ -34,6 +34,7 @@ class SceneXmlGenerator:
         self.post_office = None
         self.sztaki = None
 
+        self.__pole_cntr = 0
         self.__virtcrazyflie_cntr = 0
         self.__virtbumblebee_cntr = 0
         self.__virtbumblebee_hooked_cntr = 0
@@ -83,7 +84,9 @@ class SceneXmlGenerator:
             print("[SceneXmlGenerator] Parking lot already added")
     
 
-    def add_pole(self, name, pos, quat=None):
+    def add_pole(self, pos, quat=None):
+        name = "pole_" + str(self.__pole_cntr)
+        self.__pole_cntr += 1
         tag = "body"
         if quat is None:
             pole = ET.SubElement(self.worldbody, tag, name=name, pos=pos)
@@ -111,7 +114,7 @@ class SceneXmlGenerator:
             if type == "bumblebee":
 
                 if is_hooked:
-                    name = "virtbumblebee_hooked_" + str(self.__virtbumblebee_hooked_cntr)
+                    name = "DroneHooked_bumblebee_" + str(self.__virtbumblebee_hooked_cntr)
 
                     drone = self.__add_bumblebee(name, pos, quat, color, True, hook_dof)
 
@@ -120,14 +123,14 @@ class SceneXmlGenerator:
                 
                 else:
 
-                    name = "virtbumblebee_" + str(self.__virtbumblebee_cntr)
+                    name = "Drone_bumblebee_" + str(self.__virtbumblebee_cntr)
                     drone = self.__add_bumblebee(name, pos, quat, color)
 
                     self.__virtbumblebee_cntr += 1
                     return name
 
             elif type == "crazyflie":
-                name = "virtcrazyflie_" + str(self.__virtcrazyflie_cntr)
+                name = "Drone_crazyflie_" + str(self.__virtcrazyflie_cntr)
 
                 drone = self.__add_crazyflie(name, pos, quat, color)
 
@@ -144,7 +147,7 @@ class SceneXmlGenerator:
 
                 if is_hooked:
 
-                    name = "realbumblebee_hooked_" + str(self.__realbumblebee_hooked_cntr)
+                    name = "DroneMocapHooked_bumblebee_" + str(self.__realbumblebee_hooked_cntr)
 
                     drone = self.__add_mocap_bumblebee(name, pos, quat, color)
                     self.__add_mocap_hook_to_drone(drone, pos, name)
@@ -155,14 +158,14 @@ class SceneXmlGenerator:
 
                 else:
 
-                    name = "realbumblebee_" + str(self.__virtbumblebee_cntr)
+                    name = "DroneMocap_bumblebee_" + str(self.__realbumblebee_cntr)
                     drone = self.__add_mocap_bumblebee(name, pos, quat, color)
 
                     self.__realbumblebee_cntr += 1
                     return name
 
             elif type == "crazyflie":
-                name = "realcrazyflie_" + str(self.__realcrazyflie_cntr)
+                name = "DroneMocap_crazyflie_" + str(self.__realcrazyflie_cntr)
 
                 drone = self.__add_mocap_crazyflie(name, pos, quat, color)
 
@@ -400,7 +403,7 @@ class SceneXmlGenerator:
         pos_z -= ROD_LENGTH
         hook_pos = splt[0] + " " + splt[1] + " " + str(pos_z)
         
-        hook = ET.SubElement(self.worldbody, "body", name=drone_name + "_hook", pos=drone_pos, mocap="true")
+        hook = ET.SubElement(self.worldbody, "body", name= "HookMocap" + "_" + drone_name, pos=drone_pos, mocap="true")
         #ET.SubElement(hook, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
         ET.SubElement(hook, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.0025")
         #hook = ET.SubElement(self.worldbody, "body", name=drone_name + "_hook", pos=hook_pos, euler="0 3.141592 -1.57", mocap="true")
@@ -483,7 +486,7 @@ class SceneXmlGenerator:
     def add_load(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box.value, is_mocap=False):
 
         if is_mocap:
-            name = "loadmocap_" + str(self.__mocap_load_cntr)
+            name = "PayloadMocap_" + str(self.__mocap_load_cntr)
             self.__mocap_load_cntr += 1
             load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
             
@@ -496,7 +499,7 @@ class SceneXmlGenerator:
                 hook_pos = "0 0 0.05"
         
         else:
-            name = "load_" + str(self.__load_cntr)
+            name = "Payload_" + str(self.__load_cntr)
             self.__load_cntr += 1
             
             load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
@@ -567,12 +570,12 @@ class SceneXmlGenerator:
         name = None
 
         if is_virtual and type == "fleet1tenth":
-            name = "virtfleet1tenth_" + str(self.__virtfleet1tenth_cntr)
+            name = "Car_fleet1tenth_" + str(self.__virtfleet1tenth_cntr)
             self.__add_fleet1tenth(pos, quat, name, color, has_rod)
             self.__virtfleet1tenth_cntr += 1
         
         elif not is_virtual and type == "fleet1tenth":
-            name = "realfleet1tenth_" + str(self.__realfleet1tenth_cntr)
+            name = "CarMocap_fleet1tenth_" + str(self.__realfleet1tenth_cntr)
             self.__add_mocap_fleet1tenth(pos, quat, name, color, has_rod)
             self.__realfleet1tenth_cntr += 1
         

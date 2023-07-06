@@ -1,14 +1,11 @@
-from dataclasses import dataclass
-import numpy as np
 import os
 from util import xml_generator
 from classes.passive_display import PassiveDisplay
 from gui.building_input_gui import BuildingInputGui
 from gui.vehicle_input_gui import VehicleInputGui
 from gui.payload_input_gui import PayloadInputGui
-from classes.drone import Drone, DroneMocap, HookMocap
-from classes.car import Car, CarMocap
-from classes.payload import PAYLOAD_TYPES, PayloadMocap, Payload
+from classes.payload import PAYLOAD_TYPES
+from classes.object_parser import parseMovingObjects, parseMovingMocapObjects
 
 
 # open the base on which we'll build
@@ -21,8 +18,8 @@ build_based_on_optitrack = False
 
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 
-virt_parsers = [Drone.parse, Car.parse, Payload.parse]
-mocap_parsers = [DroneMocap.parse, CarMocap.parse, PayloadMocap.parse, HookMocap.parse]
+virt_parsers = [parseMovingObjects]
+mocap_parsers = [parseMovingMocapObjects]
 display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, virt_parsers, mocap_parsers, False)
 #display.set_drone_names()
 
@@ -97,11 +94,8 @@ def add_building():
     
     # add pole
     elif input_gui.building == "Pole":
-        global pole_counter
-        p_name = "pole" + str(pole_counter)
-        pole_counter += 1
         if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_pole(p_name, input_gui.position, input_gui.quaternion)
+            scene.add_pole(input_gui.position, input_gui.quaternion)
             save_and_reload_model(scene, display, os.path.join(xml_path,save_filename))
     
     else:

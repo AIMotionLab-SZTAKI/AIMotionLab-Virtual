@@ -280,31 +280,6 @@ class Car(MovingObject):
             #self.wheelfl.ctrl_steer[0] = 0
             #self.wheelfr.ctrl_steer[0] = 0
 
-        
-    @staticmethod
-    def parse(data, model):
-        cars = []
-        ivc = 0
-
-        joint_names = mujoco_helper.get_joint_name_list(model)
-
-        for name in joint_names:
-
-            name_cut = name[: len(name) - 2]
-
-            if name.startswith("virtfleet1tenth") and not name.endswith("steer") and not name_cut.endswith("wheel"):
-
-                car = Car(model, data, name)
-
-                #mass = model.body(name).mass
-                #print(mass)
-
-                cars += [car]
-                ivc += 1
-
-
-        return cars
-
 
 class CarMocap(MovingMocapObject):
 

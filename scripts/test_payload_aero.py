@@ -56,6 +56,8 @@ load_initpos = np.array([drone_init_pos[0], drone_init_pos[1], drone_init_pos[2]
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
                                 True, 1)
+drone1_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
+                                True, 1)
 #payload0_name = scene.add_load("0.0 0.0 0.83", ".8 .8 .3", str(load_mass), "1 0 0 0", BLUE_COLOR)
 payload0_name = scene.add_load(np.array2string(load_initpos)[1:-1], np.array2string(load_size)[1:-1], str(load_mass), "1 0 0 0", BLUE_COLOR)
 

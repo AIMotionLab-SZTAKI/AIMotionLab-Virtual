@@ -140,6 +140,19 @@ class Display:
 
         self.onBoard_elev_offset = 30
 
+    def set_cam_position(self, azimuth: float, elevation: float, lookat: list, distance: float):
+        """
+        Sets the position of the main camera
+        azimuth: rotation about the vertical axis (yaw) in degrees
+        elevation: rotation about the horizontal axis perpendicular to the view direction (pitch) in degrees
+        lookat: 3D point for the camera to look at (a list of 3 floats)
+        distance: the distance from the lookat point
+        """
+        self.cam.azimuth = azimuth
+        self.cam.elevation = elevation
+        self.cam.lookat = lookat
+        self.cam.distance = distance
+
     
     def load_model(self, xml_file_name):
         self.xmlFileName = xml_file_name
@@ -156,6 +169,7 @@ class Display:
 
         self.all_virt_vehicles = []
         self.all_real_vehicles = []
+
 
         if self.virt_parsers is not None:
 

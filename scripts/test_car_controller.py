@@ -12,6 +12,8 @@ from util import mujoco_helper, carHeading2quaternion
 import numpy as np
 import matplotlib.pyplot as plt
 
+from classes.object_parser import parseMovingObjects
+
 
 RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
@@ -31,7 +33,7 @@ car0_name = scene.add_car(pos="0 0 0.052", quat=carHeading2quaternion(0.64424), 
 scene.save_xml(os.path.join(xml_path, save_filename))
 
 # create list of parsers 
-virt_parsers = [Car.parse]
+virt_parsers = [parseMovingObjects]
 
 
 

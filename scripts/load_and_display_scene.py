@@ -4,9 +4,8 @@ import os
 from classes.passive_display import PassiveDisplay
 import tkinter
 from tkinter import filedialog
-from classes.drone import Drone, DroneMocap, HookMocap
-from classes.car import Car, CarMocap
-from classes.payload import PayloadMocap, PAYLOAD_TYPES, Payload
+
+from classes.object_parser import parseMovingObjects, parseMovingMocapObjects
 
 
 # open the base on which we'll build
@@ -15,8 +14,8 @@ xml_path = os.path.join(abs_path, "..", "xml_models")
 xmlBaseFileName = "scene.xml"
 
 # create list of parsers
-virt_parsers = [Drone.parse, Car.parse, Payload.parse]
-mocap_parsers = [DroneMocap.parse, CarMocap.parse, PayloadMocap.parse, HookMocap.parse]
+virt_parsers = [parseMovingObjects]
+mocap_parsers = [parseMovingMocapObjects]
 display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, virt_parsers, mocap_parsers, False)
 
 

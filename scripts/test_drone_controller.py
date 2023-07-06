@@ -9,6 +9,7 @@ from classes.drone_classes.hooked_drone_lq_control import LtvLqrLoadControl
 import numpy as np
 import matplotlib.pyplot as plt
 from classes.pressure_sampler import PressureSampler
+from classes.object_parser import parseMovingObjects
 
 
 def update_controller_type(state, setpoint, time, i):
@@ -42,7 +43,7 @@ if __name__ == '__main__':
     scene.save_xml(os.path.join(xml_path, save_filename))
 
     # create list of parsers
-    virt_parsers = [Drone.parse, Payload.parse]
+    virt_parsers = [parseMovingObjects]
 
     control_step, graphics_step = 0.01, 0.02
     xml_filename = os.path.join(xml_path, save_filename)

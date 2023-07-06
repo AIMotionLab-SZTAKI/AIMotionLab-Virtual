@@ -33,15 +33,16 @@ class DRONE_TYPES(Enum):
 
 class Drone(MovingObject):
 
-    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, trajectory, controllers, drone_type = DRONE_TYPES.CRAZYFLIE):
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml):
 
         super().__init__(model, name_in_xml)
 
         self.data = data
 
-
-        self.trajectory = trajectory
-        self.controllers = controllers
+        if "crazyflie" in name_in_xml:
+            self.type = DRONE_TYPES.CRAZYFLIE
+        elif "bumblebee" in name_in_xml:
+            self.type = DRONE_TYPES.BUMBLEBEE
 
         free_joint = self.data.joint(self.name_in_xml)
 
@@ -94,15 +95,13 @@ class Drone(MovingObject):
             "ang_acc" : self.sensor_ang_accelerometer
         }
 
-        self.type = drone_type
-
-        if drone_type == DRONE_TYPES.CRAZYFLIE:
+        if self.type == DRONE_TYPES.CRAZYFLIE:
             self.Lx1 = float(CRAZYFLIE_PROP.OFFSET.value)
             self.Lx2 = float(CRAZYFLIE_PROP.OFFSET.value)
             self.Ly = float(CRAZYFLIE_PROP.OFFSET.value)
             self.motor_param = float(CRAZYFLIE_PROP.MOTOR_PARAM.value)
         
-        elif drone_type == DRONE_TYPES.BUMBLEBEE:
+        elif self.type == DRONE_TYPES.BUMBLEBEE:
             self.Lx1 = float(BUMBLEBEE_PROP.OFFSET_X1.value)
             self.Lx2 = float(BUMBLEBEE_PROP.OFFSET_X2.value)
             self.Ly = float(BUMBLEBEE_PROP.OFFSET_Y.value)
@@ -227,53 +226,6 @@ class Drone(MovingObject):
     def get_name_in_xml(self):
         return self.name_in_xml
 
-    @staticmethod
-    def parse(data, model):
-        """
-        Create a list of Drone instances from mujoco's MjData following a naming convention
-        found in naming_convention_in_xml.txt
-        """
-
-        joint_names = mujoco_helper.get_joint_name_list(model)
-
-        virtdrones = []
-        icf = 0
-        ibb = 0
-
-        for _name in joint_names:
-
-            _name_cut = _name[:len(_name) - 1]
-
-            if _name.startswith("virtbumblebee_hooked") and not _name.endswith("hook_y") and not _name.endswith("hook_x") and not _name_cut.endswith("prop"):
-                # this joint must be a drone
-                hook_names = Drone.find_hook_for_drone(joint_names, _name)
-                if len(hook_names) > 0:
-                    d = DroneHooked(model, data, name_in_xml=_name,
-                                    hook_names_in_xml=hook_names,
-                                    trajectory=None,
-                                    controller=None)
-
-                    virtdrones += [d]
-
-                else:
-                    print("Error: did not find hook joint for this drone: " +
-                          _name + " ... Ignoring drone.")
-            
-            elif _name.startswith("virtbumblebee") and not _name.endswith("hook_y") and not _name.endswith("hook_x") and not _name_cut.endswith("prop"):
-                # this joint must be a drone
-
-                d = Drone(model, data, _name, None, None, DRONE_TYPES.BUMBLEBEE)
-                virtdrones += [d]
-
-            elif _name.startswith("virtcrazyflie") and not _name_cut.endswith("prop"):
-
-                d = Drone(model, data, _name, None, None, DRONE_TYPES.CRAZYFLIE)
-                virtdrones += [d]
-
-        #print()
-        #print(str(len(virtdrones)) + " virtual drone(s) found in xml.")
-        #print()
-        return virtdrones
 
     @staticmethod
     def find_hook_for_drone(names, drone_name):
@@ -292,11 +244,14 @@ class Drone(MovingObject):
 ################################## DroneHooked ##################################
 class DroneHooked(Drone):
 
-    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml, hook_names_in_xml, trajectory, controller):
-        super().__init__(model, data, name_in_xml, trajectory, controller, DRONE_TYPES.BUMBLEBEE)
-        self.hook_names_in_xml = hook_names_in_xml
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml):
+        super().__init__(model, data, name_in_xml)
+        
+        joint_names = mujoco_helper.get_joint_name_list(model)
 
-        self.hook_dof = len(hook_names_in_xml)
+        hook_joint_names_in_xml = Drone.find_hook_for_drone(joint_names, name_in_xml)
+
+        self.hook_dof = len(hook_joint_names_in_xml)
 
         self.hook_qpos_y = self.data.joint(self.name_in_xml + "_hook_y").qpos
         self.hook_qvel_y = self.data.joint(self.name_in_xml + "_hook_y").qvel
@@ -398,7 +353,7 @@ class DroneHooked(Drone):
 
 ################################## DroneMocap ##################################
 class DroneMocap(MovingMocapObject):
-    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, name_in_motive, name_in_xml):
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, name_in_xml, name_in_motive):
 
         super().__init__(name_in_xml, name_in_motive)
         self.data = data
@@ -447,55 +402,6 @@ class DroneMocap(MovingMocapObject):
         print("Mocap")
         self.print_names()
 
-
-    @staticmethod
-    def parse(data, model):
-
-        body_names = mujoco_helper.get_body_name_list(model)
-
-        realdrones = []
-        icf = 0
-        ibb = 0
-        for _name in body_names:
-
-            _name_cut = _name[:len(_name) - 1]
-
-            if _name.startswith("realbumblebee_hooked") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
-                hook = DroneMocap.find_mocap_hook_for_drone(body_names, _name)
-                if hook:
-
-                    drone_mocapid = model.body(_name).mocapid[0]
-
-                    d = DroneMocapHooked(model, data, drone_mocapid, "bb" + str(ibb + 1), _name, hook)
-
-                    realdrones += [d]
-                    ibb += 1
-
-                else:
-                    print("Error: did not find hook body for this drone: " +
-                          _name + " ... Ignoring drone.")
-
-            elif _name.startswith("realbumblebee") and not _name.endswith("hook") and not _name_cut.endswith("prop"):
-
-                drone_mocapid = model.body(_name).mocapid[0]
-
-                d = DroneMocap(model, data, drone_mocapid, "bb" + str(ibb + 1), _name)
-                realdrones += [d]
-                ibb += 1
-
-            elif _name.startswith("realcrazyflie") and not _name_cut.endswith("prop"):
-
-                drone_mocapid = model.body(_name).mocapid[0]
-
-                d = DroneMocap(model, data, drone_mocapid, "cf" + str(icf + 1), _name)
-                realdrones += [d]
-                icf += 1
-
-
-        #print()
-        #print(str(len(realdrones)) + " mocap drone(s) found in xml.")
-        #print()
-        return realdrones
     
 
     @staticmethod
@@ -509,10 +415,10 @@ class DroneMocap(MovingMocapObject):
 
 ################################## DroneMocapHooked ##################################
 class DroneMocapHooked(DroneMocap):
-    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, name_in_motive, name_in_xml, hook_name_in_xml):
-        super().__init__(model, data, drone_mocapid, name_in_motive, name_in_xml)
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, name_in_xml, name_in_motive):
+        super().__init__(model, data, drone_mocapid, name_in_xml, name_in_motive)
 
-        self.hook_name_in_xml = hook_name_in_xml
+        self.hook_name_in_xml = "HookMocap_" + name_in_xml
 
     def update(self, pos, quat):
         return super().update(pos, quat)
@@ -541,27 +447,3 @@ class HookMocap(MovingMocapObject):
         
     def get_qpos(self):
         return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
-
-    @staticmethod
-    def parse(data, model):
-
-        body_names = mujoco_helper.get_body_name_list(model)
-        ih = 1
-        hooks = []
-        for _name in body_names:
-            
-            if _name.startswith("real") and _name.endswith("hook"):
-
-                mocapid = model.body(_name).mocapid[0]
-                if ih == 1:
-                    name_in_motive = "hook"
-                else:
-                    name_in_motive = "hook_" + str(ih)
-                h = HookMocap(model, data, mocapid, _name, name_in_motive=name_in_motive)
-
-                hooks += [h]
-
-                ih += 1
-        
-
-        return hooks

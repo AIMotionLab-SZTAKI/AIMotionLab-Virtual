@@ -26,28 +26,10 @@ class PayloadMocap(MovingMocapObject):
     def get_qpos(self):
         return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
 
-    @staticmethod
-    def parse(data, model):
-        payloads = []
-        plc = 1
-
-        body_names = mujoco_helper.get_body_name_list(model)
-
-        for name in body_names:
-            if name.startswith("loadmocap") and not name.endswith("hook"):
-                
-                mocapid = model.body(name).mocapid[0]
-                c = PayloadMocap(model, data, mocapid, name, "loadmocap" + str(plc))
-                
-                payloads += [c]
-                plc += 1
-        
-        return payloads
-
 
 class Payload(MovingObject):
 
-    def __init__(self, model, data, name_in_xml, top_subdivision_x, top_subdivision_y) -> None:
+    def __init__(self, model, data, name_in_xml) -> None:
         super().__init__(model, name_in_xml)
 
         self.data = data
@@ -65,7 +47,7 @@ class Payload(MovingObject):
         self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
         self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
 
-        self.set_top_subdivision(top_subdivision_x, top_subdivision_y)
+        self.set_top_subdivision(10, 10)
 
         #self.__minirectangle_positions_world = np.zeros_like(self.__minirectangle_positions)
         #self.__minirectangle_positions_own_frame = np.zeros_like(self.__minirectangle_positions)
@@ -154,21 +136,3 @@ class Payload(MovingObject):
         self.qfrc_applied[3] = torque[0]
         self.qfrc_applied[4] = torque[1]
         self.qfrc_applied[5] = torque[2]
-
-    @staticmethod
-    def parse(data, model):
-        payloads = []
-        plc = 0
-
-        joint_names = mujoco_helper.get_joint_name_list(model)
-
-        for name in joint_names:
-            if name.startswith("load"):
-                
-                
-                p = Payload(model, data, name, 10, 10)
-                
-                payloads += [p]
-                plc += 1
-        
-        return payloads

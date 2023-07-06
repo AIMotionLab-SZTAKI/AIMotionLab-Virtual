@@ -1,7 +1,6 @@
 # Virtual 3D model of the test environment and simulation with MuJoCo
 
-The documentation can be accessed here:
-[Docs](https://github.com/AIMotionLab-SZTAKI/Mujoco-Simulator/wiki)
+The documentation can be accessed [here](https://github.com/AIMotionLab-SZTAKI/Mujoco-Simulator/wiki).
 
 ## Installation
 1. Create and activate a virtual environment
@@ -18,12 +17,6 @@ $ pip install -e .
 ```
 $ pip install windows-curses
 ```
-5. Clone https://github.com/AIMotionLab-SZTAKI/crazyflie-mujoco in some folder and add the crazyflie-mujoco folder to path in classes/trajectory.py and scripts/test_active_simulator like so:
-
-```
-sys.path.insert(2, '/home/crazyfly/Desktop/mujoco_digital_twin/crazyflie-mujoco/')
-```
-
 6. Navigate to scripts
 
 ```

@@ -1,0 +1,42 @@
+<mujoco>
+    <include file="scene.xml" />
+
+    <worldbody>
+
+        <body name="Bicycle_0" pos="0 0 0.06">
+
+            <inertial pos="0 0 0" diaginertia=".01 .01 .01" mass="1.0" />
+            <joint type="free" name="Bicycle_0" />
+            <site name="Bicycle_0_cog" pos="0 0 0" />
+
+            <geom name="Bicycle_0_crossbar" type="box" size="0.06 0.02 0.02" pos="0. 0. 0."
+                rgba="0.2 0.2 0.8 1.0" />
+
+            <body name="Bicycle_0_wheelf">
+                <joint name="Bicycle_0_wheelf" type="hinge" pos="0.1 0 0"
+                    axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.01" />
+
+                <geom name="Bicycle_0_wheelf" type="cylinder" size="0.04 0.015" pos="0.1 0 0"
+                    euler="1.571 0 0" material="material_check" />
+            </body>
+
+            <body name="Bicycle_0_wheelr">
+                <joint name="Bicycle_0_wheelr" type="hinge" pos="-0.1 0 0"
+                    axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.01" />
+
+                <geom name="Bicycle_0_wheelr" type="cylinder" size="0.04 0.015" pos="-0.1 0 0"
+                    euler="1.571 0 0" material="material_check" />
+            </body>
+        </body>
+
+    </worldbody>
+
+    <actuator>
+        <motor name="Bicycle_0_actr" joint="Bicycle_0_wheelr" />
+    </actuator>
+
+    <sensor>
+        <velocimeter site="Bicycle_0_cog" name="Bicycle_0_velocimeter" />
+    </sensor>
+
+</mujoco>

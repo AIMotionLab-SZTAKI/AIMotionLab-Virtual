@@ -1,13 +1,12 @@
 import os
 from classes.active_simulation import ActiveSimulator
 from util import xml_generator
-from classes.drone import Drone
 from classes.drone_classes.hooked_drone_trajectory import HookedDroneTrajectory
 from classes.drone_classes.drone_geom_control import GeomControl
 import numpy as np
 import matplotlib.pyplot as plt
-from classes.payload import Payload
 from classes.pressure_sampler import PressureSampler
+from classes.object_parser import parseMovingObjects
 
 
 def update_controller_type(state, setpoint, time, i):
@@ -41,7 +40,7 @@ if __name__ == '__main__':
     scene.save_xml(os.path.join(xml_path, save_filename))
 
     # create list of parsers
-    virt_parsers = [Drone.parse, Payload.parse]
+    virt_parsers = [parseMovingObjects]
 
     control_step, graphics_step = 0.01, 0.02
     xml_filename = os.path.join(xml_path, save_filename)

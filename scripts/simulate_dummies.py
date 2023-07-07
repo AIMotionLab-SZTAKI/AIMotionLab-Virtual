@@ -4,13 +4,11 @@ from classes.active_simulation import ActiveSimulator
 
 from util import xml_generator
 
-from classes.drone import Drone, DroneMocap, HookMocap
-from classes.car import Car, CarMocap
-from classes.payload import PayloadMocap, PAYLOAD_TYPES, Payload
+from classes.payload import PAYLOAD_TYPES
+from classes.object_parser import parseMovingObjects, parseMovingMocapObjects
 
 from classes.controller_base import DummyDroneController, DummyCarController
 from classes.trajectory_base import DummyDroneTrajectory, DummyCarTrajectory
-from util import mujoco_helper
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -39,8 +37,8 @@ load0_name = scene.add_load("0 0 15", ".15 .12 .5", ".1", "1 0 0 0", BLACK_COLOR
 scene.save_xml(os.path.join(xml_path, save_filename))
 
 # create list of parsers
-virt_parsers = [Drone.parse, Car.parse, Payload.parse]
-mocap_parsers = [DroneMocap.parse, CarMocap.parse, PayloadMocap.parse, HookMocap.parse]
+virt_parsers = [parseMovingObjects]
+mocap_parsers = [parseMovingMocapObjects]
 
 
 control_step, graphics_step = 0.01, 0.02
@@ -80,26 +78,9 @@ car0.set_controllers(car0_controllers)
 
 # start simulation
 i = 0
-sensor_data = []
-q_data = []
-# print(drone0.qacc)
-#drone0.qvel[1] = 0.0
-#drone0.hook_qvel_y[0] = 1
-#drone0.hook_qvel_x[0] = -0.1
-drone0.qfrc_applied[5] += .01
-print(load0.get_top_position_at(50, 50))
+
 while not simulator.glfw_window_should_close():
     simulator.update(i)
-    if i % 10 == 0:
-        #print(drone0.qfrc_applied)
-        #print(load0.sensor_posimeter)
-        print(load0.get_minirectangle_data_at(99, 99))
-        pass
     i += 1
 
 simulator.close()
-
-#plt.plot(sensor_data)
-#plt.plot(q_data, '--')
-#plt.legend(["sensor_joint_ang0", "sensor_joint_ang1", "q_joint_ang0", "q_joint_ang1"])
-#plt.show()

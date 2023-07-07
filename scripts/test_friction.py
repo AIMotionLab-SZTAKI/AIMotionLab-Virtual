@@ -4,7 +4,7 @@ import util.mujoco_helper as mh
 import math
 from enum import Enum
 from classes.active_simulation import ActiveSimulator
-from classes.moving_object import MovingObject
+from classes.object_parser import parseMovingObjects, parseMovingMocapObjects
 import os
 from util import mujoco_helper
 from classes.car import Car, CarMocap
@@ -35,8 +35,8 @@ quat = str(quat[0]) + " " + str(quat[1]) + " " + str(quat[2]) + " " + str(quat[3
 car_name = scene.add_car("4 0 0.05", quat, RED_COLOR, True)
 scene.save_xml(os.path.join(xml_path, save_filename))
 
-virt_parsers = [Drone.parse, Car.parse]
-mocap_parsers = [DroneMocap.parse, CarMocap.parse]
+virt_parsers = [parseMovingObjects]
+mocap_parsers = [parseMovingMocapObjects]
 
 simulator = ActiveSimulator(os.path.join(xml_path, save_filename), None, 0.005, 0.02, virt_parsers, mocap_parsers, False)
 

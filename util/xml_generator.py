@@ -402,8 +402,10 @@ class SceneXmlGenerator:
         pos_z = float(splt[2])
         pos_z -= ROD_LENGTH
         hook_pos = splt[0] + " " + splt[1] + " " + str(pos_z)
+
+        name_tail = drone_name[17:] # remove DroneMocapHooked from the name
         
-        hook = ET.SubElement(self.worldbody, "body", name= "HookMocap" + "_" + drone_name, pos=drone_pos, mocap="true")
+        hook = ET.SubElement(self.worldbody, "body", name= "HookMocap" + "_" + name_tail, pos=drone_pos, mocap="true")
         #ET.SubElement(hook, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
         ET.SubElement(hook, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.0025")
         #hook = ET.SubElement(self.worldbody, "body", name=drone_name + "_hook", pos=hook_pos, euler="0 3.141592 -1.57", mocap="true")

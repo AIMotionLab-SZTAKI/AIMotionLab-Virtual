@@ -20,8 +20,6 @@ def parseMovingObjects(data: mujoco.MjData, model: mujoco.MjModel):
 
         moving_obj = class_to_be_created(model, data, name)
 
-        #print("created a " + str(split_name[0]))
-
         moving_objects += [moving_obj]
     
     return moving_objects
@@ -32,8 +30,8 @@ def parseMovingMocapObjects(data: mujoco.MjData, model: mujoco.MjModel):
     mocap_objects = []
 
     obj_counter_dict = {
-        "crazyflie" : 0,
-        "bumblebee" : 0,
+        "crazyflie" : 1,
+        "bumblebee" : 1,
         "fleet1tenth" : 1,
         "hook" : 0,
         "payload" : 0

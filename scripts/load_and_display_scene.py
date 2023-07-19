@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-import numpy as np
 import os
 from classes.passive_display import PassiveDisplay
 import tkinter

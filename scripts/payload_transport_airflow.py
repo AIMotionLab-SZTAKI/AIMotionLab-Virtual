@@ -5,7 +5,7 @@ from classes.drone_classes.hooked_drone_trajectory import HookedDroneTrajectory
 from classes.drone_classes.drone_geom_control import GeomControl
 import numpy as np
 import matplotlib.pyplot as plt
-from classes.pressure_sampler import PressureSampler
+from classes.airflow_sampler import AirflowSampler
 from classes.object_parser import parseMovingObjects
 
 
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     drone0.set_trajectory(drone0_trajectory)
     drone0.set_controllers(drone0_controllers)
 
-    pressure_sampl = PressureSampler(os.path.join(abs_path, "..", "combined_data.txt"), drone0)
+    pressure_sampl = AirflowSampler(os.path.join(abs_path, "..", "combined_data.txt"), drone0)
     payload0.set_top_subdivision(10, 10)
 
     # start simulation

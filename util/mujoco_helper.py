@@ -263,6 +263,13 @@ def torque_from_force(r, force):
     M = np.cross(r, force)
     return M
 
+def forces_from_pressures(normal, pressure, area):
+    
+    #f = np.array([0., 0., -1.])
+    #F = np.dot(-normal, f) * np.outer(pressure, f) * area
+    F = np.outer(pressure, -normal) * area
+    return F
+
 def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None, elev_offs=30):
     """
     Update the position and orientation of the camera that follows the vehicle from behind

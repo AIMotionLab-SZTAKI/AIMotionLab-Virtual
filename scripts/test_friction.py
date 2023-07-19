@@ -171,7 +171,7 @@ def straight_line_vel_profile():
         #simulate_without_graphix(vel_arr, pos_arr)
 
 
-        real_data = np.loadtxt(os.path.join(abs_path, "..", "velocities.csv"), delimiter=',', dtype=float)
+        real_data = np.loadtxt(os.path.join(abs_path, "..", "f1tenth_measurements", "velocities.csv"), delimiter=',', dtype=float)
 
         vel_arr = np.array(vel_arr)
         #print(vel_arr)
@@ -379,7 +379,7 @@ def random_curve():
     pos_arr = []
 
     #filename = os.path.join("..", "valid_sin1.csv")
-    filename = os.path.join(abs_path, "..", "motion_2023-03-03-12-22-06.csv")
+    filename = os.path.join(abs_path, "..", "f1tenth_measurements", "motion_2023-03-03-12-22-06.csv")
 
     data = np.loadtxt(filename, delimiter=",", dtype=float)
     SAMPLE_T = (data[20, 0] - data[0, 0]) / 20

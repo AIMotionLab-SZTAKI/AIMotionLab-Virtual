@@ -66,7 +66,7 @@ if __name__ == '__main__':
     drone0.set_trajectory(drone0_trajectory)
     drone0.set_controllers(drone0_controllers)
 
-    pressure_sampl = AirflowSampler(os.path.join(abs_path, "..", "combined_data.txt"), drone0)
+    pressure_sampl = AirflowSampler(os.path.join(abs_path, "..", "airflow_luts", "flow_pressure_shifted.txt"), drone0)
     payload0.set_top_subdivision(10, 10)
 
     # start simulation

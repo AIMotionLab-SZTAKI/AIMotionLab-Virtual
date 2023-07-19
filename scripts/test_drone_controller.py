@@ -8,7 +8,7 @@ from classes.drone_classes.drone_geom_control import GeomControl
 from classes.drone_classes.hooked_drone_lq_control import LtvLqrLoadControl
 import numpy as np
 import matplotlib.pyplot as plt
-from classes.pressure_sampler import PressureSampler
+from classes.airflow_sampler import AirflowSampler
 from classes.object_parser import parseMovingObjects
 
 
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     drone0.qvel[0] = 0
     drone0.qvel[1] = 0
 
-    pressure_sampl = PressureSampler(os.path.join(abs_path, "..", "combined_data.txt"), drone0)
+    airflow_sampl = AirflowSampler(os.path.join(abs_path, "..", "combined_data.txt"), drone0)
     payload0.set_top_subdivision(10, 10)
 
     # Plan trajectory
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     while not simulator.glfw_window_should_close():
         simulator.update(i)
 
-        force, torque = pressure_sampl.generate_forces(payload0)
+        force, torque = airflow_sampl.generate_forces(payload0)
         payload0.set_force_torque(force, torque)
 
         # state = drone0.get_state()

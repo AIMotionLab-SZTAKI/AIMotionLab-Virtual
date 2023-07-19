@@ -3,7 +3,7 @@ import math
 import numpy as np
 import matplotlib.pylab as plt
 from classes import payload
-from classes import pressure_sampler
+from classes import airflow_sampler
 from util import xml_generator
 from classes.drone import Drone
 from classes.payload import PAYLOAD_TYPES, Payload, PayloadMocap
@@ -13,7 +13,8 @@ from classes.drone_classes.drone_geom_control import GeomControl
 from classes.drone_classes.hooked_drone_lq_control import LqrLoadControl
 from classes.trajectory_base import DummyDroneTrajectory
 from random import seed, random
-from classes.pressure_sampler import PressureSampler
+from classes.airflow_sampler import AirflowSampler
+from classes.object_parser import parseMovingObjects
 
 class DummyHoverTraj(DummyDroneTrajectory):
 
@@ -66,9 +67,8 @@ payload0_name = scene.add_load(np.array2string(load_initpos)[1:-1], np.array2str
 
 scene.save_xml(os.path.join(xml_path, save_filename))
 
-virt_parsers = [Drone.parse, Payload.parse]
-mocap_parsers = [PayloadMocap.parse]
-
+virt_parsers = [parseMovingObjects]
+mocap_parsers = None
 control_step, graphics_step = 0.01, 0.02
 xml_filename = os.path.join(xml_path, save_filename)
 
@@ -91,7 +91,7 @@ drone0.set_trajectory(drone0_trajectory)
 drone0.set_controllers(drone0_controllers)
 
 
-pressure_sampl = PressureSampler(os.path.join(abs_path, "..", "combined_data.txt"), drone0)
+airflow_sampl = AirflowSampler(os.path.join(abs_path, "..", "combined_data.txt"), drone0)
 payload0.set_top_subdivision(10, 10)
 
 i = 0
@@ -102,7 +102,7 @@ payload0.set_force_torque(np.array([0, 0, 0]), np.array([-0.02, 0, 0]))
 while not simulator.glfw_window_should_close():
     simulator.update(i)
     
-    force, torque = pressure_sampl.generate_forces(payload0)
+    force, torque = airflow_sampl.generate_forces(payload0)
 
     if i < lsize:
         total_force=math.sqrt(force[0]**2+force[1]**2+force[2]**2)

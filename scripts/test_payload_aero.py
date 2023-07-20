@@ -109,8 +109,8 @@ drone1_controllers = [drone1_controller]
 drone1.set_trajectory(drone1_trajectory)
 drone1.set_controllers(drone1_controllers)
 
-pressure_data_filename = os.path.join(abs_path, "..", "airflow_luts", "flow_pressure_shifted.txt")
-velocity_data_filename = os.path.join(abs_path, "..", "airflow_luts", "flow_velocity_shifted.txt")
+pressure_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt")
+velocity_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_velocity_shifted.txt")
 
 airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, velocity_data_filename)
 payload0.set_top_subdivision(30, 30)

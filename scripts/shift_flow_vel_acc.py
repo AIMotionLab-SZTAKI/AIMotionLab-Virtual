@@ -85,7 +85,7 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
 SLICE = 40
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
-data_file_name = os.path.join(abs_path, "..", "raw_airflow_data", "acceleration_sorted.csv")
+data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "acceleration_sorted.csv")
 tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
 # transform data into 3D array
 cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
@@ -258,4 +258,4 @@ for i in range(cube_size):
 slices_shifted_not_normalized = np.array(slices_shifted_not_normalized)
 
 slices_shifted_not_normalized = slices_shifted_not_normalized.reshape((cube_size**3, 3))
-np.savetxt(os.path.join(abs_path, "..", "airflow_luts", "flow_acceleration_shifted.txt"), slices_shifted_not_normalized)
+np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_acceleration_shifted.txt"), slices_shifted_not_normalized)

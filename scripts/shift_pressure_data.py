@@ -79,7 +79,7 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
 
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
-data_file_name = os.path.join(abs_path, "..", "raw_airflow_data", "dynamic_pressure_field_processed_new.csv")
+data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "dynamic_pressure_field_processed_new.csv")
 tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
 # transform data into 3D array
 cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
@@ -95,9 +95,9 @@ for i in range(cube_size):
 
     combined_data[:, :, i] = slice_shifted
 combined_1d = combined_data.reshape(-1)
-np.savetxt(os.path.join(abs_path, "..", "airflow_luts", "flow_pressure_shifted.txt"), combined_1d)
+np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"), combined_1d)
 
-#tmp = np.loadtxt(os.path.join(abs_path, "..", "airflow_luts", "flow_pressure_shifted.txt"))
+#tmp = np.loadtxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"))
 #cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
 #combined_data = np.reshape(tmp, (cube_size, cube_size, cube_size))
 #print(combined_data.shape)

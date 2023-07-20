@@ -258,7 +258,7 @@ def circular_():
     d_increment = 0.01
     sample_t = 1.0 / 40.0
 
-    folder = os.path.join(abs_path, "..", "rekrmozgsf1tenth")
+    folder = os.path.join(abs_path, "..", "f1tenth_measurements", "rekrmozgsf1tenth")
 
     filename = get_filename(d, delta)
 

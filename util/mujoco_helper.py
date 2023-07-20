@@ -270,6 +270,11 @@ def forces_from_pressures(normal, pressure, area):
     F = np.outer(pressure, -normal) * area
     return F
 
+def forces_from_velocities(normal, velocity, area):
+    density = 1.1839 #kg/m^3
+    F = velocity * density * area * np.dot(velocity, -normal).reshape(-1, 1)
+    return F
+
 def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None, elev_offs=30):
     """
     Update the position and orientation of the camera that follows the vehicle from behind

@@ -8,14 +8,22 @@ from util import mujoco_helper
 
 class AirflowSampler:
 
-    def __init__(self, data_file_name : str, owning_drone : Drone):
+    def __init__(self, data_file_name_pressure : str, owning_drone : Drone, data_file_name_velocity: str = None):
         
         #tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float)
-        tmp = np.loadtxt(data_file_name)
+        tmp = np.loadtxt(data_file_name_pressure)
         # transform data into 3D array
         self.cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
-        self.data = np.reshape(tmp, (self.cube_size, self.cube_size, self.cube_size))
-        print(self.data.shape)
+        self.pressure_data = np.reshape(tmp, (self.cube_size, self.cube_size, self.cube_size))
+        #print(self.pressure_data.shape)
+        self.use_velocity = False
+        if data_file_name_velocity is not None:
+            tmp = np.loadtxt(data_file_name_velocity)
+            if self.cube_size != int(math.pow(tmp.shape[0] + 1, 1/3)):
+                raise RuntimeError("size of look-up tables must match")
+        
+            self.velocity_data = np.reshape(tmp, (self.cube_size, self.cube_size, self.cube_size, 3))
+            self.use_velocity = True
 
         self.drone = owning_drone
         self.drone_position = owning_drone.sensor_posimeter
@@ -62,9 +70,13 @@ class AirflowSampler:
         return position + self.drone.sensor_posimeter, self.drone_orientation
 
 
-    def sample_at_idx(self, i: int, j: int, k: int):
+    def sample_pressure_at_idx(self, i: int, j: int, k: int):
 
-        return self.data[i, j, k]
+        return self.pressure_data[i, j, k]
+
+    def sample_velocity_at_idx(self, i: int, j: int, k: int):
+
+        return self.velocity_data[i, j, k]
     
     def generate_forces(self, payload : Payload):
 
@@ -94,7 +106,7 @@ class AirflowSampler:
                    j < self.cube_size and j >= 0 and\
                    k < self.cube_size and k >= 0:
                 
-                    pressure = self.sample_at_idx(i, j, k)
+                    pressure = self.sample_pressure_at_idx(i, j, k)
 
                     # calculate forces
                     force = mujoco_helper.force_from_pressure(normal, pressure, area)
@@ -160,9 +172,14 @@ class AirflowSampler:
         
         indices = np.rint(pos_traffed * 100).astype(np.int32)
 
-        pressure_values = self.data[indices[:, 0], indices[:, 1], indices[:, 2]]
-
+        pressure_values = self.pressure_data[indices[:, 0], indices[:, 1], indices[:, 2]]
         forces = mujoco_helper.forces_from_pressures(normal, pressure_values, area)
+
+        if self.use_velocity:
+            velocity_values = self.velocity_data[indices[:, 0], indices[:, 1], indices[:, 2]]
+            forces_velocity = mujoco_helper.forces_from_velocities(normal, velocity_values, area)
+            forces += forces_velocity
+
 
         if pos_in_own_frame.shape != forces.shape:
             print("shapes not equal")

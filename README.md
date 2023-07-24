@@ -38,9 +38,9 @@ To add a building:
   * Specify the position and the orientation (as quaternion). Default quaternion is 1 0 0 0.
   * Click ok, or hit enter
 
-To add drones:
-  * Press 'd' (as in drone)
-  * Select drone type in the drop down menu
+To add vehicles:
+  * Press 'd' (initially only drones were supported)
+  * Select vehicle type in the drop down menu
   * Set the position
   * Set the quaternion
   * Click ok, or press enter
@@ -48,10 +48,10 @@ To add drones:
 To add payloads:
   * Press 't' (as in teher in Hungarian)
   * A pop-up window appears
-  * Enter its color, mass, size, position and orientation
+  * Enter its type, color, mass, size, position and orientation
   * Clik ok, or hit enter
 
-To name drones:
+To name mocap objects:
   * Press 'n' (short for name)
   * In the pop-up window enter the name of the drones that are 'ticked' in Motive
   * Click ok, or hit enter
@@ -95,24 +95,6 @@ To load a MuJoCo model from xml:
   * Press 'l'
   * In the pop-up window, select the xml file
   * Click ok or hit enter
-
-To connect to Motive:
-  * Press 'c' (short for connect)
-
-To start and stop video recording:
-  * Press 'r' (short for record)
-  * The location of the saved video will be printed in the terminal
-
-To switch back and forth between drones' "on board camera" and main camera:
-  * Press TAB
-  * When in "on board mode" to switch amongst drones:
-    * Press SPACE
-
-To move the camera around, use mouse buttons and wheel.
-
-## Usage of test_active_simulator.py
-
-This script demonstrates how to use the ActiveSimulator class. It's pretty well commented in the file.
 
 To connect to Motive:
   * Press 'c' (short for connect)

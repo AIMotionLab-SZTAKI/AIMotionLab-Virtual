@@ -5,25 +5,21 @@ The documentation can be accessed [here](https://github.com/AIMotionLab-SZTAKI/M
 ## Installation
 1. Create and activate a virtual environment
 
-2. Prerequisite for motioncapture library (haven't been able to get it to work on windows):
-```
-$ sudo apt install libboost-system-dev libboost-thread-dev libeigen3-dev ninja-build
-```
-3. Install libraries with pip
+2. Install libraries with pip
 ```
 $ pip install -e .
 ```
-4. On Windows additionally
+3. On Windows additionally
 ```
 $ pip install windows-curses
 ```
-6. Navigate to scripts
+4. Navigate to scripts
 
 ```
 $ cd scripts
 ```
 
-7. Run one of the scripts like below
+5. Run one of the scripts like below
 ```
 $ python3.8 test_active_simulator.py
 or

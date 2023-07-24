@@ -1,3 +1,4 @@
+from cProfile import label
 import math
 import numpy as np
 import matplotlib.pylab as plt
@@ -79,29 +80,57 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
 
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
-data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "dynamic_pressure_field_processed_new.csv")
-tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
-# transform data into 3D array
-cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
-data = np.reshape(tmp[:, 4], (cube_size, cube_size, cube_size))
-print(data.shape)
-
-
-combined_data = np.empty_like(data)
-
-for i in range(cube_size):
-    print("computing slice: " + str(i))
-    slice_shifted = create_shifted_slice(data[:, :, i], 100, 65, 87)
-
-    combined_data[:, :, i] = slice_shifted
-combined_1d = combined_data.reshape(-1)
-np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"), combined_1d)
-
-#tmp = np.loadtxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"))
+#data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "dynamic_pressure_field_processed_new.csv")
+#tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
+## transform data into 3D array
 #cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
-#combined_data = np.reshape(tmp, (cube_size, cube_size, cube_size))
-#print(combined_data.shape)
+#data = np.reshape(tmp[:, 4], (cube_size, cube_size, cube_size))
+#print(data.shape)
+
+
+#combined_data = np.empty_like(data)
+
+#for i in range(cube_size):
+#    print("computing slice: " + str(i))
+#    slice_shifted = create_shifted_slice(data[:, :, i], 100, 65, 87)
+#
+#    combined_data[:, :, i] = slice_shifted
+#combined_1d = combined_data.reshape(-1)
+#np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"), combined_1d)
+
+tmp = np.loadtxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"))
+cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
+combined_data = np.reshape(tmp, (cube_size, cube_size, cube_size))
+print(combined_data.shape)
 
 #plt.imshow(data[:, :, 0], cmap='jet', interpolation='nearest')
-plt.imshow(combined_data[:, :, 40], cmap='jet', interpolation='nearest')
+#im = plt.imshow(np.rot90(combined_data[15, :, :]), cmap='jet', interpolation='nearest')
+#colorbar = plt.colorbar(im, label="Pressure [Pa]")
+#plt.show()
+
+# create a figure with two subplots
+fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+
+# plot the pressure heatmap for the z plane on the first subplot
+z_plane = 0
+im1 = axs[0].imshow(combined_data[:, :, z_plane], cmap='jet', interpolation='nearest')
+axs[0].set_xlabel('x [cm]')
+axs[0].set_ylabel('y [cm]')
+axs[0].set_title(f'Pressure on z={z_plane} [cm]')
+fig.colorbar(im1, ax=axs[0], label='Pressure [Pa]')
+
+# plot the pressure heatmap for the x plane on the second subplot
+x_plane = 15
+im2 = axs[1].imshow(np.rot90(combined_data[x_plane, :, :]), cmap='jet', interpolation='nearest')
+axs[1].set_xlabel('y [cm]')
+axs[1].set_ylabel('z [cm]')
+axs[1].set_title(f'Pressure on x={x_plane} [cm]')
+fig.colorbar(im2, ax=axs[1], label='Pressure [Pa]')
+# set aspect ratio to equal for both subplots
+#axs[0].set_aspect('equal', 'box')
+#axs[1].set_aspect('equal', 'box')
+
+# adjust the layout of the subplots to prevent overlap
+fig.tight_layout()
+
 plt.show()

@@ -30,7 +30,11 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
         if((si + 1) % scale == 0):
             i += 1
     
-    slice_upscaled_mirrored = np.fliplr(slice_upscaled)
+    #slice_upscaled_mirrored = np.flipud(slice_upscaled_mirrored)
+    slice_upscaled_mirrored = np.fliplr(np.copy(slice_upscaled))
+
+    #slice_upscaled_mirrored[:, :, 0] = -slice_upscaled_mirrored[:, :, 0]
+    slice_upscaled_mirrored[:, :, 1] = -slice_upscaled_mirrored[:, :, 1]
 
     slice_upscaled_shifted = np.empty_like(slice_upscaled)
 

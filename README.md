@@ -21,7 +21,7 @@ $ cd scripts
 
 5. Run one of the scripts like below
 ```
-$ python3.8 test_active_simulator.py
+$ python3.8 simulate_dummies.py
 or
 $ python3.8 build_scene.py
 or

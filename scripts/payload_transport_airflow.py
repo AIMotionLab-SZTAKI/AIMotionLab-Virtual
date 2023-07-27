@@ -66,8 +66,12 @@ if __name__ == '__main__':
     drone0.set_trajectory(drone0_trajectory)
     drone0.set_controllers(drone0_controllers)
 
-    pressure_sampl = AirflowSampler(os.path.join(abs_path, "..", "airflow_luts", "flow_pressure_shifted.txt"), drone0)
-    payload0.set_top_subdivision(10, 10)
+    pressure_lut_path = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt")
+    velocity_lut_path = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_velocity_shifted.txt")
+
+    airflow_sampl = AirflowSampler(pressure_lut_path, drone0, velocity_lut_path)
+    payload0.set_top_subdivision(30, 30)
+    payload0.set_side_subdivision(30, 30, 30)
 
     # start simulation
     i = 0
@@ -82,7 +86,7 @@ if __name__ == '__main__':
     while not simulator.glfw_window_should_close():
         simulator.update(i)
 
-        force, torque = pressure_sampl.generate_forces(payload0)
+        force, torque = airflow_sampl.generate_forces(payload0)
         payload0.set_force_torque(force, torque)
         i += 1
 

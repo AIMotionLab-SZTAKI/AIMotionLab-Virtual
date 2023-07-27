@@ -5,6 +5,7 @@ import os
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize
+from classes.drone import BUMBLEBEE_PROP
 
 from pyparsing import indentedBlock
 from sympy import intervals
@@ -43,29 +44,29 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
         for sj in range(cube_size * scale):
             vtl = vtr = vbl = vbr = 0
 
-            itl = si + offset_x1
-            jtl = sj + offset_y
-
-            itr = si - offset_x2
+            itr = si + offset_x2 # prop4 in xml
             jtr = sj + offset_y
 
-            ibl = si + offset_x1
-            jbl = sj - offset_y
+            itl = si - offset_x1 # prop3 in xml
+            jtl = sj + offset_y
 
-            ibr = si - offset_x2
+            ibr = si + offset_x2 # prop1 in xml 
             jbr = sj - offset_y
 
-            if(itl < slice_upscaled.shape[0] and jtl < slice_upscaled.shape[1]):
+            ibl = si - offset_x1 # prop2 in xml
+            jbl = sj - offset_y
+
+            if(itl >= 0 and jtl < slice_upscaled.shape[1]):
                 vtl = slice_upscaled_mirrored[itl, jtl]
                 #vtl = slice_upscaled[itl, jtl]
 
-            if(itr >= 0 and jtr < slice_upscaled.shape[1]):
+            if(itr < slice_upscaled.shape[0] and jtr < slice_upscaled.shape[1]):
                 vtr = slice_upscaled[itr, jtr]
 
-            if(ibl < slice_upscaled.shape[0] and jbl >= 0):
+            if(ibl >= 0 and jbl >= 0):
                 vbl = slice_upscaled[ibl, jbl]
                 
-            if(ibr >= 0 and jbr >= 0):
+            if(ibr < slice_upscaled.shape[0] and jbr >= 0):
                 vbr = slice_upscaled_mirrored[ibr, jbr]
                 #vbr = slice_upscaled[ibr, jbr]
             
@@ -86,10 +87,14 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
     
     return slice_shifted
 
+offset_y = int(round(float(BUMBLEBEE_PROP.OFFSET_Y.value) * 1000)) # convert to mm
+offset_x1 = int(round(float(BUMBLEBEE_PROP.OFFSET_X1.value) * 1000))
+offset_x2 = int(round(float(BUMBLEBEE_PROP.OFFSET_X2.value) * 1000))
+
 SLICE = 40
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
-data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "acceleration_sorted.csv")
+data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "velocity_sorted.csv")
 tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
 # transform data into 3D array
 cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
@@ -228,7 +233,7 @@ heatmaps = []
 
 for i in range(cube_size):
     print("computing slice " + str(i))
-    slice_shifted = create_shifted_slice(velocities_xyz[:, :, i, :], 100, 65, 87)
+    slice_shifted = create_shifted_slice(velocities_xyz[:, :, i, :], offset_x1, offset_x2, offset_y)
     slices_shifted_not_normalized[:, :, i, :] = np.copy(slice_shifted)
     lengths_shifted = np.empty((cube_size * cube_size))
     i = 0
@@ -262,4 +267,4 @@ for i in range(cube_size):
 slices_shifted_not_normalized = np.array(slices_shifted_not_normalized)
 
 slices_shifted_not_normalized = slices_shifted_not_normalized.reshape((cube_size**3, 3))
-np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_acceleration_shifted.txt"), slices_shifted_not_normalized)
+np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_velocity_shifted.txt"), slices_shifted_not_normalized)

@@ -6,7 +6,7 @@ import os
 
 from pyparsing import indentedBlock
 
-from classes.drone import Drone
+from classes.drone import BUMBLEBEE_PROP
 from classes.payload import Payload
 from util import mujoco_helper
 
@@ -35,29 +35,29 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
         for sj in range(cube_size * scale):
             vtl = vtr = vbl = vbr = 0
 
-            itl = si + offset_x1
-            jtl = sj + offset_y
-
-            itr = si - offset_x2
+            itr = si + offset_x2 # prop4 in xml
             jtr = sj + offset_y
 
-            ibl = si + offset_x1
-            jbl = sj - offset_y
+            itl = si - offset_x1 # prop3 in xml
+            jtl = sj + offset_y
 
-            ibr = si - offset_x2
+            ibr = si + offset_x2 # prop1 in xml 
             jbr = sj - offset_y
 
-            if(itl < slice_upscaled.shape[0] and jtl < slice_upscaled.shape[1]):
+            ibl = si - offset_x1 # prop2 in xml
+            jbl = sj - offset_y
+
+            if(itl >= 0 and jtl < slice_upscaled.shape[1]):
                 vtl = slice_upscaled_mirrored[itl, jtl]
                 #vtl = slice_upscaled[itl, jtl]
 
-            if(itr >= 0 and jtr < slice_upscaled.shape[1]):
+            if(itr < slice_upscaled.shape[0] and jtr < slice_upscaled.shape[1]):
                 vtr = slice_upscaled[itr, jtr]
 
-            if(ibl < slice_upscaled.shape[0] and jbl >= 0):
+            if(ibl >= 0 and jbl >= 0):
                 vbl = slice_upscaled[ibl, jbl]
                 
-            if(ibr >= 0 and jbr >= 0):
+            if(ibr < slice_upscaled.shape[0] and jbr >= 0):
                 vbr = slice_upscaled_mirrored[ibr, jbr]
                 #vbr = slice_upscaled[ibr, jbr]
             
@@ -86,13 +86,16 @@ abs_path = os.path.dirname(os.path.abspath(__file__))
 #cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
 #data = np.reshape(tmp[:, 4], (cube_size, cube_size, cube_size))
 #print(data.shape)
-
-
+#
 #combined_data = np.empty_like(data)
-
+#
+#offset_y = int(round(float(BUMBLEBEE_PROP.OFFSET_Y.value) * 1000)) # convert to mm
+#offset_x1 = int(round(float(BUMBLEBEE_PROP.OFFSET_X1.value) * 1000))
+#offset_x2 = int(round(float(BUMBLEBEE_PROP.OFFSET_X2.value) * 1000))
+#
 #for i in range(cube_size):
 #    print("computing slice: " + str(i))
-#    slice_shifted = create_shifted_slice(data[:, :, i], 100, 65, 87)
+#    slice_shifted = create_shifted_slice(data[:, :, i], offset_x1, offset_x2, offset_y)
 #
 #    combined_data[:, :, i] = slice_shifted
 #combined_1d = combined_data.reshape(-1)
@@ -112,19 +115,27 @@ print(combined_data.shape)
 fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 
 # plot the pressure heatmap for the z plane on the first subplot
+#z_plane = cube_size - 1
 z_plane = 0
-im1 = axs[0].imshow(combined_data[:, :, z_plane], cmap='jet', interpolation='nearest')
+pressure_map_z = np.copy(combined_data[:, :, z_plane])
+#pressure_map_z[40, 30] = 500
+im1 = axs[0].imshow(pressure_map_z.T, cmap='jet', interpolation='nearest')
 axs[0].set_xlabel('x [cm]')
 axs[0].set_ylabel('y [cm]')
-axs[0].set_title(f'Pressure on z={z_plane} [cm]')
+axs[0].invert_yaxis()
+axs[0].set_title(f'Pressure at z={z_plane} [cm]')
 fig.colorbar(im1, ax=axs[0], label='Pressure [Pa]')
 
 # plot the pressure heatmap for the x plane on the second subplot
 x_plane = 15
-im2 = axs[1].imshow(np.rot90(combined_data[x_plane, :, :]), cmap='jet', interpolation='nearest')
+
+pressure_map_x = np.copy(combined_data[x_plane, :, :])
+#pressure_map_x[40, 30] = 500
+im2 = axs[1].imshow(pressure_map_x.T, cmap='jet', interpolation='nearest')
 axs[1].set_xlabel('y [cm]')
 axs[1].set_ylabel('z [cm]')
-axs[1].set_title(f'Pressure on x={x_plane} [cm]')
+axs[1].invert_yaxis()
+axs[1].set_title(f'Pressure at x={x_plane} [cm]')
 fig.colorbar(im2, ax=axs[1], label='Pressure [Pa]')
 # set aspect ratio to equal for both subplots
 #axs[0].set_aspect('equal', 'box')

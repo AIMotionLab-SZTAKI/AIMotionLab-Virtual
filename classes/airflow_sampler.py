@@ -38,7 +38,7 @@ class AirflowSampler:
 
 
         self.cube_size_meter = self.cube_size / 100.
-        self.shift_payload_up = 25
+        self.shift_payload_up = 15
         self.shift_payload_up_meter = self.shift_payload_up / 100.
 
         self.index_upper_limit = (float(self.cube_size) - 0.5) / 100.

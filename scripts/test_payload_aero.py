@@ -6,11 +6,11 @@ from util import xml_generator
 from classes.active_simulation import ActiveSimulator
 #from classes.drone_classes.hooked_drone_trajectory import HookedDroneTrajectory
 from classes.drone_classes.drone_geom_control import GeomControl
-from classes.drone_classes.hooked_drone_lq_control import LqrLoadControl
+from classes.drone_classes.hooked_drone_lq_control import LqrLoadControl, LtvLqrLoadControl
 from classes.trajectory_base import DummyDroneTrajectory
-from random import seed, random
 from classes.airflow_sampler import AirflowSampler
 from classes.object_parser import parseMovingObjects
+from classes.payload import PAYLOAD_TYPES
 
 
 # Import libraries
@@ -43,7 +43,7 @@ class DummyHoverTraj(DummyDroneTrajectory):
 
 
 RED_COLOR = "0.85 0.2 0.2 1.0"
-BLUE_COLOR = "0.2 0.2 0.85 1.0"
+BLUE_COLOR = "0.2 0.3 0.75 1.0"
 
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -53,25 +53,25 @@ save_filename = "built_scene.xml"
 
 # Set scenario parameters
 drone0_init_pos = np.array([0.0, -1.0, 1.4, 0])  # initial drone position and yaw angle
-load0_mass = 0.10
+load0_mass = 0.20
 load0_size = np.array([.07, .07, .07])
 load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_pos[2] - (2 * load0_size[2]) - .57 ])
 
 # create xml with two drones
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
-drone0_name = scene.add_drone(np.array2string(drone0_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
-                                True, 1)
+drone0_name = scene.add_drone(np.array2string(drone0_init_pos[0:3])[1:-1], "1 0 0 0", BLUE_COLOR, True, "bumblebee",
+                                True, 2)
 
 payload0_name = scene.add_load(np.array2string(load0_initpos)[1:-1], np.array2string(load0_size)[1:-1], str(load0_mass), "1 0 0 0", BLUE_COLOR)
 
 # Set scenario parameters
-drone1_init_pos = np.array([0.0, 1.0, 1.4, 0])  # initial drone position and yaw angle
-load1_mass = 0.10
+drone1_init_pos = np.array([0.0, 1.0, 2.0, 0])  # initial drone position and yaw angle
+load1_mass = 0.20
 load1_size = np.array([.07, .07, .07])
 load1_initpos = np.array([drone1_init_pos[0], drone1_init_pos[1], drone1_init_pos[2] - (2 * load1_size[2]) - .57 ])
 
 drone1_name = scene.add_drone(np.array2string(drone1_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
-                                True, 1)
+                                True, 2)
 
 payload1_name = scene.add_load(np.array2string(load1_initpos)[1:-1], np.array2string(load1_size)[1:-1], str(load1_mass), "1 0 0 0", BLUE_COLOR)
 
@@ -95,7 +95,7 @@ payload1 = simulator.get_MovingObject_by_name_in_xml(payload1_name)
 #tpmocap = simulator.get_MovingMocapObject_by_name_in_xml(tpmocap_name)
 
 drone0_trajectory = DummyHoverTraj(payload0.mass, drone0_init_pos[0:3])
-drone0_controller = GeomControl(drone0.mass, drone0.inertia, simulator.gravity)
+drone0_controller = LtvLqrLoadControl(drone0.mass, drone0.inertia, simulator.gravity)
 drone1_trajectory = DummyHoverTraj(payload1.mass, drone1_init_pos[0:3])
 drone1_controller = GeomControl(drone1.mass, drone1.inertia, simulator.gravity)
 # drone0_controller = LqrLoadControl(drone0.mass, drone0.inertia, simulator.gravity)
@@ -116,7 +116,7 @@ airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, velocity_data_fi
 payload0.set_top_subdivision(30, 30)
 payload0.set_side_subdivision(30, 30, 30)
 
-airflow_sampl1 = AirflowSampler(pressure_data_filename, drone1)
+airflow_sampl1 = AirflowSampler(pressure_data_filename, drone1, velocity_data_filename)
 payload1.set_top_subdivision(30, 30)
 payload1.set_side_subdivision(30, 30, 30)
 
@@ -145,8 +145,8 @@ while not simulator.glfw_window_should_close():
     #    print("M: " + str(torque) + "   " + str(torque_opt))
 
     
-    payload0.set_force_torque(force0 / 2., torque0 / 2.)
-    payload1.set_force_torque(force1 / 2., torque1 / 2.)
+    payload0.set_force_torque(force0 / 1.5, torque0 / 1.5)
+    payload1.set_force_torque(force1 / 1.5, torque1 / 1.5)
     i += 1
 
 simulator.close()

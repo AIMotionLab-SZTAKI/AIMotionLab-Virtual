@@ -38,7 +38,7 @@ class AirflowSampler:
 
 
         self.cube_size_meter = self.cube_size / 100.
-        self.shift_payload_up = 15
+        self.shift_payload_up = 20
         self.shift_payload_up_meter = self.shift_payload_up / 100.
 
         self.index_upper_limit = (float(self.cube_size) - 0.5) / 100.
@@ -56,6 +56,9 @@ class AirflowSampler:
             self.offset_from_drone_center + np.array([cs, cs, cs])
             ]
         )
+
+        self.force_pressure = np.array([0., 0., 0.])
+        self.force_velocity = np.array([0., 0., 0.])
 
     def get_transformed_vertices(self):
         self.vertices_world = mujoco_helper.quat_vect_array_mult(self.drone_orientation, self.vertices)
@@ -78,46 +81,48 @@ class AirflowSampler:
 
         return self.velocity_data[i, j, k]
     
-    def generate_forces(self, payload : Payload):
-
-        payload_subdiv_x, payload_subdiv_y = payload.get_top_subdiv()
-        force_sum = np.array([0., 0., 0.])
-        torque_sum = np.array([0., 0., 0.])
-        selfposition, selforientation = self.get_position_orientation()
-        # converting orientation
-        for x in range(payload_subdiv_x):
-            for y in range(payload_subdiv_y):
-
-                pos, pos_in_own_frame, normal, area = payload.get_top_minirectangle_data_at(x, y)
-
-                # transforming them into pressure volume coordinate system
-                pos_traffed = pos - selfposition
-                pos_traffed = mujoco_helper.qv_mult_passive(selforientation, pos_traffed)
-
-                i = int(round(pos_traffed[0] * 100))
-                j = int(round(pos_traffed[1] * 100))
-                k = int(round(pos_traffed[2] * 100))
-
-                #if y % 20 == 0:
-                #    print(k)
-                k += self.shift_payload_up
-
-                if i < self.cube_size and i >= 0 and\
-                   j < self.cube_size and j >= 0 and\
-                   k < self.cube_size and k >= 0:
-                
-                    pressure = self.sample_pressure_at_idx(i, j, k)
-
-                    # calculate forces
-                    force = mujoco_helper.force_from_pressure(normal, pressure, area)
-                    force_sum += force
-                    # calculate torque
-                    torque_sum += mujoco_helper.torque_from_force(pos_in_own_frame, force)
-
-        return force_sum, torque_sum
+    #def generate_forces(self, payload : Payload):
+#
+    #    payload_subdiv_x, payload_subdiv_y = payload.get_top_subdiv()
+    #    force_sum = np.array([0., 0., 0.])
+    #    torque_sum = np.array([0., 0., 0.])
+    #    selfposition, selforientation = self.get_position_orientation()
+    #    # converting orientation
+    #    for x in range(payload_subdiv_x):
+    #        for y in range(payload_subdiv_y):
+#
+    #            pos, pos_in_own_frame, normal, area = payload.get_top_minirectangle_data_at(x, y)
+#
+    #            # transforming them into pressure volume coordinate system
+    #            pos_traffed = pos - selfposition
+    #            pos_traffed = mujoco_helper.qv_mult_passive(selforientation, pos_traffed)
+#
+    #            i = int(round(pos_traffed[0] * 100))
+    #            j = int(round(pos_traffed[1] * 100))
+    #            k = int(round(pos_traffed[2] * 100))
+#
+    #            #if y % 20 == 0:
+    #            #    print(k)
+    #            k += self.shift_payload_up
+#
+    #            if i < self.cube_size and i >= 0 and\
+    #               j < self.cube_size and j >= 0 and\
+    #               k < self.cube_size and k >= 0:
+    #            
+    #                pressure = self.sample_pressure_at_idx(i, j, k)
+#
+    #                # calculate forces
+    #                force = mujoco_helper.force_from_pressure(normal, pressure, area)
+    #                force_sum += force
+    #                # calculate torque
+    #                torque_sum += mujoco_helper.torque_from_force(pos_in_own_frame, force)
+#
+    #    return force_sum, torque_sum
     
     
     def generate_forces_opt(self, payload : Payload):
+        self.force_pressure = np.array([0., 0., 0.])
+        self.force_velocity = np.array([0., 0., 0.])
         
         force_sum = np.array([0., 0., 0.])
         torque_sum = np.array([0., 0., 0.])
@@ -175,9 +180,14 @@ class AirflowSampler:
         pressure_values = self.pressure_data[indices[:, 0], indices[:, 1], indices[:, 2]]
         forces = mujoco_helper.forces_from_pressures(normal, pressure_values, area)
 
+        if len(forces) > 0:
+            self.force_pressure += forces.sum(axis=0)
+
         if self.use_velocity:
             velocity_values = self.velocity_data[indices[:, 0], indices[:, 1], indices[:, 2]]
             forces_velocity = mujoco_helper.forces_from_velocities(normal, velocity_values, area)
+            if len(forces) > 0:
+                self.force_velocity += forces_velocity.sum(axis=0)
             forces += forces_velocity
 
 

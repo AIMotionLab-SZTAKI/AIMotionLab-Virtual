@@ -95,8 +95,7 @@ class HookedDroneTrajectory(TrajectoryBase):
         ax.set_title(title)
         plt.show(block=False)
 
-    @staticmethod
-    def __compute_yaw_setpoints(init_yaw, final_yaw, duration):
+    def __compute_yaw_setpoints(self, init_yaw, final_yaw, duration):
         T = 0.5 * duration
         A = np.array([[1, 0, 0, 0, 0, 0],
                       [0, 1, 0, 0, 0, 0],
@@ -106,9 +105,9 @@ class HookedDroneTrajectory(TrajectoryBase):
                       [0, 0, 2, 6 * T, 12 * T ** 2, 20 * T ** 3]])
         b = np.array([init_yaw, 0, 0, final_yaw, 0, 0])
         x = np.linalg.inv(A) @ b
-        t = np.arange(0, T, 0.01)
+        t = np.arange(0, T, self.control_step)
         yaw = np.sum(np.array([x[i] * t**i for i in range(6)]), axis=0)
-        return np.hstack((yaw, final_yaw * np.ones(int((duration - T) / 0.01) + 1)))
+        return np.hstack((yaw, final_yaw * np.ones(int((duration - T) / self.control_step) + 1)))
 
     @staticmethod
     def __compute_yaw_spline(t, yaw_setpoints):
@@ -244,7 +243,7 @@ class HookedDroneTrajectory(TrajectoryBase):
         vel_traj = np.hstack([planner_.vel_traj for planner_ in planner])
         T = [planner_.t_arr[-1] for planner_ in planner]
 
-        t = [np.arange(0, T_, 0.01) for T_ in T]
+        t = [np.arange(0, T_, self.control_step) for T_ in T]
         pos, spl = list(zip(*[planner_.eval_trajectory(t_, 0) for planner_, t_ in zip(planner, t)]))
         pos = list(pos)
         yaw_spl = [self.__compute_yaw_spline(t_, yaw_) for t_, yaw_ in zip(t, yaw)]
@@ -279,7 +278,7 @@ class HookedDroneTrajectory(TrajectoryBase):
             tle = 'Duration of trajectory: ' + "{:.2f}".format(sum(T)) + ' seconds'
             self.__plot_3d_trajectory(xyz[:, 0], xyz[:, 1], xyz[:, 2], vel_traj, tle, load_target_pos)
             import matplotlib.pyplot as plt
-            t = np.arange(0, sum(T) + 0.01, 0.01)
+            t = np.arange(0, sum(T) + self.control_step, self.control_step)
             plot_len = min((t.shape[0], pos.shape[0])) - 1
             fig = plt.figure()
             # plt.plot(t[0:plot_len], pos[0:plot_len, 0])
@@ -334,7 +333,7 @@ class HookedDroneTrajectory(TrajectoryBase):
 
         self.states, self.inputs, self.payload_mass = compute_state_trajectory_from_splines(spl, 0.605, 0.01, load_mass,
                                                                                             0.4, 9.81, np.diag(inertia),
-                                                                                            0.01)
+                                                                                            self.control_step)
 
     @staticmethod
     def __save(data, filename='pickle/optimal_trajectory.pickle'):

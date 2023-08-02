@@ -13,16 +13,16 @@ class AirflowSampler:
         #tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float)
         tmp = np.loadtxt(data_file_name_pressure)
         # transform data into 3D array
-        self.cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
-        self.pressure_data = np.reshape(tmp, (self.cube_size, self.cube_size, self.cube_size))
+        self._cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
+        self.pressure_data = np.reshape(tmp, (self._cube_size, self._cube_size, self._cube_size))
         #print(self.pressure_data.shape)
         self.use_velocity = False
         if data_file_name_velocity is not None:
             tmp = np.loadtxt(data_file_name_velocity)
-            if self.cube_size != int(math.pow(tmp.shape[0] + 1, 1/3)):
+            if self._cube_size != int(math.pow(tmp.shape[0] + 1, 1/3)):
                 raise RuntimeError("size of look-up tables must match")
         
-            self.velocity_data = np.reshape(tmp, (self.cube_size, self.cube_size, self.cube_size, 3))
+            self.velocity_data = np.reshape(tmp, (self._cube_size, self._cube_size, self._cube_size, 3))
             self.use_velocity = True
 
         self.drone = owning_drone
@@ -32,18 +32,18 @@ class AirflowSampler:
         self.offset_from_drone_center = np.zeros_like(owning_drone.prop1_joint_pos)
         
         # shifting the cube's middle to the rotor
-        self.offset_from_drone_center[0] -= self.cube_size / 200.0
-        self.offset_from_drone_center[1] -= self.cube_size / 200.0
-        self.offset_from_drone_center[2] -= self.cube_size / 100.0
+        self.offset_from_drone_center[0] -= self._cube_size / 200.0
+        self.offset_from_drone_center[1] -= self._cube_size / 200.0
+        self.offset_from_drone_center[2] -= self._cube_size / 100.0
 
 
-        self.cube_size_meter = self.cube_size / 100.
-        self.shift_payload_up = 15
-        self.shift_payload_up_meter = self.shift_payload_up / 100.
+        self._cube_size_meter = self._cube_size / 100.
+        self._payload_offset_z = 15
+        self._payload_offset_z_meter = self._payload_offset_z / 100.
 
-        self.index_upper_limit = (float(self.cube_size) - 0.5) / 100.
+        self.index_upper_limit = (float(self._cube_size) - 0.5) / 100.
         
-        cs = self.cube_size_meter
+        cs = self._cube_size_meter
         # for visualization purposes
         self.vertices = np.array([
             self.offset_from_drone_center,
@@ -62,6 +62,12 @@ class AirflowSampler:
         self.vertices_world += self.drone_position
 
         return self.vertices_world
+
+    def get_payload_offset_z(self):
+        return self._payload_offset_z
+    
+    def get_payload_offset_z_meter(self):
+        return self._payload_offset_z_meter
     
     def get_position_orientation(self):
 
@@ -78,43 +84,43 @@ class AirflowSampler:
 
         return self.velocity_data[i, j, k]
     
-    def generate_forces(self, payload : Payload):
-
-        payload_subdiv_x, payload_subdiv_y = payload.get_top_subdiv()
-        force_sum = np.array([0., 0., 0.])
-        torque_sum = np.array([0., 0., 0.])
-        selfposition, selforientation = self.get_position_orientation()
-        # converting orientation
-        for x in range(payload_subdiv_x):
-            for y in range(payload_subdiv_y):
-
-                pos, pos_in_own_frame, normal, area = payload.get_top_minirectangle_data_at(x, y)
-
-                # transforming them into pressure volume coordinate system
-                pos_traffed = pos - selfposition
-                pos_traffed = mujoco_helper.qv_mult_passive(selforientation, pos_traffed)
-
-                i = int(round(pos_traffed[0] * 100))
-                j = int(round(pos_traffed[1] * 100))
-                k = int(round(pos_traffed[2] * 100))
-
-                #if y % 20 == 0:
-                #    print(k)
-                k += self.shift_payload_up
-
-                if i < self.cube_size and i >= 0 and\
-                   j < self.cube_size and j >= 0 and\
-                   k < self.cube_size and k >= 0:
-                
-                    pressure = self.sample_pressure_at_idx(i, j, k)
-
-                    # calculate forces
-                    force = mujoco_helper.force_from_pressure(normal, pressure, area)
-                    force_sum += force
-                    # calculate torque
-                    torque_sum += mujoco_helper.torque_from_force(pos_in_own_frame, force)
-
-        return force_sum, torque_sum
+#    def generate_forces(self, payload : Payload):
+#
+#        payload_subdiv_x, payload_subdiv_y = payload.get_top_subdiv()
+#        force_sum = np.array([0., 0., 0.])
+#        torque_sum = np.array([0., 0., 0.])
+#        selfposition, selforientation = self.get_position_orientation()
+#        # converting orientation
+#        for x in range(payload_subdiv_x):
+#            for y in range(payload_subdiv_y):
+#
+#                pos, pos_in_own_frame, normal, area = payload.get_top_minirectangle_data_at(x, y)
+#
+#                # transforming them into pressure volume coordinate system
+#                pos_traffed = pos - selfposition
+#                pos_traffed = mujoco_helper.qv_mult_passive(selforientation, pos_traffed)
+#
+#                i = int(round(pos_traffed[0] * 100))
+#                j = int(round(pos_traffed[1] * 100))
+#                k = int(round(pos_traffed[2] * 100))
+#
+#                #if y % 20 == 0:
+#                #    print(k)
+#                k += self._payload_offset_z
+#
+#                if i < self._cube_size and i >= 0 and\
+#                   j < self._cube_size and j >= 0 and\
+#                   k < self._cube_size and k >= 0:
+#                
+#                    pressure = self.sample_pressure_at_idx(i, j, k)
+#
+#                    # calculate forces
+#                    force = mujoco_helper.force_from_pressure(normal, pressure, area)
+#                    force_sum += force
+#                    # calculate torque
+#                    torque_sum += mujoco_helper.torque_from_force(pos_in_own_frame, force)
+#
+#        return force_sum, torque_sum
     
     
     def generate_forces_opt(self, payload : Payload):
@@ -158,7 +164,7 @@ class AirflowSampler:
         pos_traffed = pos - selfposition
         pos_traffed = mujoco_helper.quat_vect_array_mult_passive(selforientation, pos_traffed)
 
-        pos_traffed[:, 2] += self.shift_payload_up_meter
+        pos_traffed[:, 2] += self._payload_offset_z_meter
         
         #pt = np.copy(pos_traffed)
 

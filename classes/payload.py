@@ -2,7 +2,6 @@ from classes.moving_object import MovingMocapObject, MovingObject
 from util import mujoco_helper
 from enum import Enum
 import numpy as np
-from scipy.spatial.transform import Rotation
 
 
 class PAYLOAD_TYPES(Enum):
@@ -52,116 +51,139 @@ class Payload(MovingObject):
             self.top_surface_area = 2 * self.size[0] * 2 * self.size[1]
             self.side_surface_area_xz = 2 * self.size[0] * 2 * self.size[2]
             self.side_surface_area_yz = 2 * self.size[1] * 2 * self.size[2]
-            self.set_top_subdivision(10, 10)
-            self.set_side_subdivision(10, 10, 10)
+            self.set_top_mesh(10, 10)
+            self.set_side_mesh(10, 10, 10)
+        
+        self._airflow_samplers = []
 
-        #self.__top_minirectangle_positions_world = np.zeros_like(self.__top_minirectangle_positions)
-        #self.__top_minirectangle_positions_own_frame = np.zeros_like(self.__top_minirectangle_positions)
-        #self.__minirectangle_normals = np.zeros_like(self.__top_minirectangle_positions)
-        #self.__minirectangle_areas = np.zeros_like(len(self.__top_minirectangle_positions))
+        #self._top_minirectangle_positions_world = np.zeros_like(self._top_minirectangle_positions)
+        #self._top_minirectangle_positions_own_frame = np.zeros_like(self._top_minirectangle_positions)
+        #self._minirectangle_normals = np.zeros_like(self._top_minirectangle_positions)
+        #self._minirectangle_areas = np.zeros_like(len(self._top_minirectangle_positions))
 
     
     def update(self, i, control_step):
         
-        return
+        if len(self._airflow_samplers) > 0:
+            force = np.array([0.0, 0.0, 0.0])
+            torque = np.array([0.0, 0.0, 0.0])
+            for airflow_sampler in self._airflow_samplers:
+                f, t = airflow_sampler.generate_forces_opt(self)
+                force += f
+                torque += t
+            self.set_force_torque(force / 1.5, torque / 1.5)
+    
+    def add_airflow_sampler(self, airflow_sampler):
+        from classes.airflow_sampler import AirflowSampler
+        if isinstance(airflow_sampler, AirflowSampler):
+            self._airflow_samplers += [airflow_sampler]
+        else:
+            raise Exception("the received object is not of type AirflowSampler")
     
     def get_qpos(self):
         return np.append(self.sensor_posimeter, self.sensor_orimeter)
     
     def get_top_subdiv(self):
-        return self.__top_subdivision_x, self.__top_subdivision_y
+        return self._top_subdivision_x, self._top_subdivision_y
 
-    def set_top_subdivision(self, top_subdivision_x, top_subdivision_y):
-        self.__top_subdivision_x = top_subdivision_x
-        self.__top_subdivision_y = top_subdivision_y
-        self.top_miniractangle_area = self.top_surface_area / (top_subdivision_x * top_subdivision_y)
-        self.__calc_top_minirectangle_positions()
+    def set_top_mesh(self, top_subdivision_x, top_subdivision_y):
+        
+        if self.geom.type == mujoco.mjtGeom.mjGEOM_BOX:
+            self._top_subdivision_x = top_subdivision_x
+            self._top_subdivision_y = top_subdivision_y
+            self.top_miniractangle_area = self.top_surface_area / (top_subdivision_x * top_subdivision_y)
+            self._calc_top_minirectangle_positions()
+        else:
+            raise Exception("Payload type is not box")
 
-    def set_side_subdivision(self, subdivision_x, subdivision_y, subdivision_z):
-        self.__side_subdivision_x = subdivision_x
-        self.__side_subdivision_y = subdivision_y
-        self.__side_subdivision_z = subdivision_z
-        self.side_miniractangle_area_xz = self.side_surface_area_xz / (subdivision_x * subdivision_z)
-        self.side_miniractangle_area_yz = self.side_surface_area_yz / (subdivision_y * subdivision_z)
-        self.__calc_side_minirectangle_positions()
+    def set_side_mesh(self, subdivision_x, subdivision_y, subdivision_z):
+        if self.geom.type == mujoco.mjtGeom.mjGEOM_BOX:
+            self._side_subdivision_x = subdivision_x
+            self._side_subdivision_y = subdivision_y
+            self._side_subdivision_z = subdivision_z
+            self.side_miniractangle_area_xz = self.side_surface_area_xz / (subdivision_x * subdivision_z)
+            self.side_miniractangle_area_yz = self.side_surface_area_yz / (subdivision_y * subdivision_z)
+            self._calc_side_minirectangle_positions()
+        else:
+            raise Exception("Payload type is not box")
     
-    def __calc_top_minirectangle_positions(self):
+    def _calc_top_minirectangle_positions(self):
         """ 3D vectors pointing from the center of the box, to the center of the small rectangles """
 
-        self.__top_minirectangle_positions = np.zeros((self.__top_subdivision_x, self.__top_subdivision_y, 3))
+        self._top_minirectangle_positions = np.zeros((self._top_subdivision_x, self._top_subdivision_y, 3))
 
 
         pos_z = self.size[2] # no need to divide by 2, because it's half
-        division_size_x = (2 * self.size[0]) / self.__top_subdivision_x
-        division_size_y = (2 * self.size[1]) / self.__top_subdivision_y
+        division_size_x = (2 * self.size[0]) / self._top_subdivision_x
+        division_size_y = (2 * self.size[1]) / self._top_subdivision_y
 
-        self.__top_minirectangle_positions_raw = np.zeros((self.__top_subdivision_x * self.__top_subdivision_y, 3))
+        self._top_minirectangle_positions_raw = np.zeros((self._top_subdivision_x * self._top_subdivision_y, 3))
 
-        for i in range(self.__top_subdivision_x):
+        for i in range(self._top_subdivision_x):
             distance_x = i * division_size_x + (division_size_x / 2.0)
             pos_x = distance_x - self.size[0]
 
-            for j in range(self.__top_subdivision_y):
+            for j in range(self._top_subdivision_y):
                 
                 distance_y = j * division_size_y + (division_size_y / 2.0)
                 pos_y = distance_y - self.size[1]
-                self.__top_minirectangle_positions[i, j] = np.array((pos_x, pos_y, pos_z))
-                self.__top_minirectangle_positions_raw[(i * self.__top_subdivision_x) + j] = np.array((pos_x, pos_y, pos_z)) # store the same data in a 1D array
+                self._top_minirectangle_positions[i, j] = np.array((pos_x, pos_y, pos_z))
+                self._top_minirectangle_positions_raw[(i * self._top_subdivision_x) + j] = np.array((pos_x, pos_y, pos_z)) # store the same data in a 1D array
 
-    def __calc_side_minirectangle_positions(self):
+    def _calc_side_minirectangle_positions(self):
         """ 3D vectors pointing from the center of the box, to the center of the small rectangles on the sides """
 
-        self.__side_minirectangle_positions_xz_neg_raw = np.zeros((self.__side_subdivision_x * self.__side_subdivision_z, 3))
-        self.__side_minirectangle_positions_xz_pos_raw = np.zeros((self.__side_subdivision_x * self.__side_subdivision_z, 3))
-        self.__side_minirectangle_positions_yz_neg_raw = np.zeros((self.__side_subdivision_y * self.__side_subdivision_z, 3))
-        self.__side_minirectangle_positions_yz_pos_raw = np.zeros((self.__side_subdivision_y * self.__side_subdivision_z, 3))
+        self._side_minirectangle_positions_xz_neg_raw = np.zeros((self._side_subdivision_x * self._side_subdivision_z, 3))
+        self._side_minirectangle_positions_xz_pos_raw = np.zeros((self._side_subdivision_x * self._side_subdivision_z, 3))
+        self._side_minirectangle_positions_yz_neg_raw = np.zeros((self._side_subdivision_y * self._side_subdivision_z, 3))
+        self._side_minirectangle_positions_yz_pos_raw = np.zeros((self._side_subdivision_y * self._side_subdivision_z, 3))
 
         # xz plane negative and positive side
         pos_y = self.size[1]
-        div_size_x = (2 * self.size[0]) / self.__side_subdivision_x
-        div_size_z = (2 * self.size[2]) / self.__side_subdivision_z
+        div_size_x = (2 * self.size[0]) / self._side_subdivision_x
+        div_size_z = (2 * self.size[2]) / self._side_subdivision_z
         
-        for i in range(self.__side_subdivision_x):
+        for i in range(self._side_subdivision_x):
             distance_x = i * div_size_x + (div_size_x / 2.0)
             pos_x = distance_x - self.size[0]
 
-            for j in range(self.__side_subdivision_z):
+            for j in range(self._side_subdivision_z):
                 
                 distance_z = j * div_size_z + (div_size_z / 2.0)
                 pos_z = distance_z - self.size[2]
 
-                self.__side_minirectangle_positions_xz_neg_raw[(i * self.__side_subdivision_z) + j] = np.array((pos_x, -pos_y, pos_z))
-                self.__side_minirectangle_positions_xz_pos_raw[(i * self.__side_subdivision_z) + j] = np.array((pos_x, pos_y, pos_z))
+                self._side_minirectangle_positions_xz_neg_raw[(i * self._side_subdivision_z) + j] = np.array((pos_x, -pos_y, pos_z))
+                self._side_minirectangle_positions_xz_pos_raw[(i * self._side_subdivision_z) + j] = np.array((pos_x, pos_y, pos_z))
         
         
         # yz plane negative and positive side
         pos_x = self.size[0]
-        div_size_y = (2 * self.size[1]) / self.__side_subdivision_y
-        div_size_z = (2 * self.size[2]) / self.__side_subdivision_z
+        div_size_y = (2 * self.size[1]) / self._side_subdivision_y
+        div_size_z = (2 * self.size[2]) / self._side_subdivision_z
         
-        for i in range(self.__side_subdivision_y):
+        for i in range(self._side_subdivision_y):
             distance_y = i * div_size_y + (div_size_y / 2.0)
             pos_y = distance_y - self.size[1]
 
-            for j in range(self.__side_subdivision_z):
+            for j in range(self._side_subdivision_z):
                 
                 distance_z = j * div_size_z + (div_size_z / 2.0)
                 pos_z = distance_z - self.size[2]
 
-                self.__side_minirectangle_positions_yz_neg_raw[(i * self.__side_subdivision_z) + j] = np.array((-pos_x, pos_y, pos_z))
-                self.__side_minirectangle_positions_yz_pos_raw[(i * self.__side_subdivision_z) + j] = np.array((pos_x, pos_y, pos_z))
+                self._side_minirectangle_positions_yz_neg_raw[(i * self._side_subdivision_z) + j] = np.array((-pos_x, pos_y, pos_z))
+                self._side_minirectangle_positions_yz_pos_raw[(i * self._side_subdivision_z) + j] = np.array((pos_x, pos_y, pos_z))
 
 
-    def __get_top_position_at(self, i, j):
+    def _get_top_position_at(self, i, j):
         """ get the center in world coordinates of a small rectangle on the top of the box """
-        return self.__top_minirectangle_positions[i, j]
+        return self._top_minirectangle_positions[i, j]
     
     #def get_top_surface_normal(self):
 
         # rotate (0, 0, 1) vector by rotation quaternion
         #rot_matrix = Rotation.from_quat(self.sensor_orimeter)
         #return rot_matrix.apply(np.array((0, 0, 1)))
-    #    return np.array((0, 0, 1))
+        #return np.array((0, 0, 1))
     
     def get_top_minirectangle_data_at(self, i, j):
 
@@ -175,20 +197,20 @@ class Payload(MovingObject):
         """
 
         # rotate position with respect to the center of the box
-        position_in_own_frame = mujoco_helper.qv_mult(self.sensor_orimeter, self.__get_top_position_at(i, j))
+        position_in_own_frame = mujoco_helper.qv_mult(self.sensor_orimeter, self._get_top_position_at(i, j))
         # add position of the center
         position = self.sensor_posimeter + position_in_own_frame
         normal = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((0, 0, 1)))
         return position, position_in_own_frame, normal, self.top_miniractangle_area
     
     def get_top_minirectangle_data(self):
-        pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self.__top_minirectangle_positions_raw)
+        pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._top_minirectangle_positions_raw)
         normal = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((0, 0, 1)))
         return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normal, self.top_miniractangle_area
 
     def get_side_xz_minirectangle_data(self):
-        pos_in_own_frame_negative = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self.__side_minirectangle_positions_xz_neg_raw)
-        pos_in_own_frame_positive = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self.__side_minirectangle_positions_xz_pos_raw)
+        pos_in_own_frame_negative = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._side_minirectangle_positions_xz_neg_raw)
+        pos_in_own_frame_positive = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._side_minirectangle_positions_xz_pos_raw)
         normal_negative = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((0, -1, 0)))
         normal_positive = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((0, 1, 0)))
 
@@ -200,8 +222,8 @@ class Payload(MovingObject):
 
     
     def get_side_yz_minirectangle_data(self):
-        pos_in_own_frame_negative = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self.__side_minirectangle_positions_yz_neg_raw)
-        pos_in_own_frame_positive = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self.__side_minirectangle_positions_yz_pos_raw)
+        pos_in_own_frame_negative = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._side_minirectangle_positions_yz_neg_raw)
+        pos_in_own_frame_positive = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._side_minirectangle_positions_yz_pos_raw)
         normal_negative = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((-1, 0, 0)))
         normal_positive = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((1, 0, 0)))
 

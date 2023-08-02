@@ -128,7 +128,7 @@ class Payload(MovingObject):
                 distance_y = j * division_size_y + (division_size_y / 2.0)
                 pos_y = distance_y - self.size[1]
                 self._top_minirectangle_positions[i, j] = np.array((pos_x, pos_y, pos_z))
-                self._top_minirectangle_positions_raw[(i * self._top_subdivision_x) + j] = np.array((pos_x, pos_y, pos_z)) # store the same data in a 1D array
+                self._top_minirectangle_positions_raw[(i * self._top_subdivision_y) + j] = np.array((pos_x, pos_y, pos_z)) # store the same data in a 1D array
 
     def _calc_side_minirectangle_positions(self):
         """ 3D vectors pointing from the center of the box, to the center of the small rectangles on the sides """

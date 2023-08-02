@@ -37,9 +37,9 @@ class Payload(MovingObject):
         # supporting only rectangular objects for now
         self.geom = self.model.geom(name_in_xml)
         
-        free_joint = self.data.joint(self.name_in_xml)
-        self.qfrc_passive = free_joint.qfrc_passive
-        self.qfrc_applied = free_joint.qfrc_applied
+        self.free_joint = self.data.joint(self.name_in_xml)
+        self.qfrc_passive = self.free_joint.qfrc_passive
+        self.qfrc_applied = self.free_joint.qfrc_applied
 
         
         self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data

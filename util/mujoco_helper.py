@@ -130,6 +130,10 @@ def get_mocapbody_name_list(mjmodel: mujoco.MjModel):
 
     return name_list
 
+def length(vector):
+
+    return math.sqrt(vector[0]**2 + vector[1]**2 + vector[2]**2)
+
 def euler_from_quaternion(w, x, y, z):
     """
     Convert a quaternion into euler angles (roll, pitch, yaw)

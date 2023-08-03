@@ -187,8 +187,8 @@ class AirflowSampler:
             forces += forces_velocity
 
 
-        if pos_in_own_frame.shape != forces.shape:
-            print("shapes not equal")
+        #if pos_in_own_frame.shape != forces.shape:
+        #    print("shapes not equal")
 
         torques = mujoco_helper.torque_from_force(pos_in_own_frame, forces)
 

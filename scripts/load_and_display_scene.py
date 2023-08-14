@@ -3,7 +3,7 @@ from classes.active_simulation import ActiveSimulator
 import tkinter
 from tkinter import filedialog
 
-from classes.object_parser import parseMovingObjects, parseMovingMocapObjects
+from classes.object_parser import parseMovingObjects, parseMocapObjects
 
 
 # open the base on which we'll build
@@ -13,7 +13,7 @@ xmlBaseFileName = "scene.xml"
 
 # create list of parsers
 virt_parsers = [parseMovingObjects]
-mocap_parsers = [parseMovingMocapObjects]
+mocap_parsers = [parseMocapObjects]
 simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
 
 

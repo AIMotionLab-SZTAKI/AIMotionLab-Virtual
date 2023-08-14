@@ -92,7 +92,7 @@ drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
 payload0 = simulator.get_MovingObject_by_name_in_xml(payload0_name)
 drone1 = simulator.get_MovingObject_by_name_in_xml(drone1_name)
 payload1 = simulator.get_MovingObject_by_name_in_xml(payload1_name)
-#tpmocap = simulator.get_MovingMocapObject_by_name_in_xml(tpmocap_name)
+#tpmocap = simulator.get_MocapObject_by_name_in_xml(tpmocap_name)
 
 drone0_trajectory = DummyHoverTraj(payload0.mass, drone0_init_pos[0:3])
 drone0_controller = LqrLoadControl(drone0.mass, drone0.inertia, simulator.gravity)

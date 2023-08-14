@@ -13,7 +13,7 @@ from util import mujoco_helper
 from gui.vehicle_name_gui import VehicleNameGui
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
-from classes.moving_object import MovingMocapObject
+from classes.moving_object import MocapObject
 import ffmpeg
 
 can_import_motioncapture = sys.version_info.major == 3 and sys.version_info.minor < 10
@@ -201,7 +201,7 @@ class Display:
 
         return None
 
-    def get_MovingMocapObject_by_name_in_xml(self, name):
+    def get_MocapObject_by_name_in_xml(self, name):
 
         for i in range(len(self.all_real_vehicles)):
 
@@ -574,9 +574,9 @@ class Display:
     def set_vehicle_names(self):
         
         if len(self.all_real_vehicles) > 0:
-            object_names = MovingMocapObject.get_object_names_motive(self.all_real_vehicles)
-            object_labels = MovingMocapObject.get_object_names_in_xml(self.all_real_vehicles)
+            object_names = MocapObject.get_object_names_motive(self.all_real_vehicles)
+            object_labels = MocapObject.get_object_names_in_xml(self.all_real_vehicles)
             gui = VehicleNameGui(vehicle_labels=object_labels, vehicle_names=object_names)
             gui.show()
-            MovingMocapObject.set_object_names_motive(self.all_real_vehicles, gui.vehicle_names)
+            MocapObject.set_object_names_motive(self.all_real_vehicles, gui.vehicle_names)
 

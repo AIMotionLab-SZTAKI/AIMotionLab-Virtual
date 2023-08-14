@@ -2,7 +2,7 @@ import math
 import mujoco
 import numpy as np
 from enum import Enum
-from classes.moving_object import MovingObject, MovingMocapObject
+from classes.moving_object import MovingObject, MocapObject
 from util import mujoco_helper
 from scipy.spatial.transform import Rotation
 
@@ -350,7 +350,7 @@ class DroneHooked(Drone):
             self.controllers[k].mass = self.mass + self.load_mass
 
 ################################## DroneMocap ##################################
-class DroneMocap(MovingMocapObject):
+class DroneMocap(MocapObject):
     def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, name_in_xml, name_in_motive):
 
         super().__init__(name_in_xml, name_in_motive)
@@ -427,7 +427,7 @@ class DroneMocapHooked(DroneMocap):
         print("hook name in xml: " + self.hook_name_in_xml)
 
 
-class HookMocap(MovingMocapObject):
+class HookMocap(MocapObject):
 
     def __init__(self, model, data, hook_mocapid, name_in_xml, name_in_motive) -> None:
         super().__init__(name_in_xml, name_in_motive)

@@ -31,7 +31,7 @@ def parseMovingObjects(data: mujoco.MjData, model: mujoco.MjModel):
     return moving_objects
 
 
-def parseMovingMocapObjects(data: mujoco.MjData, model: mujoco.MjModel):
+def parseMocapObjects(data: mujoco.MjData, model: mujoco.MjModel):
 
     mocap_objects = []
 
@@ -57,7 +57,7 @@ def parseMovingMocapObjects(data: mujoco.MjData, model: mujoco.MjModel):
             class_to_be_created = globals()[split_name[0]]
         except Exception as e:
             print()
-            print("[parseMovingMocapObjects] Could not find class for ", e)
+            print("[parseMocapObjects] Could not find class for ", e)
             continue
 
         mocapid = model.body(name).mocapid[0]

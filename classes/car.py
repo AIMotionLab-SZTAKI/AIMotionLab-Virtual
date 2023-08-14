@@ -3,7 +3,7 @@ import numpy as np
 import util.mujoco_helper as mh
 import math
 from enum import Enum
-from classes.moving_object import MovingObject, MovingMocapObject
+from classes.moving_object import MovingObject, MocapObject
 import os
 from util import mujoco_helper
 
@@ -281,7 +281,7 @@ class Car(MovingObject):
             #self.wheelfr.ctrl_steer[0] = 0
 
 
-class CarMocap(MovingMocapObject):
+class CarMocap(MocapObject):
 
     def __init__(self, model, data, mocapid, name_in_xml, name_in_motive) -> None:
         super().__init__(name_in_xml, name_in_motive)

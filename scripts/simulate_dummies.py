@@ -5,7 +5,7 @@ from classes.active_simulation import ActiveSimulator
 from util import xml_generator
 
 from classes.payload import PAYLOAD_TYPES
-from classes.object_parser import parseMovingObjects, parseMovingMocapObjects
+from classes.object_parser import parseMovingObjects, parseMocapObjects
 
 from classes.controller_base import DummyDroneController, DummyCarController
 from classes.trajectory_base import DummyDroneTrajectory, DummyCarTrajectory
@@ -38,7 +38,7 @@ scene.save_xml(os.path.join(xml_path, save_filename))
 
 # create list of parsers
 virt_parsers = [parseMovingObjects]
-mocap_parsers = [parseMovingMocapObjects]
+mocap_parsers = [parseMocapObjects]
 
 
 control_step, graphics_step = 0.01, 0.02
@@ -50,7 +50,7 @@ simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, vir
 # grabbing the drone and the car
 drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
 car0 = simulator.get_MovingObject_by_name_in_xml(car0_name)
-mocap_load0 = simulator.get_MovingMocapObject_by_name_in_xml(mocap_load0_name)
+mocap_load0 = simulator.get_MocapObject_by_name_in_xml(mocap_load0_name)
 load0 = simulator.get_MovingObject_by_name_in_xml(load0_name)
 
 # creating trajectory and controller for drone0

@@ -57,7 +57,7 @@ class MovingObject:
 
 
 
-class MovingMocapObject:
+class MocapObject:
     """ Base class for any mocap vehicle or object
     """
 
@@ -92,7 +92,7 @@ class MovingMocapObject:
     def set_object_names_motive(objects, names):
         
         #if len(objects) != len(names):
-        #    print("[MovingMocapObject.set_object_names_motive()] Error: too many or not enough object names provided")
+        #    print("[MocapObject.set_object_names_motive()] Error: too many or not enough object names provided")
         #    return
         #j = 0
         for i in range(len(objects)):

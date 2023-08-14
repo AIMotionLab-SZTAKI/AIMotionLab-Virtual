@@ -212,7 +212,7 @@ if self.connect_to_optitrack:
         # only update real vehicles
         vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
 
-        vehicle_to_update = MovingMocapObject.get_object_by_name_in_motive(self.all_real_vehicles, name)
+        vehicle_to_update = MocapObject.get_object_by_name_in_motive(self.all_real_vehicles, name)
 
         if vehicle_to_update is not None:
             vehicle_to_update.update(obj.position, vehicle_orientation)

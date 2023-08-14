@@ -1,4 +1,4 @@
-from classes.moving_object import MovingMocapObject, MovingObject
+from classes.moving_object import MocapObject, MovingObject
 from util import mujoco_helper
 from enum import Enum
 import numpy as np
@@ -8,7 +8,7 @@ class PAYLOAD_TYPES(Enum):
     Box = "Box"
     Teardrop = "Teardrop"
 
-class PayloadMocap(MovingMocapObject):
+class PayloadMocap(MocapObject):
 
     def __init__(self, model, data, mocapid, name_in_xml, name_in_motive) -> None:
         super().__init__(name_in_xml, name_in_motive)

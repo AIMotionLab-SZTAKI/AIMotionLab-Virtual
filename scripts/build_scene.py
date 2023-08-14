@@ -5,7 +5,7 @@ from gui.building_input_gui import BuildingInputGui
 from gui.vehicle_input_gui import VehicleInputGui
 from gui.payload_input_gui import PayloadInputGui
 from classes.payload import PAYLOAD_TYPES
-from classes.object_parser import parseMovingObjects, parseMovingMocapObjects
+from classes.object_parser import parseMovingObjects, parseMocapObjects
 
 
 # open the base on which we'll build
@@ -19,7 +19,7 @@ build_based_on_optitrack = False
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 
 virt_parsers = [parseMovingObjects]
-mocap_parsers = [parseMovingMocapObjects]
+mocap_parsers = [parseMocapObjects]
 simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
 #simulator.set_drone_names()
 

@@ -1,5 +1,5 @@
 import os
-from classes.passive_display import PassiveDisplay
+from classes.active_simulation import ActiveSimulator
 import tkinter
 from tkinter import filedialog
 
@@ -14,7 +14,7 @@ xmlBaseFileName = "scene.xml"
 # create list of parsers
 virt_parsers = [parseMovingObjects]
 mocap_parsers = [parseMovingMocapObjects]
-display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, virt_parsers, mocap_parsers, False)
+display = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
 
 
 def load_model():
@@ -29,7 +29,11 @@ def load_model():
 def main():
     display.set_key_l_callback(load_model)
     
-    display.run()
+    i = 0
+    while not display.glfw_window_should_close():
+
+        display.update(i)
+        i += 1
 
 
 if __name__ == '__main__':

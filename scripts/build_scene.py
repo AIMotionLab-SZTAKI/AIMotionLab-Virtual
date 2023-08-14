@@ -1,6 +1,6 @@
 import os
 from util import xml_generator
-from classes.passive_display import PassiveDisplay
+from classes.active_simulation import ActiveSimulator
 from gui.building_input_gui import BuildingInputGui
 from gui.vehicle_input_gui import VehicleInputGui
 from gui.payload_input_gui import PayloadInputGui
@@ -20,7 +20,7 @@ scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 
 virt_parsers = [parseMovingObjects]
 mocap_parsers = [parseMovingMocapObjects]
-display = PassiveDisplay(os.path.join(xml_path, xmlBaseFileName), 0.02, virt_parsers, mocap_parsers, False)
+display = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
 #display.set_drone_names()
 
 drone_counter = 0
@@ -281,8 +281,11 @@ def main():
     if build_based_on_optitrack:
         build_from_optitrack()
 
+    i = 0
+    while not display.glfw_window_should_close():
 
-    display.run()
+        display.update(i)
+        i += 1
 
 if __name__ == '__main__':
     main()

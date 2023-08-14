@@ -1,6 +1,4 @@
 import math
-from pickle import FALSE
-from re import M
 import mujoco
 import numpy as np
 from enum import Enum

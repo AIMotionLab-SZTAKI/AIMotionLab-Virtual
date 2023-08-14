@@ -195,4 +195,4 @@ ax.axis("equal")
 #pressure_sampl.generate_forces_opt(payload0)
 
 #plt.plot(log_ff)
-#plt.show()
+plt.show()

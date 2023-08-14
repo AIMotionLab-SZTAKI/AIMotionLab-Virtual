@@ -70,8 +70,8 @@ if __name__ == '__main__':
     velocity_lut_path = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_velocity_shifted.txt")
 
     airflow_sampl = AirflowSampler(pressure_lut_path, drone0, velocity_lut_path)
-    payload0.set_top_subdivision(30, 30)
-    payload0.set_side_subdivision(30, 30, 30)
+    payload0.set_top_mesh(30, 30)
+    payload0.set_side_mesh(30, 30, 30)
 
     # start simulation
     i = 0

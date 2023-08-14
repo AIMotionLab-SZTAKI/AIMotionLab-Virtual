@@ -14,7 +14,7 @@ xmlBaseFileName = "scene.xml"
 # create list of parsers
 virt_parsers = [parseMovingObjects]
 mocap_parsers = [parseMovingMocapObjects]
-display = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
+simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
 
 
 def load_model():
@@ -22,18 +22,20 @@ def load_model():
     filetypes = (('XML files', '*.xml'),('all files', '*.*'))
     filename = filedialog.askopenfilename(title="Open XML", initialdir=xml_path, filetypes=filetypes)
     if filename:
-        display.reload_model(filename)
+        simulator.reload_model(filename)
 
     tkinter.Tk().destroy()
 
 def main():
-    display.set_key_l_callback(load_model)
+    simulator.set_key_l_callback(load_model)
     
     i = 0
-    while not display.glfw_window_should_close():
+    while not simulator.glfw_window_should_close():
 
-        display.update(i)
+        simulator.update(i)
         i += 1
+    
+    simulator.close()
 
 
 if __name__ == '__main__':

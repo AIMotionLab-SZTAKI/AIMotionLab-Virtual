@@ -114,7 +114,7 @@ class SceneXmlGenerator:
             if type == "bumblebee":
 
                 if is_hooked:
-                    name = "DroneHooked_bumblebee_" + str(self.__virtbumblebee_hooked_cntr)
+                    name = "BumblebeeHooked_" + str(self.__virtbumblebee_hooked_cntr)
 
                     drone = self.__add_bumblebee(name, pos, quat, color, True, hook_dof)
 
@@ -123,14 +123,14 @@ class SceneXmlGenerator:
                 
                 else:
 
-                    name = "Drone_bumblebee_" + str(self.__virtbumblebee_cntr)
+                    name = "Bumblebee_" + str(self.__virtbumblebee_cntr)
                     drone = self.__add_bumblebee(name, pos, quat, color)
 
                     self.__virtbumblebee_cntr += 1
                     return name
 
             elif type == "crazyflie":
-                name = "Drone_crazyflie_" + str(self.__virtcrazyflie_cntr)
+                name = "Crazyflie_" + str(self.__virtcrazyflie_cntr)
 
                 drone = self.__add_crazyflie(name, pos, quat, color)
 

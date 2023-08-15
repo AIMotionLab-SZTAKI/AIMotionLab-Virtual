@@ -37,11 +37,6 @@ class Drone(MovingObject):
 
         self.data = data
 
-        if "crazyflie" in name_in_xml:
-            self.type = DRONE_TYPES.CRAZYFLIE
-        elif "bumblebee" in name_in_xml:
-            self.type = DRONE_TYPES.BUMBLEBEE
-
         free_joint = self.data.joint(self.name_in_xml)
 
         self.qpos = free_joint.qpos
@@ -92,24 +87,15 @@ class Drone(MovingObject):
             "ang_vel" : self.sensor_gyro,
             "ang_acc" : self.sensor_ang_accelerometer
         }
-
-        if self.type == DRONE_TYPES.CRAZYFLIE:
-            self.Lx1 = float(CRAZYFLIE_PROP.OFFSET.value)
-            self.Lx2 = float(CRAZYFLIE_PROP.OFFSET.value)
-            self.Ly = float(CRAZYFLIE_PROP.OFFSET.value)
-            self.motor_param = float(CRAZYFLIE_PROP.MOTOR_PARAM.value)
         
-        elif self.type == DRONE_TYPES.BUMBLEBEE:
-            self.Lx1 = float(BUMBLEBEE_PROP.OFFSET_X1.value)
-            self.Lx2 = float(BUMBLEBEE_PROP.OFFSET_X2.value)
-            self.Ly = float(BUMBLEBEE_PROP.OFFSET_Y.value)
-            self.motor_param = float(BUMBLEBEE_PROP.MOTOR_PARAM.value)
-
+    
+    def _create_input_matrix(self):
 
         self.input_mtx = np.array([[1/4, -1/(4*self.Ly), -1/(4*self.Lx2),  1 / (4*self.motor_param)],
                                   [1/4, -1/(4*self.Ly),   1/(4*self.Lx1), -1 / (4*self.motor_param)],
                                   [1/4,  1/(4*self.Ly),   1/(4*self.Lx1),  1 / (4*self.motor_param)],
                                   [1/4,  1/(4*self.Ly),  -1/(4*self.Lx2), -1 / (4*self.motor_param)]])
+
     
     def get_state(self):
 
@@ -236,7 +222,32 @@ class Drone(MovingObject):
         
         return hook_names
 
-    
+
+class Crazyflie(Drone):
+
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml):
+        super().__init__(model, data, name_in_xml)
+
+        self.Lx1 = float(CRAZYFLIE_PROP.OFFSET.value)
+        self.Lx2 = float(CRAZYFLIE_PROP.OFFSET.value)
+        self.Ly = float(CRAZYFLIE_PROP.OFFSET.value)
+        self.motor_param = float(CRAZYFLIE_PROP.MOTOR_PARAM.value)
+
+        self._create_input_matrix()
+
+class Bumblebee(Drone):
+
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml):
+        super().__init__(model, data, name_in_xml)
+        self.Lx1 = float(BUMBLEBEE_PROP.OFFSET_X1.value)
+        self.Lx2 = float(BUMBLEBEE_PROP.OFFSET_X2.value)
+        self.Ly = float(BUMBLEBEE_PROP.OFFSET_Y.value)
+        self.motor_param = float(BUMBLEBEE_PROP.MOTOR_PARAM.value)
+
+        self._create_input_matrix()
+
+
+
 
 
 ################################## DroneHooked ##################################
@@ -274,9 +285,6 @@ class DroneHooked(Drone):
             #     self.sensor_hook_quat = np.array([0, 0, 0, 1])
             self.state["pole_eul"] = np.zeros(2) #Rotation.from_quat(np.roll(np.array(self.sensor_hook_quat), -1)).as_euler('XYZ')[0:2]
             self.state["pole_ang_vel"] = np.array(self.sensor_hook_ang_vel)[0:2]
-
-        self.load_mass = 0.0
-        self.rod_length = 0.4
 
     
     def get_state(self):
@@ -349,6 +357,26 @@ class DroneHooked(Drone):
         for k, v in self.controllers.items():
             self.controllers[k].mass = self.mass + self.load_mass
 
+
+
+class BumblebeeHooked(DroneHooked):
+
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml):
+        super().__init__(model, data, name_in_xml)
+
+        self.Lx1 = float(BUMBLEBEE_PROP.OFFSET_X1.value)
+        self.Lx2 = float(BUMBLEBEE_PROP.OFFSET_X2.value)
+        self.Ly = float(BUMBLEBEE_PROP.OFFSET_Y.value)
+        self.motor_param = float(BUMBLEBEE_PROP.MOTOR_PARAM.value)
+
+        self.load_mass = 0.0
+        self.rod_length = 0.4
+        
+        self._create_input_matrix()
+
+
+
+
 ################################## DroneMocap ##################################
 class DroneMocap(MocapObject):
     def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, name_in_xml, name_in_motive):
@@ -366,7 +394,6 @@ class DroneMocap(MocapObject):
         self.prop4_jnt = data.joint(name_in_xml + "_prop4")
 
         self.set_propeller_speed(21.6)
-        
 
     def get_pos(self):
         return self.data.mocap_pos[self.mocapid]

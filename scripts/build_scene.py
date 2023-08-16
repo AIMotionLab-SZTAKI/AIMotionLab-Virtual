@@ -187,8 +187,8 @@ def add_load():
 
 
 def save_and_reload_model(scene, simulator, save_filename, vehicle_names_in_motive=None):
-        scene.save_xml(save_filename)
-        simulator.reload_model(save_filename, vehicle_names_in_motive)
+    scene.save_xml(save_filename)
+    simulator.reload_model(save_filename, vehicle_names_in_motive)
 
 def clear_scene():
     global scene, simulator, drone_counter, landing_zone_counter, pole_counter

@@ -1,3 +1,5 @@
+import numpy as np
+
 class MovingObject:
     """ Base class for any moving vehicle or object
     """
@@ -61,7 +63,11 @@ class MocapObject:
     """ Base class for any mocap vehicle or object
     """
 
-    def __init__(self, name_in_xml, name_in_motive) -> None:
+    def __init__(self, model, data, mocapid, name_in_xml, name_in_motive) -> None:
+
+        self.model = model
+        self.data = data
+        self.mocapid = mocapid
         self.name_in_xml = name_in_xml
         self.name_in_motive = name_in_motive
     
@@ -77,6 +83,10 @@ class MocapObject:
     def print_info(self):
         print("Mocap")
         self.print_names()
+
+
+    def get_qpos(self):
+        return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
     
 
     @staticmethod

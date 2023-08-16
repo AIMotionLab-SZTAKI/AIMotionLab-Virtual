@@ -82,6 +82,10 @@ class Car(MovingObject):
         self.steer_angle = 0
         self.max_steer = 0.5
     
+    def set_ackermann_parameters(self, WB, TW):
+        self.WB = WB
+        self.TW = TW
+    
     def get_qpos(self):
         return self.qpos
     
@@ -90,36 +94,59 @@ class Car(MovingObject):
 
     def update(self, i, control_step):
         
-        #self.calc_torque()
-
-        #self.set_torque()
-
-        if self.trajectory is not None:
-            state = self.get_state()
-
-            setpoint = self.trajectory.evaluate(state, i, self.data.time, control_step)
-
-            self.update_controller_type(state, setpoint, self.data.time, i)
-        
-            if self.controller is not None:
-                ctrl = self.controller.compute_control(state, setpoint, self.data.time)
-            
-            if ctrl is not None:
-                self.set_ctrl(ctrl)
-
-
-        #self.control_by_keyboard()
-        #print(self.qpos)
+        # implement this in subclass
+        return
     
     def set_ctrl(self, ctrl):
         self.d = ctrl[0]
         self.delta = ctrl[1]
 
-        self.calc_torque()
-        self.set_torque()
+        self.set_torque(self.calc_torque())
 
         self.set_steer_angle()
 
+
+
+    def get_state(self):
+        # x, y
+        # heading angle phi (with respect to x axis)
+        # longitudinal velocity
+        # lateral velocity
+        # yaw rate
+        
+        roll, pitch, yaw = mujoco_helper.euler_from_quaternion(*self.sensor_orimeter)
+
+        #self.mass = model.body(self.name_in_xml).mass
+        self.state["pos_x"] = self.sensor_posimeter[0]
+        self.state["pos_y"] = self.sensor_posimeter[1]
+        self.state["head_angle"] = yaw
+        self.state["long_vel"] = self.sensor_velocimeter[0]
+        self.state["lat_vel"] = self.sensor_velocimeter[1]
+        self.state["yaw_rate"] = self.sensor_gyro[2]
+        return self.state
+    
+
+
+    def calc_torque(self):
+        
+        d = self.d
+
+        v = self.sensor_velocimeter
+        #self.v_long = math.sqrt((v[0] * v[0]) + (v[1] * v[1]) + (v[2] * v[2]))
+
+        self.v_long = v[0]
+
+        return (self.C_m1 * d) - (self.C_m2 * self.v_long) - (self.C_m3 * np.sign(self.v_long))
+        #self.torque = self.clamp(self.torque, -.2, .2)
+
+        #self.torque = self.d
+
+    
+    def set_torque(self, torque):
+        self.wheelrl.ctrl[0] = torque
+        self.wheelrr.ctrl[0] = torque
+        self.wheelfl.ctrl[0] = torque
+        self.wheelfr.ctrl[0] = torque
 
     
     def calc_ackerman_angles(self, delta_in):
@@ -139,49 +166,6 @@ class Car(MovingObject):
         self.wheelfl.ctrl_steer[0] = delta_left
         self.wheelfr.ctrl_steer[0] = delta_right
 
-    def get_state(self):
-        # x, y
-        # heading angle phi (with respect to x axis)
-        # longitudinal velocity
-        # lateral velocity
-        # yaw rate
-        
-        roll, pitch, yaw = mujoco_helper.euler_from_quaternion(*self.sensor_orimeter)
-
-        #self.mass = model.body(self.name_in_xml).mass
-        self.state["pos_x"] = self.sensor_posimeter[0]
-        self.state["pos_y"] = self.sensor_posimeter[1]
-        self.state["head_angle"] = yaw
-        self.state["long_vel"] = self.sensor_velocimeter[0]
-        self.state["lat_vel"] = self.sensor_velocimeter[1]
-        self.state["yaw_rate"] = self.sensor_gyro[2]
-        return self.state
-
-    
-    def set_torque(self):
-        self.wheelrl.ctrl[0] = self.torque
-        self.wheelrr.ctrl[0] = self.torque
-        self.wheelfl.ctrl[0] = self.torque
-        self.wheelfr.ctrl[0] = self.torque
-
-    
-    def calc_torque(self):
-        
-        d = self.d
-
-        C_m1 = 65
-        C_m2 = 3.3
-        C_m3 = 1.05
-
-        v = self.sensor_velocimeter
-        #self.v_long = math.sqrt((v[0] * v[0]) + (v[1] * v[1]) + (v[2] * v[2]))
-
-        self.v_long = v[0]
-
-        self.torque = (C_m1 * d) - (C_m2 * self.v_long) - (C_m3 * np.sign(self.v_long))
-        #self.torque = self.clamp(self.torque, -.2, .2)
-
-        #self.torque = self.d
 
     def clamp(self, num, min_value, max_value):
         return max(min(num, max_value), min_value)
@@ -278,12 +262,37 @@ class Fleet1Tenth(Car):
     def __init__(self, model, data, name_in_xml):
         super().__init__(model, data, name_in_xml)
 
-        self.WB = .32226
-        self.TW = .20032
+        self.set_ackermann_parameters(.32226, .20032)
 
         self.torque = 0.0
         self.d = 0.0
         self.v_long = 0.0
+
+        self.C_m1 = 65
+        self.C_m2 = 3.3
+        self.C_m3 = 1.05
+    
+
+    def update(self, i, control_step):
+        
+        #self.calc_torque()
+
+        #self.set_torque()
+
+        if self.trajectory is not None:
+            state = self.get_state()
+
+            setpoint = self.trajectory.evaluate(state, i, self.data.time, control_step)
+
+            self.update_controller_type(state, setpoint, self.data.time, i)
+        
+            if self.controller is not None:
+                ctrl = self.controller.compute_control(state, setpoint, self.data.time)
+            
+            if ctrl is not None:
+                self.set_ctrl(ctrl)
+    
+    
 
 
 class CarMocap(MocapObject):

@@ -572,7 +572,7 @@ class SceneXmlGenerator:
         name = None
 
         if is_virtual and type == "fleet1tenth":
-            name = "Car_fleet1tenth_" + str(self.__virtfleet1tenth_cntr)
+            name = "Fleet1Tenth_" + str(self.__virtfleet1tenth_cntr)
             self.__add_fleet1tenth(pos, quat, name, color, has_rod)
             self.__virtfleet1tenth_cntr += 1
         

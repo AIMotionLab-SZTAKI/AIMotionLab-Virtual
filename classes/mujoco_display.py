@@ -25,6 +25,8 @@ MAX_GEOM = 200
 INIT_WWIDTH = 1280
 INIT_WHEIGHT = 720
 
+OPTITRACK_IP = "192.168.1.142"
+
 class Display:
     """ Base class for passive and active simulation
     """
@@ -78,7 +80,7 @@ class Display:
         
         # Connect to optitrack
         if connect_to_optitrack:
-            self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
+            self.mc = motioncapture.MotionCaptureOptitrack(OPTITRACK_IP)
             print("[Display] Connected to Optitrack")
 
         self.t1 = time.time()
@@ -482,7 +484,7 @@ class Display:
     def connect_to_Optitrack(self):
         if can_import_motioncapture:
             self.connect_to_optitrack = True
-            self.mc = motioncapture.MotionCaptureOptitrack("192.168.1.141")
+            self.mc = motioncapture.MotionCaptureOptitrack(OPTITRACK_IP)
             print("[Display] Connected to Optitrack")
         else:
             print("[Display] Motioncapture library is not supported on python version > 3.9")

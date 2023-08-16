@@ -11,7 +11,7 @@ class PAYLOAD_TYPES(Enum):
 class PayloadMocap(MocapObject):
 
     def __init__(self, model, data, mocapid, name_in_xml, name_in_motive) -> None:
-        super().__init__(name_in_xml, name_in_motive)
+        super().__init__(model, data, mocapid, name_in_xml, name_in_motive)
 
         self.data = data
         self.mocapid = mocapid

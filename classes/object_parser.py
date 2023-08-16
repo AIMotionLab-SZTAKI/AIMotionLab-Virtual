@@ -1,6 +1,6 @@
 import mujoco
 from util import mujoco_helper
-from classes.car import Car, CarMocap
+from classes.car import Fleet1Tenth, CarMocap
 from classes.drone import Crazyflie, Bumblebee, BumblebeeHooked, DroneMocap, DroneMocapHooked, HookMocap
 from classes.payload import Payload, PayloadMocap
 from classes.bicycle import Bicycle

@@ -379,14 +379,9 @@ class BumblebeeHooked(DroneHooked):
 
 ################################## DroneMocap ##################################
 class DroneMocap(MocapObject):
-    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, drone_mocapid, name_in_xml, name_in_motive):
+    def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, mocapid, name_in_xml, name_in_motive):
 
-        super().__init__(name_in_xml, name_in_motive)
-        self.data = data
-        self.name_in_xml = name_in_xml
-        self.name_in_motive = name_in_motive
-        self.mocapid = drone_mocapid
-        #print(name_in_xml)
+        super().__init__(model, data, mocapid, name_in_xml, name_in_motive)
 
         self.prop1_jnt = data.joint(name_in_xml + "_prop1")
         self.prop2_jnt = data.joint(name_in_xml + "_prop2")
@@ -401,8 +396,6 @@ class DroneMocap(MocapObject):
     def get_quat(self):
         return self.data.mocap_quat[self.mocapid]
 
-    def get_qpos(self):
-        return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
     
     def set_propeller_speed(self, speed):
         self.prop1_jnt.qvel[0] = -speed
@@ -456,12 +449,8 @@ class DroneMocapHooked(DroneMocap):
 
 class HookMocap(MocapObject):
 
-    def __init__(self, model, data, hook_mocapid, name_in_xml, name_in_motive) -> None:
-        super().__init__(name_in_xml, name_in_motive)
-        self.data = data
-        self.name_in_xml = name_in_xml
-        self.name_in_motive = name_in_motive
-        self.mocapid = hook_mocapid
+    def __init__(self, model, data, mocapid, name_in_xml, name_in_motive) -> None:
+        super().__init__(model, data, mocapid, name_in_xml, name_in_motive)
     
 
     def update(self, pos, quat):

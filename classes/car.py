@@ -42,13 +42,6 @@ class Car(MovingObject):
 
         super().__init__(model, name_in_xml)
 
-        self.WB = .32226
-        self.TW = .20032
-
-        self.torque = 0.0
-        self.d = 0.0
-        self.v_long = 0.0
-
         self.data = data
 
         self.joint = self.data.joint(self.name_in_xml)
@@ -280,17 +273,24 @@ class Car(MovingObject):
             #self.wheelfl.ctrl_steer[0] = 0
             #self.wheelfr.ctrl_steer[0] = 0
 
+class Fleet1Tenth(Car):
+
+    def __init__(self, model, data, name_in_xml):
+        super().__init__(model, data, name_in_xml)
+
+        self.WB = .32226
+        self.TW = .20032
+
+        self.torque = 0.0
+        self.d = 0.0
+        self.v_long = 0.0
+
 
 class CarMocap(MocapObject):
 
     def __init__(self, model, data, mocapid, name_in_xml, name_in_motive) -> None:
-        super().__init__(name_in_xml, name_in_motive)
+        super().__init__(model, data, mocapid, name_in_xml, name_in_motive)
         
-        self.data = data
-        self.mocapid = mocapid
-    
-    def get_qpos(self):
-        return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
     
     def get_name_in_xml(self):
         return self.name_in_xml
@@ -309,22 +309,3 @@ class CarMocap(MocapObject):
 
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat
-
-    @staticmethod
-    def parse(data, model):
-        realcars = []
-        irc = 1
-
-        body_names = mujoco_helper.get_body_name_list(model)
-
-        for name in body_names:
-            name_cut = name[:len(name) - 2]
-            if name.startswith("realfleet1tenth") and not name_cut.endswith("wheel"):
-                
-                mocapid = model.body(name).mocapid[0]
-                c = CarMocap(model, data, mocapid, name, "RC_car_0" + str(irc))
-                
-                realcars += [c]
-                irc += 1
-        
-        return realcars

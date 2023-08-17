@@ -16,36 +16,73 @@ PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
 
 SITE_NAME_END = "_cog"
 
-
 ROD_LENGTH = 0.4
 
 class SceneXmlGenerator:
 
     def __init__(self, base_scene_filename):
+
         self.root = ET.Element("mujoco")
         ET.SubElement(self.root, "include", file=base_scene_filename)
         self.worldbody = ET.SubElement(self.root, "worldbody")
         self.contact = ET.SubElement(self.root, "contact")
         self.actuator = ET.SubElement(self.root, "actuator")
         self.sensor = ET.SubElement(self.root, "sensor")
+
         self.parking_lot = None
         self.airport = None
         self.hospital = None
         self.post_office = None
         self.sztaki = None
 
-        self.__pole_cntr = 0
-        self.__virtcrazyflie_cntr = 0
-        self.__virtbumblebee_cntr = 0
-        self.__virtbumblebee_hooked_cntr = 0
-        self.__realcrazyflie_cntr = 0
-        self.__realbumblebee_cntr = 0
-        self.__realbumblebee_hooked_cntr = 0
-        self.__virtfleet1tenth_cntr = 0
-        self.__realfleet1tenth_cntr = 0
+        self._bicycle_counter = 0
+
+        self._pole_cntr = 0
+        self._virtcrazyflie_cntr = 0
+        self._virtbumblebee_cntr = 0
+        self._virtbumblebee_hooked_cntr = 0
+        self._realcrazyflie_cntr = 0
+        self._realbumblebee_cntr = 0
+        self._realbumblebee_hooked_cntr = 0
+        self._virtfleet1tenth_cntr = 0
+        self._realfleet1tenth_cntr = 0
         
-        self.__load_cntr = 0
-        self.__mocap_load_cntr = 0
+        self._load_cntr = 0
+        self._mocap_load_cntr = 0
+
+    def add_bicycle(self, pos, quat, color):
+
+        name = "Bicycle_" + str(self._bicycle_counter)
+        self._bicycle_counter += 1
+
+        site_name = name + "_cog"
+
+        bicycle = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
+
+        ET.SubElement(bicycle, "inertial", pos="0 0 0", diaginertia=".01 .01 .01", mass="1.0")
+        ET.SubElement(bicycle, "joint", name = name, type="free")
+        ET.SubElement(bicycle, "site", name=site_name, pos="0 0 0")
+
+        ET.SubElement(bicycle, "geom", name=name + "_crossbar", type="box", size=".06 .015 .02", pos="0 0 0", rgba=color)
+
+        front_wheel_name = name + "_wheelf"
+        wheelf = ET.SubElement(bicycle, "body", name=front_wheel_name)
+
+        ET.SubElement(wheelf, "joint", name=front_wheel_name, type="hinge", pos="0.1 0 0",
+                      axis="0 1 0", frictionloss="0.001", damping="0.00001", armature="0.01")
+        ET.SubElement(wheelf, "geom", name=front_wheel_name, type="cylinder", size="0.04 0.015",
+                      pos="0.1 0 0", euler="1.571 0 0", material="material_check")
+
+        rear_wheel_name = name + "_wheelr"
+        wheelr = ET.SubElement(bicycle, "body", name=rear_wheel_name)
+
+        ET.SubElement(wheelr, "joint", name=rear_wheel_name, type="hinge", pos="-0.1 0 0",
+                      axis="0 1 0", frictionloss="0.001", damping="0.00001", armature="0.01")
+        ET.SubElement(wheelr, "geom", name=rear_wheel_name, type="cylinder", size="0.04 0.015",
+                      pos="-0.1 0 0", euler="1.571 0 0", material="material_check")
+        
+        ET.SubElement(self.actuator, "motor", name=name + "_actr", joint=rear_wheel_name)
+        ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
 
 
     def add_airport(self, pos, quat=None):
@@ -85,8 +122,8 @@ class SceneXmlGenerator:
     
 
     def add_pole(self, pos, quat=None):
-        name = "pole_" + str(self.__pole_cntr)
-        self.__pole_cntr += 1
+        name = "pole_" + str(self._pole_cntr)
+        self._pole_cntr += 1
         tag = "body"
         if quat is None:
             pole = ET.SubElement(self.worldbody, tag, name=name, pos=pos)
@@ -114,27 +151,27 @@ class SceneXmlGenerator:
             if type == "bumblebee":
 
                 if is_hooked:
-                    name = "BumblebeeHooked_" + str(self.__virtbumblebee_hooked_cntr)
+                    name = "BumblebeeHooked_" + str(self._virtbumblebee_hooked_cntr)
 
-                    drone = self.__add_bumblebee(name, pos, quat, color, True, hook_dof)
+                    drone = self._add_bumblebee(name, pos, quat, color, True, hook_dof)
 
-                    self.__virtbumblebee_hooked_cntr += 1
+                    self._virtbumblebee_hooked_cntr += 1
                     return name
                 
                 else:
 
-                    name = "Bumblebee_" + str(self.__virtbumblebee_cntr)
-                    drone = self.__add_bumblebee(name, pos, quat, color)
+                    name = "Bumblebee_" + str(self._virtbumblebee_cntr)
+                    drone = self._add_bumblebee(name, pos, quat, color)
 
-                    self.__virtbumblebee_cntr += 1
+                    self._virtbumblebee_cntr += 1
                     return name
 
             elif type == "crazyflie":
-                name = "Crazyflie_" + str(self.__virtcrazyflie_cntr)
+                name = "Crazyflie_" + str(self._virtcrazyflie_cntr)
 
-                drone = self.__add_crazyflie(name, pos, quat, color)
+                drone = self._add_crazyflie(name, pos, quat, color)
 
-                self.__virtcrazyflie_cntr += 1
+                self._virtcrazyflie_cntr += 1
                 return name
                 
             
@@ -147,29 +184,29 @@ class SceneXmlGenerator:
 
                 if is_hooked:
 
-                    name = "DroneMocapHooked_bumblebee_" + str(self.__realbumblebee_hooked_cntr)
+                    name = "DroneMocapHooked_bumblebee_" + str(self._realbumblebee_hooked_cntr)
 
-                    drone = self.__add_mocap_bumblebee(name, pos, quat, color)
-                    self.__add_mocap_hook_to_drone(drone, pos, name)
-                    #self.__add_hook_to_drone(drone, name)
+                    drone = self._add_mocap_bumblebee(name, pos, quat, color)
+                    self._add_mocap_hook_to_drone(drone, pos, name)
+                    #self._add_hook_to_drone(drone, name)
 
-                    self.__realbumblebee_hooked_cntr += 1
+                    self._realbumblebee_hooked_cntr += 1
                     return name
 
                 else:
 
-                    name = "DroneMocap_bumblebee_" + str(self.__realbumblebee_cntr)
-                    drone = self.__add_mocap_bumblebee(name, pos, quat, color)
+                    name = "DroneMocap_bumblebee_" + str(self._realbumblebee_cntr)
+                    drone = self._add_mocap_bumblebee(name, pos, quat, color)
 
-                    self.__realbumblebee_cntr += 1
+                    self._realbumblebee_cntr += 1
                     return name
 
             elif type == "crazyflie":
-                name = "DroneMocap_crazyflie_" + str(self.__realcrazyflie_cntr)
+                name = "DroneMocap_crazyflie_" + str(self._realcrazyflie_cntr)
 
-                drone = self.__add_mocap_crazyflie(name, pos, quat, color)
+                drone = self._add_mocap_crazyflie(name, pos, quat, color)
 
-                self.__realcrazyflie_cntr += 1
+                self._realcrazyflie_cntr += 1
                 return name
             
             else:
@@ -178,7 +215,7 @@ class SceneXmlGenerator:
 
         
     
-    def __add_crazyflie(self, name, pos, quat, color):
+    def _add_crazyflie(self, name, pos, quat, color):
         site_name = name + SITE_NAME_END
     
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
@@ -232,7 +269,7 @@ class SceneXmlGenerator:
 
         return drone
     
-    def __add_mocap_crazyflie(self, name, pos, quat, color):
+    def _add_mocap_crazyflie(self, name, pos, quat, color):
         
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
         ET.SubElement(drone, "geom", name=name + "_body", type="mesh", mesh="crazyflie_body", rgba=color)
@@ -265,7 +302,7 @@ class SceneXmlGenerator:
 
 
     
-    def __add_bumblebee(self, name, pos, quat, color, is_hooked=False, hook_dof = 1):
+    def _add_bumblebee(self, name, pos, quat, color, is_hooked=False, hook_dof = 1):
 
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
         ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.5e-3 1.45e-3 2.66e-3", mass="0.605")
@@ -284,7 +321,7 @@ class SceneXmlGenerator:
         ET.SubElement(drone, "site", name=site_name, pos="0 0 0")
 
         if is_hooked:
-            self.__add_hook_to_drone(drone, name, hook_dof)
+            self._add_hook_to_drone(drone, name, hook_dof)
 
         prop_name = name + "_prop1"
         mass = "0.00001"
@@ -329,7 +366,7 @@ class SceneXmlGenerator:
         return drone
 
 
-    def __add_mocap_bumblebee(self, name, pos, quat, color):
+    def _add_mocap_bumblebee(self, name, pos, quat, color):
         
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
 
@@ -366,7 +403,7 @@ class SceneXmlGenerator:
         return drone
 
 
-    def __add_hook_to_drone(self, drone, drone_name, hook_dof = 1):
+    def _add_hook_to_drone(self, drone, drone_name, hook_dof = 1):
         
         rod = ET.SubElement(drone, "body", name=drone_name + "_rod", pos="0 0 0")
         ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -0.4", size="0.005", mass="0.00")
@@ -395,7 +432,7 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "frameangvel", objtype="site", objname=site_name, name=drone_name + "_hook_angvel")
     
 
-    def __add_mocap_hook_to_drone(self, drone, drone_pos, drone_name, hook_dof=1):
+    def _add_mocap_hook_to_drone(self, drone, drone_pos, drone_name, hook_dof=1):
 
         splt = drone_pos.split()
 
@@ -488,8 +525,8 @@ class SceneXmlGenerator:
     def add_load(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box.value, is_mocap=False):
 
         if is_mocap:
-            name = "PayloadMocap_" + str(self.__mocap_load_cntr)
-            self.__mocap_load_cntr += 1
+            name = "PayloadMocap_" + str(self._mocap_load_cntr)
+            self._mocap_load_cntr += 1
             load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
             
             if type == PAYLOAD_TYPES.Box.value:
@@ -501,8 +538,8 @@ class SceneXmlGenerator:
                 hook_pos = "0 0 0.05"
         
         else:
-            name = "Payload_" + str(self.__load_cntr)
-            self.__load_cntr += 1
+            name = "Payload_" + str(self._load_cntr)
+            self._load_cntr += 1
             
             load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
 
@@ -536,8 +573,8 @@ class SceneXmlGenerator:
     """
     def add_mocap_load(self, pos, size, quat, color, type=PAYLOAD_TYPES.Box.value):
 
-        name = "loadmocap_" + str(self.__mocap_load_cntr)
-        self.__mocap_load_cntr += 1
+        name = "loadmocap_" + str(self._mocap_load_cntr)
+        self._mocap_load_cntr += 1
 
 
         load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
@@ -572,14 +609,14 @@ class SceneXmlGenerator:
         name = None
 
         if is_virtual and type == "fleet1tenth":
-            name = "Fleet1Tenth_" + str(self.__virtfleet1tenth_cntr)
-            self.__add_fleet1tenth(pos, quat, name, color, has_rod)
-            self.__virtfleet1tenth_cntr += 1
+            name = "Fleet1Tenth_" + str(self._virtfleet1tenth_cntr)
+            self._add_fleet1tenth(pos, quat, name, color, has_rod)
+            self._virtfleet1tenth_cntr += 1
         
         elif not is_virtual and type == "fleet1tenth":
-            name = "CarMocap_fleet1tenth_" + str(self.__realfleet1tenth_cntr)
-            self.__add_mocap_fleet1tenth(pos, quat, name, color, has_rod)
-            self.__realfleet1tenth_cntr += 1
+            name = "CarMocap_fleet1tenth_" + str(self._realfleet1tenth_cntr)
+            self._add_mocap_fleet1tenth(pos, quat, name, color, has_rod)
+            self._realfleet1tenth_cntr += 1
         
         else:
             print("[SceneXmlGenerator] Unknown car type")
@@ -587,7 +624,7 @@ class SceneXmlGenerator:
         
         return name
     
-    def __add_fleet1tenth(self, pos, quat, name, color, has_rod):
+    def _add_fleet1tenth(self, pos, quat, name, color, has_rod):
         site_name = name + SITE_NAME_END
 
         posxyz = str.split(pos)
@@ -599,7 +636,7 @@ class SceneXmlGenerator:
         ET.SubElement(car, "joint", name=name, type="free")
         ET.SubElement(car, "site", name=site_name, pos="0 0 0")
 
-        self.__add_fleet1tenth_body(car, name, color, has_rod)
+        self._add_fleet1tenth_body(car, name, color, has_rod)
 
         armature = "0.05"
         armature_steer = "0.001"
@@ -656,14 +693,14 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=name + "_orimeter")
 
 
-    def __add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod):
+    def _add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod):
 
         posxyz = str.split(pos)
         pos = posxyz[0] + " " + posxyz[1] + " " + F1T_PROP.WHEEL_RADIUS.value
         
         car = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
 
-        self.__add_fleet1tenth_body(car, name, color, has_rod)
+        self._add_fleet1tenth_body(car, name, color, has_rod)
 
         ET.SubElement(car, "geom", name=name + "_wheelfl", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="0.16113 .122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
@@ -674,7 +711,7 @@ class SceneXmlGenerator:
         ET.SubElement(car, "geom", name=name + "_wheelrr", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="-0.16113 -.122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
     
-    def __add_fleet1tenth_body(self, car, name, color, has_rod):
+    def _add_fleet1tenth_body(self, car, name, color, has_rod):
         ET.SubElement(car, "geom", name=name + "_chassis_b", type="box", size=".10113 .1016 .02", pos= "-.06 0 0", rgba=color)
         ET.SubElement(car, "geom", name=name + "_chassis_f", type="box", size=".06 .07 .02", pos=".10113 0 0", rgba=color)
         ET.SubElement(car, "geom", name=name + "_front", type="box", size=".052388 .02 .02", pos=".2135 0 0", rgba=color)

@@ -89,8 +89,6 @@ class Car(MovingObject):
     def get_qpos(self):
         return self.qpos
     
-    def set_controller(self, controller):
-        self.controller = controller
 
     def update(self, i, control_step):
         

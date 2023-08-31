@@ -26,6 +26,8 @@ class ActiveSimulator(Display):
         self.start_time = 0.0
         self.prev_time = time.time()
         self.vid_rec_cntr = 0
+
+        self.i = 0
     
     @staticmethod
     def __check_video_intervals(video_intervals):
@@ -54,12 +56,12 @@ class ActiveSimulator(Display):
         return None
 
     
-    def update(self, i):
+    def update(self):
 
-        if i == 0:
+        if self.i == 0:
             self.start_time = time.time()
         
-        self.manage_video_recording(i)
+        self.manage_video_recording(self.i)
         
         # getting data from optitrack server
         if self.connect_to_optitrack:
@@ -85,14 +87,14 @@ class ActiveSimulator(Display):
 
         for l in range(len(self.all_virt_vehicles)):
 
-            self.all_virt_vehicles[l].update(i, self.control_step)
+            self.all_virt_vehicles[l].update(self.i, self.control_step)
         
         
-        
-        mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
+        if not self.is_paused:
+            mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
+            self.i += 1
 
-        if i % (self.graphics_step / self.control_step) == 0:
-
+        if self.i % (self.graphics_step / self.control_step) == 0:
 
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)
             self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
@@ -105,20 +107,21 @@ class ActiveSimulator(Display):
 
             glfw.swap_buffers(self.window)
             glfw.poll_events()
-        sync(i, self.start_time, self.control_step)
+        sync(self.i, self.start_time, self.control_step)
 
         return self.data
 
-    def update_(self, i):
-        if i == 0:
+    def update_(self):
+        if self.i == 0:
             self.start_time = time.time()
         
 
         for l in range(len(self.all_virt_vehicles)):
 
-            self.all_virt_vehicles[l].update(i, self.control_step)
+            self.all_virt_vehicles[l].update(self.i, self.control_step)
         
         mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
+        self.i += 1
 
     
     def manage_video_recording(self, i):

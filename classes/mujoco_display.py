@@ -37,6 +37,8 @@ class Display:
         if connect_to_optitrack and can_import_motioncapture:
             connect_to_optitrack = False
             print("[Display] Motioncapture library is not supported on windows")
+        
+        self.is_paused = False
 
         self.virt_parsers = virt_parsers
         self.mocap_parsers = mocap_parsers
@@ -403,6 +405,12 @@ class Display:
             """
             if self.key_o_callback:
                 self.key_o_callback()
+        
+        if key == glfw.KEY_P and action == glfw.RELEASE:
+            """
+            pause simulation
+            """
+            self.is_paused = not self.is_paused
         
         if key == glfw.KEY_T and action == glfw.RELEASE:
             """

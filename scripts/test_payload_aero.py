@@ -45,6 +45,8 @@ class DummyHoverTraj(DummyDroneTrajectory):
 RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
+rod_length = xml_generator.ROD_LENGTH
+
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
@@ -53,27 +55,27 @@ save_filename = "built_scene.xml"
 
 # Set scenario parameters
 drone0_init_pos = np.array([0.0, -1.0, 2.0, 0])  # initial drone position and yaw angle
-load0_mass = 0.2
+load0_mass = 0.02
 load0_size = np.array([.07, .07, .04])
-load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_pos[2] - (2 * load0_size[2]) - .57 ])
+load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_pos[2] - (2 * load0_size[2]) - (rod_length + .2) ])
 
 # create xml with two drones
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone(np.array2string(drone0_init_pos[0:3])[1:-1], "1 0 0 0", BLUE_COLOR, True, "bumblebee",
                                 True, 2)
 
-payload0_name = scene.add_load(np.array2string(load0_initpos)[1:-1], np.array2string(load0_size)[1:-1], str(load0_mass), "1 0 0 0", BLUE_COLOR)
+payload0_name = scene.add_load(np.array2string(load0_initpos)[1:-1], np.array2string(load0_size)[1:-1], str(load0_mass), ".707 0 0 .707", BLUE_COLOR)
 
 # Set scenario parameters
 drone1_init_pos = np.array([0.0, 1.0, 2.0, 0])  # initial drone position and yaw angle
 load1_mass = 0.2
 load1_size = np.array([.07, .07, .04])
-load1_initpos = np.array([drone1_init_pos[0], drone1_init_pos[1], drone1_init_pos[2] - (2 * load1_size[2]) - .57 ])
+load1_initpos = np.array([drone1_init_pos[0], drone1_init_pos[1], drone1_init_pos[2] - (2 * load1_size[2]) - (rod_length + .2) ])
 
 drone1_name = scene.add_drone(np.array2string(drone1_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
                                 True, 2)
 
-payload1_name = scene.add_load(np.array2string(load1_initpos)[1:-1], np.array2string(load1_size)[1:-1], str(load1_mass), "1 0 0 0", BLUE_COLOR)
+payload1_name = scene.add_load(np.array2string(load1_initpos)[1:-1], np.array2string(load1_size)[1:-1], str(load1_mass), ".707 0 0 .707", BLUE_COLOR)
 
 scene.save_xml(os.path.join(xml_path, save_filename))
 
@@ -88,6 +90,7 @@ simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, vir
                             connect_to_optitrack=False)
 
 
+
 drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
 payload0 = simulator.get_MovingObject_by_name_in_xml(payload0_name)
 drone1 = simulator.get_MovingObject_by_name_in_xml(drone1_name)
@@ -96,6 +99,7 @@ payload1 = simulator.get_MovingObject_by_name_in_xml(payload1_name)
 
 drone0_trajectory = DummyHoverTraj(payload0.mass, drone0_init_pos[0:3])
 drone0_controller = LqrLoadControl(drone0.mass, drone0.inertia, simulator.gravity)
+drone0_controller.L = drone0.rod_length
 drone1_trajectory = DummyHoverTraj(payload1.mass, drone1_init_pos[0:3])
 drone1_controller = GeomControl(drone1.mass, drone1.inertia, simulator.gravity)
 # drone0_controller = LqrLoadControl(drone0.mass, drone0.inertia, simulator.gravity)
@@ -129,10 +133,11 @@ log_ff=[]
 
 
 #payload0.set_force_torque(np.array([0, 0, 0]), np.array([-0.04, .04, 0]))
-while not simulator.glfw_window_should_close():
-    simulator.update(i)
+#simulator.update(0)
 
-    i += 1
+simulator.is_paused = True
+while not simulator.glfw_window_should_close():
+    simulator.update()
 
 simulator.close()
 

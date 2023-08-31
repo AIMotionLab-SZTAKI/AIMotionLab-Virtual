@@ -80,7 +80,6 @@ car0.set_controllers(car0_controllers)
 i = 0
 
 while not simulator.glfw_window_should_close():
-    simulator.update(i)
-    i += 1
+    simulator.update()
 
 simulator.close()

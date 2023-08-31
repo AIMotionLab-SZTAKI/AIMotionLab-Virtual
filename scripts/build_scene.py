@@ -299,9 +299,8 @@ def main():
     i = 0
     while not simulator.glfw_window_should_close():
 
-        simulator.update(i)
+        simulator.update()
         #simulator.cam.azimuth += 0.2
-        i += 1
     
     simulator.close()
 

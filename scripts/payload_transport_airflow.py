@@ -74,7 +74,6 @@ if __name__ == '__main__':
     payload0.set_side_mesh(30, 30, 30)
 
     # start simulation
-    i = 0
     sensor_data = []
     q_data = []
     drone0.qvel[0] = 0
@@ -84,11 +83,10 @@ if __name__ == '__main__':
     drone0_trajectory.construct(drone_init_pos, load_init_pos, load_target_pos, load_mass)
 
     while not simulator.glfw_window_should_close():
-        simulator.update(i)
+        simulator.update()
 
         force, torque = airflow_sampl.generate_forces(payload0)
         payload0.set_force_torque(force, torque)
-        i += 1
 
     simulator.close()
 

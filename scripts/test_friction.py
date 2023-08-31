@@ -85,8 +85,6 @@ simulator.onBoard_elev_offset = 20
 SAMPLE_T = 1.0 / 20.0
 
 def simulate_with_graphix(vel_arr, pos_arr):
-    i = 0
-    
     #simulator.start_time = time.time()
     prev_sample_time = -1
 
@@ -94,10 +92,10 @@ def simulate_with_graphix(vel_arr, pos_arr):
 
         #print(simulator.start_time)
 
-        simulator.update(i)
+        simulator.update()
         
         #t = time.time() - simulator.start_time
-        t = i * simulator.control_step
+        t = simulator.i * simulator.control_step
 
         #print(t)
 
@@ -118,18 +116,15 @@ def simulate_with_graphix(vel_arr, pos_arr):
             vel_arr += [(t, car.sensor_velocimeter[0])]
             prev_sample_time = t
 
-        i += 1
-
 
 def simulate_without_graphix(vel_arr, pos_arr):
-    i = 0
     #simulator.start_time = time.time()
     prev_sample_time = -1
 
     while not simulator.glfw_window_should_close():
 
-        t = i * simulator.sim_step
-        simulator.update_(i)
+        t = simulator.i * simulator.sim_step
+        simulator.update_()
 
 
         if t >= 6:
@@ -147,7 +142,6 @@ def simulate_without_graphix(vel_arr, pos_arr):
             vel_arr += [(t, car.sensor_velocimeter[0])]
             prev_sample_time = t
 
-        i += 1
 
 
 
@@ -188,7 +182,6 @@ def straight_line_vel_profile():
 
 
 def simulate_circular(vel_arr, pos_arr, d, delta, with_graphics=False):
-    i = 0
     #simulator.start_time = time.time()
     prev_sample_time = -1
 
@@ -197,12 +190,12 @@ def simulate_circular(vel_arr, pos_arr, d, delta, with_graphics=False):
     while not simulator.glfw_window_should_close():
 
         if with_graphics:
-            simulator.update(i)
+            simulator.update()
             t = time.time() - simulator.start_time
             time_since_prev_sample = t - prev_sample_time
         else:
-            simulator.update_(i)
-            t = i * simulator.sim_step
+            simulator.update_()
+            t = simulator.i * simulator.sim_step
             time_since_prev_sample = t - prev_sample_time
 
 
@@ -225,8 +218,6 @@ def simulate_circular(vel_arr, pos_arr, d, delta, with_graphics=False):
             steer_angles += [(t, car.wheelfl.joint_steer.qpos[0], car.wheelfr.joint_steer.qpos[0])]
 
             prev_sample_time = t
-
-        i += 1
     
     
     simulator.close()
@@ -305,7 +296,6 @@ def circular_():
 
 def simulate_random_curve(data, vel_arr, pos_arr, with_graphics=False):
     
-    i = 0
     #simulator.start_time = time.time()
     prev_sample_time = -1
     prev_t = 0
@@ -325,14 +315,14 @@ def simulate_random_curve(data, vel_arr, pos_arr, with_graphics=False):
 
 
         if with_graphics:
-            simulator.update(i)
+            simulator.update()
             #t = time.time() - simulator.start_time
-            t = i * simulator.control_step
+            t = simulator.i * simulator.control_step
             #print(t - prev_t)
             #prev_t = t
         else:
-            simulator.update_(i)
-            t = i * simulator.sim_step
+            simulator.update_()
+            t = simulator.i * simulator.sim_step
         
         time_since_prev_sample = t - prev_sample_time
         #print(t)
@@ -359,8 +349,6 @@ def simulate_random_curve(data, vel_arr, pos_arr, with_graphics=False):
             
             if j == data.shape[1]:
                 break
-
-        i += 1
     
     
     simulator.close()

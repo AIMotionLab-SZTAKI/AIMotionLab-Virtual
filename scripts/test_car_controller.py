@@ -108,15 +108,14 @@ car0.set_controllers(car0_controllers)
 
 
 # start simulation
-i = 0
 x=[]
 y=[]
 while not simulator.glfw_window_should_close():
-    simulator.update(i)
+    simulator.update()
     st=car0.get_state()
     x.append(st["pos_x"])
     y.append(st["pos_y"])
-    i += 1
+    
 simulator.close()
 
 plt.plot(x,y)

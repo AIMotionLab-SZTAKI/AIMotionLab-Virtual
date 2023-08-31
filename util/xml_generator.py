@@ -407,7 +407,7 @@ class SceneXmlGenerator:
     def _add_hook_to_drone(self, drone, drone_name, hook_dof = 1):
         
         rod = ET.SubElement(drone, "body", name=drone_name + "_rod", pos="0 0 0")
-        ET.SubElement(rod, "geom", type="cylinder", fromto="0 0 0  0 0 -" + str(ROD_LENGTH), size="0.005", mass="0.00")
+        ET.SubElement(rod, "geom", name=drone_name + "_rod", type="cylinder", fromto="0 0 0  0 0 -" + str(ROD_LENGTH), size="0.005", mass="0.00")
         site_name = drone_name + "_rod_end"
         ET.SubElement(rod, "site", name=site_name, pos="0 0 -" + str(ROD_LENGTH), type="sphere", size="0.002")
         ET.SubElement(rod, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")

@@ -405,7 +405,10 @@ class DroneMocap(MocapObject):
 
     
     def update(self, pos, quat):
-        self.set_propeller_speed(21.6)
+        if pos[2] > .1:
+            self.set_propeller_speed(121.6)
+        else:
+            self.set_propeller_speed(0.0)
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat
     
@@ -456,8 +459,10 @@ class HookMocap(MocapObject):
     def update(self, pos, quat):
         pos_ = pos.copy()
         pos_[2] = pos_[2] + .03
+        quat_rot = quat.copy()
+        #quat_rot = mujoco_helper.quaternion_multiply(quat, np.array((0.71, 0.0, 0.0, 0.71)))
         self.data.mocap_pos[self.mocapid] = pos_
-        self.data.mocap_quat[self.mocapid] = quat
+        self.data.mocap_quat[self.mocapid] = quat_rot
         
     def get_qpos(self):
         return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])

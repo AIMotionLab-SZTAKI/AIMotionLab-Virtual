@@ -19,6 +19,9 @@ class PayloadMocap(MocapObject):
     
     def update(self, pos, quat):
 
+        #quat_rot = quat.copy()
+        #quat_rot = mujoco_helper.quaternion_multiply(quat, np.array((.71, 0.0, 0.0, .71)))
+
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat
     

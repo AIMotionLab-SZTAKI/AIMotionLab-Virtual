@@ -108,82 +108,84 @@ def add_vehicle():
     
     input_gui = VehicleInputGui()
     input_gui.show()
-    if input_gui.vehicle_type == "Virtual crazyflie":
-        if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "crazyflie")
-            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-    elif input_gui.vehicle_type == "Virtual bumblebee":
-        if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", False)
-            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-    elif input_gui.vehicle_type == "Virtual bb with hook":
-        if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", True)
-            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-    elif input_gui.vehicle_type == "Real crazyflie":
-        if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "crazyflie")
-            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-    elif input_gui.vehicle_type == "Real bumblebee":
-        if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", False)
-            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-    elif input_gui.vehicle_type == "Real bb with hook":
-        if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", True)
-            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-    elif input_gui.vehicle_type == "Virtual Fleet1Tenth":
-        if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, False, "fleet1tenth")
-            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-    elif input_gui.vehicle_type == "Virtual F1Tenth with rod":
-        if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, "fleet1tenth")
-            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-    elif input_gui.vehicle_type == "Real Fleet1Tenth":
-        if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, False, "fleet1tenth")
-            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-    elif input_gui.vehicle_type == "Real F1Tenth with rod":
-        if input_gui.position != "" and input_gui.quaternion != "":
-            scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, "fleet1tenth")
-            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-    
-    else:
-        #print(input_gui.vehicle_type)
-        print("Non-existent vehicle type: " + input_gui.vehicle_type)
+    if input_gui.needs_new_vehicle:
+        if input_gui.vehicle_type == "Virtual crazyflie":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "crazyflie")
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Virtual bumblebee":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", False)
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Virtual bb with hook":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", True)
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Real crazyflie":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "crazyflie")
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Real bumblebee":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", False)
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Real bb with hook":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", True)
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Virtual Fleet1Tenth":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, False, "fleet1tenth")
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Virtual F1Tenth with rod":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, "fleet1tenth")
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Real Fleet1Tenth":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, False, "fleet1tenth")
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Real F1Tenth with rod":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, "fleet1tenth")
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        
+        else:
+            #print(input_gui.vehicle_type)
+            print("Non-existent vehicle type: " + input_gui.vehicle_type)
 
 def add_load():
     global scene, simulator
     input_gui = PayloadInputGui()
     input_gui.show()
 
-    if input_gui.position != "" and input_gui.quaternion != "":
-        if input_gui.is_mocap:
-            if input_gui.type == PAYLOAD_TYPES.Box.value:
-                if input_gui.size == "":
-                    print("Payload size was unspecified...")
-                    return
-                scene.add_load(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
-            elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
-                scene.add_load(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
-            else:
-                print("Unknown payload type...")
-        else:
-            if input_gui.mass != "":
+    if input_gui.needs_new_payload:
+        if input_gui.position != "" and input_gui.quaternion != "":
+            if input_gui.is_mocap:
                 if input_gui.type == PAYLOAD_TYPES.Box.value:
                     if input_gui.size == "":
                         print("Payload size was unspecified...")
                         return
-                    scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
+                    scene.add_load(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
                 elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
-                    scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color, input_gui.type)
+                    scene.add_load(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
                 else:
                     print("Unknown payload type...")
             else:
-                print("Payload mass was unspecified...")
+                if input_gui.mass != "":
+                    if input_gui.type == PAYLOAD_TYPES.Box.value:
+                        if input_gui.size == "":
+                            print("Payload size was unspecified...")
+                            return
+                        scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
+                    elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
+                        scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color, input_gui.type)
+                    else:
+                        print("Unknown payload type...")
+                else:
+                    print("Payload mass was unspecified...")
 
-        save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+            save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
 
 
 def save_and_reload_model(scene, simulator, save_filename, vehicle_names_in_motive=None):
@@ -222,7 +224,7 @@ def build_from_optitrack():
 
         # this part needs to be tested again because scene generator's been modified
         if name.startswith("cf"):
-            scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
+            #scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
             scene.add_drone(position, orientation, BLUE_COLOR, False, "crazyflie", False)
             drone_names_in_motive += [name]
@@ -232,19 +234,32 @@ def build_from_optitrack():
             scene.add_drone(position, orientation, BLUE_COLOR, False, "bumblebee", False)
             drone_names_in_motive += [name]
 
+        elif name.startswith("hook12"):
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+            scene.add_mocap_hook(position, "bumblebee")
+            drone_names_in_motive += [name]
+
+        elif name.startswith("payload"):
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+            scene.add_load(position, None, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop.value, True)
+            drone_names_in_motive += [name]
+
+
+
 
         elif name == "bu11":
-            scene.add_hospital(position, "1 0 0 0")
+            scene.add_hospital(position, "0.71 0 0 0.71")
         elif name == "bu12":
-            scene.add_sztaki(position, "1 0 0 0")
+            scene.add_sztaki(position, "0.71 0 0 0.71")
         elif name == "bu13":
-            scene.add_post_office(position, "1 0 0 0")
+            scene.add_post_office(position, "0.71 0 0 0.71")
         elif name == "bu14":
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.01"
-            scene.add_airport(position, "1 0 0 0")
+            #scene.add_airport(position, "0.71 0 0 0.71")
+            scene.add_sztaki(position, "0.71 0 0 0.71")
 
         elif name.startswith("obs"):
-            scene.add_pole(name, position, "0.3826834 0 0 0.9238795")
+            scene.add_pole(position, "0.3826834 0 0 0.9238795")
         
         elif ("RC_car" in name) or (name.startswith("Trailer")):
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
@@ -285,6 +300,7 @@ def main():
     while not simulator.glfw_window_should_close():
 
         simulator.update(i)
+        #simulator.cam.azimuth += 0.2
         i += 1
     
     simulator.close()

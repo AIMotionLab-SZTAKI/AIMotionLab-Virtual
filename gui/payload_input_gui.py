@@ -20,6 +20,8 @@ class PayloadInputGui:
 
         self.window.title("Add load")
 
+        self.needs_new_payload = False
+
         self.is_mocap_int_var = tk.IntVar()
         self.is_mocap = False
         self.color = ""
@@ -92,6 +94,7 @@ class PayloadInputGui:
             self.is_mocap_int_var.get() == 1, \
             COLORS[self.color_selected.get()], self.entry_mass.get(), self.entry_size.get(),\
             self.entry_position.get(), self.entry_quaternion.get(), self.type_selected.get()
+        self.needs_new_payload = True
         self.window.quit()
         self.window.destroy()
 

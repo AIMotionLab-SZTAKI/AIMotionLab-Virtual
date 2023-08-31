@@ -23,6 +23,8 @@ class VehicleInputGui:
 
         self.window.title("Add Vehicle")
 
+        self.needs_new_vehicle = False
+
         self.vehicle_type = ""
         self.position = ""
         self.quaternion = ""
@@ -50,6 +52,7 @@ class VehicleInputGui:
     def btnOk_on_press(self):
         self.vehicle_type, self.position, self.quaternion =\
             self.vehicle_type_selected.get(), self.entry_position.get(), self.entry_quaternion.get()
+        self.needs_new_vehicle = True
         self.window.quit()
         self.window.destroy()
 

@@ -89,12 +89,12 @@ class Drone(MovingObject):
         }
         
     
-    def _create_input_matrix(self):
+    def _create_input_matrix(self, Lx1, Lx2, Ly, motor_param):
 
-        self.input_mtx = np.array([[1/4, -1/(4*self.Ly), -1/(4*self.Lx2),  1 / (4*self.motor_param)],
-                                  [1/4, -1/(4*self.Ly),   1/(4*self.Lx1), -1 / (4*self.motor_param)],
-                                  [1/4,  1/(4*self.Ly),   1/(4*self.Lx1),  1 / (4*self.motor_param)],
-                                  [1/4,  1/(4*self.Ly),  -1/(4*self.Lx2), -1 / (4*self.motor_param)]])
+        self.input_mtx = np.array([[1/4, -1/(4*Ly), -1/(4*Lx2),  1 / (4*motor_param)],
+                                  [1/4, -1/(4*Ly),   1/(4*Lx1), -1 / (4*motor_param)],
+                                  [1/4,  1/(4*Ly),   1/(4*Lx1),  1 / (4*motor_param)],
+                                  [1/4,  1/(4*Ly),  -1/(4*Lx2), -1 / (4*motor_param)]])
 
     
     def get_state(self):
@@ -233,7 +233,7 @@ class Crazyflie(Drone):
         self.Ly = float(CRAZYFLIE_PROP.OFFSET.value)
         self.motor_param = float(CRAZYFLIE_PROP.MOTOR_PARAM.value)
 
-        self._create_input_matrix()
+        self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
 class Bumblebee(Drone):
 
@@ -244,7 +244,7 @@ class Bumblebee(Drone):
         self.Ly = float(BUMBLEBEE_PROP.OFFSET_Y.value)
         self.motor_param = float(BUMBLEBEE_PROP.MOTOR_PARAM.value)
 
-        self._create_input_matrix()
+        self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
 
 
@@ -370,9 +370,14 @@ class BumblebeeHooked(DroneHooked):
         self.motor_param = float(BUMBLEBEE_PROP.MOTOR_PARAM.value)
 
         self.load_mass = 0.0
-        self.rod_length = 0.4
+
+        rod_geom = model.geom(name_in_xml + "_rod")
+
+        self.rod_length = rod_geom.size[1] * 2
+
+        print(self.rod_length)
         
-        self._create_input_matrix()
+        self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
 
 

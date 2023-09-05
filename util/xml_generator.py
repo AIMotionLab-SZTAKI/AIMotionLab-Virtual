@@ -16,7 +16,7 @@ PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
 
 SITE_NAME_END = "_cog"
 
-ROD_LENGTH = 0.43
+ROD_LENGTH = 0.40
 
 class SceneXmlGenerator:
 
@@ -369,7 +369,7 @@ class SceneXmlGenerator:
     def _add_mocap_bumblebee(self, name, pos, quat, color):
         
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
-        ET.SubElement(drone, "site", pos="0 0 -.485", size="0.01")
+        #ET.SubElement(drone, "site", pos="0 0 -.485", size="0.01")
 
         # need to rotate the body mesh to match optitrack orientation
         quat_mesh = mh.quaternion_from_euler(0, 0, math.radians(270))
@@ -446,25 +446,27 @@ class SceneXmlGenerator:
         hook = ET.SubElement(self.worldbody, "body", name= "HookMocap" + "_" + name_tail, pos=hook_pos, mocap="true")
         #ET.SubElement(hook, "site", pos="0 0 -.085", size="0.01")
         #ET.SubElement(hook, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
-        nested_hookbody = ET.SubElement(hook, "body", pos="0 0 " + str(ROD_LENGTH), euler="0 0 -1.57")
-        ET.SubElement(nested_hookbody, "geom", type="cylinder", fromto="0 0 0  0 0 -" + str(ROD_LENGTH), size="0.0025")
+        nested_hookbody = ET.SubElement(hook, "body", pos="0 0 " + str(ROD_LENGTH), euler="0 0 0")
+        ET.SubElement(nested_hookbody, "geom", name="HookMocap" + "_" + name_tail + "_rod", type="cylinder", fromto="0 0 0  0 0 -" + str(ROD_LENGTH), size="0.0025")
         #hook = ET.SubElement(self.worldbody, "body", name=drone_name + "_hook", pos=hook_pos, euler="0 3.141592 -1.57", mocap="true")
+
+        nested_nested_hookbody = ET.SubElement(hook, "body", pos="0 0 -0.035", euler="0 0 -1.57")
         
         pos_z = 0.02 - ROD_LENGTH
-        hpos = "0 0 " + str(pos_z)
-        ET.SubElement(nested_hookbody, "geom", type="capsule", pos=hpos, size="0.002 0.02")
+        hpos = "0 0 " + str(0.02)
+        ET.SubElement(nested_nested_hookbody, "geom", type="capsule", pos=hpos, size="0.002 0.02")
         pos_z = -0.0475 - ROD_LENGTH
-        hpos = "-0.01299 0 " + str(pos_z)
-        ET.SubElement(nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 -1.0472 0", size="0.005 0.018")
+        hpos = "-0.01299 0 " + str(-0.0475)
+        ET.SubElement(nested_nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 -1.0472 0", size="0.005 0.018")
         pos_z = -0.025 - ROD_LENGTH
-        hpos = "-0.02598 0 " + str(pos_z)
-        ET.SubElement(nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 0 0", size="0.005 0.018")
+        hpos = "-0.02598 0 " + str(-0.025)
+        ET.SubElement(nested_nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 0 0", size="0.005 0.018")
         pos_z = -0.005 - ROD_LENGTH
-        hpos = "-0.01299 0 " + str(pos_z)
-        ET.SubElement(nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 1.0472 0", size="0.005 0.018")
+        hpos = "-0.01299 0 " + str(-0.005)
+        ET.SubElement(nested_nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 1.0472 0", size="0.005 0.018")
         pos_z = -0.0475 - ROD_LENGTH
-        hpos = "0.01299 0 " + str(pos_z)
-        ET.SubElement(nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 1.0472 0", size="0.005 0.018")
+        hpos = "0.01299 0 " + str(-0.0475)
+        ET.SubElement(nested_nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 1.0472 0", size="0.005 0.018")
 
 
 

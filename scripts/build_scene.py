@@ -210,8 +210,7 @@ def build_from_optitrack():
     """
     global scene, simulator
 
-    drone_names_in_motive = []
-    car_names_in_motive = []
+    vehicle_names_in_motive = []
 
     if not simulator.connect_to_optitrack:
         simulator.connect_to_Optitrack()
@@ -229,22 +228,22 @@ def build_from_optitrack():
             #scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
             scene.add_drone(position, orientation, BLUE_COLOR, False, "crazyflie", False)
-            drone_names_in_motive += [name]
+            vehicle_names_in_motive += [name]
         
         elif name.startswith("bb"):
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
             scene.add_drone(position, orientation, BLUE_COLOR, False, "bumblebee", False)
-            drone_names_in_motive += [name]
+            vehicle_names_in_motive += [name]
 
         elif name.startswith("hook12"):
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
             scene.add_mocap_hook(position, "bumblebee")
-            drone_names_in_motive += [name]
+            vehicle_names_in_motive += [name]
 
         elif name.startswith("payload"):
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
             scene.add_load(position, None, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop.value, True)
-            drone_names_in_motive += [name]
+            vehicle_names_in_motive += [name]
 
 
 
@@ -267,16 +266,15 @@ def build_from_optitrack():
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
             #scene.add_car(position, orientation, BLUE_COLOR, False, True)
             scene.add_car(position, orientation, BLUE_COLOR, False, False)
-            car_names_in_motive += [name]
+            vehicle_names_in_motive += [name]
             #car_added = True
         
         elif "AI_car" in name:
             position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
             #scene.add_car(position, orientation, BLUE_COLOR, False, True)
             scene.add_car(position, orientation, BLUE_COLOR, False, True)
-            car_names_in_motive += [name]
+            vehicle_names_in_motive += [name]
 
-    vehicle_names_in_motive = drone_names_in_motive + car_names_in_motive
 
     save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename), vehicle_names_in_motive)
     #if car_added:

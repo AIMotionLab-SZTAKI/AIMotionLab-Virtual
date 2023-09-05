@@ -304,15 +304,15 @@ class CarMocap(MocapObject):
         
     def update(self, pos, quat):
         
-        #euler = mujoco_helper.euler_from_quaternion(quat[0], quat[1], quat[2], quat[3])
+        euler = mujoco_helper.euler_from_quaternion(quat[0], quat[1], quat[2], quat[3])
 
-        #euler[0] = 0
-        #euler[1] = 0
+        euler[0] = 0
+        euler[1] = 0
 
-        #quat = mujoco_helper.quaternion_from_euler(euler[0], euler[1], euler[2])
+        quat = mujoco_helper.quaternion_from_euler(euler[0], euler[1], euler[2])
 
         pos = np.copy(pos)
-        pos[2] -= 0.12
+        pos[2] = 0.052388
 
         self.data.mocap_pos[self.mocapid] = pos
         self.data.mocap_quat[self.mocapid] = quat

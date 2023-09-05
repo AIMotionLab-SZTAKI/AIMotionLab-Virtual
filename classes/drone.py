@@ -393,6 +393,11 @@ class DroneMocap(MocapObject):
         self.prop3_jnt = data.joint(name_in_xml + "_prop3")
         self.prop4_jnt = data.joint(name_in_xml + "_prop4")
 
+        if "bumblebee" in name_in_xml:
+            self.propeller_spin_threshold = 0.15
+        elif "crazyflie" in name_in_xml:
+            self.propeller_spin_threshold = 0.1
+
         self.set_propeller_speed(21.6)
 
     def get_pos(self):
@@ -410,7 +415,7 @@ class DroneMocap(MocapObject):
 
     
     def update(self, pos, quat):
-        if pos[2] > .1:
+        if pos[2] > self.propeller_spin_threshold:
             self.set_propeller_speed(121.6)
         else:
             self.set_propeller_speed(0.0)
@@ -445,6 +450,12 @@ class DroneMocapHooked(DroneMocap):
         super().__init__(model, data, drone_mocapid, name_in_xml, name_in_motive)
 
         self.hook_name_in_xml = "HookMocap_" + name_in_xml
+        
+        #rod_geom = model.geom(name_in_xml + "_rod")
+
+        #self.rod_length = rod_geom.size[1] * 2
+
+        #print(self.rod_length)
 
     def update(self, pos, quat):
         return super().update(pos, quat)

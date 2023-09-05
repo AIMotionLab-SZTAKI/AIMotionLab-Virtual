@@ -21,6 +21,8 @@ scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 virt_parsers = [parseMovingObjects]
 mocap_parsers = [parseMocapObjects]
 simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
+
+simulator.set_title("AIMotionLab-Virtual")
 #simulator.set_drone_names()
 
 drone_counter = 0

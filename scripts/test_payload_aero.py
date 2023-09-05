@@ -11,6 +11,7 @@ from classes.trajectory_base import DummyDroneTrajectory
 from random import seed, random
 from classes.airflow_sampler import AirflowSampler
 from classes.object_parser import parseMovingObjects
+from util.util import plot_payload_and_airflow_volume
 
 
 # Import libraries
@@ -55,7 +56,7 @@ save_filename = "built_scene.xml"
 
 # Set scenario parameters
 drone0_init_pos = np.array([0.0, -1.0, 2.0, 0])  # initial drone position and yaw angle
-load0_mass = 0.02
+load0_mass = 0.010
 load0_size = np.array([.07, .07, .04])
 load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_pos[2] - (2 * load0_size[2]) - (rod_length + .2) ])
 
@@ -68,7 +69,7 @@ payload0_name = scene.add_load(np.array2string(load0_initpos)[1:-1], np.array2st
 
 # Set scenario parameters
 drone1_init_pos = np.array([0.0, 1.0, 2.0, 0])  # initial drone position and yaw angle
-load1_mass = 0.2
+load1_mass = 0.10
 load1_size = np.array([.07, .07, .04])
 load1_initpos = np.array([drone1_init_pos[0], drone1_init_pos[1], drone1_init_pos[2] - (2 * load1_size[2]) - (rod_length + .2) ])
 
@@ -141,63 +142,6 @@ while not simulator.glfw_window_should_close():
 
 simulator.close()
 
+plot_payload_and_airflow_volume(payload0, airflow_sampl0, "black")
 
-p, pos, n, a = payload0.get_top_minirectangle_data()
-
-payload_offset = airflow_sampl0.get_payload_offset_z_meter()
-
-p[:, 2] += payload_offset
-
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-ax.scatter(p[:, 0], p[:, 1], p[:, 2])
-
-p_n, p_p, pown_n, pown_p, n_n, n_p, area_xz = payload0.get_side_xz_minirectangle_data()
-p_n[:, 2] += payload_offset
-p_p[:, 2] += payload_offset
-ax.scatter(p_n[:, 0], p_n[:, 1], p_n[:, 2])
-ax.scatter(p_p[:, 0], p_p[:, 1], p_p[:, 2])
-
-p_n, p_p, pown_n, pown_p, n_n, n_p, area_xz = payload0.get_side_yz_minirectangle_data()
-p_n[:, 2] += payload_offset
-p_p[:, 2] += payload_offset
-ax.scatter(p_n[:, 0], p_n[:, 1], p_n[:, 2])
-ax.scatter(p_p[:, 0], p_p[:, 1], p_p[:, 2])
-
-
-faces = []
-faces.append(np.zeros([5,3]))
-faces.append(np.zeros([5,3]))
-faces.append(np.zeros([5,3]))
-faces.append(np.zeros([5,3]))
-faces.append(np.zeros([5,3]))
-faces.append(np.zeros([5,3]))
-
-
-vs = airflow_sampl0.get_transformed_vertices()
-
-
-# Bottom face
-faces[0][0, :] = np.array(vs[0])
-faces[0][1, :] = np.array(vs[2])
-faces[0][2, :] = np.array(vs[3])
-faces[0][3, :] = np.array(vs[1])
-faces[0][4, :] = np.array(vs[0])
-
-# Top face
-faces[1][0, :] = np.array(vs[4])
-faces[1][1, :] = np.array(vs[6])
-faces[1][2, :] = np.array(vs[7])
-faces[1][3, :] = np.array(vs[5])
-faces[1][4, :] = np.array(vs[4])
-
-
-ax.add_collection3d(Poly3DCollection(faces, facecolors='cyan', linewidths=1, edgecolors='k', alpha=.25))
-ax.axis("equal")
-
-#plt.show()
-
-#pressure_sampl.generate_forces_opt(payload0)
-
-#plt.plot(log_ff)
-plt.show()
+plot_payload_and_airflow_volume(payload1, airflow_sampl1)

@@ -25,7 +25,7 @@ MAX_GEOM = 200
 INIT_WWIDTH = 1280
 INIT_WHEIGHT = 720
 
-OPTITRACK_IP = "192.168.1.142"
+OPTITRACK_IP = "192.168.2.141"
 
 class Display:
     """ Base class for passive and active simulation

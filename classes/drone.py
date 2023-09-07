@@ -235,6 +235,14 @@ class Crazyflie(Drone):
 
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
+        
+    def fake_propeller_spin(self, control_step , speed = 10):
+
+            if self.get_qpos()[2] > 0.10:
+                self.spin_propellers(speed * control_step)
+            else:
+                self.stop_propellers()
+
 class Bumblebee(Drone):
 
     def __init__(self, model: mujoco.MjModel, data: mujoco.MjData, name_in_xml):
@@ -245,6 +253,14 @@ class Bumblebee(Drone):
         self.motor_param = float(BUMBLEBEE_PROP.MOTOR_PARAM.value)
 
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
+
+        
+    def fake_propeller_spin(self, control_step , speed = 10):
+
+            if self.get_qpos()[2] > 0.15:
+                self.spin_propellers(speed * control_step)
+            else:
+                self.stop_propellers()
 
 
 

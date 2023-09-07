@@ -5,8 +5,6 @@ import math
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
-from classes.airflow_sampler import AirflowSampler
-from classes.payload import Payload
 
 
 def carHeading2quaternion(phi: float)-> str:
@@ -82,7 +80,7 @@ class FpsLimiter:
             time.sleep(self.timestep - frame_time)
 
 
-def plot_payload_and_airflow_volume(payload: Payload, airflow_sampler: AirflowSampler, payload_color: str = "tab:blue"):
+def plot_payload_and_airflow_volume(payload, airflow_sampler, payload_color: str = "tab:blue"):
 
     p, pos, n, a = payload.get_top_minirectangle_data()
 

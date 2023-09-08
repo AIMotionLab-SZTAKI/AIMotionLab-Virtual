@@ -15,12 +15,16 @@ xmlBaseFileName = "scene.xml"
 save_filename = "built_scene.xml"
 
 build_based_on_optitrack = False
+is_scene_cleared = True
 
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 
 virt_parsers = [parseMovingObjects]
 mocap_parsers = [parseMocapObjects]
 simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
+
+simulator.cam.azimuth = 0
+simulator.onBoard_elev_offset = 20
 
 simulator.set_title("AIMotionLab-Virtual")
 #simulator.set_drone_names()
@@ -195,92 +199,98 @@ def save_and_reload_model(scene, simulator, save_filename, vehicle_names_in_moti
     simulator.reload_model(save_filename, vehicle_names_in_motive)
 
 def clear_scene():
-    global scene, simulator, drone_counter, landing_zone_counter, pole_counter
-    scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
-    simulator.reload_model(os.path.join(xml_path, xmlBaseFileName))
-    
-    drone_counter = 0
-    landing_zone_counter = 0
-    pole_counter = 0
+    global scene, simulator, drone_counter, landing_zone_counter, pole_counter, is_scene_cleared
+    if not is_scene_cleared:
+        scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
+        simulator.reload_model(os.path.join(xml_path, xmlBaseFileName))
+        
+        drone_counter = 0
+        landing_zone_counter = 0
+        pole_counter = 0
+        is_scene_cleared = True
 
 
 def build_from_optitrack():
     """ Try and build a complete scene based on information from Motive
     
     """
+    global is_scene_cleared
     global scene, simulator
 
-    vehicle_names_in_motive = []
+    if is_scene_cleared:
 
-    if not simulator.connect_to_optitrack:
-        simulator.connect_to_Optitrack()
+        vehicle_names_in_motive = []
 
-    simulator.mc.waitForNextFrame()
-    for name, obj in simulator.mc.rigidBodies.items():
-        print(name)
-        # have to put rotation.w to the front because the order is different
-        orientation = str(obj.rotation.w) + " " + str(obj.rotation.x) + " " + str(obj.rotation.y) + " " + str(obj.rotation.z)
-        position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0'
+        if not simulator.connect_to_optitrack:
+            simulator.connect_to_Optitrack()
 
-
-        # this part needs to be tested again because scene generator's been modified
-        if name.startswith("cf"):
-            #scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
-            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-            scene.add_drone(position, orientation, BLUE_COLOR, False, "crazyflie", False)
-            vehicle_names_in_motive += [name]
-        
-        elif name.startswith("bb"):
-            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-            scene.add_drone(position, orientation, BLUE_COLOR, False, "bumblebee", False)
-            vehicle_names_in_motive += [name]
-
-        elif name.startswith("hook12"):
-            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-            scene.add_mocap_hook(position, "bumblebee")
-            vehicle_names_in_motive += [name]
-
-        elif name.startswith("payload"):
-            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-            scene.add_load(position, None, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop.value, True)
-            vehicle_names_in_motive += [name]
+        simulator.mc.waitForNextFrame()
+        for name, obj in simulator.mc.rigidBodies.items():
+            print(name)
+            # have to put rotation.w to the front because the order is different
+            orientation = str(obj.rotation.w) + " " + str(obj.rotation.x) + " " + str(obj.rotation.y) + " " + str(obj.rotation.z)
+            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0'
 
 
+            # this part needs to be tested again because scene generator's been modified
+            if name.startswith("cf"):
+                #scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+                scene.add_drone(position, orientation, BLUE_COLOR, False, "crazyflie", False)
+                vehicle_names_in_motive += [name]
+            
+            elif name.startswith("bb"):
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+                scene.add_drone(position, orientation, BLUE_COLOR, False, "bumblebee", False)
+                vehicle_names_in_motive += [name]
+
+            elif name.startswith("hook12"):
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+                scene.add_mocap_hook(position, "bumblebee")
+                vehicle_names_in_motive += [name]
+
+            elif name.startswith("payload"):
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+                scene.add_load(position, None, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop.value, True)
+                vehicle_names_in_motive += [name]
 
 
-        elif name == "bu11":
-            scene.add_hospital(position, "0.71 0 0 0.71")
-        elif name == "bu12":
-            scene.add_sztaki(position, "0.71 0 0 0.71")
-        elif name == "bu13":
-            scene.add_post_office(position, "0.71 0 0 0.71")
-        elif name == "bu14":
-            position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.01"
-            #scene.add_airport(position, "0.71 0 0 0.71")
-            scene.add_sztaki(position, "0.71 0 0 0.71")
-
-        elif name.startswith("obs"):
-            scene.add_pole(position, "0.3826834 0 0 0.9238795")
-        
-        elif ("RC_car" in name) or (name.startswith("Trailer")):
-            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
-            #scene.add_car(position, orientation, BLUE_COLOR, False, True)
-            scene.add_car(position, orientation, BLUE_COLOR, False, False)
-            vehicle_names_in_motive += [name]
-            #car_added = True
-        
-        elif "AI_car" in name:
-            position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
-            #scene.add_car(position, orientation, BLUE_COLOR, False, True)
-            scene.add_car(position, orientation, BLUE_COLOR, False, True)
-            vehicle_names_in_motive += [name]
 
 
-    save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename), vehicle_names_in_motive)
-    #if car_added:
-    #    mocapid = simulator.model.body("car0").mocapid[0]
-    #    car = CarMocap(simulator.model, simulator.data, mocapid, "car0", "AI_car_01")
-    #    simulator.realdrones += [car]
+            elif name == "bu11":
+                scene.add_hospital(position, "0.71 0 0 0.71")
+            elif name == "bu12":
+                scene.add_sztaki(position, "0.71 0 0 0.71")
+            elif name == "bu13":
+                scene.add_post_office(position, "0.71 0 0 0.71")
+            elif name == "bu14":
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.01"
+                #scene.add_airport(position, "0.71 0 0 0.71")
+                scene.add_sztaki(position, "0.71 0 0 0.71")
+
+            elif name.startswith("obs"):
+                scene.add_pole(position, "0.3826834 0 0 0.9238795")
+            
+            elif ("RC_car" in name) or (name.startswith("Trailer")):
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
+                #scene.add_car(position, orientation, BLUE_COLOR, False, True)
+                scene.add_car(position, orientation, BLUE_COLOR, False, False)
+                vehicle_names_in_motive += [name]
+                #car_added = True
+            
+            elif "AI_car" in name:
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
+                #scene.add_car(position, orientation, BLUE_COLOR, False, True)
+                scene.add_car(position, orientation, BLUE_COLOR, False, True)
+                vehicle_names_in_motive += [name]
+
+
+        save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename), vehicle_names_in_motive)
+        is_scene_cleared = False
+        #if car_added:
+        #    mocapid = simulator.model.body("car0").mocapid[0]
+        #    car = CarMocap(simulator.model, simulator.data, mocapid, "car0", "AI_car_01")
+        #    simulator.realdrones += [car]
 
 
 def main():

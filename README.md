@@ -39,7 +39,7 @@ To add a building:
   * Click ok, or hit enter
 
 To add vehicles:
-  * Press 'd' (initially only drones were supported)
+  * Press 'v'
   * Select vehicle type in the drop down menu
   * Set the position
   * Set the quaternion
@@ -72,6 +72,9 @@ To automatically build a scene based on Motive stream:
   * Drone names in the stream:
     * crazyflie: anything that starts with 'cf'
     * bumblebee: anything that starts with 'bb'
+
+  To pause/unpause the simulation:
+    * Press 'p'
 
 To start and stop video recording:
   * Press 'r' (short for record)

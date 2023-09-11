@@ -45,7 +45,7 @@ control_step, graphics_step = 0.01, 0.02
 xml_filename = os.path.join(xml_path, save_filename)
 
 # initializing simulator
-simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack=False)
+simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step)
 
 # grabbing the drone and the car
 drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
@@ -77,7 +77,6 @@ car0.set_controllers(car0_controllers)
 
 
 # start simulation
-i = 0
 
 while not simulator.glfw_window_should_close():
     simulator.update()

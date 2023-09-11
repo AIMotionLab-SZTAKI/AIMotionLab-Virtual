@@ -46,8 +46,7 @@ if __name__ == '__main__':
     xml_filename = os.path.join(xml_path, save_filename)
 
     # initializing simulator
-    simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers=None,
-                                connect_to_optitrack=False)
+    simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step)
 
     # grabbing the drone and the car
     drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
@@ -85,7 +84,7 @@ if __name__ == '__main__':
     while not simulator.glfw_window_should_close():
         simulator.update()
 
-        force, torque = airflow_sampl.generate_forces(payload0)
+        force, torque = airflow_sampl.generate_forces_opt(payload0)
         payload0.set_force_torque(force, torque)
 
     simulator.close()

@@ -45,7 +45,7 @@ rec_interval=[1,25]
 #rec_interval = None # no video capture
 
 # initializing simulator
-simulator = ActiveSimulator(xml_filename, rec_interval, control_step, graphics_step, virt_parsers, mocap_parsers=None, connect_to_optitrack=False)
+simulator = ActiveSimulator(xml_filename, rec_interval, control_step, graphics_step)
 
 # ONLY for recording
 #simulator.activeCam

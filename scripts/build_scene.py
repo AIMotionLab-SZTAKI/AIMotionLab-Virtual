@@ -295,9 +295,9 @@ def build_from_optitrack():
 
 def main():
     simulator.set_key_b_callback(add_building)
-    simulator.set_key_d_callback(add_vehicle)
     simulator.set_key_o_callback(build_from_optitrack)
     simulator.set_key_t_callback(add_load)
+    simulator.set_key_v_callback(add_vehicle)
     simulator.set_key_delete_callback(clear_scene)
     
     #simulator.print_optitrack_data()

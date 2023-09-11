@@ -6,12 +6,13 @@ from util import mujoco_helper
 from util.util import sync
 from classes.mujoco_display import Display
 from classes.moving_object import MocapObject
+from classes.object_parser import parseMovingObjects, parseMocapObjects
 
 
 class ActiveSimulator(Display):
 
     def __init__(self, xml_file_name, video_intervals, control_step, graphics_step,
-                 virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=True):
+                 virt_parsers: list = [parseMovingObjects], mocap_parsers: list = [parseMocapObjects], connect_to_optitrack=False):
 
         super().__init__(xml_file_name, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack)
         self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)

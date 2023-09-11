@@ -31,12 +31,12 @@ class Display:
     """ Base class for passive and active simulation
     """
 
-    def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=True):
+    def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=False):
         #print(f'Working directory:  {os.getcwd()}\n')
 
-        if connect_to_optitrack and can_import_motioncapture:
+        if connect_to_optitrack and not can_import_motioncapture:
             connect_to_optitrack = False
-            print("[Display] Motioncapture library is not supported on windows")
+            print("[Display] Motioncapture library is not supported on python version > 3.9")
         
         self.is_paused = False
 
@@ -48,6 +48,7 @@ class Display:
         self.key_l_callback = None
         self.key_o_callback = None
         self.key_t_callback = None
+        self.key_v_callback = None
         self.key_delete_callback = None
         self.key_left_callback = None
         self.key_left_release_callback = None
@@ -246,6 +247,10 @@ class Display:
     def set_key_t_callback(self, callback_function):
         if callable(callback_function):
             self.key_t_callback = callback_function
+
+    def set_key_v_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_v_callback = callback_function
     
     def set_key_delete_callback(self, callback_function):
         if callable(callback_function):
@@ -418,6 +423,14 @@ class Display:
             """
             if self.key_t_callback:
                 self.key_t_callback()
+        
+        
+        if key == glfw.KEY_V and action == glfw.RELEASE:
+            """
+            pass on this event
+            """
+            if self.key_v_callback:
+                self.key_v_callback()
         
         if key == glfw.KEY_DELETE and action == glfw.RELEASE:
             """

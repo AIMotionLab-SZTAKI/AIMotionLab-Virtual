@@ -189,7 +189,7 @@ class Drone(MovingObject):
       
     def fake_propeller_spin(self, control_step , speed = 10):
 
-            if self.get_qpos()[2] > 0.10:
+            if self.get_qpos()[2] > 0.06:
                 self.spin_propellers(speed * control_step)
             else:
                 self.stop_propellers()
@@ -412,6 +412,8 @@ class DroneMocap(MocapObject):
         if "bumblebee" in name_in_xml:
             self.propeller_spin_threshold = 0.15
         elif "crazyflie" in name_in_xml:
+            self.propeller_spin_threshold = 0.06
+        else:
             self.propeller_spin_threshold = 0.1
 
         self.set_propeller_speed(21.6)

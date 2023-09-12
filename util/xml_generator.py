@@ -406,23 +406,19 @@ class SceneXmlGenerator:
 
     def _add_hook_to_drone(self, drone, drone_name, hook_dof = 1):
         
-        rod = ET.SubElement(drone, "body", name=drone_name + "_rod", pos="0 0 0")
-        ET.SubElement(rod, "geom", name=drone_name + "_rod", type="cylinder", fromto="0 0 0  0 0 -" + str(ROD_LENGTH), size="0.005", mass="0.00")
+        hook_structure = ET.SubElement(drone, "body", name=drone_name + "_hookstructure", pos="0 0 0")
         site_name = drone_name + "_rod_end"
-        ET.SubElement(rod, "site", name=site_name, pos="0 0 -" + str(ROD_LENGTH), type="sphere", size="0.002")
-        ET.SubElement(rod, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
+        ET.SubElement(hook_structure, "site", name=site_name, pos="0 0 -" + str(ROD_LENGTH), type="sphere", size="0.002")
+        ET.SubElement(hook_structure, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
         if hook_dof == 2:
-            ET.SubElement(rod, "joint", name=drone_name + "_hook_x", axis="1 0 0", pos="0 0 0", damping="0.001")
+            ET.SubElement(hook_structure, "joint", name=drone_name + "_hook_x", axis="1 0 0", pos="0 0 0", damping="0.001")
             ET.SubElement(self.sensor, "jointvel", joint=drone_name + "_hook_x", name=drone_name + "_hook_jointvel_x")
             ET.SubElement(self.sensor, "jointpos", joint=drone_name + "_hook_x", name=drone_name + "_hook_jointpos_x")
         elif hook_dof != 1:
             print("Too many or not enough degrees of freedom for hook joint. 1 degree of freedom assumed.")
-        hook = ET.SubElement(rod, "body", name=drone_name + "_hook", pos="0 0 -" + str(ROD_LENGTH), euler="0 3.141592 -1.57")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0475", euler="-1.0472 0 0", size="0.005 0.018", mass="0.0001")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.005 0.02", mass="0.01")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02598 0.07", euler="0 0 0", size="0.005 0.018", mass="0.0001")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01299 0.0925", euler="1.0472 0 0", size="0.005 0.018", mass="0.0001")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01299 0.0925", euler="2.0944 0 0", size="0.005 0.018", mass="0.0001")
+        
+        self._add_hook_structure(hook_structure, drone_name)
+            
         
         ET.SubElement(self.sensor, "jointvel", joint=drone_name + "_hook_y", name=drone_name + "_hook_jointvel_y")
         ET.SubElement(self.sensor, "jointpos", joint=drone_name + "_hook_y", name=drone_name + "_hook_jointpos_y")
@@ -443,30 +439,27 @@ class SceneXmlGenerator:
 
         name_tail = drone_name[17:] # remove DroneMocapHooked from the name
         
-        hook = ET.SubElement(self.worldbody, "body", name= "HookMocap" + "_" + name_tail, pos=hook_pos, mocap="true")
-        #ET.SubElement(hook, "site", pos="0 0 -.085", size="0.01")
-        #ET.SubElement(hook, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")
-        nested_hookbody = ET.SubElement(hook, "body", pos="0 0 " + str(ROD_LENGTH), euler="0 0 0")
-        ET.SubElement(nested_hookbody, "geom", name="HookMocap" + "_" + name_tail + "_rod", type="cylinder", fromto="0 0 0  0 0 -" + str(ROD_LENGTH), size="0.0025")
-        #hook = ET.SubElement(self.worldbody, "body", name=drone_name + "_hook", pos=hook_pos, euler="0 3.141592 -1.57", mocap="true")
+        name = "HookMocap" + "_" + name_tail
 
-        nested_nested_hookbody = ET.SubElement(hook, "body", pos="0 0 -0.035", euler="0 0 -1.57")
+        hook = ET.SubElement(self.worldbody, "body", name=name, pos=hook_pos, mocap="true")
+
+        hook_structure_body = ET.SubElement(hook, "body", pos="0 0 " + str(ROD_LENGTH))
+
+        self._add_hook_structure(hook_structure_body, name)
+
+
+
+
+    def _add_hook_structure(self, hook_structure_body, name_base):
         
-        pos_z = 0.02 - ROD_LENGTH
-        hpos = "0 0 " + str(0.02)
-        ET.SubElement(nested_nested_hookbody, "geom", type="capsule", pos=hpos, size="0.002 0.02")
-        pos_z = -0.0475 - ROD_LENGTH
-        hpos = "-0.01299 0 " + str(-0.0475)
-        ET.SubElement(nested_nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 -1.0472 0", size="0.005 0.018")
-        pos_z = -0.025 - ROD_LENGTH
-        hpos = "-0.02598 0 " + str(-0.025)
-        ET.SubElement(nested_nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 0 0", size="0.005 0.018")
-        pos_z = -0.005 - ROD_LENGTH
-        hpos = "-0.01299 0 " + str(-0.005)
-        ET.SubElement(nested_nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 1.0472 0", size="0.005 0.018")
-        pos_z = -0.0475 - ROD_LENGTH
-        hpos = "0.01299 0 " + str(-0.0475)
-        ET.SubElement(nested_nested_hookbody, "geom", type="capsule", pos=hpos, euler="0 1.0472 0", size="0.005 0.018")
+        ET.SubElement(hook_structure_body, "geom", name=name_base + "_rod", type="cylinder", fromto="0 0 0  0 0 -" + str(ROD_LENGTH), size="0.005", mass="0.0")
+        hookbody = ET.SubElement(hook_structure_body, "body", name=name_base + "_hook", pos="0 0 -" + str(ROD_LENGTH), euler="0 3.141592 0")
+
+        ET.SubElement(hookbody, "geom", type="capsule", pos="0 0 0.02", size="0.003 0.02", mass="0.01")
+        ET.SubElement(hookbody, "geom", type="capsule", pos="0 0.01299 0.0475", euler="-1.0472 0 0", size="0.005 0.018", mass="0.0001")
+        ET.SubElement(hookbody, "geom", type="capsule", pos="0 0.02598 0.07", euler="0 0 0", size="0.005 0.018", mass="0.0001")
+        ET.SubElement(hookbody, "geom", type="capsule", pos="0 0.01299 0.0925", euler="1.0472 0 0", size="0.005 0.018", mass="0.0001")
+        ET.SubElement(hookbody, "geom", type="capsule", pos="0 -0.01299 0.0925", euler="2.0944 0 0", size="0.005 0.018", mass="0.0001")
 
 
 

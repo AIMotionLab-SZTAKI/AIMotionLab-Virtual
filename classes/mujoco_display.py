@@ -193,6 +193,9 @@ class Display:
         print("______________________________")
         
         self.all_vehicles = self.all_virt_vehicles + self.all_real_vehicles
+        
+        # to obtain inertia matrix
+        mujoco.mj_step(self.model, self.data)
     
 
     def get_MovingObject_by_name_in_xml(self, name):

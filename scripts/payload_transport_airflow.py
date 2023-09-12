@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     abs_path = os.path.dirname(os.path.abspath(__file__))
     xml_path = os.path.join(abs_path, "..", "xml_models")
-    xmlBaseFileName = "scene.xml"
+    xmlBaseFileName = "scene_base.xml"
     save_filename = "built_scene.xml"
 
     # Set scenario parameters

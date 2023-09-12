@@ -45,7 +45,7 @@ Initialize SceneXmlGenerator like so:
 
 ```
 xml_path = os.path.join("..", "xml_models")
-xml_base_filename = "scene.xml"
+xml_base_filename = "scene_base.xml"
 
 scene = xml_generator.SceneXmlGenerator(os.path.join(xml_path, xml_base_filename))
 ```

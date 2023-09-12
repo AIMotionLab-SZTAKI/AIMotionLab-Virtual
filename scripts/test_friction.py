@@ -26,7 +26,7 @@ BLUE_COLOR = "0.2 0.2 0.85 1.0"
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
-xmlBaseFileName = "scene.xml"
+xmlBaseFileName = "scene_base.xml"
 save_filename = "built_scene.xml"
 
 scene = SceneXmlGenerator(xmlBaseFileName)

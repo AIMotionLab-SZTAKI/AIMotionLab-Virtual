@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     abs_path = os.path.dirname(os.path.abspath(__file__))
     xml_path = os.path.join(abs_path, "..", "xml_models")
-    xmlBaseFileName = "scene.xml"
+    xmlBaseFileName = "scene_base.xml"
     save_filename = "built_scene.xml"
 
     # Set scenario parameters
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     drone0.qvel[1] = 0
 
     airflow_sampl = AirflowSampler(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"), drone0)
-    payload0.set_top_subdivision(10, 10)
+    payload0.set_top_mesh(10, 10)
 
     # Plan trajectory
     drone0_trajectory.construct(drone_init_pos, load_init_pos, load_target_pos, load_mass)
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     while not simulator.glfw_window_should_close():
         simulator.update()
 
-        force, torque = airflow_sampl.generate_forces(payload0)
+        force, torque = airflow_sampl.generate_forces_opt(payload0)
         payload0.set_force_torque(force, torque)
 
         # state = drone0.get_state()

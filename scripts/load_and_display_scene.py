@@ -9,7 +9,7 @@ from classes.object_parser import parseMovingObjects, parseMocapObjects
 # open the base on which we'll build
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
-xmlBaseFileName = "scene.xml"
+xmlBaseFileName = "scene_base.xml"
 
 # create list of parsers
 virt_parsers = [parseMovingObjects]

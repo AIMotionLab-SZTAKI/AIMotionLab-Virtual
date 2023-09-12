@@ -739,7 +739,7 @@ class SceneXmlGenerator:
 
 
 """
-scene = SceneXmlGenerator("scene.xml")
+scene = SceneXmlGenerator("scene_base.xml")
 
 scene.add_airport(pos="0.5 -1.2 0.0025")
 scene.add_parking_lot(pos="-0.5 1.2 0.0025")

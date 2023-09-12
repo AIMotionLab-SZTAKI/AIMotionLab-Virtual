@@ -1,5 +1,5 @@
 <mujoco>
-    <include file="scene.xml" />
+    <include file="scene_base.xml" />
 
     <worldbody>
 

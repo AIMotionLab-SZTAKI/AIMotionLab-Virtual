@@ -23,7 +23,6 @@ class ActiveSimulator(Display):
         self.is_recording_automatically = False
 
         # To obtain inertia matrix
-        mujoco.mj_step(self.model, self.data)
         self.start_time = 0.0
         self.prev_time = time.time()
         self.vid_rec_cntr = 0

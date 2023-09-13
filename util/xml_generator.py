@@ -47,7 +47,8 @@ class SceneXmlGenerator:
         self._virtfleet1tenth_cntr = 0
         self._realfleet1tenth_cntr = 0
         
-        self._load_cntr = 0
+        self._box_payload_cntr = 0
+        self._teardrop_payload_cntr = 0
         self._mocap_load_cntr = 0
 
     def add_bicycle(self, pos, quat, color):
@@ -520,32 +521,34 @@ class SceneXmlGenerator:
         else:
             print("[SceneXmlGenerator] Sztaki already added")
     
-    def add_payload(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box.value, is_mocap=False):
+    def add_payload(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box, is_mocap=False):
 
         if is_mocap:
             name = "PayloadMocap_" + str(self._mocap_load_cntr)
             self._mocap_load_cntr += 1
             load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
             
-            if type == PAYLOAD_TYPES.Box.value:
+            if type == PAYLOAD_TYPES.Box:
                 box_pos = "0 0 " + size.split()[2]
                 ET.SubElement(load, "geom", type="box", size=size, pos=box_pos, rgba=color)
                 hook_pos = "0 0 " + str(2 * float(size.split()[2]))
-            elif type == PAYLOAD_TYPES.Teardrop.value:
+            elif type == PAYLOAD_TYPES.Teardrop:
                 ET.SubElement(load, "geom", type="mesh", mesh="payload_simplified", pos="0 0 0.0405", rgba=color, euler="1.57 0 0")
                 hook_pos = "0 0 0.05"
         
         else:
-            name = "Payload_" + str(self._load_cntr)
-            self._load_cntr += 1
-            
-            load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
 
-            if type == PAYLOAD_TYPES.Box.value:
+            if type == PAYLOAD_TYPES.Box:
+                name = "BoxPayload_" + str(self._box_payload_cntr)
+                self._box_payload_cntr += 1
                 box_pos = "0 0 " + size.split()[2]
+                load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
                 ET.SubElement(load, "geom", name=name, type="box", size=size, pos=box_pos, mass=mass, rgba=color)
                 hook_pos = "0 0 " + str(2 * float(size.split()[2]))
-            elif type == PAYLOAD_TYPES.Teardrop.value:
+            elif type == PAYLOAD_TYPES.Teardrop:
+                name = "TeardropPayload_" + str(self._teardrop_payload_cntr)
+                self._teardrop_payload_cntr += 1
+                load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
                 ET.SubElement(load, "geom", name=name, type="mesh", mesh="payload_simplified", pos="0 0 0.0405", mass=mass, rgba=color, euler="1.57 0 0")
                 hook_pos = "0 0 0.05"
 

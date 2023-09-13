@@ -416,7 +416,7 @@ class DroneMocap(MocapObject):
         else:
             self.propeller_spin_threshold = 0.1
 
-        self.set_propeller_speed(21.6)
+        self.set_propeller_speed(121.6)
 
     def get_pos(self):
         return self.data.mocap_pos[self.mocapid]

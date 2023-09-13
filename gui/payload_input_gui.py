@@ -29,7 +29,7 @@ class PayloadInputGui:
         self.mass = ""
         self.position = ""
         self.quaternion = ""
-        self.type = ""
+        self.type = None
         
         tk.Label(self.window, text="Is mocap ").grid(row=0)
         tk.Label(self.window, text="Type ").grid(row=1)
@@ -90,10 +90,14 @@ class PayloadInputGui:
 
         
     def btnOk_on_press(self):
-        self.is_mocap, self.color, self.mass, self.size, self.position, self.quaternion, self.type =\
+        self.is_mocap, self.color, self.mass, self.size, self.position, self.quaternion =\
             self.is_mocap_int_var.get() == 1, \
             COLORS[self.color_selected.get()], self.entry_mass.get(), self.entry_size.get(),\
-            self.entry_position.get(), self.entry_quaternion.get(), self.type_selected.get()
+            self.entry_position.get(), self.entry_quaternion.get()
+        type_val = self.type_selected.get()
+        for t in PAYLOAD_TYPES:
+            if t.value == type_val:
+                self.type = t
         self.needs_new_payload = True
         self.window.quit()
         self.window.destroy()

@@ -168,23 +168,23 @@ def add_payload():
     if input_gui.needs_new_payload:
         if input_gui.position != "" and input_gui.quaternion != "":
             if input_gui.is_mocap:
-                if input_gui.type == PAYLOAD_TYPES.Box.value:
+                if input_gui.type == PAYLOAD_TYPES.Box:
                     if input_gui.size == "":
                         print("Payload size was unspecified...")
                         return
                     scene.add_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
-                elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
+                elif input_gui.type == PAYLOAD_TYPES.Teardrop:
                     scene.add_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
                 else:
                     print("Unknown payload type...")
             else:
                 if input_gui.mass != "":
-                    if input_gui.type == PAYLOAD_TYPES.Box.value:
+                    if input_gui.type == PAYLOAD_TYPES.Box:
                         if input_gui.size == "":
                             print("Payload size was unspecified...")
                             return
                         scene.add_payload(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
-                    elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
+                    elif input_gui.type == PAYLOAD_TYPES.Teardrop:
                         scene.add_payload(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color, input_gui.type)
                     else:
                         print("Unknown payload type...")
@@ -251,7 +251,7 @@ def build_from_optitrack():
 
             elif name.startswith("payload"):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_payload(position, None, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop.value, True)
+                scene.add_payload(position, None, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop, True)
                 vehicle_names_in_motive += [name]
 
 

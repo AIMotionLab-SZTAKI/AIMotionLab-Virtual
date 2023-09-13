@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from classes.airflow_sampler import AirflowSampler
 from classes.object_parser import parseMovingObjects
+from util.util import plot_payload_and_airflow_volume
 
 
 def update_controller_type(state, setpoint, time, i):
@@ -28,13 +29,13 @@ if __name__ == '__main__':
     drone_init_pos = np.array([-0.76, 1.13, 1, 0])  # initial drone position and yaw angle
     load_init_pos = np.array([0, -1, 0.6])  # TODO: Do some transformations in z direction
     load_target_pos = np.array([0.76, 1.13, 0.62])
-    load_mass = 0.02
+    load_mass = 0.08
 
     # create xml with a drone and a car
     scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
     drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-2], "1 0 0 0", RED_COLOR, True, "bumblebee",
                                   True, 2)
-    payload0_name = scene.add_load(np.array2string(load_init_pos)[1:-2], ".05 .05 .025", str(load_mass), "1 0 0 0", BLUE_COLOR)
+    payload0_name = scene.add_payload(np.array2string(load_init_pos)[1:-2], ".05 .05 .025", str(load_mass), "1 0 0 0", BLUE_COLOR)
 
     # saving the scene as xml so that the simulator can load it
     scene.save_xml(os.path.join(xml_path, save_filename))
@@ -79,7 +80,7 @@ if __name__ == '__main__':
     drone0.qvel[1] = 0
 
     # Plan trajectory
-    drone0_trajectory.construct(drone_init_pos, load_init_pos, load_target_pos, load_mass)
+    drone0_trajectory.construct(drone_init_pos, load_init_pos - np.array([0.001, 0, 0.005]), load_target_pos, load_mass)
 
     while not simulator.glfw_window_should_close():
         simulator.update()
@@ -89,7 +90,5 @@ if __name__ == '__main__':
 
     simulator.close()
 
-    # plt.plot(sensor_data)
-    # plt.plot(q_data)
-    # plt.legend(["sensor_joint_ang", "q_joint_ang"])
-    # plt.show()
+
+    plot_payload_and_airflow_volume(payload0, airflow_sampl)

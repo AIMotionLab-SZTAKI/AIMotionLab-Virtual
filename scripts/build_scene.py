@@ -160,7 +160,7 @@ def add_vehicle():
             #print(input_gui.vehicle_type)
             print("Non-existent vehicle type: " + input_gui.vehicle_type)
 
-def add_load():
+def add_payload():
     global scene, simulator
     input_gui = PayloadInputGui()
     input_gui.show()
@@ -172,9 +172,9 @@ def add_load():
                     if input_gui.size == "":
                         print("Payload size was unspecified...")
                         return
-                    scene.add_load(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
+                    scene.add_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
                 elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
-                    scene.add_load(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
+                    scene.add_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
                 else:
                     print("Unknown payload type...")
             else:
@@ -183,9 +183,9 @@ def add_load():
                         if input_gui.size == "":
                             print("Payload size was unspecified...")
                             return
-                        scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
+                        scene.add_payload(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
                     elif input_gui.type == PAYLOAD_TYPES.Teardrop.value:
-                        scene.add_load(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color, input_gui.type)
+                        scene.add_payload(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color, input_gui.type)
                     else:
                         print("Unknown payload type...")
                 else:
@@ -251,7 +251,7 @@ def build_from_optitrack():
 
             elif name.startswith("payload"):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_load(position, None, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop.value, True)
+                scene.add_payload(position, None, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop.value, True)
                 vehicle_names_in_motive += [name]
 
 
@@ -296,7 +296,7 @@ def build_from_optitrack():
 def main():
     simulator.set_key_b_callback(add_building)
     simulator.set_key_o_callback(build_from_optitrack)
-    simulator.set_key_t_callback(add_load)
+    simulator.set_key_t_callback(add_payload)
     simulator.set_key_v_callback(add_vehicle)
     simulator.set_key_delete_callback(clear_scene)
     

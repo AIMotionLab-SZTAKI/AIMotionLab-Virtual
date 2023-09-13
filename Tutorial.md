@@ -95,7 +95,7 @@ To add a payload to the model:
 
 ```
 # arguments are position, size, mass, quaternion and color
-scene.add_load("0 -1 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
+scene.add_payload("0 -1 0", ".1 .1 .1", ".15", "1 0 0 0", "0.1 0.1 0.9 1.0")
 ```
 
 To save the xml to hard disk:

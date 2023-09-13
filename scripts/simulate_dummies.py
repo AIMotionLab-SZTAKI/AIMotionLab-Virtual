@@ -30,8 +30,8 @@ scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone("-5 0 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True, 1)
 dronemocap0_name = scene.add_drone("1 1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", True, 1)
 car0_name = scene.add_car("-5 1 0.6", "1 0 0 0", RED_COLOR, True)
-mocap_load0_name = scene.add_load("-1 0 0", ".1 .1 .1", None, "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop.value, True)
-load0_name = scene.add_load("0 0 15", ".15 .12 .5", ".1", "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Box.value)
+mocap_load0_name = scene.add_payload("-1 0 0", ".1 .1 .1", None, "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop.value, True)
+load0_name = scene.add_payload("0 0 15", ".15 .12 .5", ".1", "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Box.value)
 
 # saving the scene as xml so that the simulator can load it
 scene.save_xml(os.path.join(xml_path, save_filename))

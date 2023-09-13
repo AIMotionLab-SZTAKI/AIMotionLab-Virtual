@@ -520,7 +520,7 @@ class SceneXmlGenerator:
         else:
             print("[SceneXmlGenerator] Sztaki already added")
     
-    def add_load(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box.value, is_mocap=False):
+    def add_payload(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box.value, is_mocap=False):
 
         if is_mocap:
             name = "PayloadMocap_" + str(self._mocap_load_cntr)

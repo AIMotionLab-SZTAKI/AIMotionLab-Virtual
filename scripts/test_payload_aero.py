@@ -65,7 +65,7 @@ scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone(np.array2string(drone0_init_pos[0:3])[1:-1], "1 0 0 0", BLUE_COLOR, True, "bumblebee",
                                 True, 2)
 
-payload0_name = scene.add_load(np.array2string(load0_initpos)[1:-1], np.array2string(load0_size)[1:-1], str(load0_mass), ".707 0 0 .707", BLUE_COLOR)
+payload0_name = scene.add_payload(np.array2string(load0_initpos)[1:-1], np.array2string(load0_size)[1:-1], str(load0_mass), ".707 0 0 .707", BLUE_COLOR)
 
 # Set scenario parameters
 drone1_init_pos = np.array([0.0, 1.0, 2.0, 0])  # initial drone position and yaw angle
@@ -76,7 +76,7 @@ load1_initpos = np.array([drone1_init_pos[0], drone1_init_pos[1], drone1_init_po
 drone1_name = scene.add_drone(np.array2string(drone1_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
                                 True, 2)
 
-payload1_name = scene.add_load(np.array2string(load1_initpos)[1:-1], np.array2string(load1_size)[1:-1], str(load1_mass), ".707 0 0 .707", BLUE_COLOR)
+payload1_name = scene.add_payload(np.array2string(load1_initpos)[1:-1], np.array2string(load1_size)[1:-1], str(load1_mass), ".707 0 0 .707", BLUE_COLOR)
 
 scene.save_xml(os.path.join(xml_path, save_filename))
 

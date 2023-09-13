@@ -608,7 +608,7 @@ Description:
 Creates and shows a DroneInputGui pop-up window in which the user can select the tye of drone, its position and orientation. Then, it adds the desired drone to the xml model via the SceneXmlGenerator, saves the xml, and gets the display to reload it so that the user can see the changes visually.
 
   ```
-  add_load():
+  add_payload():
   ```
 
 Description:

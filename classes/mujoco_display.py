@@ -13,7 +13,7 @@ from util import mujoco_helper
 from gui.vehicle_name_gui import VehicleNameGui
 import scipy.signal
 from util.mujoco_helper import LiveLFilter
-from classes.moving_object import MocapObject
+from classes.moving_object import MocapObject, MovingObject
 import ffmpeg
 
 can_import_motioncapture = sys.version_info.major == 3 and sys.version_info.minor < 10
@@ -198,7 +198,7 @@ class Display:
         mujoco.mj_step(self.model, self.data)
     
 
-    def get_MovingObject_by_name_in_xml(self, name):
+    def get_MovingObject_by_name_in_xml(self, name) -> MovingObject:
 
         for i in range(len(self.all_virt_vehicles)):
 

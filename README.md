@@ -79,7 +79,7 @@ To automatically build a scene based on Motive stream:
 To start and stop video recording:
   * Press 'r' (short for record)
   * The location of the saved video will be printed in the terminal
-  > Note: In order to create video recording on a windows platform, the ffmpeg binaries also need to be installed! The latest build can be accessed [here](https://www.gyan.dev/ffmpeg/builds/). After, the zip file has been successfully downloaded extract it to a convinient location (C drive is recommended) and set the environment path variable for 'ffmpeg' by running
+  > Note: In order to create video recording on a windows platform, the ffmpeg binaries also need to be installed! The latest build can be accessed [here](https://www.gyan.dev/ffmpeg/builds/). After, the zip file has been successfully downloaded extract it to a convenient location (C drive is recommended) and set the environment path variable for 'ffmpeg' by running
   	
 ```
   $ setx /m PATH "<your-path-to-the-unzipped-folder>/ffmpeg\bin;%PATH%"

@@ -6,7 +6,7 @@ from tkinter import filedialog
 from classes.object_parser import parseMovingObjects, parseMocapObjects
 
 
-# open the base on which we'll build
+# open the base
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
 xmlBaseFileName = "scene_base.xml"
@@ -28,6 +28,10 @@ def load_model():
 
 def main():
     simulator.set_key_l_callback(load_model)
+
+    simulator.cam.azimuth = 0
+
+    load_model()
     
     while not simulator.glfw_window_should_close():
 

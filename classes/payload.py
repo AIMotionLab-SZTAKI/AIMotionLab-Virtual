@@ -2,6 +2,7 @@ from classes.moving_object import MocapObject, MovingObject
 from util import mujoco_helper
 from enum import Enum
 import numpy as np
+import math
 
 
 class PAYLOAD_TYPES(Enum):
@@ -56,6 +57,9 @@ class Payload(MovingObject):
         #self._minirectangle_normals = np.zeros_like(self._top_minirectangle_positions)
         #self._minirectangle_areas = np.zeros_like(len(self._top_minirectangle_positions))
 
+    def create_surface_mesh(self, surface_division_area: float):
+        raise NotImplementedError("[Payload] Subclasses need to implement this method.")
+
     
     def update(self, i, control_step):
         
@@ -73,7 +77,7 @@ class Payload(MovingObject):
         if isinstance(airflow_sampler, AirflowSampler):
             self._airflow_samplers += [airflow_sampler]
         else:
-            raise Exception("the received object is not of type AirflowSampler")
+            raise Exception("[Payload] The received object is not of type AirflowSampler.")
     
     def get_qpos(self):
         return np.append(self.sensor_posimeter, self.sensor_orimeter)
@@ -100,21 +104,37 @@ class BoxPayload(Payload):
             self.top_surface_area = 2 * self.size[0] * 2 * self.size[1]
             self.side_surface_area_xz = 2 * self.size[0] * 2 * self.size[2]
             self.side_surface_area_yz = 2 * self.size[1] * 2 * self.size[2]
-            self.set_top_mesh(10, 10)
-            self.set_side_mesh(10, 10, 10)
+            self.create_surface_mesh(0.0001)
         
         else:
-            raise Exception("[BoxPayload __init__] Payload is not boy shaped.")
+            raise Exception("[BoxPayload __init__] Payload is not box shaped.")
 
+
+    def create_surface_mesh(self, surface_division_area: float):
+        """
+        inputs:
+          * surface_division_area: the area of the small surface squares in m^2
+        """
+        
+        a = surface_division_area
+
+        square_side = math.sqrt(a)
+
+        subdiv_x = int(round(self.size[0] / square_side))
+        subdiv_y = int(round(self.size[1] / square_side))
+        subdiv_z = int(round(self.size[2] / square_side))
+
+        self._set_top_mesh(subdiv_x, subdiv_y)
+        self._set_side_mesh(subdiv_x, subdiv_y, subdiv_z)
     
-    def set_top_mesh(self, top_subdivision_x, top_subdivision_y):
+    def _set_top_mesh(self, top_subdivision_x, top_subdivision_y):
         
         self._top_subdivision_x = top_subdivision_x
         self._top_subdivision_y = top_subdivision_y
         self.top_miniractangle_area = self.top_surface_area / (top_subdivision_x * top_subdivision_y)
         self._calc_top_minirectangle_positions()
 
-    def set_side_mesh(self, subdivision_x, subdivision_y, subdivision_z):
+    def _set_side_mesh(self, subdivision_x, subdivision_y, subdivision_z):
             
         self._side_subdivision_x = subdivision_x
         self._side_subdivision_y = subdivision_y
@@ -122,6 +142,8 @@ class BoxPayload(Payload):
         self.side_miniractangle_area_xz = self.side_surface_area_xz / (subdivision_x * subdivision_z)
         self.side_miniractangle_area_yz = self.side_surface_area_yz / (subdivision_y * subdivision_z)
         self._calc_side_minirectangle_positions()
+    
+    
 
     def _get_top_position_at(self, i, j):
         """ get the center in world coordinates of a small rectangle on the top of the box """
@@ -258,3 +280,6 @@ class TeardropPayload(Payload):
 
     def __init__(self, model, data, name_in_xml) -> None:
         super().__init__(model, data, name_in_xml)
+
+    def create_surface_mesh(self, d):
+        raise NotImplementedError("[TeardropPayload] this method needs to be implemented")

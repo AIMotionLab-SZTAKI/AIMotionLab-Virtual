@@ -22,8 +22,8 @@ if can_import_motioncapture:
     import motioncapture
 
 MAX_GEOM = 200
-INIT_WWIDTH = 1280
-INIT_WHEIGHT = 720
+INIT_WWIDTH = 1536
+INIT_WHEIGHT = 864
 
 OPTITRACK_IP = "192.168.2.141"
 

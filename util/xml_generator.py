@@ -16,7 +16,7 @@ PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
 
 SITE_NAME_END = "_cog"
 
-ROD_LENGTH = 0.40
+ROD_LENGTH = float(BUMBLEBEE_PROP.ROD_LENGTH.value)
 
 class SceneXmlGenerator:
 
@@ -544,6 +544,7 @@ class SceneXmlGenerator:
                 box_pos = "0 0 " + size.split()[2]
                 load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
                 ET.SubElement(load, "geom", name=name, type="box", size=size, pos=box_pos, mass=mass, rgba=color)
+                #ET.SubElement(load, "inertial", pos="0 0 0", diaginertia="5e-4 5e-4 5e-4", mass=mass)
                 hook_pos = "0 0 " + str(2 * float(size.split()[2]))
             elif type == PAYLOAD_TYPES.Teardrop:
                 name = "TeardropPayload_" + str(self._teardrop_payload_cntr)

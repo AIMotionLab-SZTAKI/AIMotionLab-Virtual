@@ -562,7 +562,7 @@ class SceneXmlGenerator:
 
         hook_mass = "0.0001"
 
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.03", size="0.002 0.02", mass=hook_mass)
+        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.025", size="0.002 0.027", mass=hook_mass)
 
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01173 0.05565", euler="-1.12200 0 0", size="0.004 0.01562", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.05439", euler="-1.17810 0 0", size="0.004 0.01378", mass=hook_mass)

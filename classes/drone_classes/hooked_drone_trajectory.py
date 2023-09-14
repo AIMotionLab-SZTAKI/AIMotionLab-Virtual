@@ -332,7 +332,7 @@ class HookedDroneTrajectory(TrajectoryBase):
         self.traj = {'pos': pos, 'vel': vel, 'yaw': yaw, 'ctrl_type': ctrl_type}
 
         self.states, self.inputs, self.payload_mass = compute_state_trajectory_from_splines(spl, 0.605, 0.01, load_mass,
-                                                                                            0.4, 9.81, np.diag(inertia),
+                                                                                            self.rod_length, 9.81, np.diag(inertia),
                                                                                             self.control_step)
 
     @staticmethod
@@ -394,7 +394,7 @@ class HookedDroneTrajectory(TrajectoryBase):
             return arr, spl
 
         def eval_trajectory_from_load(self, t, der=0):
-            L = 0.4
+            L = self.rod_length
             rL = si.splev(self.s_arr, self.spl)
             # rL_spl = [si.splrep(self.t_arr, r_, s=1e-8, k=5) for r_ in rL]  # fit spline
             # ddrL = np.array([si.splev(self.t_arr, r_, der=2) for r_ in rL_spl]).T  # evaluate second derivative
@@ -411,7 +411,7 @@ class HookedDroneTrajectory(TrajectoryBase):
             # plt.figure()
             # plt.plot(self.t_arr, ddrL)
             # plt.show()
-            arr = np.array([si.splev(t, pos_spl_, der=der) for pos_spl_ in r_spl]).T - (der == 0) * np.array([0, 0, 0.4])
+            arr = np.array([si.splev(t, pos_spl_, der=der) for pos_spl_ in r_spl]).T - (der == 0) * np.array([0, 0, L])
             return arr
 
         def construct_trajectory(self):

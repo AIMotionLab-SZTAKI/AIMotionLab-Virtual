@@ -1,4 +1,4 @@
-# Virtual 3D model of the test environment and simulation with MuJoCo
+# Virtual 3D model of AIMotion-Lab and simulation with MuJoCo engine
 
 The documentation can be accessed [here](https://github.com/AIMotionLab-SZTAKI/Mujoco-Simulator/wiki).
 

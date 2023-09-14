@@ -73,8 +73,8 @@ To automatically build a scene based on Motive stream:
     * crazyflie: anything that starts with 'cf'
     * bumblebee: anything that starts with 'bb'
 
-  To pause/unpause the simulation:
-    * Press 'p'
+To pause/unpause the simulation:
+  * Press 'p'
 
 To start and stop video recording:
   * Press 'r' (short for record)

@@ -6,13 +6,13 @@ VEHICLE_TYPE_OPTIONS = [
     "Virtual crazyflie",
     "Virtual bumblebee",
     "Virtual bb with hook",
-    "Real crazyflie",
-    "Real bumblebee",
-    "Real bb with hook",
+    "Mocap crazyflie",
+    "Mocap bumblebee",
+    "Mocap bb with hook",
     "Virtual Fleet1Tenth",
     "Virtual F1Tenth with rod",
-    "Real Fleet1Tenth",
-    "Real F1Tenth with rod"
+    "Mocap Fleet1Tenth",
+    "Mocap F1Tenth with rod"
 ]
 
 

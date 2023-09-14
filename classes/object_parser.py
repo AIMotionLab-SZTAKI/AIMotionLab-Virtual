@@ -16,16 +16,16 @@ def parseMovingObjects(data: mujoco.MjData, model: mujoco.MjModel):
         name = freejoint_names[i]
         split_name = name.split("_")
 
-        try:
+        if split_name[0] in globals():
             class_to_be_created = globals()[split_name[0]]
 
             moving_obj = class_to_be_created(model, data, name)
 
             moving_objects += [moving_obj]
 
-        except Exception as e:
+        else:
             print()
-            print("[parseMovingObjects] Could not find class for ", e)
+            print("[parseMovingObjects] Could not find class for ", split_name[0])
 
     
     return moving_objects

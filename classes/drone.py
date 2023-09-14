@@ -23,7 +23,7 @@ class BUMBLEBEE_PROP(Enum):
     OFFSET_Z = "0.036"
     MOTOR_PARAM = "0.5954"
     MAX_THRUST = "15"
-    ROD_LENGTH = "0.20"
+    ROD_LENGTH = "0.40"
 
 class DRONE_TYPES(Enum):
     CRAZYFLIE = 0
@@ -283,25 +283,26 @@ class DroneHooked(Drone):
         self.hook_qvel_y = self.data.joint(self.name_in_xml + "_hook_y").qvel
         self.sensor_hook_jointpos_y = self.data.sensor(self.name_in_xml + "_hook_jointpos_y").data
         self.sensor_hook_jointvel_y = self.data.sensor(self.name_in_xml + "_hook_jointvel_y").data
+        self.sensor_hook_pos = self.data.sensor(self.name_in_xml + "_hook_pos").data
+        self.sensor_hook_vel = self.data.sensor(self.name_in_xml + "_hook_vel").data
+        self.sensor_hook_ang_vel = self.data.sensor(self.name_in_xml + "_hook_angvel").data
+        self.sensor_hook_quat = self.data.sensor(self.name_in_xml + "_hook_quat").data
         self.state["joint_ang"] = np.array(self.sensor_hook_jointpos_y)
         self.state["joint_ang_vel"] = np.array(self.sensor_hook_jointvel_y)
+        self.state["load_pos"] = np.array(self.sensor_hook_pos)
+        self.state["load_vel"] = np.array(self.sensor_hook_vel)
+        self.state["pole_eul"] = np.zeros(2) #Rotation.from_quat(np.roll(np.array(self.sensor_hook_quat), -1)).as_euler('XYZ')[0:2]
+        self.state["pole_ang_vel"] = np.array(self.sensor_hook_ang_vel)[0:2]
+
         if self.hook_dof == 2:
             self.hook_qpos_x = self.data.joint(self.name_in_xml + "_hook_x").qpos
             self.hook_qvel_x = self.data.joint(self.name_in_xml + "_hook_x").qvel
             self.sensor_hook_jointvel_x = self.data.sensor(self.name_in_xml + "_hook_jointvel_x").data
             self.sensor_hook_jointpos_x = self.data.sensor(self.name_in_xml + "_hook_jointpos_x").data
-            self.sensor_hook_pos = self.data.sensor(self.name_in_xml + "_hook_pos").data
-            self.sensor_hook_vel = self.data.sensor(self.name_in_xml + "_hook_vel").data
-            self.sensor_hook_quat = self.data.sensor(self.name_in_xml + "_hook_quat").data
-            self.sensor_hook_ang_vel = self.data.sensor(self.name_in_xml + "_hook_angvel").data
             self.state["joint_ang"] = np.array((self.sensor_hook_jointpos_y, self.sensor_hook_jointpos_x))
             self.state["joint_ang_vel"] = np.array((self.sensor_hook_jointvel_y, self.sensor_hook_jointvel_x))
-            self.state["load_pos"] = np.array(self.sensor_hook_pos)
-            self.state["load_vel"] = np.array(self.sensor_hook_vel)
             # if np.linalg.norm(self.sensor_hook_quat) < 1e-4:
             #     self.sensor_hook_quat = np.array([0, 0, 0, 1])
-            self.state["pole_eul"] = np.zeros(2) #Rotation.from_quat(np.roll(np.array(self.sensor_hook_quat), -1)).as_euler('XYZ')[0:2]
-            self.state["pole_ang_vel"] = np.array(self.sensor_hook_ang_vel)[0:2]
 
     
     def get_state(self):
@@ -312,10 +313,11 @@ class DroneHooked(Drone):
         elif self.hook_dof == 2:
             self.state["joint_ang"] = np.array((self.sensor_hook_jointpos_y[0], self.sensor_hook_jointpos_x[0]))
             self.state["joint_ang_vel"] = np.array((self.sensor_hook_jointvel_y[0], self.sensor_hook_jointvel_x[0]))
-            self.state["load_pos"] = np.array(self.sensor_hook_pos)
-            self.state["load_vel"] = np.array(self.sensor_hook_vel)
-            self.state["pole_eul"] = Rotation.from_quat(np.roll(np.array(self.sensor_hook_quat), -1)).as_euler('XYZ')[0:2]
-            self.state["pole_ang_vel"] = np.array(self.sensor_hook_ang_vel)[0:2]
+        
+        self.state["load_pos"] = np.array(self.sensor_hook_pos)
+        self.state["load_vel"] = np.array(self.sensor_hook_vel)
+        self.state["pole_eul"] = Rotation.from_quat(np.roll(np.array(self.sensor_hook_quat), -1)).as_euler('XYZ')[0:2]
+        self.state["pole_ang_vel"] = np.array(self.sensor_hook_ang_vel)[0:2]
         return self.state
     
     def update(self, i, control_step):
@@ -386,13 +388,11 @@ class BumblebeeHooked(DroneHooked):
         self.Ly = float(BUMBLEBEE_PROP.OFFSET_Y.value)
         self.motor_param = float(BUMBLEBEE_PROP.MOTOR_PARAM.value)
 
-        self.load_mass = 0.0
-
         rod_geom = model.geom(name_in_xml + "_rod")
 
         self.rod_length = rod_geom.size[1] * 2
 
-        print(self.rod_length)
+        #print(self.rod_length)
         
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 

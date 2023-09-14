@@ -127,15 +127,15 @@ def add_vehicle():
             if input_gui.position != "" and input_gui.quaternion != "":
                 scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", True)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-        elif input_gui.vehicle_type == "Real crazyflie":
+        elif input_gui.vehicle_type == "Mocap crazyflie":
             if input_gui.position != "" and input_gui.quaternion != "":
                 scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "crazyflie")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-        elif input_gui.vehicle_type == "Real bumblebee":
+        elif input_gui.vehicle_type == "Mocap bumblebee":
             if input_gui.position != "" and input_gui.quaternion != "":
                 scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", False)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-        elif input_gui.vehicle_type == "Real bb with hook":
+        elif input_gui.vehicle_type == "Mocap bb with hook":
             if input_gui.position != "" and input_gui.quaternion != "":
                 scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", True)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
@@ -147,11 +147,11 @@ def add_vehicle():
             if input_gui.position != "" and input_gui.quaternion != "":
                 scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-        elif input_gui.vehicle_type == "Real Fleet1Tenth":
+        elif input_gui.vehicle_type == "Mocap Fleet1Tenth":
             if input_gui.position != "" and input_gui.quaternion != "":
                 scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, False, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
-        elif input_gui.vehicle_type == "Real F1Tenth with rod":
+        elif input_gui.vehicle_type == "Mocap F1Tenth with rod":
             if input_gui.position != "" and input_gui.quaternion != "":
                 scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))

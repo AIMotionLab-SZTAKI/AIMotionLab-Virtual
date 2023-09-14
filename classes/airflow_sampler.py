@@ -38,7 +38,7 @@ class AirflowSampler:
 
 
         self._cube_size_meter = self._cube_size / 100.
-        self._payload_offset_z = 15
+        self._payload_offset_z = 0
         self._payload_offset_z_meter = self._payload_offset_z / 100.
 
         self.index_upper_limit = (float(self._cube_size) - 0.5) / 100.

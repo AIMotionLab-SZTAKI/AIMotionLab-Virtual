@@ -23,6 +23,7 @@ class BUMBLEBEE_PROP(Enum):
     OFFSET_Z = "0.036"
     MOTOR_PARAM = "0.5954"
     MAX_THRUST = "15"
+    ROD_LENGTH = "0.20"
 
 class DRONE_TYPES(Enum):
     CRAZYFLIE = 0

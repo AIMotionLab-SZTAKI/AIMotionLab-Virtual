@@ -41,6 +41,7 @@ class Drone(MovingObject):
         free_joint = self.data.joint(self.name_in_xml)
 
         self.qpos = free_joint.qpos
+        self.mass = model.body(self.name_in_xml).mass
 
         self.prop1_qpos = self.data.joint(self.name_in_xml + "_prop1").qpos
         self.prop2_qpos = self.data.joint(self.name_in_xml + "_prop2").qpos
@@ -79,6 +80,8 @@ class Drone(MovingObject):
         self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
         self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
         self.sensor_ang_accelerometer = self.data.sensor(self.name_in_xml + "_ang_accelerometer").data
+
+        self.propeller_spin_height = 0.1
 
         self.state = {
             "pos" : self.sensor_posimeter,
@@ -128,15 +131,6 @@ class Drone(MovingObject):
             #else:
             #    print("[Drone] Error: ctrl was None")
     
-
-    def set_trajectory(self, trajectory):
-        self.trajectory = trajectory
-    
-    def set_controllers(self, controllers):
-        self.controllers = controllers
-    
-    def set_mass(self, mass):
-        self.mass = mass
     
     def get_mass(self):
         return self.mass
@@ -190,7 +184,7 @@ class Drone(MovingObject):
       
     def fake_propeller_spin(self, control_step , speed = 10):
 
-            if self.get_qpos()[2] > 0.06:
+            if self.get_qpos()[2] > self.propeller_spin_height:
                 self.spin_propellers(speed * control_step)
             else:
                 self.stop_propellers()
@@ -236,13 +230,8 @@ class Crazyflie(Drone):
 
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
-        
-    def fake_propeller_spin(self, control_step , speed = 10):
+        self.propeller_spin_height = 0.06
 
-            if self.get_qpos()[2] > 0.10:
-                self.spin_propellers(speed * control_step)
-            else:
-                self.stop_propellers()
 
 class Bumblebee(Drone):
 
@@ -255,13 +244,7 @@ class Bumblebee(Drone):
 
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
-        
-    def fake_propeller_spin(self, control_step , speed = 10):
-
-            if self.get_qpos()[2] > 0.15:
-                self.spin_propellers(speed * control_step)
-            else:
-                self.stop_propellers()
+        self.propeller_spin_height = 0.15
 
 
 

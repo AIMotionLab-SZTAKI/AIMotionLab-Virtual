@@ -27,15 +27,10 @@ simulator.cam.azimuth = 0
 simulator.onBoard_elev_offset = 20
 
 simulator.set_title("AIMotionLab-Virtual")
-#simulator.set_drone_names()
 
-drone_counter = 0
 
-drone_positions = ["-1 -1 0.5", "1 -1 0.5", "-1 1 0.5", "1 1 0.5"]
-drone_colors = ["0.1 0.9 0.1 1", "0.9 0.1 0.1 1", "0.1 0.1 0.9 1", "0.5 0.5 0.1 1"]
-
-RED_COLOR = "0.85 0.2 0.2 1.0"
-BLUE_COLOR = "0.2 0.2 0.85 1.0"
+RED = "0.85 0.2 0.2 1.0"
+BLUE = "0.2 0.2 0.85 1.0"
 
 landing_zone_counter = 0
 pole_counter = 0
@@ -117,43 +112,43 @@ def add_vehicle():
     if input_gui.needs_new_vehicle:
         if input_gui.vehicle_type == "Virtual crazyflie":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "crazyflie")
+                scene.add_drone(input_gui.position, input_gui.quaternion, RED, True, "crazyflie")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Virtual bumblebee":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", False)
+                scene.add_drone(input_gui.position, input_gui.quaternion, RED, True, "bumblebee", False)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Virtual bb with hook":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, RED_COLOR, True, "bumblebee", True)
+                scene.add_drone(input_gui.position, input_gui.quaternion, RED, True, "bumblebee", True)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Mocap crazyflie":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "crazyflie")
+                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE, False, "crazyflie")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Mocap bumblebee":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", False)
+                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE, False, "bumblebee", False)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Mocap bb with hook":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, "bumblebee", True)
+                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE, False, "bumblebee", True)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Virtual Fleet1Tenth":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, False, "fleet1tenth")
+                scene.add_car(input_gui.position, input_gui.quaternion, RED, True, False, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Virtual F1Tenth with rod":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_car(input_gui.position, input_gui.quaternion, RED_COLOR, True, True, "fleet1tenth")
+                scene.add_car(input_gui.position, input_gui.quaternion, RED, True, True, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Mocap Fleet1Tenth":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, False, "fleet1tenth")
+                scene.add_car(input_gui.position, input_gui.quaternion, BLUE, False, False, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Mocap F1Tenth with rod":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_car(input_gui.position, input_gui.quaternion, BLUE_COLOR, False, True, "fleet1tenth")
+                scene.add_car(input_gui.position, input_gui.quaternion, BLUE, False, True, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         
         else:
@@ -199,14 +194,12 @@ def save_and_reload_model(scene, simulator, save_filename, vehicle_names_in_moti
     simulator.reload_model(save_filename, vehicle_names_in_motive)
 
 def clear_scene():
-    global scene, simulator, drone_counter, landing_zone_counter, pole_counter, is_scene_cleared
+    global scene, simulator, landing_zone_counter, is_scene_cleared
     if not is_scene_cleared:
         scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
         simulator.reload_model(os.path.join(xml_path, xmlBaseFileName))
         
-        drone_counter = 0
         landing_zone_counter = 0
-        pole_counter = 0
         is_scene_cleared = True
 
 
@@ -236,12 +229,12 @@ def build_from_optitrack():
             if name.startswith("cf"):
                 #scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_drone(position, orientation, BLUE_COLOR, False, "crazyflie", False)
+                scene.add_drone(position, orientation, BLUE, False, "crazyflie", False)
                 vehicle_names_in_motive += [name]
             
             elif name.startswith("bb"):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_drone(position, orientation, BLUE_COLOR, False, "bumblebee", False)
+                scene.add_drone(position, orientation, BLUE, False, "bumblebee", False)
                 vehicle_names_in_motive += [name]
 
             elif name.startswith("hook12"):
@@ -273,15 +266,15 @@ def build_from_optitrack():
             
             elif ("RC_car" in name) or (name.startswith("Trailer")):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
-                #scene.add_car(position, orientation, BLUE_COLOR, False, True)
-                scene.add_car(position, orientation, BLUE_COLOR, False, False)
+                #scene.add_car(position, orientation, BLUE, False, True)
+                scene.add_car(position, orientation, BLUE, False, False)
                 vehicle_names_in_motive += [name]
                 #car_added = True
             
             elif "AI_car" in name:
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
-                #scene.add_car(position, orientation, BLUE_COLOR, False, True)
-                scene.add_car(position, orientation, BLUE_COLOR, False, True)
+                #scene.add_car(position, orientation, BLUE, False, True)
+                scene.add_car(position, orientation, BLUE, False, True)
                 vehicle_names_in_motive += [name]
 
 

@@ -23,7 +23,7 @@ class BUMBLEBEE_PROP(Enum):
     OFFSET_Z = "0.036"
     MOTOR_PARAM = "0.5954"
     MAX_THRUST = "15"
-    ROD_LENGTH = "0.40"
+    ROD_LENGTH = ".4"
 
 class DRONE_TYPES(Enum):
     CRAZYFLIE = 0
@@ -277,6 +277,8 @@ class DroneHooked(Drone):
         self.state["pole_eul"] = np.zeros(2) #Rotation.from_quat(np.roll(np.array(self.sensor_hook_quat), -1)).as_euler('XYZ')[0:2]
         self.state["pole_ang_vel"] = np.array(self.sensor_hook_ang_vel)[0:2]
 
+        self._rod_length = model.geom(name_in_xml + "_rod").size[1] * 2
+
         if self.hook_dof == 2:
             self.hook_qpos_x = self.data.joint(self.name_in_xml + "_hook_x").qpos
             self.hook_qvel_x = self.data.joint(self.name_in_xml + "_hook_x").qvel
@@ -343,6 +345,9 @@ class DroneHooked(Drone):
             return self.hook_qvel_y[0]
         elif self.hook_dof == 2:
             return [self.hook_qvel_x[0], self.hook_qvel_y[0]]
+
+    def get_rod_length(self):
+        return self._rod_length
 
     def print_names(self):
         super().print_names()

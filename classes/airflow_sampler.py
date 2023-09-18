@@ -38,8 +38,7 @@ class AirflowSampler:
 
 
         self._cube_size_meter = self._cube_size / 100.
-        self._payload_offset_z = 15
-        self._payload_offset_z_meter = self._payload_offset_z / 100.
+        self.set_payload_offset(15)
 
         self.index_upper_limit = (float(self._cube_size) - 0.5) / 100.
         
@@ -56,6 +55,10 @@ class AirflowSampler:
             self.offset_from_drone_center + np.array([cs, cs, cs])
             ]
         )
+
+    def set_payload_offset(self, offset_in_centimeter):
+        self._payload_offset_z = offset_in_centimeter
+        self._payload_offset_z_meter = self._payload_offset_z / 100.
 
     def get_transformed_vertices(self):
         self.vertices_world = mujoco_helper.quat_vect_array_mult(self.drone_orientation, self.vertices)

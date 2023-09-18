@@ -69,7 +69,7 @@ class Car(MovingObject):
 
         roll, pitch, yaw = mujoco_helper.euler_from_quaternion(*self.sensor_orimeter)
 
-        #self.mass = model.body(self.name_in_xml).mass
+        self.mass = model.body(self.name_in_xml).mass
         self.state = {
             "pos_x" : self.sensor_posimeter[0],
             "pos_y" : self.sensor_posimeter[1],
@@ -260,7 +260,18 @@ class Fleet1Tenth(Car):
     def __init__(self, model, data, name_in_xml):
         super().__init__(model, data, name_in_xml)
 
-        self.set_ackermann_parameters(.32226, .20032)
+
+        wheelrl_steerjoint_pos_y = model.joint(name_in_xml + "_wheelfl_steer").pos[1]
+        wheelrr_steerjoint_pos_y = model.joint(name_in_xml + "_wheelfr_steer").pos[1]
+
+        wb = abs(wheelrl_steerjoint_pos_y) + abs(wheelrr_steerjoint_pos_y)
+
+        wheelrl_pos_x = model.joint(name_in_xml + "_wheelrl").pos[0]
+        wheelrr_pos_x = model.joint(name_in_xml + "_wheelrr").pos[0]
+
+        tw = abs(wheelrl_pos_x) + abs(wheelrr_pos_x)
+
+        self.set_ackermann_parameters(wb, tw)
 
         self.torque = 0.0
         self.d = 0.0

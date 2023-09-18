@@ -108,7 +108,7 @@ To start and stop video recording:
 
 To switch back and forth between vehicles' on board camera and main camera:
   * Press TAB
-  * When in "on board mode", to switch amongst drones:
+  * When in "on board mode", to switch amongst vehicles:
     * Press SPACE
 
 To move the camera around, use mouse buttons and wheel.

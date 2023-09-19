@@ -36,7 +36,7 @@ landing_zone_counter = 0
 pole_counter = 0
 
 def add_building():
-    global scene, simulator
+    global scene, simulator, is_scene_cleared
     input_gui = BuildingInputGui()
     input_gui.show()
 
@@ -48,7 +48,7 @@ def add_building():
                 # if the 3rd coordinate is 0
                 # since it's a plane, need to move it up a little so that the carpet would not cover it
                 if(splt_pos[2] == '0'):
-                    splt_pos[2] = "0.01"
+                    splt_pos[2] = "0.001"
             input_gui.position = splt_pos[0] + " " + splt_pos[1] + " " + splt_pos[2]
             scene.add_airport(input_gui.position, input_gui.quaternion)
             save_and_reload_model(scene, simulator, os.path.join(xml_path, save_filename))
@@ -61,7 +61,7 @@ def add_building():
                 # if the 3rd coordinate is 0
                 # since it's a plane, need to move it up a little so that the carpet would not cover it
                 if(splt_pos[2] == '0'):
-                    splt_pos[2] = "0.01"
+                    splt_pos[2] = "0.001"
             input_gui.position = splt_pos[0] + " " + splt_pos[1] + " " + splt_pos[2]
             scene.add_parking_lot(input_gui.position, input_gui.quaternion)
             save_and_reload_model(scene, simulator, os.path.join(xml_path, save_filename))
@@ -101,11 +101,14 @@ def add_building():
     
     else:
         print("Non-existent building")
+        return
+    
+    is_scene_cleared = False
     
 
     
 def add_vehicle():
-    global scene, simulator
+    global scene, simulator, is_scene_cleared
     
     input_gui = VehicleInputGui()
     input_gui.show()
@@ -154,6 +157,9 @@ def add_vehicle():
         else:
             #print(input_gui.vehicle_type)
             print("Non-existent vehicle type: " + input_gui.vehicle_type)
+            return
+    
+        is_scene_cleared = False
 
 def add_payload():
     global scene, simulator
@@ -257,7 +263,7 @@ def build_from_optitrack():
             elif name == "bu13":
                 scene.add_post_office(position, "0.71 0 0 0.71")
             elif name == "bu14":
-                position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.01"
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.001"
                 #scene.add_airport(position, "0.71 0 0 0.71")
                 scene.add_sztaki(position, "0.71 0 0 0.71")
 

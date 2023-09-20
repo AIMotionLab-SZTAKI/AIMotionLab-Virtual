@@ -97,6 +97,8 @@ class Display:
         self.viewport = mujoco.MjrRect(0, 0, 0, 0)
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
+        self.scroll_distance_step = 0.2
+
         #print(self.data.qpos.size)
         
     def init_glfw(self):
@@ -346,7 +348,7 @@ class Display:
         """
         Change distance between camera and lookat point by mouse wheel
         """
-        self.activeCam.distance -= 0.2 * y
+        self.activeCam.distance -= self.scroll_distance_step * y
 
     def key_callback(self, window, key, scancode, action, mods):
         """

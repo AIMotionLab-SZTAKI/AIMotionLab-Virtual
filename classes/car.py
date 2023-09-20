@@ -12,6 +12,9 @@ class F1T_PROP(Enum):
     WHEEL_WIDTH = ".022225"
     WHEEL_SIZE = WHEEL_RADIUS + " " + WHEEL_WIDTH
 
+class CAR_TYPES(Enum):
+    Fleet1Tenth = 0
+
 class Wheel:
 
     def __init__(self, model, data, name_in_xml):

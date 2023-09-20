@@ -16,6 +16,7 @@ virt_parsers = [parseMovingObjects]
 mocap_parsers = [parseMocapObjects]
 simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
 
+simulator.set_title("AIMotionLab-Virtual")
 
 def load_model():
     tkinter.Tk().withdraw()

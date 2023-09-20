@@ -85,8 +85,9 @@ def parseMocapObjects(data: mujoco.MjData, model: mujoco.MjModel):
             obj_counter_dict["fleet1tenth"] += 1
 
         elif name.startswith("PayloadMocap"):
-            name_in_motive = "payload" + str(obj_counter_dict["payload"])
-            obj_counter_dict["payload"] += 1
+            #name_in_motive = "payload" + str(obj_counter_dict["payload"])
+            #obj_counter_dict["payload"] += 1
+            name_in_motive = "payload" + str(split_name[-1])
         
         else:
             name_in_motive = split_name[0]

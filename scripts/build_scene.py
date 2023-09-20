@@ -174,9 +174,9 @@ def add_payload():
                     if input_gui.size == "":
                         print("Payload size was unspecified...")
                         return
-                    scene.add_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
+                    scene.add_mocap_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type)
                 elif input_gui.type == PAYLOAD_TYPES.Teardrop:
-                    scene.add_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type, input_gui.is_mocap)
+                    scene.add_mocap_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type)
                 else:
                     print("Unknown payload type...")
             else:
@@ -246,16 +246,13 @@ def build_from_optitrack():
 
             elif name.startswith("hook12"):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_mocap_hook(position, "bumblebee")
+                scene.add_mocap_hook(position, "DroneMocapHooked_bumblebee_2")
                 vehicle_names_in_motive += [name]
 
             elif name.startswith("payload"):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_payload(position, None, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop, True)
+                scene.add_mocap_payload(position, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop, int(name[7:]))
                 vehicle_names_in_motive += [name]
-
-
-
 
             elif name == "bu11":
                 scene.add_hospital(position, "0.71 0 0 0.71")

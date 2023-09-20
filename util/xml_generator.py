@@ -49,9 +49,11 @@ class SceneXmlGenerator:
         
         self._box_payload_cntr = 0
         self._teardrop_payload_cntr = 0
-        self._mocap_load_cntr = 0
+        self._mocap_box_payload_cntr = 0
+        self._mocap_teardrop_payload_cntr = 0
 
         self._mocap_drone_names = []
+        self._mocap_payload_names = []
 
     def add_bicycle(self, pos, quat, color):
 
@@ -188,7 +190,7 @@ class SceneXmlGenerator:
         
         if type == DRONE_TYPES.CRAZYFLIE:
 
-            if index == -1:
+            if index < 0:
                 name = "DroneMocap_crazyflie_" + str(self._realcrazyflie_cntr)
                 while name in self._mocap_drone_names:
                     self._realcrazyflie_cntr += 1
@@ -205,7 +207,7 @@ class SceneXmlGenerator:
         
         elif type == DRONE_TYPES.BUMBLEBEE:
 
-            if index == -1:
+            if index < 0:
                 name = "DroneMocap_bumblebee_" + str(self._realbumblebee_cntr)
                 while name in self._mocap_drone_names:
                     self._realbumblebee_cntr += 1
@@ -222,7 +224,7 @@ class SceneXmlGenerator:
 
         elif type == DRONE_TYPES.BUMBLEBEE_HOOKED:
 
-            if index == -1:
+            if index < 0:
                 name = "DroneMocapHooked_bumblebee_" + str(self._realbumblebee_hooked_cntr)
                 while name in self._mocap_drone_names:
                     self._realbumblebee_hooked_cntr += 1
@@ -346,7 +348,7 @@ class SceneXmlGenerator:
         #ET.SubElement(drone_body, "geom", name=name + "_4_motors", type="mesh", mesh="drone_4_motors_large", rgba=color, mass="0.0001")
 
         site_name = name + SITE_NAME_END
-        ET.SubElement(drone, "site", name=site_name, pos="0 0 0")
+        ET.SubElement(drone, "site", name=site_name, pos="0 0 0", size="0.01")
 
         if is_hooked:
             self._add_hook_to_drone(drone, name, hook_dof)
@@ -466,7 +468,7 @@ class SceneXmlGenerator:
         pos_z -= ROD_LENGTH
         hook_pos = splt[0] + " " + splt[1] + " " + str(pos_z)
 
-        name_tail = drone_name[17:] # remove DroneMocapHooked from the name
+        name_tail = drone_name.split("_")[-1]
         
         name = "HookMocap" + "_" + name_tail
 
@@ -549,44 +551,92 @@ class SceneXmlGenerator:
         else:
             print("[SceneXmlGenerator] Sztaki already added")
     
-    def add_payload(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box, is_mocap=False):
+    def add_payload(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box):
 
-        if is_mocap:
-            name = "PayloadMocap_" + str(self._mocap_load_cntr)
-            self._mocap_load_cntr += 1
-            load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
+        if type == PAYLOAD_TYPES.Box:
+            name = "BoxPayload_" + str(self._box_payload_cntr)
+            self._box_payload_cntr += 1
+            box_pos = "0 0 " + size.split()[2]
+            load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
+            ET.SubElement(load, "geom", name=name, type="box", size=size, pos=box_pos, mass=mass, rgba=color)
+            #ET.SubElement(load, "inertial", pos="0 0 0", diaginertia="5e-4 5e-4 5e-4", mass=mass)
+            hook_pos = "0 0 " + str(2 * float(size.split()[2]))
+        elif type == PAYLOAD_TYPES.Teardrop:
+            name = "TeardropPayload_" + str(self._teardrop_payload_cntr)
+            self._teardrop_payload_cntr += 1
+            load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
+            ET.SubElement(load, "geom", name=name, type="mesh", mesh="payload_simplified", pos="0 0 0.0405", mass=mass, rgba=color, euler="1.57 0 0")
+            hook_pos = "0 0 0.05"
+
+        self._add_hook_to_payload(load, name, hook_pos)
+
+        ET.SubElement(load, "joint", name=name, type="free")
+        
+        ET.SubElement(self.sensor, "framepos", objtype="body", objname=name, name=name + "_posimeter")
+        ET.SubElement(self.sensor, "framequat", objtype="body", objname=name, name=name + "_orimeter")
+
+
+        return name
+    
+    def add_mocap_payload(self, pos, size, quat, color, type=PAYLOAD_TYPES.Box, index=-1):
+        
+        if type == PAYLOAD_TYPES.Box:
+            if index < 0:
+                name = "PayloadMocap_box_" + str(self._mocap_box_payload_cntr)
+                while name in self._mocap_payload_names:
+                    self._mocap_box_payload_cntr += 1
+                    name = "PayloadMocap_box_" + str(self._mocap_box_payload_cntr)
             
-            if type == PAYLOAD_TYPES.Box:
-                box_pos = "0 0 " + size.split()[2]
-                ET.SubElement(load, "geom", type="box", size=size, pos=box_pos, rgba=color)
-                hook_pos = "0 0 " + str(2 * float(size.split()[2]))
-            elif type == PAYLOAD_TYPES.Teardrop:
-                ET.SubElement(load, "geom", type="mesh", mesh="payload_simplified", pos="0 0 0.0405", rgba=color, euler="1.57 0 0")
-                hook_pos = "0 0 0.05"
+            else:
+                name = "PayloadMocap_box_" + str(index)
+                if name in self._mocap_payload_names:
+                    print("[SceneXmlGenerator] this mocap box payload index already exists: " + str(index))
+                    return
+
+            load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
+                
+
+            box_pos = "0 0 " + size.split()[2]
+            ET.SubElement(load, "geom", type="box", size=size, pos=box_pos, rgba=color)
+            hook_pos = "0 0 " + str(2 * float(size.split()[2]))
+            self._add_hook_to_payload(load, name, hook_pos)
+
+            self._mocap_payload_names += [name]
+
+            return name
+
+        elif type == PAYLOAD_TYPES.Teardrop:
+            if index < 0:
+                name = "PayloadMocap_teardrop_" + str(self._mocap_teardrop_payload_cntr)
+                while name in self._mocap_payload_names:
+                    self._mocap_teardrop_payload_cntr += 1
+                    name = "PayloadMocap_teardrop_" + str(self._mocap_teardrop_payload_cntr)
+            
+            else:
+                name = "PayloadMocap_teardrop_" + str(index)
+                if name in self._mocap_payload_names:
+                    print("[SceneXmlGenerator] this mocap teardrop payload index already exists: " + str(index))
+                    return
+
+            load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
+
+            ET.SubElement(load, "geom", type="mesh", mesh="payload_simplified", pos="0 0 0.0405", rgba=color, euler="1.57 0 0")
+            hook_pos = "0 0 0.05"
+            self._add_hook_to_payload(load, name, hook_pos)
+            
+            self._mocap_payload_names += [name]
+            
+            return name
         
         else:
+            print("[SceneXmlGenerator] unknown payload type.")
+            return
+        
 
-            if type == PAYLOAD_TYPES.Box:
-                name = "BoxPayload_" + str(self._box_payload_cntr)
-                self._box_payload_cntr += 1
-                box_pos = "0 0 " + size.split()[2]
-                load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
-                ET.SubElement(load, "geom", name=name, type="box", size=size, pos=box_pos, mass=mass, rgba=color)
-                #ET.SubElement(load, "inertial", pos="0 0 0", diaginertia="5e-4 5e-4 5e-4", mass=mass)
-                hook_pos = "0 0 " + str(2 * float(size.split()[2]))
-            elif type == PAYLOAD_TYPES.Teardrop:
-                name = "TeardropPayload_" + str(self._teardrop_payload_cntr)
-                self._teardrop_payload_cntr += 1
-                load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
-                ET.SubElement(load, "geom", name=name, type="mesh", mesh="payload_simplified", pos="0 0 0.0405", mass=mass, rgba=color, euler="1.57 0 0")
-                hook_pos = "0 0 0.05"
 
-            ET.SubElement(load, "joint", name=name, type="free")
-            
-            ET.SubElement(self.sensor, "framepos", objtype="body", objname=name, name=name + "_posimeter")
-            ET.SubElement(self.sensor, "framequat", objtype="body", objname=name, name=name + "_orimeter")
+    def _add_hook_to_payload(self, payload, name, hook_pos):
 
-        hook = ET.SubElement(load, "body", name=name + "_hook", pos=hook_pos, euler="0 0 -1.57")
+        hook = ET.SubElement(payload, "body", name=name + "_hook", pos=hook_pos, euler="0 0 -1.57")
 
         hook_mass = "0.0001"
 
@@ -599,40 +649,6 @@ class SceneXmlGenerator:
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.10561", euler="1.17810 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01061 0.10561", euler="1.96350 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.09061", euler="2.74889 0 0", size="0.004 0.01378", mass=hook_mass)
-
-        return name
-    """
-    def add_mocap_load(self, pos, size, quat, color, type=PAYLOAD_TYPES.Box.value):
-
-        name = "loadmocap_" + str(self._mocap_load_cntr)
-        self._mocap_load_cntr += 1
-
-
-        load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat, mocap="true")
-        if type == PAYLOAD_TYPES.Box.value:
-            box_pos = "0 0 " + size.split()[2]
-            ET.SubElement(load, "geom", type="box", size=size, pos=box_pos, rgba=color)
-            hook_pos = "0 0 " + str(2 * float(size.split()[2]))
-        elif type == PAYLOAD_TYPES.Teardrop.value:
-            ET.SubElement(load, "geom", type="mesh", mesh="payload_simplified", pos="0 0 0.04", rgba=color, euler="1.57 0 0")
-            hook_pos = "0 0 0.05"
-            
-
-        hook = ET.SubElement(load, "body", name=name + "_hook", pos=hook_pos, euler="0 0 3")
-
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0 0.02", size="0.002 0.02")
-
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01173 0.04565", euler="-1.12200 0 0", size="0.004 0.01562")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.04439", euler="-1.17810 0 0", size="0.004 0.01378")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02561 0.05939", euler="-0.39270 0 0", size="0.004 0.01378")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.02561 0.08061", euler="0.39270 0 0", size="0.004 0.01378")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.09561", euler="1.17810 0 0", size="0.004 0.01378")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01061 0.09561", euler="1.96350 0 0", size="0.004 0.01378")
-        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.08061", euler="2.74889 0 0", size="0.004 0.01378")
-
-        return name
-"""
-
 
 
     def add_car(self, pos, quat, color, is_virtual, has_rod=False, type="fleet1tenth"):

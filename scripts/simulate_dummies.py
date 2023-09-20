@@ -31,7 +31,7 @@ scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone("-5 0 1", "1 0 0 0", RED_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 1)
 dronemocap0_name = scene.add_mocap_drone("1 1 1", "1 0 0 0", BLUE_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED)
 car0_name = scene.add_car("-5 1 0.6", "1 0 0 0", RED_COLOR, True)
-mocap_load0_name = scene.add_payload("-1 0 0", ".1 .1 .1", None, "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop, True)
+mocap_load0_name = scene.add_mocap_payload("-1 0 0", ".1 .1 .1", None, "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop)
 load0_name = scene.add_payload("0 0 15", ".15 .12 .5", ".1", "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Box)
 
 # saving the scene as xml so that the simulator can load it

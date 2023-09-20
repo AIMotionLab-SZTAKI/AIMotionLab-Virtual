@@ -6,6 +6,7 @@ from gui.vehicle_input_gui import VehicleInputGui
 from gui.payload_input_gui import PayloadInputGui
 from classes.payload import PAYLOAD_TYPES
 from classes.object_parser import parseMovingObjects, parseMocapObjects
+from classes.drone import DRONE_TYPES
 
 
 # open the base on which we'll build
@@ -115,27 +116,27 @@ def add_vehicle():
     if input_gui.needs_new_vehicle:
         if input_gui.vehicle_type == "Virtual crazyflie":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, RED, True, "crazyflie")
+                scene.add_drone(input_gui.position, input_gui.quaternion, RED, DRONE_TYPES.CRAZYFLIE)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Virtual bumblebee":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, RED, True, "bumblebee", False)
+                scene.add_drone(input_gui.position, input_gui.quaternion, RED, DRONE_TYPES.BUMBLEBEE)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Virtual bb with hook":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, RED, True, "bumblebee", True)
+                scene.add_drone(input_gui.position, input_gui.quaternion, RED, DRONE_TYPES.BUMBLEBEE_HOOKED)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Mocap crazyflie":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE, False, "crazyflie")
+                scene.add_mocap_drone(input_gui.position, input_gui.quaternion, BLUE, DRONE_TYPES.CRAZYFLIE)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Mocap bumblebee":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE, False, "bumblebee", False)
+                scene.add_mocap_drone(input_gui.position, input_gui.quaternion, BLUE, DRONE_TYPES.BUMBLEBEE)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Mocap bb with hook":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_drone(input_gui.position, input_gui.quaternion, BLUE, False, "bumblebee", True)
+                scene.add_mocap_drone(input_gui.position, input_gui.quaternion, BLUE, DRONE_TYPES.BUMBLEBEE_HOOKED)
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Virtual Fleet1Tenth":
             if input_gui.position != "" and input_gui.quaternion != "":
@@ -235,12 +236,12 @@ def build_from_optitrack():
             if name.startswith("cf"):
                 #scene.add_landing_zone("lz_" + name, position, "1 0 0 0")
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_drone(position, orientation, BLUE, False, "crazyflie", False)
+                scene.add_mocap_drone(position, orientation, BLUE, DRONE_TYPES.CRAZYFLIE, int(name[2:]))
                 vehicle_names_in_motive += [name]
             
             elif name.startswith("bb"):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_drone(position, orientation, BLUE, False, "bumblebee", False)
+                scene.add_mocap_drone(position, orientation, BLUE, DRONE_TYPES.BUMBLEBEE, int(name[2:]))
                 vehicle_names_in_motive += [name]
 
             elif name.startswith("hook12"):

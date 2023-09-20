@@ -1,7 +1,7 @@
 import os
 from classes.active_simulation import ActiveSimulator
 from util import xml_generator
-from classes.drone import Drone
+from classes.drone import Drone, DRONE_TYPES
 from classes.payload import Payload
 from classes.drone_classes.hooked_drone_trajectory import HookedDroneTrajectory
 from classes.drone_classes.drone_geom_control import GeomControl
@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     # create xml with a drone and a car
     scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
-    drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3] + np.array([0, 0, 0.4]))[1:-2], "1 0 0 0", RED_COLOR, True, "bumblebee", True, 2)
+    drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3] + np.array([0, 0, 0.4]))[1:-2], "1 0 0 0", RED_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 2)
     payload0_name = scene.add_payload(np.array2string(load_init_pos)[1:-2], ".05 .05 .025", str(load_mass), "1 0 0 0", BLUE_COLOR)
 
     # saving the scene as xml so that the simulator can load it

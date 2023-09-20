@@ -7,6 +7,7 @@ from classes.active_simulation import ActiveSimulator
 #from classes.drone_classes.hooked_drone_trajectory import HookedDroneTrajectory
 from classes.drone_classes.drone_geom_control import GeomControl
 from classes.drone_classes.hooked_drone_lq_control import LqrLoadControl
+from classes.drone import DRONE_TYPES
 from classes.trajectory_base import DummyDroneTrajectory
 from random import seed, random
 from classes.airflow_sampler import AirflowSampler
@@ -62,8 +63,7 @@ load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_po
 
 # create xml with two drones
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
-drone0_name = scene.add_drone(np.array2string(drone0_init_pos[0:3])[1:-1], "1 0 0 0", BLUE_COLOR, True, "bumblebee",
-                                True, 2)
+drone0_name = scene.add_drone(np.array2string(drone0_init_pos[0:3])[1:-1], "1 0 0 0", BLUE_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 2)
 
 payload0_name = scene.add_payload(np.array2string(load0_initpos)[1:-1], np.array2string(load0_size)[1:-1], str(load0_mass), ".707 0 0 .707", BLUE_COLOR)
 
@@ -73,8 +73,7 @@ load1_mass = 0.10
 load1_size = np.array([.07, .07, .04])
 load1_initpos = np.array([drone1_init_pos[0], drone1_init_pos[1], drone1_init_pos[2] - (2 * load1_size[2]) - (rod_length + .2) ])
 
-drone1_name = scene.add_drone(np.array2string(drone1_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, True, "bumblebee",
-                                True, 2)
+drone1_name = scene.add_drone(np.array2string(drone1_init_pos[0:3])[1:-1], "1 0 0 0", RED_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 2)
 
 payload1_name = scene.add_payload(np.array2string(load1_initpos)[1:-1], np.array2string(load1_size)[1:-1], str(load1_mass), ".707 0 0 .707", BLUE_COLOR)
 
@@ -118,12 +117,10 @@ pressure_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_l
 velocity_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_velocity_shifted.txt")
 
 airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, velocity_data_filename)
-payload0.set_top_mesh(30, 30)
-payload0.set_side_mesh(30, 30, 30)
+payload0.create_surface_mesh(0.00001)
 
 airflow_sampl1 = AirflowSampler(pressure_data_filename, drone1, velocity_data_filename)
-payload1.set_top_mesh(30, 30)
-payload1.set_side_mesh(30, 30, 30)
+payload1.create_surface_mesh(0.00001)
 
 payload0.add_airflow_sampler(airflow_sampl0)
 payload1.add_airflow_sampler(airflow_sampl1)

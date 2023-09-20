@@ -28,6 +28,7 @@ class BUMBLEBEE_PROP(Enum):
 class DRONE_TYPES(Enum):
     CRAZYFLIE = 0
     BUMBLEBEE = 1
+    BUMBLEBEE_HOOKED = 2
 
 
 class Drone(MovingObject):

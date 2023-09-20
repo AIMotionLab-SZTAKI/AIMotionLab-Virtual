@@ -5,6 +5,7 @@ from classes.active_simulation import ActiveSimulator
 from util import xml_generator
 
 from classes.payload import PAYLOAD_TYPES
+from classes.drone import DRONE_TYPES
 from classes.object_parser import parseMovingObjects, parseMocapObjects
 
 from classes.controller_base import DummyDroneController, DummyCarController
@@ -27,8 +28,8 @@ save_filename = "built_scene.xml"
 
 # create xml with a drone and a car
 scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
-drone0_name = scene.add_drone("-5 0 1", "1 0 0 0", RED_COLOR, True, "bumblebee", True, 1)
-dronemocap0_name = scene.add_drone("1 1 1", "1 0 0 0", BLUE_COLOR, False, "bumblebee", True, 1)
+drone0_name = scene.add_drone("-5 0 1", "1 0 0 0", RED_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 1)
+dronemocap0_name = scene.add_mocap_drone("1 1 1", "1 0 0 0", BLUE_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED)
 car0_name = scene.add_car("-5 1 0.6", "1 0 0 0", RED_COLOR, True)
 mocap_load0_name = scene.add_payload("-1 0 0", ".1 .1 .1", None, "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Teardrop, True)
 load0_name = scene.add_payload("0 0 15", ".15 .12 .5", ".1", "1 0 0 0", BLACK_COLOR, PAYLOAD_TYPES.Box)

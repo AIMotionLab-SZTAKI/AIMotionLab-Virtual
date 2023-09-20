@@ -51,6 +51,8 @@ class SceneXmlGenerator:
         self._teardrop_payload_cntr = 0
         self._mocap_load_cntr = 0
 
+        self._mocap_drone_names = []
+
     def add_bicycle(self, pos, quat, color):
 
         name = "Bicycle_" + str(self._bicycle_counter)
@@ -138,81 +140,106 @@ class SceneXmlGenerator:
         return pole
 
 
-    def add_drone(self, pos, quat, color, is_virtual = True, type="crazyflie", is_hooked = False, hook_dof = 1):
+    def add_drone(self, pos, quat, color, type: DRONE_TYPES, hook_dof = 1):
 
-        name = None
+        if type == DRONE_TYPES.BUMBLEBEE_HOOKED:
+            name = "BumblebeeHooked_" + str(self._virtbumblebee_hooked_cntr)
 
-        if is_hooked and type != "bumblebee":
-            print("[SceneXmlGenerator] Error: Hooked drone can only be bumblebee...")
-            return None
+            drone = self._add_bumblebee(name, pos, quat, color, True, hook_dof)
 
+            self._virtbumblebee_hooked_cntr += 1
+            return name
+        
+        elif type == DRONE_TYPES.BUMBLEBEE:
 
-        if is_virtual:
+            name = "Bumblebee_" + str(self._virtbumblebee_cntr)
+            drone = self._add_bumblebee(name, pos, quat, color)
 
-            if type == "bumblebee":
+            self._virtbumblebee_cntr += 1
+            return name
 
-                if is_hooked:
-                    name = "BumblebeeHooked_" + str(self._virtbumblebee_hooked_cntr)
+        elif type == DRONE_TYPES.CRAZYFLIE:
+            name = "Crazyflie_" + str(self._virtcrazyflie_cntr)
 
-                    drone = self._add_bumblebee(name, pos, quat, color, True, hook_dof)
+            drone = self._add_crazyflie(name, pos, quat, color)
 
-                    self._virtbumblebee_hooked_cntr += 1
-                    return name
-                
-                else:
-
-                    name = "Bumblebee_" + str(self._virtbumblebee_cntr)
-                    drone = self._add_bumblebee(name, pos, quat, color)
-
-                    self._virtbumblebee_cntr += 1
-                    return name
-
-            elif type == "crazyflie":
-                name = "Crazyflie_" + str(self._virtcrazyflie_cntr)
-
-                drone = self._add_crazyflie(name, pos, quat, color)
-
-                self._virtcrazyflie_cntr += 1
-                return name
-                
+            self._virtcrazyflie_cntr += 1
+            return name
             
-            else:
-                print("[SceneXmlGenerator] Error: unknown drone type: " + str(type))
-                return None
         
         else:
-            if type == "bumblebee":
+            print("[SceneXmlGenerator] Error: unknown drone type: " + str(type))
+            return None
+        
 
-                if is_hooked:
+    @staticmethod
+    def print_elements(root, tabs=""):
 
-                    name = "DroneMocapHooked_bumblebee_" + str(self._realbumblebee_hooked_cntr)
+        for v in root:
+            if "name" in v.attrib:
+                print(tabs + str(v.attrib["name"]))
 
-                    drone = self._add_mocap_bumblebee(name, pos, quat, color)
-                    self.add_mocap_hook(pos, name)
-                    #self._add_hook_to_drone(drone, name)
+            tbs = tabs + "\t"
 
-                    self._realbumblebee_hooked_cntr += 1
-                    return name
+            SceneXmlGenerator.print_elements(v, tbs)
 
-                else:
 
-                    name = "DroneMocap_bumblebee_" + str(self._realbumblebee_cntr)
-                    drone = self._add_mocap_bumblebee(name, pos, quat, color)
+    def add_mocap_drone(self, pos, quat, color, type: DRONE_TYPES, index=-1):
+        
+        if type == DRONE_TYPES.CRAZYFLIE:
 
-                    self._realbumblebee_cntr += 1
-                    return name
-
-            elif type == "crazyflie":
+            if index == -1:
                 name = "DroneMocap_crazyflie_" + str(self._realcrazyflie_cntr)
-
-                drone = self._add_mocap_crazyflie(name, pos, quat, color)
-
-                self._realcrazyflie_cntr += 1
-                return name
+                while name in self._mocap_drone_names:
+                    self._realcrazyflie_cntr += 1
+                    name = "DroneMocap_crazyflie_" + str(self._realcrazyflie_cntr)
             
             else:
-                print("[SceneXmlGenerator] Error: unknown drone type: " + str(type))
-                return None
+                name = "DroneMocap_crazyflie_" + str(index)
+                if name in self._mocap_drone_names:
+                    print("[SceneXmlGenerator] this mocap crazyflie index already exists: " + str(index))
+                    return
+
+            self._add_mocap_crazyflie(name, pos, quat, color)
+            self._mocap_drone_names += [name]
+        
+        elif type == DRONE_TYPES.BUMBLEBEE:
+
+            if index == -1:
+                name = "DroneMocap_bumblebee_" + str(self._realbumblebee_cntr)
+                while name in self._mocap_drone_names:
+                    self._realbumblebee_cntr += 1
+                    name = "DroneMocap_bumblebee_" + str(self._realbumblebee_cntr)
+                    
+            else:
+                name = "DroneMocap_bumblebee_" + str(index)
+                if name in self._mocap_drone_names:
+                    print("[SceneXmlGenerator] this mocap bumblebee index already exists: " + str(index))
+                    return
+
+            self._add_mocap_bumblebee(name, pos, quat, color)
+            self._mocap_drone_names += [name]
+
+        elif type == DRONE_TYPES.BUMBLEBEE_HOOKED:
+
+            if index == -1:
+                name = "DroneMocapHooked_bumblebee_" + str(self._realbumblebee_hooked_cntr)
+                while name in self._mocap_drone_names:
+                    self._realbumblebee_hooked_cntr += 1
+                    name = "DroneMocapHooked_bumblebee_" + str(self._realbumblebee_hooked_cntr)
+
+            else:
+                name = "DroneMocapHooked_bumblebee_" + str(index)
+                if name in self._mocap_drone_names:
+                    print("[SceneXmlGenerator] this mocap hooked bumblebee index already exists: " + str(index))
+                    return
+
+            self._add_mocap_bumblebee(name, pos, quat, color)
+            self.add_mocap_hook(pos, name)
+            self._mocap_drone_names += [name]
+        
+        return name
+
 
         
     
@@ -431,7 +458,7 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "frameangvel", objtype="site", objname=site_name, name=drone_name + "_hook_angvel")
     
 
-    def add_mocap_hook(self, drone_pos, drone_name, hook_dof=1):
+    def add_mocap_hook(self, drone_pos, drone_name):
 
         splt = drone_pos.split()
 
@@ -742,30 +769,3 @@ class SceneXmlGenerator:
         print()
         print("[SceneXmlGenerator] Scene xml file saved at: " + os.path.normpath(file_name))
 
-
-"""
-scene = SceneXmlGenerator("scene_base.xml")
-
-scene.add_airport(pos="0.5 -1.2 0.0025")
-scene.add_parking_lot(pos="-0.5 1.2 0.0025")
-
-scene.add_drone(name="drone0", pos="0 -1 0.2", color="0.1 0.9 0.1 1")
-scene.add_drone(name="drone1", pos="0 1 0.2", color="0.1 0.9 0.1 1")
-
-scene.add_pole(name="pole1", pos="0.25 0.25 0")
-scene.add_pole(name="pole2", pos="-0.25 0.25 0")
-scene.add_pole(name="pole3", pos="0.3 -0.3 0", quat="0.924 0 0 0.383")
-scene.add_pole(name="pole4", pos="-0.3 -0.3 0", quat="0.924 0 0 0.383")
-
-scene.add_hospital(pos="-1 1 0")
-scene.add_post_office(pos="1 1.255 0")
-
-scene.add_landing_zone(name="landing_zone1", pos="-1.2 -0.7 0", quat="0.924 0 0 0.383")
-scene.add_landing_zone(name="landing_zone2", pos="-1 -0.9 0", quat="0.924 0 0 0.383")
-scene.add_landing_zone(name="landing_zone3", pos="-0.8 -1.1 0", quat="0.924 0 0 0.383")
-scene.add_landing_zone(name="landing_zone4", pos="-0.6 -1.3 0", quat="0.924 0 0 0.383")
-
-scene.add_sztaki(pos="0 0 0", quat="1 0 0 0")
-
-scene.save_xml("first_xml.xml")
-"""

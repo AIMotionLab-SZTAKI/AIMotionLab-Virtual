@@ -376,7 +376,8 @@ class SceneXmlGenerator:
         quat_mesh = mh.quaternion_from_euler(0, 0, math.radians(270))
         quat_mesh_str = str(quat_mesh[0]) + " " + str(quat_mesh[1]) + " " + str(quat_mesh[2]) + " " + str(quat_mesh[3])
         ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", quat=quat_mesh_str, mesh="bumblebee_body", rgba=color)
-        ET.SubElement(drone, "geom", type="box", size="0.0475 0.02 0.032", pos="0.01 0 -0.032", rgba=color)
+        ET.SubElement(drone, "geom", type="box", size="0.0475 0.02 0.02", pos="0.01 0 -0.02", rgba=color)
+        ET.SubElement(drone, "geom", type="box", size="0.015 0.015 0.015", pos="-0.015 0 -0.055", rgba=".1 .1 .1 1.0")
 
         prop_name = name + "_prop1"
         pos_m = "-" + BUMBLEBEE_PROP.OFFSET_X1.value + " " + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value

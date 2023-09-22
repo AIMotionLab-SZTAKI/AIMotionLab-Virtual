@@ -109,11 +109,7 @@ class Drone(MovingObject):
     
     def update(self, i, control_step):
 
-        #self.fake_propeller_spin(0.02)
-        self.prop1_joint.qvel = -100 * math.pi
-        self.prop2_joint.qvel = -100 * math.pi
-        self.prop3_joint.qvel =  100 * math.pi
-        self.prop4_joint.qvel =  100 * math.pi
+        self.fake_propeller_spin(0.02)
 
 
         if self.trajectory is not None:

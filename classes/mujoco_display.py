@@ -15,11 +15,7 @@ import scipy.signal
 from util.mujoco_helper import LiveLFilter
 from classes.moving_object import MocapObject, MovingObject
 import ffmpeg
-
-can_import_motioncapture = sys.version_info.major == 3 and sys.version_info.minor < 10
-
-if can_import_motioncapture:
-    import motioncapture
+import motioncapture
 
 MAX_GEOM = 200
 INIT_WWIDTH = 1536
@@ -33,10 +29,6 @@ class Display:
 
     def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=False):
         #print(f'Working directory:  {os.getcwd()}\n')
-
-        if connect_to_optitrack and not can_import_motioncapture:
-            connect_to_optitrack = False
-            print("[Display] Motioncapture library is not supported on python version > 3.9")
         
         self.is_paused = False
 
@@ -508,12 +500,9 @@ class Display:
 
 
     def connect_to_Optitrack(self):
-        if can_import_motioncapture:
-            self.connect_to_optitrack = True
-            self.mc = motioncapture.MotionCaptureOptitrack(OPTITRACK_IP)
-            print("[Display] Connected to Optitrack")
-        else:
-            print("[Display] Motioncapture library is not supported on python version > 3.9")
+        self.connect_to_optitrack = True
+        self.mc = motioncapture.MotionCaptureOptitrack(OPTITRACK_IP)
+        print("[Display] Connected to Optitrack")   
 
 
     def change_cam(self):

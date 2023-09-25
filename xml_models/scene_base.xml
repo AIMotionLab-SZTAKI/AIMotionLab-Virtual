@@ -54,11 +54,11 @@
 
     <mesh file="../meshes/payload/payload_simplified.stl" name="payload_simplified" smoothnormal="false" scale="0.00115 0.00115 0.00115"/>
 
-    <mesh file="../meshes/crazyflie/cf_body.stl" name="crazyflie_body" smoothnormal="true" scale="1.5 1.5 1.5"/>
-    <mesh file="../meshes/crazyflie/4_motormounts.stl" name="crazyflie_4_motormounts" smoothnormal="true" scale="1.5 1.5 1.5"/>
-    <mesh file="../meshes/crazyflie/4_motors.stl" name="crazyflie_4_motors" smoothnormal="true" scale="1.5 1.5 1.5"/>
-    <mesh file="../meshes/crazyflie/ccw_prop.stl" name="crazyflie_ccw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
-    <mesh file="../meshes/crazyflie/cw_prop.stl" name="crazyflie_cw_prop" smoothnormal="true" scale="1.5 1.5 1.5"/>
+    <mesh file="../meshes/crazyflie/cf_body.stl" name="crazyflie_body" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
+    <mesh file="../meshes/crazyflie/4_motormounts.stl" name="crazyflie_4_motormounts" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
+    <mesh file="../meshes/crazyflie/4_motors.stl" name="crazyflie_4_motors" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
+    <mesh file="../meshes/crazyflie/ccw_prop.stl" name="crazyflie_ccw_prop" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
+    <mesh file="../meshes/crazyflie/cw_prop.stl" name="crazyflie_cw_prop" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
 
 <!--
     <mesh file="../meshes/cf_body.stl" name="drone_body_large" smoothnormal="true" scale="5 5 5"/>

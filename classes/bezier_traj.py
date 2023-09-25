@@ -47,11 +47,11 @@ class BezierTraj(TrajectoryBase):
 
     def evaluate(self, state, i, time, control_step) -> dict:
         
-        eval = self.evaluate_trajectory([i * control_step])
+        target_pos, target_vel = self.evaluate_trajectory(i * control_step)
 
-        self.output["target_pos"] = np.array((eval[1], eval[2], eval[3]))
+        self.output["target_pos"] = target_pos
 
-        self.output["target_vel"] = np.array((eval[4], eval[5], eval[6]))
+        self.output["target_vel"] = target_vel
         
 
         return self.output
@@ -79,7 +79,7 @@ class BezierTraj(TrajectoryBase):
         Vz = z_BPoly(eval_time, nu=1)
         # Make sure that the trajectory doesn't take the drone outside the limits of the optitrack system!
         #assert LIMITS[0][0] < X < LIMITS[0][1] and LIMITS[1][0] < Y < LIMITS[1][1] and LIMITS[2][0] < Z < LIMITS[1][1]
-        retval = [float(eval_time), float(X), float(Y), float(Z), float(Vx), float(Vy), float(Vz)]
+        retval = [float(X), float(Y), float(Z)], [float(Vx), float(Vy), float(Vz)]
         if has_yaw:
             yaw_coeffs = [point[3] for point in points]
             yaw_BPoly = interpolate.BPoly(np.array(yaw_coeffs).reshape(len(yaw_coeffs), 1), np.array([start_time, end_time]))
@@ -87,33 +87,30 @@ class BezierTraj(TrajectoryBase):
         return tuple(retval)
 
 
-    def evaluate_trajectory(self, times):
+    def evaluate_trajectory(self, time):
         '''Function that looks at which bezier curve each timestamp falls into, then evaluates the curve at that
         timestamp, and returns the result for each timestamp.'''
 
         trajectory = self.trajectory_data
 
         segments = trajectory.get("points")
-        assert segments is not None
-        eval = []
-        for t in times:
-            # check which segment the current timestamp falls into
-            i = bisect.bisect_left([segment[0] for segment in segments], t)
-            if i == 0:
-                eval = tuple([segments[0][0]] + segments[0][1] + [0, 0, 0])
-            elif i == len(segments):
-                eval = tuple([segments[-1][0]] + segments[-1][1] + [0, 0, 0])
-            else:
-                prev_segment = segments[i-1]
-                start_point = prev_segment[1]
-                start_time = prev_segment[0]
-                segment = segments[i]
-                end_point = segment[1]
-                end_time = segment[0]
-                ctrl_points = segment[2]
-                # points will contain all points of the bezier curve, including the start and end, unlike in trajectory.json
-                points = [start_point, *ctrl_points, end_point] if ctrl_points else [start_point, end_point]
-                eval = self.evaluate_segment(points, start_time, end_time, t, trajectory.get("has_yaw", False))
+        # check which segment the current timestamp falls into
+        i = bisect.bisect_left([segment[0] for segment in segments], time)
+        if i == 0:
+            return segments[0][1], [0, 0, 0]
+        elif i == len(segments):
+            return segments[-1][1], [0, 0, 0]
+        else:
+            prev_segment = segments[i-1]
+            start_point = prev_segment[1]
+            start_time = prev_segment[0]
+            segment = segments[i]
+            end_point = segment[1]
+            end_time = segment[0]
+            ctrl_points = segment[2]
+            # points will contain all points of the bezier curve, including the start and end, unlike in trajectory.json
+            points = [start_point, *ctrl_points, end_point] if ctrl_points else [start_point, end_point]
+            return self.evaluate_segment(points, start_time, end_time, time, trajectory.get("has_yaw", False))
                 
         return eval
 

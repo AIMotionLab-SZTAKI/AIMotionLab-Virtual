@@ -246,55 +246,76 @@ class SceneXmlGenerator:
         
     
     def _add_crazyflie(self, name, pos, quat, color):
-        site_name = name + SITE_NAME_END
-    
-        drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
-        ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.4e-5 1.4e-5 2.17e-5", mass="0.028")
-        ET.SubElement(drone, "joint", name=name, type="free")
-        #ET.SubElement(drone, "geom", name=name, type="mesh", pos="0 0 0", mesh="crazyflie", rgba=color)
+
+        
+        mass = CRAZYFLIE_PROP.MASS.value
+        diaginertia = CRAZYFLIE_PROP.DIAGINERTIA.value
+        Lx1 = CRAZYFLIE_PROP.OFFSET.value
+        Lx2 = CRAZYFLIE_PROP.OFFSET.value
+        Ly = CRAZYFLIE_PROP.OFFSET.value
+        Lz = CRAZYFLIE_PROP.OFFSET_Z.value
+        motor_param = CRAZYFLIE_PROP.MOTOR_PARAM.value
+        max_thrust = CRAZYFLIE_PROP.MAX_THRUST.value
+
+        drone = self._add_drone_common_parts(name, pos, quat, PROP_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "crazyflie")
 
         ET.SubElement(drone, "geom", name=name + "_body", type="mesh", mesh="crazyflie_body", rgba=color)
         ET.SubElement(drone, "geom", name=name + "_4_motormounts", type="mesh", mesh="crazyflie_4_motormounts", rgba=color)
         ET.SubElement(drone, "geom", name=name + "_4_motors", type="mesh", mesh="crazyflie_4_motors", rgba=color)
 
-        ET.SubElement(drone, "site", name=site_name, pos="0 0 0")
+
+        return drone
+
+    def _add_drone_common_parts(self, name, pos, quat, propeller_color, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, mesh_prefix):
+
+        drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
+        ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia=diaginertia, mass=mass)
+        ET.SubElement(drone, "joint", name=name, type="free")
+        #drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
+
+        site_name = name + SITE_NAME_END
+        ET.SubElement(drone, "site", name=site_name, pos="0 0 0", size="0.005")
+
+        prop_site_size = "0.0001"
 
         prop_name = name + "_prop1"
         mass = "0.00001"
-        #
-        pos = CRAZYFLIE_PROP.OFFSET.value + " -" + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
+        pos = Lx2 + " -" + Ly + " " + Lz
         prop1_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop1_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="crazyflie_ccw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
-        ET.SubElement(self.actuator, "general", joint=prop_name, name=name + "_actr1", gear=" 0 0 1 0 0 " + CRAZYFLIE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + CRAZYFLIE_PROP.MAX_THRUST.value)
+        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh=mesh_prefix + "_ccw_prop", mass=mass, pos=pos, rgba=propeller_color)
+        ET.SubElement(drone, "site", name=prop_name, pos=pos, size=prop_site_size)
+        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr1", gear=" 0 0 1 0 0 " + motor_param, ctrllimited="true", ctrlrange="0 " + max_thrust)
 
         prop_name = name + "_prop2"
-        pos = "-" + CRAZYFLIE_PROP.OFFSET.value + " -" + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
+        pos = "-" + Lx1 + " -" + Ly + " " + Lz
         prop2_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop2_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="crazyflie_cw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 -0.785")
-        ET.SubElement(self.actuator, "general", joint=prop_name, name=name + "_actr2", gear=" 0 0 1 0 0 -" + CRAZYFLIE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + CRAZYFLIE_PROP.MAX_THRUST.value)
+        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh=mesh_prefix + "_cw_prop", mass=mass, pos=pos, rgba=propeller_color)
+        ET.SubElement(drone, "site", name=prop_name, pos=pos, size=prop_site_size)
+        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr2", gear=" 0 0 1 0 0 -" + motor_param, ctrllimited="true", ctrlrange="0 " + max_thrust)
 
         prop_name = name + "_prop3"
-        pos = "-" + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
+        pos = "-" + Lx1 + " " + Ly + " " + Lz
         prop3_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop3_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="crazyflie_ccw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
-        ET.SubElement(self.actuator, "general", joint=prop_name, name=name + "_actr3", gear=" 0 0 1 0 0 " + CRAZYFLIE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + CRAZYFLIE_PROP.MAX_THRUST.value)
+        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh=mesh_prefix + "_ccw_prop", mass=mass, pos=pos, rgba=propeller_color)
+        ET.SubElement(drone, "site", name=prop_name, pos=pos, size=prop_site_size)
+        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr3", gear=" 0 0 1 0 0 " + motor_param, ctrllimited="true", ctrlrange="0 " + max_thrust)
 
         prop_name = name + "_prop4"
-        
-        pos = CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET.value + " " + CRAZYFLIE_PROP.OFFSET_Z.value
+        pos = Lx2 + " " + Ly + " " + Lz
         prop4_body = ET.SubElement(drone, "body", name=prop_name)
         ET.SubElement(prop4_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="crazyflie_cw_prop", mass=mass, pos=pos, rgba=PROP_COLOR, euler="0 0 0.785")
-        ET.SubElement(self.actuator, "general", joint=prop_name, name=name + "_actr4", gear=" 0 0 1 0 0 -" + CRAZYFLIE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + CRAZYFLIE_PROP.MAX_THRUST.value)
+        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh=mesh_prefix + "_cw_prop", mass=mass, pos=pos, rgba=propeller_color)
+        ET.SubElement(drone, "site", name=prop_name, pos=pos, size=prop_site_size)
+        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr4", gear=" 0 0 1 0 0 -" + motor_param, ctrllimited="true", ctrlrange="0 " + max_thrust)
 
-        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
-        ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
+        ET.SubElement(self.sensor, "gyro", noise="0.0027", site=site_name, name=name + "_gyro")
+        ET.SubElement(self.sensor, "velocimeter", noise="0.00078", site=site_name, name=name + "_velocimeter")
         ET.SubElement(self.sensor, "accelerometer", site=site_name, name=name + "_accelerometer")
-        ET.SubElement(self.sensor, "framepos", objtype="site", objname=site_name, name=name + "_posimeter")
-        ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=name + "_orimeter")
+        ET.SubElement(self.sensor, "framepos", noise="0.00014", objtype="site", objname=site_name, name=name + "_posimeter")
+        ET.SubElement(self.sensor, "framequat", noise="0.00026", objtype="site", objname=site_name, name=name + "_orimeter")
         ET.SubElement(self.sensor, "frameangacc ", objtype="site", objname=site_name, name=name + "_ang_accelerometer")
 
         return drone
@@ -334,67 +355,27 @@ class SceneXmlGenerator:
     
     def _add_bumblebee(self, name, pos, quat, color, is_hooked=False, hook_dof = 1):
 
-        drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
-        ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia="1.5e-3 1.45e-3 2.66e-3", mass="0.605")
-        ET.SubElement(drone, "joint", name=name, type="free")
+        mass = BUMBLEBEE_PROP.MASS.value
+        diaginertia = BUMBLEBEE_PROP.DIAGINERTIA.value
+        Lx1 = BUMBLEBEE_PROP.OFFSET_X1.value
+        Lx2 = BUMBLEBEE_PROP.OFFSET_X2.value
+        Ly = BUMBLEBEE_PROP.OFFSET_Y.value
+        Lz = BUMBLEBEE_PROP.OFFSET_Z.value
+        motor_param = BUMBLEBEE_PROP.MOTOR_PARAM.value
+        max_thrust = BUMBLEBEE_PROP.MAX_THRUST.value
         
+
+        drone = self._add_drone_common_parts(name, pos, quat, PROP_LARGE_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "bumblebee")
+
         # need to rotate the body mesh to match optitrack orientation
         quat_mesh = mh.quaternion_from_euler(0, 0, math.radians(270))
         quat_mesh_str = str(quat_mesh[0]) + " " + str(quat_mesh[1]) + " " + str(quat_mesh[2]) + " " + str(quat_mesh[3])
 
-        #drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
         ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", quat=quat_mesh_str, mesh="bumblebee_body", rgba=color)
-        #ET.SubElement(drone_body, "geom", name=name + "_4_motormounts", type="mesh", mesh="drone_4_motormounts_large", rgba=color, mass="0.0001")
-        #ET.SubElement(drone_body, "geom", name=name + "_4_motors", type="mesh", mesh="drone_4_motors_large", rgba=color, mass="0.0001")
-
-        site_name = name + SITE_NAME_END
-        ET.SubElement(drone, "site", name=site_name, pos="0 0 0", size="0.01")
-
         if is_hooked:
             self._add_hook_to_drone(drone, name, hook_dof)
 
-        prop_name = name + "_prop1"
-        mass = "0.00001"
-        pos = BUMBLEBEE_PROP.OFFSET_X2.value + " -" + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
-        prop1_body = ET.SubElement(drone, "body", name=prop_name)
-        ET.SubElement(prop1_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop1_body, "geom", name=prop_name, type="mesh", mesh="bumblebee_ccw_prop", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
-        ET.SubElement(drone, "site", name=prop_name, pos=pos)
-        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr1", gear=" 0 0 1 0 0 " + BUMBLEBEE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + BUMBLEBEE_PROP.MAX_THRUST.value)
-
-        prop_name = name + "_prop2"
-        pos = "-" + BUMBLEBEE_PROP.OFFSET_X1.value + " -" + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
-        prop2_body = ET.SubElement(drone, "body", name=prop_name)
-        ET.SubElement(prop2_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop2_body, "geom", name=prop_name, type="mesh", mesh="bumblebee_cw_prop", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
-        ET.SubElement(drone, "site", name=prop_name, pos=pos)
-        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr2", gear=" 0 0 1 0 0 -" + BUMBLEBEE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + BUMBLEBEE_PROP.MAX_THRUST.value)
-
-        prop_name = name + "_prop3"
-        pos = "-" + BUMBLEBEE_PROP.OFFSET_X1.value + " " + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
-        prop3_body = ET.SubElement(drone, "body", name=prop_name)
-        ET.SubElement(prop3_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop3_body, "geom", name=prop_name, type="mesh", mesh="bumblebee_ccw_prop", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
-        ET.SubElement(drone, "site", name=prop_name, pos=pos)
-        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr3", gear=" 0 0 1 0 0 " + BUMBLEBEE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + BUMBLEBEE_PROP.MAX_THRUST.value)
-
-        prop_name = name + "_prop4"
-        pos = BUMBLEBEE_PROP.OFFSET_X2.value + " " + BUMBLEBEE_PROP.OFFSET_Y.value + " " + BUMBLEBEE_PROP.OFFSET_Z.value
-        prop4_body = ET.SubElement(drone, "body", name=prop_name)
-        ET.SubElement(prop4_body, "joint", name=prop_name, axis="0 0 1", pos=pos)
-        ET.SubElement(prop4_body, "geom", name=prop_name, type="mesh", mesh="bumblebee_cw_prop", mass=mass, pos=pos, rgba=PROP_LARGE_COLOR)
-        ET.SubElement(drone, "site", name=prop_name, pos=pos)
-        ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr4", gear=" 0 0 1 0 0 -" + BUMBLEBEE_PROP.MOTOR_PARAM.value, ctrllimited="true", ctrlrange="0 " + BUMBLEBEE_PROP.MAX_THRUST.value)
-
-        ET.SubElement(self.sensor, "gyro", noise="0.0027", site=site_name, name=name + "_gyro")
-        ET.SubElement(self.sensor, "velocimeter", noise="0.00078", site=site_name, name=name + "_velocimeter")
-        ET.SubElement(self.sensor, "accelerometer", site=site_name, name=name + "_accelerometer")
-        ET.SubElement(self.sensor, "framepos", noise="0.00014", objtype="site", objname=site_name, name=name + "_posimeter")
-        ET.SubElement(self.sensor, "framequat", noise="0.00026", objtype="site", objname=site_name, name=name + "_orimeter")
-        ET.SubElement(self.sensor, "frameangacc ", objtype="site", objname=site_name, name=name + "_ang_accelerometer")
-
         return drone
-
 
     def _add_mocap_bumblebee(self, name, pos, quat, color):
         

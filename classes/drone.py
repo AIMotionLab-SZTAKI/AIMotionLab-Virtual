@@ -11,10 +11,13 @@ class SPIN_DIR(Enum):
     COUNTER_CLOCKWISE = -1
 
 class CRAZYFLIE_PROP(Enum):
-    OFFSET = "0.047"
-    OFFSET_Z = "0.032"
+    #OFFSET = "0.047"
+    OFFSET = "0.03275"
+    OFFSET_Z = "0.0223"
     MOTOR_PARAM = "0.02514"
     MAX_THRUST = "0.16"
+    MASS = "0.028"
+    DIAGINERTIA = "1.4e-5 1.4e-5 2.17e-5"
 
 class BUMBLEBEE_PROP(Enum):
     OFFSET_X1 = "0.074"
@@ -24,6 +27,8 @@ class BUMBLEBEE_PROP(Enum):
     MOTOR_PARAM = "0.5954"
     MAX_THRUST = "15"
     ROD_LENGTH = ".4"
+    MASS = "0.605"
+    DIAGINERTIA = "1.5e-3 1.45e-3 2.66e-3"
 
 class DRONE_TYPES(Enum):
     CRAZYFLIE = 0
@@ -82,8 +87,6 @@ class Drone(MovingObject):
         self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
         self.sensor_ang_accelerometer = self.data.sensor(self.name_in_xml + "_ang_accelerometer").data
 
-        self.propeller_spin_height = 0.1
-
         self.state = {
             "pos" : self.sensor_posimeter,
             "vel" : self.sensor_velocimeter,
@@ -109,7 +112,7 @@ class Drone(MovingObject):
     
     def update(self, i, control_step):
 
-        self.fake_propeller_spin(0.02)
+        self.spin_propellers()
 
 
         if self.trajectory is not None:
@@ -165,26 +168,19 @@ class Drone(MovingObject):
         print("prop3: " + str(self.prop3_qpos))
         print("prop4: " + str(self.prop4_qpos))
     
-    def spin_propellers(self, angle_step):
+    def spin_propellers(self):
         #print("angle step: " + str(angle_step))
                 
-        self.prop1_angle -= angle_step + 0.005
-        self.prop2_angle -= angle_step - 0.002
-        self.prop3_angle += angle_step + 0.005
-        self.prop4_angle += angle_step - 0.003
+        self.prop1_angle -= self.ctrl0[0]
+        self.prop2_angle += self.ctrl1[0]
+        self.prop3_angle -= self.ctrl2[0]
+        self.prop4_angle += self.ctrl3[0]
 
         self.prop1_qpos[0] = self.prop1_angle
         self.prop2_qpos[0] = self.prop2_angle
         self.prop3_qpos[0] = self.prop3_angle
         self.prop4_qpos[0] = self.prop4_angle
     
-      
-    def fake_propeller_spin(self, control_step , speed = 10):
-
-            if self.get_qpos()[2] > self.propeller_spin_height:
-                self.spin_propellers(speed * control_step)
-            else:
-                self.stop_propellers()
     
     def stop_propellers(self):
         self.prop1_qpos[0] = self.prop1_angle
@@ -227,7 +223,6 @@ class Crazyflie(Drone):
 
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
-        self.propeller_spin_height = 0.06
 
 
 class Bumblebee(Drone):
@@ -241,7 +236,6 @@ class Bumblebee(Drone):
 
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
-        self.propeller_spin_height = 0.15
 
 
 
@@ -303,7 +297,7 @@ class DroneHooked(Drone):
         return self.state
     
     def update(self, i, control_step):
-        self.fake_propeller_spin(0.02)
+        self.spin_propellers()
 
         if self.trajectory is not None:
 

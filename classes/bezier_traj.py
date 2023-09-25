@@ -51,11 +51,7 @@ class BezierTraj(TrajectoryBase):
 
         self.output["target_pos"] = np.array((eval[1], eval[2], eval[3]))
 
-        if len(eval) > 4:
-            self.output["target_vel"] = np.array((eval[4], eval[5], eval[6]))
-        
-        else:
-            self.output["target_vel"] = np.array((0., 0., 0.))
+        self.output["target_vel"] = np.array((eval[4], eval[5], eval[6]))
         
 
         return self.output
@@ -104,9 +100,9 @@ class BezierTraj(TrajectoryBase):
             # check which segment the current timestamp falls into
             i = bisect.bisect_left([segment[0] for segment in segments], t)
             if i == 0:
-                eval = tuple([segments[0][0]] + segments[0][1])
+                eval = tuple([segments[0][0]] + segments[0][1] + [0, 0, 0])
             elif i == len(segments):
-                eval = tuple([segments[-1][0]] + segments[-1][1])
+                eval = tuple([segments[-1][0]] + segments[-1][1] + [0, 0, 0])
             else:
                 prev_segment = segments[i-1]
                 start_point = prev_segment[1]

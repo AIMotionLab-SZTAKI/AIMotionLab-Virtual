@@ -20,12 +20,12 @@ traj1 = BezierTraj(demo_path1)
 demo_path2 = os.path.join(abs_path, "..", "Demo", "drones", "drone_2")
 traj2 = BezierTraj(demo_path2)
 
-eval = traj0.evaluate_trajectory([0])
-drone0_init_pos = np.array((eval[1], eval[2], eval[3]))
-eval = traj1.evaluate_trajectory([0])
-drone1_init_pos = np.array((eval[1], eval[2], eval[3]))
-eval = traj2.evaluate_trajectory([0])
-drone2_init_pos = np.array((eval[1], eval[2], eval[3]))
+pos, vel = traj0.evaluate_trajectory(0)
+drone0_init_pos = np.array(pos)
+pos, vel = traj1.evaluate_trajectory(0)
+drone1_init_pos = np.array(pos)
+pos, vel = traj2.evaluate_trajectory(0)
+drone2_init_pos = np.array(pos)
 
 
 xml_path = os.path.join(abs_path, "..", "xml_models")

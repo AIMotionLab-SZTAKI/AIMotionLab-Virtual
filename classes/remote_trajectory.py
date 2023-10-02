@@ -83,21 +83,26 @@ class TrajectoryDistributor():
         
         #self.host = "192.168.2.77"
         #self.port = 7002
-        self.host = "127.0.0.1"
-        self.port = 12345
+        self.host = ""
+        self.port = 0
     
-    
-        self.s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    
-        # connect to server on local computer
-        self.s.connect((self.host, self.port))
-
         self.data = None
 
         self.has_new_data = False
-
-        start_new_thread(self.receiver, (self.s,))
     
+
+    def connect(self, host, port):
+        self.host = host
+        self.port = port
+
+        self.s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    
+        self.s.connect((self.host, self.port))
+    
+    def start_background_thread(self):
+        start_new_thread(self.receiver, (self.s,))
+
+
 
     def print_current_trajectories(self):
         if self.data is not None:
@@ -134,15 +139,22 @@ class TrajectoryDistributor():
 
                     #    moving_object.trajectory.update_trajectory_data(split_segment[-1])
                 
-                usc1 = data.find('_')
-                id = data[:usc1]
-                print("id: " + str(id))
+                if (not data[2:].startswith("_CMDSTART")) or (not data.endswith("_EOF")):
+                    print("data in multiple pieces")
 
-                usc2 = data[usc1 + 1:].find('_')
-                cmd = data[usc1 + 1 : usc1 + usc2 + 1]
-                print("cmd: " + str(cmd))
-                
-                self.has_new_data = True
+                else:
+                    usc1 = data.find('_')
+                    id = data[:usc1]
+                    print("id: " + str(id))
+
+                    cmdidx = data.find("CMDSTART") + 8
+                    uscl = data[cmdidx + 1:].find('_')
+                    cmd = data[cmdidx + 1 : cmdidx + uscl + 1]
+                    print("cmd: " + str(cmd))
+
+
+                    
+                    self.has_new_data = True
     
         # connection closed
         s.close()

@@ -46,6 +46,8 @@ drone1.set_trajectory(trajectory1)
 drone2.set_trajectory(trajectory2)
 
 td = TrajectoryDistributor(simulator.all_virt_vehicles)
+td.connect("127.0.0.1", 12345)
+td.start_background_thread()
 
 while not simulator.glfw_window_should_close():
 

@@ -30,16 +30,18 @@ class MovingObject:
 
     def update_controller_type(self, state, setpoint, time, i):
 
-        if len(self.controllers) == 1:
-            self.controller = self.controllers[0]
-            return
+        if self.controllers is not None:
 
-        if self.update_controller_type_method is not None:
-            idx = self.update_controller_type_method(state, setpoint, time, i)
-            self.controller = self.controllers[idx]
-            return
-        
-        print("update controller type method is None")
+            if len(self.controllers) == 1:
+                self.controller = self.controllers[0]
+                return
+
+            if self.update_controller_type_method is not None:
+                idx = self.update_controller_type_method(state, setpoint, time, i)
+                self.controller = self.controllers[idx]
+                return
+            
+            print("update controller type method is None")
 
     
     def set_update_controller_type_method(self, method):
@@ -56,6 +58,15 @@ class MovingObject:
             state += [self.sensors[i].data]
 
         return state
+
+    @staticmethod
+    def get_object_by_name_in_xml(moving_object_list, name_in_xml):
+
+        for m in moving_object_list:
+            if m.name_in_xml == name_in_xml:
+                return m
+        
+        return None
 
 
 

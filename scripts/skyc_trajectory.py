@@ -35,8 +35,8 @@ save_filename = "built_scene.xml"
 scene = SceneXmlGenerator(xml_base_file_name)
 
 drone0_name = scene.add_drone(np.array2string(drone0_init_pos)[1:-1], "1 0 0 0", "0.9 0.1 0.1 1.0", DRONE_TYPES.CRAZYFLIE)
-drone1_name = scene.add_drone(np.array2string(drone1_init_pos)[1:-1], "1 0 0 0", "0.1 0.1 0.9 1.0", DRONE_TYPES.BUMBLEBEE)
-drone2_name = scene.add_drone(np.array2string(drone2_init_pos)[1:-1], "1 0 0 0", "0.1 0.1 0.9 1.0", DRONE_TYPES.BUMBLEBEE)
+drone1_name = scene.add_drone(np.array2string(drone1_init_pos)[1:-1], "1 0 0 0", "0.1 0.1 0.9 1.0", DRONE_TYPES.CRAZYFLIE)
+drone2_name = scene.add_drone(np.array2string(drone2_init_pos)[1:-1], "1 0 0 0", "0.1 0.1 0.9 1.0", DRONE_TYPES.CRAZYFLIE)
 
 scene.save_xml(os.path.join(xml_path, save_filename))
 

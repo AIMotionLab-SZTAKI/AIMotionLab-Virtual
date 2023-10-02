@@ -125,9 +125,9 @@ class Drone(MovingObject):
             if self.controller is not None:
                 ctrl = self.controller.compute_control(state, setpoint, self.data.time)
             
-            if ctrl is not None:
-                motor_thrusts = self.input_mtx @ ctrl
-                self.set_ctrl(motor_thrusts)
+                if ctrl is not None:
+                    motor_thrusts = self.input_mtx @ ctrl
+                    self.set_ctrl(motor_thrusts)
             #else:
             #    print("[Drone] Error: ctrl was None")
     

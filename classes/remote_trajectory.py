@@ -6,10 +6,11 @@ import time
 
 from classes.trajectory_base import TrajectoryBase
 from classes.moving_object import MovingObject
-from classes.skyc_traj import get_traj_data
+from classes.skyc_traj_eval import get_traj_data, proc_json_trajectory, evaluate_trajectory
 
 import os
 import numpy as np
+import json
 
 
 class TestServer():
@@ -45,6 +46,7 @@ class TestServer():
         j = 1
         k = 2
 
+
         while True:
     
             time.sleep(3)
@@ -66,9 +68,18 @@ class TestServer():
 
             #message = t1 + '\n' + t2 + '\n' + t3
 
-            message = self.test_message
+            if i == 1:
+                message = self.test_message
 
-            c.send(message.encode('utf-8'))
+                c.send(message.encode("utf-8"))
+                time.sleep(2)
+            
+            if i == 2:
+                message = "start"
+
+                c.send(message.encode("utf-8"))
+            
+            i += 1
 
         self.s.close()
     
@@ -85,10 +96,6 @@ class TrajectoryDistributor():
         #self.port = 7002
         self.host = ""
         self.port = 0
-    
-        self.data = None
-
-        self.has_new_data = False
     
 
     def connect(self, host, port):
@@ -125,21 +132,14 @@ class TrajectoryDistributor():
                 print()
                 print("data arrived from server")
                 print()
-                #self.data = data
-
-                #splt = data.split('\n')
-
-                #for s_ in splt:
-                    #split_segment = s_.split(' ')
-
-                    #if split_segment[0].startswith("cf"):
-                        
-                    #    object_name = "Crazyflie_" + split_segment[0][2:]
-                    #    moving_object = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, object_name)
-
-                    #    moving_object.trajectory.update_trajectory_data(split_segment[-1])
                 
-                if (not data[2:].startswith("_CMDSTART")) or (not data.endswith("_EOF")):
+                if data == "start":
+                    cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, "Crazyflie_0")
+                    cf.trajectory.start()
+
+                    print("cmd: " + data)
+
+                elif (not data[2:].startswith("_CMDSTART")) or (not data.endswith("_EOF")):
                     print("data in multiple pieces")
 
                 else:
@@ -152,9 +152,15 @@ class TrajectoryDistributor():
                     cmd = data[cmdidx + 1 : cmdidx + uscl + 1]
                     print("cmd: " + str(cmd))
 
-
+                    if cmd == "upload":
+                        trajectory_data = data[cmdidx + uscl + 2 : -4]
+                        
+                        trajectory_json = json.loads(trajectory_data)
+                        cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, "Crazyflie_0")
+                        cf.trajectory.update_trajectory_data(trajectory_json)
+                        
+                
                     
-                    self.has_new_data = True
     
         # connection closed
         s.close()
@@ -162,14 +168,20 @@ class TrajectoryDistributor():
 
 class RemoteDroneTrajectory(TrajectoryBase):
 
-    def __init__(self):
+    def __init__(self, can_execute: bool = True, directory: str = None):
         super().__init__()
+
         
         self.data_lock = threading.Lock()
 
+        self.trajectory_data = None
+
+        if directory is not None:
+            self.trajectory_data = get_traj_data(directory)
+
         self.output = {
             "load_mass" : 0.0,
-            "target_pos" : None,
+            "target_pos" : np.zeros(3),
             "target_rpy" : np.zeros(3),
             "target_vel" : np.zeros(3),
             "target_acc" : None,
@@ -179,15 +191,45 @@ class RemoteDroneTrajectory(TrajectoryBase):
             "target_pos_load" : None
         }
 
-        self._data = None
+        self.current_time = 0.0
+        self.start_time = 0.0
+
+        self._can_execute = can_execute
+
+    def start(self):
+        self.start_time = self.current_time
+        self._can_execute = True
     
+
+    def update_trajectory_data(self, trajectory_data: dict):
+        self.data_lock.acquire()
+        self.trajectory_data = proc_json_trajectory(trajectory_data)
+        self.data_lock.release()
+
     def evaluate(self, state, i, time, control_step) -> dict:
+
+        self.current_time = i * control_step
+        
+        self.data_lock.acquire()
+        if (self.trajectory_data is not None):
+            if self._can_execute:
+                time = self.current_time - self.start_time
+                target_pos, target_vel = self.evaluate_trajectory(time)
+                self.output["target_pos"] = target_pos
+                self.output["target_vel"] = target_vel
+            else:
+                target_pos, target_vel = self.evaluate_trajectory(0.0)
+                self.output["target_pos"] = target_pos
+                self.output["target_vel"] = target_vel
+
+        self.data_lock.release()
+
         return self.output
 
-    def update_trajectory_data(self, new_data):
-        self.data_lock.acquire()
-        self._data = new_data
-        self.data_lock.release()
+
+    def evaluate_trajectory(self, time):
+        if self.trajectory_data is not None:
+            return evaluate_trajectory(self.trajectory_data, time)
     
 
     def print_data(self):

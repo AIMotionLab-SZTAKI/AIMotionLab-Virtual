@@ -19,8 +19,8 @@ class GeomControl(ControllerBase):
 
         # Set control gains according to drone type
         if drone_type == 'crazyflie':
-            self.k_r = 1
-            self.k_v = 0.35
+            self.k_r = 0.1
+            self.k_v = 0.2
             self.k_R = 0.007
             self.k_w = 0.0015
         elif drone_type == 'bumblebee':

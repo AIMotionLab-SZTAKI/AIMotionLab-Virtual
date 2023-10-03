@@ -166,37 +166,40 @@ class Display:
 
         self.sim_step = self.model.opt.timestep
 
-        self.all_virt_vehicles = []
-        self.all_real_vehicles = []
+        self.all_moving_objects = []
+        self.all_mocap_objects = []
 
 
         if self.virt_parsers is not None:
 
             for i in range(len(self.virt_parsers)):
-                self.all_virt_vehicles += self.virt_parsers[i](self.data, self.model)
+                self.all_moving_objects += self.virt_parsers[i](self.data, self.model)
         
         if self.mocap_parsers is not None:
 
             for i in range(len(self.mocap_parsers)):
-                self.all_real_vehicles += self.mocap_parsers[i](self.data, self.model)
+                self.all_mocap_objects += self.mocap_parsers[i](self.data, self.model)
 
         print()
-        print(str(len(self.all_virt_vehicles)) + " virtual object(s) found in xml.")
+        print(str(len(self.all_moving_objects)) + " virtual object(s) found in xml.")
         print()
-        print(str(len(self.all_real_vehicles)) + " mocap objects(s) found in xml.")
+        print(str(len(self.all_mocap_objects)) + " mocap objects(s) found in xml.")
         print("______________________________")
         
-        self.all_vehicles = self.all_virt_vehicles + self.all_real_vehicles
+        self.all_vehicles = self.all_moving_objects + self.all_mocap_objects
         
         # to obtain inertia matrix
         mujoco.mj_step(self.model, self.data)
     
+    def get_all_MovingObjects(self):
+        return self.all_moving_objects
+    
 
     def get_MovingObject_by_name_in_xml(self, name) -> MovingObject:
 
-        for i in range(len(self.all_virt_vehicles)):
+        for i in range(len(self.all_moving_objects)):
 
-            vehicle = self.all_virt_vehicles[i]
+            vehicle = self.all_moving_objects[i]
             if name == vehicle.name_in_xml:
 
                 return vehicle
@@ -205,9 +208,9 @@ class Display:
 
     def get_MocapObject_by_name_in_xml(self, name):
 
-        for i in range(len(self.all_real_vehicles)):
+        for i in range(len(self.all_mocap_objects)):
 
-            vehicle = self.all_real_vehicles[i]
+            vehicle = self.all_mocap_objects[i]
             if name == vehicle.name_in_xml:
                 return vehicle
         
@@ -218,8 +221,8 @@ class Display:
         self.load_model(xml_file_name)
 
         if vehicle_names_in_motive is not None:
-            for i in range(len(self.all_real_vehicles)):
-                self.all_real_vehicles[i].name_in_motive = vehicle_names_in_motive[i]
+            for i in range(len(self.all_mocap_objects)):
+                self.all_mocap_objects[i].name_in_motive = vehicle_names_in_motive[i]
         
 
     def glfw_window_should_close(self):
@@ -590,10 +593,10 @@ class Display:
 
     def set_vehicle_names(self):
         
-        if len(self.all_real_vehicles) > 0:
-            object_names = MocapObject.get_object_names_motive(self.all_real_vehicles)
-            object_labels = MocapObject.get_object_names_in_xml(self.all_real_vehicles)
+        if len(self.all_mocap_objects) > 0:
+            object_names = MocapObject.get_object_names_motive(self.all_mocap_objects)
+            object_labels = MocapObject.get_object_names_in_xml(self.all_mocap_objects)
             gui = VehicleNameGui(vehicle_labels=object_labels, vehicle_names=object_names)
             gui.show()
-            MocapObject.set_object_names_motive(self.all_real_vehicles, gui.vehicle_names)
+            MocapObject.set_object_names_motive(self.all_mocap_objects, gui.vehicle_names)
 

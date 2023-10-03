@@ -52,7 +52,7 @@ controller0 = GeomControl(drone0.mass, drone0.inertia, simulator.gravity)
 
 drone0.set_controllers([controller0])
 
-td = TrajectoryDistributor(simulator.all_virt_vehicles)
+td = TrajectoryDistributor(simulator.all_moving_objects)
 td.connect("127.0.0.1", 12345)
 td.start_background_thread()
 

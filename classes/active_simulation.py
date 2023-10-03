@@ -73,7 +73,7 @@ class ActiveSimulator(Display):
                 # only update real vehicles
                 vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
  
-                vehicle_to_update = MocapObject.get_object_by_name_in_motive(self.all_real_vehicles, name)
+                vehicle_to_update = MocapObject.get_object_by_name_in_motive(self.all_mocap_objects, name)
 
                 if vehicle_to_update is not None:
                     vehicle_to_update.update(obj.position, vehicle_orientation)
@@ -85,9 +85,9 @@ class ActiveSimulator(Display):
                                             self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
             
 
-        for l in range(len(self.all_virt_vehicles)):
+        for l in range(len(self.all_moving_objects)):
 
-            self.all_virt_vehicles[l].update(self.i, self.control_step)
+            self.all_moving_objects[l].update(self.i, self.control_step)
         
         
         if not self.is_paused:
@@ -116,9 +116,9 @@ class ActiveSimulator(Display):
             self.start_time = time.time()
         
 
-        for l in range(len(self.all_virt_vehicles)):
+        for l in range(len(self.all_moving_objects)):
 
-            self.all_virt_vehicles[l].update(self.i, self.control_step)
+            self.all_moving_objects[l].update(self.i, self.control_step)
         
         mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
         self.i += 1

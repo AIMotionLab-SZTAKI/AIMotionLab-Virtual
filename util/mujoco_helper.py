@@ -298,7 +298,7 @@ def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, el
         orientation[0], orientation[1], orientation[2], orientation[3])
 
     new_azim = math.degrees(yaw_z)
-    new_elev = -math.degrees(pitch_y) - elev_offs
+    new_elev = math.degrees(pitch_y) - elev_offs
 
     cam.lookat = position
 

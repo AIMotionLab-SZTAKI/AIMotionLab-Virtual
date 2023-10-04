@@ -60,7 +60,7 @@ class MovingObject:
         return state
 
     @staticmethod
-    def get_object_by_name_in_xml(moving_object_list, name_in_xml):
+    def get_object_by_name_in_xml(moving_object_list, name_in_xml) -> "MovingObject":
 
         for m in moving_object_list:
             if m.name_in_xml == name_in_xml:

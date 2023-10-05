@@ -1,6 +1,6 @@
 from setuptools import setup
 
-setup(name='mujoco-simulation',
+setup(name='aimotionlabvirtual',
       version='1.0.0',
       py_modules=['gui', 'util', 'classes'],
       #py_modules=['gui', 'util', 'classes', '../crazyflie-mujoco/ctrl'],
@@ -26,7 +26,7 @@ setup(name='mujoco-simulation',
         #'imageio==2.22.4',
         #'opencv-python==4.6.0.66',
         'motioncapture==1.0a1; python_version<"3.10"',
-        'motioncapture==1.0a1; python_version>"3.9"',
+        'motioncapture==1.0a2; python_version>"3.9"',
         'sympy==1.10.1',
         'mosek==9.3.21',
         'control==0.9.2',

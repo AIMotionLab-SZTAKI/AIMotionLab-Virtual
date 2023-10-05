@@ -2,7 +2,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='aimotionlabvirtual',
-      packages=find_packages(),
+      packages=['aimotionlabvirtual'],
       version='1.0.0',
       py_modules=['gui', 'util', 'classes'],
       #py_modules=['gui', 'util', 'classes', '../crazyflie-mujoco/ctrl'],

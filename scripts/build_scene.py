@@ -1,12 +1,12 @@
 import os
-from util import xml_generator
-from classes.active_simulation import ActiveSimulator
-from gui.building_input_gui import BuildingInputGui
-from gui.vehicle_input_gui import VehicleInputGui
-from gui.payload_input_gui import PayloadInputGui
-from classes.payload import PAYLOAD_TYPES
-from classes.object_parser import parseMovingObjects, parseMocapObjects
-from classes.drone import DRONE_TYPES
+from aiml_virtual.xml_generator import SceneXmlGenerator
+from aiml_virtual.simulator import ActiveSimulator
+from aiml_virtual.gui import BuildingInputGui
+from aiml_virtual.gui import VehicleInputGui
+from aiml_virtual.gui import PayloadInputGui
+from aiml_virtual.object.payload import PAYLOAD_TYPES
+from aiml_virtual.object import parseMovingObjects, parseMocapObjects
+from aiml_virtual.object.drone import DRONE_TYPES
 
 
 # open the base on which we'll build
@@ -18,7 +18,7 @@ save_filename = "built_scene.xml"
 build_based_on_optitrack = False
 is_scene_cleared = True
 
-scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
+scene = SceneXmlGenerator(xmlBaseFileName)
 
 virt_parsers = [parseMovingObjects]
 mocap_parsers = [parseMocapObjects]
@@ -203,7 +203,7 @@ def save_and_reload_model(scene, simulator, save_filename, vehicle_names_in_moti
 def clear_scene():
     global scene, simulator, landing_zone_counter, is_scene_cleared
     if not is_scene_cleared:
-        scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
+        scene = SceneXmlGenerator(xmlBaseFileName)
         simulator.reload_model(os.path.join(xml_path, xmlBaseFileName))
         
         landing_zone_counter = 0

@@ -9,11 +9,11 @@ import glfw
 import numpy as np
 import time
 import threading
-from util import mujoco_helper
-from gui.vehicle_name_gui import VehicleNameGui
+from aiml_virtual.util import mujoco_helper
+from aiml_virtual.gui.vehicle_name_gui import VehicleNameGui
 import scipy.signal
-from util.mujoco_helper import LiveLFilter
-from classes.moving_object import MocapObject, MovingObject
+from aiml_virtual.util.mujoco_helper import LiveLFilter
+from aiml_virtual.object.moving_object import MocapObject, MovingObject
 import ffmpeg
 import motioncapture
 

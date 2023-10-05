@@ -1,4 +1,4 @@
-from classes.remote_trajectory import TestServer
+from aiml_virtual.trajectory import TestServer
 
 
 server = TestServer()

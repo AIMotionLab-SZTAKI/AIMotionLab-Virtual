@@ -1,9 +1,9 @@
 import math
 import numpy as np
 
-from classes.drone import Drone
-from classes.payload import Payload
-from util import mujoco_helper
+from aiml_virtual.object.drone import Drone
+from aiml_virtual.object.payload import Payload
+import aiml_virtual.util.mujoco_helper as mujoco_helper
 
 
 class AirflowSampler:

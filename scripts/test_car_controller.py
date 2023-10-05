@@ -1,18 +1,17 @@
 import os
 
-from classes.active_simulation import ActiveSimulator
+from aiml_virtual.simulator import ActiveSimulator
 
-from util import xml_generator
+from aiml_virtual.xml_generator import SceneXmlGenerator
 
-from classes.car import Car
-
-from classes.car_classes import CarTrajectory, CarLPVController
-from util import mujoco_helper, carHeading2quaternion
+from aiml_virtual.trajectory import CarTrajectory
+from aiml_virtual.controller import CarLPVController
+from aiml_virtual.util import mujoco_helper, carHeading2quaternion
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from classes.object_parser import parseMovingObjects
+from aiml_virtual.object import parseMovingObjects
 
 
 RED_COLOR = "0.85 0.2 0.2 1.0"
@@ -25,7 +24,7 @@ xml_base_filename = "car_obstackle_scene.xml"
 save_filename = "built_scene.xml"
 
 # create xml with a car
-scene = xml_generator.SceneXmlGenerator(xml_base_filename)
+scene = SceneXmlGenerator(xml_base_filename)
 car0_name = scene.add_car(pos="0 0 0.052", quat=carHeading2quaternion(0.64424), color=RED_COLOR, is_virtual=True, has_rod=False)
  
 

@@ -1,5 +1,5 @@
 import mujoco
-from classes.moving_object import MovingObject
+from aiml_virtual.object.moving_object import MovingObject
 
 class Bicycle(MovingObject):
 
@@ -19,7 +19,7 @@ class Bicycle(MovingObject):
             self.ctrl[0] = ctrl
 
 
-from classes.controller_base import ControllerBase
+from aiml_virtual.controller import ControllerBase
 
 class BicycleController(ControllerBase):
 

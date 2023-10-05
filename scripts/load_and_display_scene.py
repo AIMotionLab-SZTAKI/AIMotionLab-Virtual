@@ -1,9 +1,9 @@
 import os
-from classes.active_simulation import ActiveSimulator
+from aiml_virtual.simulator import ActiveSimulator
 import tkinter
 from tkinter import filedialog
 
-from classes.object_parser import parseMovingObjects, parseMocapObjects
+from aiml_virtual.object.object_parser import parseMovingObjects, parseMocapObjects
 
 
 # open the base

@@ -5,12 +5,12 @@ import os
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize
-from classes.drone import BUMBLEBEE_PROP
+from aiml_virtual.object.drone import BUMBLEBEE_PROP
 
 from pyparsing import indentedBlock
 from sympy import intervals
 
-from util import mujoco_helper
+from aiml_virtual.util import mujoco_helper
 
 from matplotlib.animation import FuncAnimation 
 

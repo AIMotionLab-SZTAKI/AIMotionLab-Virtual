@@ -1,15 +1,12 @@
 import mujoco
 import numpy as np
-import util.mujoco_helper as mh
 import math
 from enum import Enum
-from classes.active_simulation import ActiveSimulator
-from classes.object_parser import parseMovingObjects, parseMocapObjects
+from aiml_virtual.simulator import ActiveSimulator
+from aiml_virtual.object import parseMovingObjects, parseMocapObjects
 import os
-from util import mujoco_helper
-from classes.car import Car, CarMocap
-from classes.drone import Drone, DroneMocap
-from util.xml_generator import SceneXmlGenerator
+from aiml_virtual.util import mujoco_helper
+from aiml_virtual.xml_generator import SceneXmlGenerator
 import matplotlib.pyplot as plt
 import time
 

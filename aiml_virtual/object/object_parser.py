@@ -1,9 +1,9 @@
 import mujoco
-from util import mujoco_helper
-from classes.car import Fleet1Tenth, CarMocap
-from classes.drone import Crazyflie, Bumblebee, BumblebeeHooked, DroneMocap, DroneMocapHooked, HookMocap
-from classes.payload import BoxPayload, TeardropPayload, PayloadMocap
-from classes.bicycle import Bicycle
+from aiml_virtual.util import mujoco_helper
+from aiml_virtual.object.car import Fleet1Tenth, CarMocap
+from aiml_virtual.object.drone import Crazyflie, Bumblebee, BumblebeeHooked, DroneMocap, DroneMocapHooked, HookMocap
+from aiml_virtual.object.payload import BoxPayload, TeardropPayload, PayloadMocap
+from aiml_virtual.object.bicycle import Bicycle
 
 
 def parseMovingObjects(data: mujoco.MjData, model: mujoco.MjModel):

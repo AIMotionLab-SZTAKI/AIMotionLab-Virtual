@@ -2,11 +2,11 @@ import time
 import mujoco
 import glfw
 import time
-from util import mujoco_helper
-from util.util import sync
-from classes.mujoco_display import Display
-from classes.moving_object import MocapObject
-from classes.object_parser import parseMovingObjects, parseMocapObjects
+from aiml_virtual.util import mujoco_helper
+from aiml_virtual.util.util import sync
+from aiml_virtual.simulator.mujoco_display import Display
+from aiml_virtual.object.moving_object import MocapObject
+from aiml_virtual.object.object_parser import parseMovingObjects, parseMocapObjects
 
 
 class ActiveSimulator(Display):

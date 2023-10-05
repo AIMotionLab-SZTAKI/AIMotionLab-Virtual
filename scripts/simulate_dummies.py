@@ -1,15 +1,15 @@
 import os
 
-from classes.active_simulation import ActiveSimulator
+from aiml_virtual.simulator import ActiveSimulator
 
-from util import xml_generator
+from aiml_virtual.xml_generator import SceneXmlGenerator
 
-from classes.payload import PAYLOAD_TYPES
-from classes.drone import DRONE_TYPES
-from classes.object_parser import parseMovingObjects, parseMocapObjects
+from aiml_virtual.object.payload import PAYLOAD_TYPES
+from aiml_virtual.object.drone import DRONE_TYPES
+from aiml_virtual.object import parseMovingObjects, parseMocapObjects
 
-from classes.controller_base import DummyDroneController, DummyCarController
-from classes.trajectory_base import DummyDroneTrajectory, DummyCarTrajectory
+from aiml_virtual.controller.controller_base import DummyDroneController, DummyCarController
+from aiml_virtual.trajectory.trajectory_base import DummyDroneTrajectory, DummyCarTrajectory
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,7 +27,7 @@ xmlBaseFileName = "scene_base.xml"
 save_filename = "built_scene.xml"
 
 # create xml with a drone and a car
-scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
+scene = SceneXmlGenerator(xmlBaseFileName)
 drone0_name = scene.add_drone("-5 0 1", "1 0 0 0", RED_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 1)
 dronemocap0_name = scene.add_mocap_drone("1 1 1", "1 0 0 0", BLUE_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED)
 car0_name = scene.add_car("-5 1 0.6", "1 0 0 0", RED_COLOR, True)

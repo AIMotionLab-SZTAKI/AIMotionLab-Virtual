@@ -2,7 +2,7 @@ import numpy as np
 import scipy as si
 import sympy as sp
 import control
-from classes.controller_base import ControllerBase
+from aiml_virtual.controller.controller_base import ControllerBase
 
 
 class LqrLoadControl(ControllerBase):

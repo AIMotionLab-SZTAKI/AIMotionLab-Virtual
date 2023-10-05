@@ -4,11 +4,6 @@ import numpy as np
 import matplotlib.pylab as plt
 import os
 
-from pyparsing import indentedBlock
-
-from classes.drone import BUMBLEBEE_PROP
-from classes.payload import Payload
-from util import mujoco_helper
 
 
 def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):

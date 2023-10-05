@@ -1,8 +1,6 @@
 import os
 import shutil
 import json
- 
-from classes.trajectory_base import TrajectoryBase
 
 from scipy import interpolate
 import numpy as np

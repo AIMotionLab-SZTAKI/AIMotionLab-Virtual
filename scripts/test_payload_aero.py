@@ -1,18 +1,16 @@
 import os
-import math
+from aiml_virtual.simulator import ActiveSimulator
+from aiml_virtual.xml_generator import xml_generator
+from aiml_virtual.object.drone import Drone, DRONE_TYPES
+from aiml_virtual.object.payload import Payload
+from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
+from aiml_virtual.controller import GeomControl
+from aiml_virtual.controller import LqrLoadControl
 import numpy as np
-#import matplotlib.pylab as plt
-from util import xml_generator
-from classes.active_simulation import ActiveSimulator
-#from classes.drone_classes.hooked_drone_trajectory import HookedDroneTrajectory
-from classes.drone_classes.drone_geom_control import GeomControl
-from classes.drone_classes.hooked_drone_lq_control import LqrLoadControl
-from classes.drone import DRONE_TYPES
-from classes.trajectory_base import DummyDroneTrajectory
-from random import seed, random
-from classes.airflow_sampler import AirflowSampler
-from classes.object_parser import parseMovingObjects
-from util.util import plot_payload_and_airflow_volume
+import matplotlib.pyplot as plt
+from aiml_virtual.airflow import AirflowSampler
+from aiml_virtual.object import parseMovingObjects
+from aiml_virtual.util import plot_payload_and_airflow_volume
 
 
 # Import libraries
@@ -22,7 +20,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 import numpy as np
 
 
-class DummyHoverTraj(DummyDroneTrajectory):
+class DummyHoverTraj(TrajectoryBase):
 
     def __init__(self, load_mass, target_pos):
         super().__init__()

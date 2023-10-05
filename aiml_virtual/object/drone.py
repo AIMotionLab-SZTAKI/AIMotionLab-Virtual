@@ -2,8 +2,8 @@ import math
 import mujoco
 import numpy as np
 from enum import Enum
-from classes.moving_object import MovingObject, MocapObject
-from util import mujoco_helper
+from aiml_virtual.object.moving_object import MovingObject, MocapObject
+from aiml_virtual.util import mujoco_helper
 from scipy.spatial.transform import Rotation
 
 class SPIN_DIR(Enum):

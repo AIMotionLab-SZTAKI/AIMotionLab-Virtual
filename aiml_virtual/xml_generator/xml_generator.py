@@ -1,11 +1,11 @@
 import xml.etree.ElementTree as ET
 
-import util.mujoco_helper as mh
+import aiml_virtual.util.mujoco_helper as mh
 import math
 
-from classes.payload import PAYLOAD_TYPES
-from classes.drone import DRONE_TYPES, BUMBLEBEE_PROP, CRAZYFLIE_PROP 
-from classes.car import F1T_PROP
+from aiml_virtual.object.payload import PAYLOAD_TYPES
+from aiml_virtual.object.drone import DRONE_TYPES, BUMBLEBEE_PROP, CRAZYFLIE_PROP 
+from aiml_virtual.object.car import F1T_PROP
 
 import os
 

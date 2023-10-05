@@ -5,8 +5,8 @@ import cvxopt as opt
 import os
 import pickle
 import sys
-from classes.trajectory_base import TrajectoryBase
-from classes.drone_classes.differential_flatness import compute_state_trajectory_from_splines
+from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
+from aiml_virtual.controller.differential_flatness import compute_state_trajectory_from_splines
 
 
 class HookedDroneTrajectory(TrajectoryBase):

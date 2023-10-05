@@ -1,5 +1,5 @@
-from classes.moving_object import MocapObject, MovingObject
-from util import mujoco_helper
+from aiml_virtual.object.moving_object import MocapObject, MovingObject
+from aiml_virtual.util import mujoco_helper
 from enum import Enum
 import numpy as np
 import math
@@ -73,7 +73,7 @@ class Payload(MovingObject):
             self.set_force_torque(force / 1.5, torque / 1.5)
     
     def add_airflow_sampler(self, airflow_sampler):
-        from classes.airflow_sampler import AirflowSampler
+        from aiml_virtual.airflow import AirflowSampler
         if isinstance(airflow_sampler, AirflowSampler):
             self._airflow_samplers += [airflow_sampler]
         else:

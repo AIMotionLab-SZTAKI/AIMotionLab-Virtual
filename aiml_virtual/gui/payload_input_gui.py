@@ -1,7 +1,7 @@
 from curses import window
 from enum import Enum
 import tkinter as tk
-from classes.payload import PAYLOAD_TYPES
+from aiml_virtual.object.payload import PAYLOAD_TYPES
 
 
 COLORS = {

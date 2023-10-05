@@ -4,9 +4,9 @@ from _thread import *
 import threading
 import time
 
-from classes.trajectory_base import TrajectoryBase
-from classes.moving_object import MovingObject
-from classes.skyc_traj_eval import get_traj_data, proc_json_trajectory, evaluate_trajectory
+from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
+from aiml_virtual.object.moving_object import MovingObject
+from aiml_virtual.trajectory.skyc_traj_eval import get_traj_data, proc_json_trajectory, evaluate_trajectory
 
 import os
 import numpy as np
@@ -24,9 +24,9 @@ class TestServer():
     def __init__(self) -> None:
 
         abs_path = os.path.dirname(os.path.abspath(__file__))
-        test_message0_address = os.path.join(abs_path, "..", "server_test_message00.txt")
+        test_message0_address = os.path.join(abs_path, "..", "..", "server_test_message00.txt")
         self.test_message0 = open(test_message0_address, 'r').read()
-        test_message1_address = os.path.join(abs_path, "..", "server_test_message01.txt")
+        test_message1_address = os.path.join(abs_path, "..", "..", "server_test_message01.txt")
         self.test_message1 = open(test_message1_address, 'r').read()
         self.host = ""
         self.port = 12345

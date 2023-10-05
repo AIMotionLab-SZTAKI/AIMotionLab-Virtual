@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
-from classes.controller_base import ControllerBase
+from aiml_virtual.controller.controller_base import ControllerBase
 
 
 class GeomControl(ControllerBase):

@@ -1,9 +1,9 @@
-from classes.remote_trajectory import RemoteDroneTrajectory
-from classes.active_simulation import ActiveSimulator
-from classes.object_parser import parseMovingObjects
-from util.xml_generator import SceneXmlGenerator
-from classes.drone import DRONE_TYPES
-from classes.drone_classes.drone_geom_control import GeomControl
+from aiml_virtual.trajectory import RemoteDroneTrajectory
+from aiml_virtual.simulator import ActiveSimulator
+from aiml_virtual.object import parseMovingObjects
+from aiml_virtual.xml_generator import SceneXmlGenerator
+from aiml_virtual.object.drone import DRONE_TYPES
+from aiml_virtual.controller import GeomControl
 
 import matplotlib.pyplot as plt
 

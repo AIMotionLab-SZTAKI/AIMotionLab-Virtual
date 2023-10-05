@@ -1,11 +1,10 @@
 from setuptools import setup
 from setuptools import find_packages
 
-setup(name='aimotionlabvirtual',
+setup(name='aiml_virtual',
       packages=find_packages(),
+      py_modules=["xml_generator"],
       version='1.0.0',
-      py_modules=['gui', 'util', 'classes'],
-      #py_modules=['gui', 'util', 'classes', '../crazyflie-mujoco/ctrl'],
       install_requires=[
         #'absl-py==1.2.0',
         #'cycler==0.11.0',

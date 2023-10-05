@@ -1,15 +1,15 @@
 import os
-from classes.active_simulation import ActiveSimulator
-from util import xml_generator
-from classes.drone_classes.hooked_drone_trajectory import HookedDroneTrajectory
-from classes.drone_classes.drone_geom_control import GeomControl
-from classes.drone_classes.hooked_drone_lq_control import LqrLoadControl
-from classes.drone import BUMBLEBEE_PROP, DRONE_TYPES
+from aiml_virtual.simulator import ActiveSimulator
+from aiml_virtual.xml_generator import SceneXmlGenerator
+from aiml_virtual.trajectory.hooked_drone_trajectory import HookedDroneTrajectory
+from aiml_virtual.controller.drone_geom_control import GeomControl
+from aiml_virtual.controller.hooked_drone_lq_control import LqrLoadControl
+from aiml_virtual.object.drone import BUMBLEBEE_PROP, DRONE_TYPES
 import numpy as np
 import matplotlib.pyplot as plt
-from classes.airflow_sampler import AirflowSampler
-from classes.object_parser import parseMovingObjects
-from util.util import plot_payload_and_airflow_volume
+from aiml_virtual.airflow.airflow_sampler import AirflowSampler
+from aiml_virtual.object import parseMovingObjects
+from aiml_virtual.util import plot_payload_and_airflow_volume
 
 
 def update_controller_type(state, setpoint, time, i):
@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
 
     # create xml with a drone and a car
-    scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
+    scene = SceneXmlGenerator(xmlBaseFileName)
     drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-2], "1 0 0 0", RED_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 1)
     payload0_name = scene.add_payload(np.array2string(load_init_pos)[1:-2], ".05 .05 .025", str(load_mass), "1 0 0 0", BLUE_COLOR)
 

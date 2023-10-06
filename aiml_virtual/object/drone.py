@@ -96,6 +96,8 @@ class Drone(MovingObject):
             "ang_acc" : self.sensor_ang_accelerometer
         }
         
+        self.ctrl_input = np.zeros(4)
+        
     
     def _create_input_matrix(self, Lx1, Lx2, Ly, motor_param):
 
@@ -108,6 +110,17 @@ class Drone(MovingObject):
     def get_state(self):
 
         return self.state
+    
+    def get_state_copy(self):
+        state = {
+            "pos" : self.sensor_posimeter.copy(),
+            "vel" : self.sensor_velocimeter.copy(),
+            "acc" : self.sensor_accelerometer.copy(),
+            "quat" : self.sensor_orimeter.copy(),
+            "ang_vel" : self.sensor_gyro.copy(),
+            "ang_acc" : self.sensor_ang_accelerometer.copy()
+        }
+        return state
 
     
     def update(self, i, control_step):
@@ -124,6 +137,7 @@ class Drone(MovingObject):
 
             if self.controller is not None:
                 ctrl = self.controller.compute_control(state, setpoint, self.data.time)
+                self.ctrl_input = ctrl
             
                 if ctrl is not None:
                     motor_thrusts = self.input_mtx @ ctrl
@@ -144,8 +158,12 @@ class Drone(MovingObject):
         """
         self.qpos[:7] = np.append(position, orientation)
     
-    def get_ctrl(self):
+    def get_motor_thrusts(self):
         return np.concatenate((self.ctrl0, self.ctrl1, self.ctrl2, self.ctrl3))
+    
+    def get_ctrl_input(self):
+        return self.ctrl_input
+
     
     def set_ctrl(self, ctrl):
         self.ctrl0[0] = ctrl[0]

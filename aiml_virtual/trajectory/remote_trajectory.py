@@ -6,7 +6,7 @@ import time
 
 from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
 from aiml_virtual.object.moving_object import MovingObject
-from aiml_virtual.trajectory.skyc_traj_eval import get_traj_data, proc_json_trajectory, evaluate_trajectory
+from aiml_virtual.trajectory.skyc_traj_eval import get_traj_data, get_traj_data_from_json, proc_json_trajectory, evaluate_trajectory
 
 import os
 import numpy as np
@@ -89,8 +89,6 @@ class TestServer():
         self.s.close()
     
 
-
-
 class TrajectoryDistributor():
 
     def __init__(self, list_of_vehicles) -> None:
@@ -101,6 +99,8 @@ class TrajectoryDistributor():
         #self.port = 7002
         self.host = ""
         self.port = 0
+
+        self.vehicles_waiting_for_start = []
     
 
     def connect(self, host, port):
@@ -134,55 +134,84 @@ class TrajectoryDistributor():
     
             else:
                 
-                first_uscore = data.find('_')
+                #first_uscore = data.find('_')
 
-                if data[first_uscore + 1:].startswith("CMDSTART"):
-                    while not data.endswith("EOF"):
-                        data += s.recv(1024).decode('utf-8').strip()
+                #if data[first_uscore + 1:].startswith("CMDSTART"):
+                while not data.endswith("EOF") and not data.endswith("SKYC"):
+                    data += s.recv(1024).decode('utf-8').strip()
                         
                     #print(data)
 
+                #else:
+                #    print("[TrajectoryDistributor] Unknown message Header")
+                if data.endswith("SKYC"):
+                    data = data[:-4]
+
+                    skyc_filename = os.path.join("..", "..", "skyc" + str(time.time()) + ".skyc")
+
+                    with open(skyc_filename, 'w') as writer:
+                        writer.write(data)
+                        
+                    trajectories = get_traj_data(skyc_filename)
+                    
+                    i = 0
+                    for t in trajectories:
+
+                        cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, "Crazyflie_" + str(i))
+                        if cf is not None:
+                            cf.trajectory.update_trajectory_data(t)
+                            self.vehicles_waiting_for_start += [cf]
+                        
+                        i += 1
+                    
+
                 else:
-                    print("[TrajectoryDistributor] Unknown message Header")
                     
-                split_data = data.split('_')
+                    split_data = data.split('_')
 
-                if split_data[2] == "upload":
-                    print(split_data[0] + " upload")
-                    cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[split_data[0]])
+                    id = split_data[0]
+                    cmd = split_data[2]
 
-                    if cf is not None:
-                        trajectory_data = json.loads(split_data[3])
-                        cf.trajectory.update_trajectory_data(trajectory_data)
+                    if cmd == "upload":
+                        print(id + " upload")
+                        cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[id])
 
-                elif split_data[2] == "takeoff":
-                    print(split_data[0] + " takeoff")
-                    cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[split_data[0]])
+                        if cf is not None:
+                            trajectory_data = json.loads(split_data[3])
+                            cf.trajectory.update_trajectory_data(trajectory_data)
 
-                    cf.trajectory.set_target_z(float(split_data[3]))
+                    elif cmd == "takeoff":
+                        print(id + " takeoff")
+                        cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[id])
+
+                        cf.trajectory.set_target_z(float(split_data[3]))
 
 
-                elif split_data[2] == "land":
-                    print(split_data[0] + " land")
-                    cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[split_data[0]])
+                    elif cmd == "land":
+                        print(id + " land")
+                        cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[id])
 
-                    cf.trajectory.clear_trajectory_data()
-                    cf.trajectory.set_target_z(0.0)
+                        cf.trajectory.clear_trajectory_data()
+                        cf.trajectory.set_target_z(0.0)
+                        
                     
-                
-                elif split_data[2] == "start":
+                    elif cmd == "start":
 
-                    if split_data[3] == "absolute":
-                        cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[split_data[0]])
-                        cf.trajectory.start()
-                        print(split_data[0] + " start absolute")
+                        if split_data[3] == "absolute":
+                            cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[id])
+                            cf.trajectory.start()
+                            print(id + " start absolute")
 
-                    elif split_data[3] == "relative":
-                        print(split_data[0] + " start relative")
-                        print("[TrajectoryDistributor] Relative trajectory not yet implemented.")
+                        elif split_data[3] == "relative":
+                            print(id + " start relative")
+                            print("[TrajectoryDistributor] Relative trajectory not yet implemented.")
+                    
+                    elif cmd == "show":
+
+                        for v in self.vehicles_waiting_for_start:
+                            v.trajectory.start()
                 
         s.close()
-
 
 class RemoteDroneTrajectory(TrajectoryBase):
 
@@ -195,7 +224,7 @@ class RemoteDroneTrajectory(TrajectoryBase):
         self.trajectory_data = None
 
         if directory is not None:
-            self.trajectory_data = get_traj_data(directory)
+            self.trajectory_data = get_traj_data_from_json(directory)
 
         self.output = {
             "load_mass" : 0.0,

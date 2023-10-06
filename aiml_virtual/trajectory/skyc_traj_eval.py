@@ -6,6 +6,52 @@ from scipy import interpolate
 import numpy as np
 import bisect
 
+
+import shutil
+import zipfile
+
+def unpack_skyc_file(skyc_filename: str) -> str:
+    '''Function that takes a skyc file and extracts its contents neatly into a folder, as if we used winrar. Returns
+    the name of this folder.'''
+    folder_name = os.path.splitext(skyc_filename)[0]  # first element of the list is the file name, second is ".skyc"
+    if os.path.exists(folder_name):  # if there is a leftover folder from a previous run, delete it!
+        shutil.rmtree(folder_name)
+    os.makedirs(folder_name)  # make a new folder, named after the skyc file
+    with zipfile.ZipFile(skyc_filename, 'r') as zip_ref:  # then extract everything into it
+        zip_ref.extractall(folder_name)
+    return folder_name
+
+def cleanup(skyc_filename: str) -> None:
+    '''Function that deletes the folder from which we extracted the data.'''
+    folder_name = os.path.splitext(skyc_filename)[0]  # first element of the list is the file name, second is ".skyc"
+    if os.path.exists(folder_name):
+        shutil.rmtree(folder_name)
+
+def get_traj_data(skyc_file: str):
+    '''Function that extracts the contents of the trajectory.json files in the provided skyc file. Returns the
+    dictionary containing this data.'''
+    folder_name = unpack_skyc_file(skyc_file)  # unpack the skyc file (it's like a zip)
+    drones_folder = os.path.join(folder_name, "drones")  # within it, there should be a 'drones' folder for trajectories
+    traj_data = []
+    for root, dirs, files in os.walk(drones_folder):
+        # iterating over the files and folders in the drones folder, we are looking for trajectory files
+        if 'trajectory.json' in files:
+            with open(os.path.join(root, 'trajectory.json'), 'r') as json_file:
+                data = json.load(json_file)
+                points = data.get("points")
+                assert points is not None
+                data["has_yaw"] = True if len(points[0][1]) == 4 else False  # determine if there is a yaw trajectory
+                traj_data.append(data)
+                traj_type = data.get("type", "COMPRESSED").upper()
+                # compressed trajectories can only be of degree 1, 3 and 7 as per the bitcraze documentation
+                # if a trajectory is not compressed, it is poly4d, which (for now) can only have degrees up to 5
+                ctrl_point_num = [0, 2, 6] if traj_type == "COMPRESSED" else [0, 1, 2, 3, 4]
+                for point in points:
+                    assert len(point[2]) in ctrl_point_num  # throw an error if the degree is not matching the type!
+    cleanup(skyc_file)
+    return traj_data
+
+
 def proc_json_trajectory(data: dict) -> dict:
     points = data.get("points")
     assert points is not None
@@ -20,7 +66,7 @@ def proc_json_trajectory(data: dict) -> dict:
     return data
 
 
-def get_traj_data(directory: str):
+def get_traj_data_from_json(directory: str):
     
     with open(os.path.join(directory, 'trajectory.json'), 'r') as json_file:
         data = json.load(json_file)

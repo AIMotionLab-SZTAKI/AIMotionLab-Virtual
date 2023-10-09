@@ -61,7 +61,7 @@ class Display:
         self.is_recording = False
         self.image_list = []
         self.abs_path = os.path.dirname(os.path.abspath(__file__))
-        self.video_save_folder = os.path.join(self.abs_path, "..", "video_capture")
+        self.video_save_folder = os.path.join(self.abs_path, "..", "..", "video_capture")
         self.video_file_name_base = "output"
 
         self.graphics_step = graphics_step
@@ -544,8 +544,7 @@ class Display:
             os.mkdir(self.video_save_folder)
 
 
-        time_stamp = time.time()
-        filename = os.path.join(self.video_save_folder, self.video_file_name_base + '_' + str(time_stamp) + '.mp4')
+        filename = os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time.strftime("%Y%m%d-%H%M%S") + '.mp4')
 
         fps = 1.0 / self.graphics_step
         video_process = (
@@ -576,7 +575,7 @@ class Display:
         video_process.stdin.close()
         # Wait for sub-process to finish
         video_process.wait()
-        print("[Display] Saved video in " + os.path.normpath(self.video_save_folder))
+        print("[Display] Saved video at " + os.path.normpath(filename))
         self.reset_title()
 
     def save_video_background(self):

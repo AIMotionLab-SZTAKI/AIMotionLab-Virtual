@@ -15,7 +15,10 @@ import json
 DRONE_IDS = {
     "02": "Bumblebee_0",
     "04": "Crazyflie_0",
-    "07": "Crazyflie_1"
+    "06": "Crazyflie_1",
+    "07": "Crazyflie_2",
+    "08": "Crazyflie_3",
+    "09": "Crazyflie_4",
 }
 
 
@@ -101,15 +104,22 @@ class TrajectoryDistributor():
         self.port = 0
 
         self.vehicles_waiting_for_start = []
+
+        self.skyc_save_directory = ""
     
 
     def connect(self, host, port):
         self.host = host
         self.port = port
 
-        self.s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    
-        self.s.connect((self.host, self.port))
+        try:
+            self.s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        
+            self.s.connect((self.host, self.port))
+            return True
+        except Exception as e:
+            print(e)
+            return False
     
     def start_background_thread(self):
         start_new_thread(self.receiver, (self.s,))
@@ -126,9 +136,10 @@ class TrajectoryDistributor():
         while True:
     
             # data received from client
-            data = s.recv(1024).decode('utf-8').strip()
+            data = s.recv(1024)
+            
             if not data:
-                print('Bye')
+                print("[TrajectoryDistributor] Good bye.")
                 
                 break
     
@@ -137,23 +148,30 @@ class TrajectoryDistributor():
                 #first_uscore = data.find('_')
 
                 #if data[first_uscore + 1:].startswith("CMDSTART"):
-                while not data.endswith("EOF") and not data.endswith("SKYC"):
-                    data += s.recv(1024).decode('utf-8').strip()
+                while not data.endswith(b"EOF") and not data.endswith(b"SKYC"):
+                    data += s.recv(1024)
                         
                     #print(data)
 
                 #else:
                 #    print("[TrajectoryDistributor] Unknown message Header")
-                if data.endswith("SKYC"):
+                if data.endswith(b"SKYC"):
+                    print()
+                    print("[TrajectoryDistributor] SKYC file received.")
                     data = data[:-4]
 
-                    skyc_filename = os.path.join("..", "..", "skyc" + str(time.time()) + ".skyc")
+                    skyc_filename = os.path.join(self.skyc_save_directory, "skyc_file_" + time.strftime("%Y%m%d-%H%M%S") + ".skyc")
 
-                    with open(skyc_filename, 'w') as writer:
+                    with open(skyc_filename, 'wb') as writer:
                         writer.write(data)
+
+                    print()
+                    print("[TrajectoryDistributor] SKYC file saved at:\n" + os.path.abspath(skyc_filename))
                         
                     trajectories = get_traj_data(skyc_filename)
                     
+                    print()
+                    print("[TrajectoryDistributor] Vehicles waiting for start:")
                     i = 0
                     for t in trajectories:
 
@@ -161,11 +179,13 @@ class TrajectoryDistributor():
                         if cf is not None:
                             cf.trajectory.update_trajectory_data(t)
                             self.vehicles_waiting_for_start += [cf]
+                            print(cf.name_in_xml)
                         
                         i += 1
                     
 
                 else:
+                    data = data.decode("utf-8").strip()
                     
                     split_data = data.split('_')
 

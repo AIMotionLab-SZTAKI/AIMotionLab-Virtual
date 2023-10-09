@@ -21,9 +21,15 @@ scene = SceneXmlGenerator(xmlBaseFileName)
 
 drone0_initpos = np.array((1.25, 0.0, 0.0))
 drone1_initpos = np.array((1.25, -0.5, 0.0))
+drone2_initpos = np.array((0.0, 1.0, 0.0))
+drone3_initpos = np.array((1.0, 0.0, 0.0))
+drone4_initpos = np.array((1.0, 1.0, 0.0))
 
 drone0_name = scene.add_drone(np.array2string(drone0_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
 drone1_name = scene.add_drone(np.array2string(drone1_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
+drone2_name = scene.add_drone(np.array2string(drone2_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
+drone3_name = scene.add_drone(np.array2string(drone3_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
+drone4_name = scene.add_drone(np.array2string(drone4_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
 #drone2_name = scene.add_drone("1 0 1", "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
 
 scene.save_xml(os.path.join(xml_path, save_filename))
@@ -38,31 +44,47 @@ xml_filename = os.path.join(xml_path, save_filename)
 simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers,
                             connect_to_optitrack=False)
 
+simulator.video_save_folder = os.path.join(abs_path, "..")
+
 simulator.cam.distance = 3.5
 simulator.cam.azimuth = 0
 
 drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
 drone1 = simulator.get_MovingObject_by_name_in_xml(drone1_name)
+drone2 = simulator.get_MovingObject_by_name_in_xml(drone2_name)
+drone3 = simulator.get_MovingObject_by_name_in_xml(drone3_name)
+drone4 = simulator.get_MovingObject_by_name_in_xml(drone4_name)
 #drone2 = simulator.get_MovingObject_by_name_in_xml(drone2_name)
 
 trajectory0 = RemoteDroneTrajectory(can_execute=False, init_pos=drone0_initpos)
 trajectory1 = RemoteDroneTrajectory(can_execute=False, init_pos=drone1_initpos)
+trajectory2 = RemoteDroneTrajectory(can_execute=False, init_pos=drone2_initpos)
+trajectory3 = RemoteDroneTrajectory(can_execute=False, init_pos=drone3_initpos)
+trajectory4 = RemoteDroneTrajectory(can_execute=False, init_pos=drone4_initpos)
 #trajectory2 = RemoteDroneTrajectory(can_execute=False)
 
 drone0.set_trajectory(trajectory0)
 drone1.set_trajectory(trajectory1)
-#drone2.set_trajectory(trajectory2)
+drone2.set_trajectory(trajectory2)
+drone3.set_trajectory(trajectory3)
+drone4.set_trajectory(trajectory4)
 
 controller0 = GeomControl(drone0.mass, drone0.inertia, simulator.gravity)
 controller1 = GeomControl(drone1.mass, drone1.inertia, simulator.gravity)
+controller2 = GeomControl(drone2.mass, drone2.inertia, simulator.gravity)
+controller3 = GeomControl(drone3.mass, drone3.inertia, simulator.gravity)
+controller4 = GeomControl(drone4.mass, drone4.inertia, simulator.gravity)
 
 drone0.set_controllers([controller0])
 drone1.set_controllers([controller1])
+drone2.set_controllers([controller2])
+drone3.set_controllers([controller3])
+drone4.set_controllers([controller4])
 
 td = TrajectoryDistributor(simulator.get_all_MovingObjects())
-#td.connect("127.0.0.1", 12345)
-td.connect("127.0.0.1", 7002)
-td.start_background_thread()
+td.skyc_save_directory = os.path.join(abs_path, "..")
+if td.connect("127.0.0.1", 7002):
+    td.start_background_thread()
 
 while not simulator.glfw_window_should_close():
 

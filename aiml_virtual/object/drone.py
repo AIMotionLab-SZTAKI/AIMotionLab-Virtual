@@ -244,11 +244,13 @@ class Crazyflie(Drone):
             
     def spin_propellers(self):
         #print("angle step: " + str(angle_step))
-                
-        self.prop1_angle += self.ctrl0[0] * 100
-        self.prop2_angle -= self.ctrl1[0] * 100
-        self.prop3_angle += self.ctrl2[0] * 100
-        self.prop4_angle -= self.ctrl3[0] * 100
+
+        if self.sensor_posimeter[2] > 0.015:
+            
+            self.prop1_angle += self.ctrl0[0] * 100
+            self.prop2_angle -= self.ctrl1[0] * 100
+            self.prop3_angle += self.ctrl2[0] * 100
+            self.prop4_angle -= self.ctrl3[0] * 100
 
         self.prop1_qpos[0] = self.prop1_angle
         self.prop2_qpos[0] = self.prop2_angle
@@ -424,7 +426,7 @@ class DroneMocap(MocapObject):
         if "bumblebee" in name_in_xml:
             self.propeller_spin_threshold = 0.15
         elif "crazyflie" in name_in_xml:
-            self.propeller_spin_threshold = 0.06
+            self.propeller_spin_threshold = 0.03
         else:
             self.propeller_spin_threshold = 0.1
 

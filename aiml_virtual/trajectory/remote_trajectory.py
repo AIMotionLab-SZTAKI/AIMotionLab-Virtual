@@ -94,9 +94,11 @@ class TestServer():
 
 class TrajectoryDistributor():
 
-    def __init__(self, list_of_vehicles) -> None:
+    def __init__(self, list_of_vehicles, skyc_save_directory:str, skyc_play_mode=False) -> None:
 
         self.list_of_vehicles = list_of_vehicles
+
+        self.latest_skyc_filename_filename = "latest_skyc_filename.txt"
         
         #self.host = "192.168.2.77"
         #self.port = 7002
@@ -105,7 +107,28 @@ class TrajectoryDistributor():
 
         self.vehicles_waiting_for_start = []
 
-        self.skyc_save_directory = ""
+        self.skyc_save_directory = skyc_save_directory
+
+        if skyc_play_mode:
+            skyc_filename_filename = os.path.join(self.skyc_save_directory, self.latest_skyc_filename_filename)
+            with open(skyc_filename_filename, 'r') as f:
+                skyc_filename = f.read()
+            trajectories = get_traj_data(skyc_filename)
+            
+            print()
+            print("[TrajectoryDistributor] Vehicles waiting for start:")
+            i = 0
+            for t in trajectories:
+
+                cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, "Crazyflie_" + str(i))
+                if cf is not None:
+                    cf.trajectory.update_trajectory_data(t)
+                    self.vehicles_waiting_for_start += [cf]
+                    print(cf.name_in_xml)
+                
+                i += 1
+
+
     
 
     def connect(self, host, port):
@@ -139,25 +162,16 @@ class TrajectoryDistributor():
             data = s.recv(1024)
             
             if not data:
-                print("[TrajectoryDistributor] Good bye.")
+                print("[TrajectoryDistributor] Good bye!")
                 
                 break
     
             else:
                 
-                #first_uscore = data.find('_')
-
-                #if data[first_uscore + 1:].startswith("CMDSTART"):
                 while not data.endswith(b"EOF") and not data.endswith(b"SKYC"):
                     data += s.recv(1024)
-                        
-                    #print(data)
-
-                #else:
-                #    print("[TrajectoryDistributor] Unknown message Header")
+                
                 if data.endswith(b"SKYC"):
-                    print()
-                    print("[TrajectoryDistributor] SKYC file received.")
                     data = data[:-4]
 
                     skyc_filename = os.path.join(self.skyc_save_directory, "skyc_file_" + time.strftime("%Y%m%d-%H%M%S") + ".skyc")
@@ -166,25 +180,17 @@ class TrajectoryDistributor():
                         writer.write(data)
 
                     print()
-                    print("[TrajectoryDistributor] SKYC file saved at:\n" + os.path.abspath(skyc_filename))
-                        
-                    trajectories = get_traj_data(skyc_filename)
-                    
+                    print("[TrajectoryDistributor] SKYC file received, saved at:\n" + os.path.abspath(skyc_filename))
                     print()
-                    print("[TrajectoryDistributor] Vehicles waiting for start:")
-                    i = 0
-                    for t in trajectories:
 
-                        cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, "Crazyflie_" + str(i))
-                        if cf is not None:
-                            cf.trajectory.update_trajectory_data(t)
-                            self.vehicles_waiting_for_start += [cf]
-                            print(cf.name_in_xml)
-                        
-                        i += 1
+                    latest_filename_filename = os.path.join(self.skyc_save_directory, self.latest_skyc_filename_filename)
+
+                    with open(latest_filename_filename, 'w') as f:
+                        f.write(os.path.abspath(skyc_filename))
                     
 
                 else:
+                    
                     data = data.decode("utf-8").strip()
                     
                     split_data = data.split('_')
@@ -227,7 +233,8 @@ class TrajectoryDistributor():
                             print("[TrajectoryDistributor] Relative trajectory not yet implemented.")
                     
                     elif cmd == "show":
-
+                        print("cmd: show")
+                        
                         for v in self.vehicles_waiting_for_start:
                             v.trajectory.start()
                 
@@ -317,4 +324,4 @@ class RemoteDroneTrajectory(TrajectoryBase):
     
 
     def print_data(self):
-        print(self._data)
+        print(self.trajectory_data)

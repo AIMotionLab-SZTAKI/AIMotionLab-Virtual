@@ -6,6 +6,7 @@ from aiml_virtual.object.drone import DRONE_TYPES
 from aiml_virtual.object import parseMovingObjects
 import os
 import numpy as np
+import time
 
 RED = "0.85 0.2 0.2 1.0"
 BLUE = "0.2 0.2 0.85 1.0"
@@ -81,13 +82,20 @@ drone2.set_controllers([controller2])
 drone3.set_controllers([controller3])
 drone4.set_controllers([controller4])
 
-td = TrajectoryDistributor(simulator.get_all_MovingObjects())
-td.skyc_save_directory = os.path.join(abs_path, "..")
+td = TrajectoryDistributor(simulator.get_all_MovingObjects(), os.path.join(abs_path, ".."), False)
 if td.connect("127.0.0.1", 7002):
+#if td.connect("192.168.2.77", 7002):
     td.start_background_thread()
 
+time0 = time.time()
 while not simulator.glfw_window_should_close():
 
     simulator.update()
+
+time_past = time.time() - time0
+
+print("wall time: " + str(time_past))
+print("simulator time: " + str(simulator.data.time))
+print("i * control_step: " + str(simulator.i * simulator.control_step))
     
 simulator.close()

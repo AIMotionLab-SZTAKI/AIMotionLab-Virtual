@@ -525,7 +525,7 @@ class Display:
         depth = np.zeros(self.viewport.height * self.viewport.width)
 
         # draw a time stamp on the rendered image
-        stamp = str(time.time())
+        stamp = time.strftime("%Y. %m. %d. %H:%M:%S")
         mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
         
         mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)

@@ -5,7 +5,6 @@ from aiml_virtual.gui import BuildingInputGui
 from aiml_virtual.gui import VehicleInputGui
 from aiml_virtual.gui import PayloadInputGui
 from aiml_virtual.object.payload import PAYLOAD_TYPES
-from aiml_virtual.object import parseMovingObjects, parseMocapObjects
 from aiml_virtual.object.drone import DRONE_TYPES
 
 
@@ -19,10 +18,7 @@ build_based_on_optitrack = False
 is_scene_cleared = True
 
 scene = SceneXmlGenerator(xmlBaseFileName)
-
-virt_parsers = [parseMovingObjects]
-mocap_parsers = [parseMocapObjects]
-simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
+simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02)
 
 simulator.cam.azimuth = 0
 simulator.onBoard_elev_offset = 20

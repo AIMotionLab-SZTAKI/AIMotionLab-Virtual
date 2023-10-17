@@ -1,4 +1,5 @@
 video_capture
+xml_models/built_scene.xml
 
 __pycache__/
 *.py[cod]

@@ -152,7 +152,7 @@ class Drone(MovingObject):
     def get_qpos(self):
         return self.qpos
     
-    def set_qpos(self, position, orientation):
+    def set_qpos(self, position, orientation=np.array((1.0, 0.0, 0.0, 0.0))):
         """
         orientation should be quaternion
         """

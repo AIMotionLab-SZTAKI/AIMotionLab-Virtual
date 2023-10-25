@@ -10,6 +10,7 @@ import time
 
 RED = "0.85 0.2 0.2 1.0"
 BLUE = "0.2 0.2 0.85 1.0"
+GREEN = "0.2 0.85 0.2 1.0"
 
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -27,8 +28,8 @@ drone3_initpos = np.array((1.0, 0.0, 0.0))
 drone4_initpos = np.array((1.0, 1.0, 0.0))
 
 drone0_name = scene.add_drone(np.array2string(drone0_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
-drone1_name = scene.add_drone(np.array2string(drone1_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
-drone2_name = scene.add_drone(np.array2string(drone2_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
+drone1_name = scene.add_drone(np.array2string(drone1_initpos)[1:-1], "1 0 0 0", GREEN, DRONE_TYPES.CRAZYFLIE)
+drone2_name = scene.add_drone(np.array2string(drone2_initpos)[1:-1], "1 0 0 0", RED, DRONE_TYPES.CRAZYFLIE)
 drone3_name = scene.add_drone(np.array2string(drone3_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
 drone4_name = scene.add_drone(np.array2string(drone4_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
 #drone2_name = scene.add_drone("1 0 1", "1 0 0 0", BLUE, DRONE_TYPES.CRAZYFLIE)
@@ -82,7 +83,7 @@ drone2.set_controllers([controller2])
 drone3.set_controllers([controller3])
 drone4.set_controllers([controller4])
 
-td = TrajectoryDistributor(simulator.get_all_MovingObjects(), os.path.join(abs_path, ".."), False)
+td = TrajectoryDistributor(simulator.get_all_MovingObjects(), os.path.join(abs_path, "..", "SKYC_files"), False)
 if td.connect("127.0.0.1", 7002):
 #if td.connect("192.168.2.77", 7002):
     td.start_background_thread()

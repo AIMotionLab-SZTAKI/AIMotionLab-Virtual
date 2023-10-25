@@ -7,6 +7,8 @@ import time
 from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
 from aiml_virtual.object.moving_object import MovingObject
 from aiml_virtual.trajectory.skyc_traj_eval import get_traj_data, get_traj_data_from_json, proc_json_trajectory, evaluate_trajectory
+from aiml_virtual.object.drone import Crazyflie, Bumblebee, BumblebeeHooked
+from aiml_virtual.object.car import Fleet1Tenth
 
 import os
 import numpy as np
@@ -20,6 +22,39 @@ DRONE_IDS = {
     "08": "Crazyflie_3",
     "09": "Crazyflie_4",
 }
+
+
+def get_crazyflies(list_of_vehicles):
+    cfs = []
+    for v in list_of_vehicles:
+        if isinstance(v, Crazyflie):
+            cfs += [v]
+
+    return cfs
+
+def get_bumblebees(list_of_vehicles):
+    bbs = []
+    for v in list_of_vehicles:
+        if isinstance(v, Bumblebee):
+            bbs += [v]
+
+    return bbs
+
+def get_bumblebeehookeds(list_of_vehicles):
+    bbhs = []
+    for v in list_of_vehicles:
+        if isinstance(v, BumblebeeHooked):
+            bbhs += [v]
+
+    return bbhs
+
+def get_f1tenths(list_of_vehicles):
+    f1ts = []
+    for v in list_of_vehicles:
+        if isinstance(v, Fleet1Tenth):
+            f1ts += [v]
+
+    return f1ts
 
 
 class TestServer():
@@ -90,13 +125,21 @@ class TestServer():
             i += 1
 
         self.s.close()
-    
+
+
+
 
 class TrajectoryDistributor():
 
     def __init__(self, list_of_vehicles, skyc_save_directory:str, skyc_play_mode=False) -> None:
 
+        if not os.path.exists(skyc_save_directory):
+            os.mkdir(skyc_save_directory)
+
         self.list_of_vehicles = list_of_vehicles
+
+        self._list_of_crazyflies = get_crazyflies(list_of_vehicles)
+        self._current_cf_idx = 0
 
         self.latest_skyc_filename_filename = "latest_skyc_filename.txt"
         
@@ -106,6 +149,9 @@ class TrajectoryDistributor():
         self.port = 0
 
         self.vehicles_waiting_for_start = []
+
+        self.id_to_vehicle = {}
+        self._vehicle_has_teleported = {}
 
         self.skyc_save_directory = skyc_save_directory
 
@@ -120,13 +166,16 @@ class TrajectoryDistributor():
             i = 0
             for t in trajectories:
 
-                cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, "Crazyflie_" + str(i))
-                if cf is not None:
-                    cf.trajectory.update_trajectory_data(t)
-                    self.vehicles_waiting_for_start += [cf]
-                    print(cf.name_in_xml)
-                
-                i += 1
+                if i < len(self._list_of_crazyflies):
+                    cf = self._list_of_crazyflies[i]
+                    if cf is not None:
+                        cf.trajectory.update_trajectory_data(t)
+                        self.vehicles_waiting_for_start += [cf]
+                        print(cf.name_in_xml)
+                    
+                    i += 1
+                else:
+                    print("[TrajectoryDistributor] Not enough crazyflies for SKYC file.")
 
 
     
@@ -146,20 +195,16 @@ class TrajectoryDistributor():
     
     def start_background_thread(self):
         start_new_thread(self.receiver, (self.s,))
-
-
-
-    def print_current_trajectories(self):
-        if self.data is not None:
-            print(self.data)
     
     
     def receiver(self, s):
+
+        BUFF_SIZE = 65536
         
         while True:
     
             # data received from client
-            data = s.recv(1024)
+            data = s.recv(BUFF_SIZE)
             
             if not data:
                 print("[TrajectoryDistributor] Good bye!")
@@ -169,7 +214,9 @@ class TrajectoryDistributor():
             else:
                 
                 while not data.endswith(b"EOF") and not data.endswith(b"SKYC"):
-                    data += s.recv(1024)
+                    data += s.recv(BUFF_SIZE)
+                
+                s.sendall(b"ACK")
                 
                 if data.endswith(b"SKYC"):
                     data = data[:-4]
@@ -198,34 +245,59 @@ class TrajectoryDistributor():
                     id = split_data[0]
                     cmd = split_data[2]
 
+                    if id not in self.id_to_vehicle:
+
+                        if id == "02" or id == "03":
+                            # this is a bumblebee
+                            pass
+                        else:
+                            if self._current_cf_idx < len(self._list_of_crazyflies):
+                                self.id_to_vehicle[id] = self._list_of_crazyflies[self._current_cf_idx]
+                                self._vehicle_has_teleported[id] = False
+                                #print("added ", id, " : ", self._list_of_crazyflies[self._current_cf_idx].name_in_xml)
+                                self._current_cf_idx += 1
+
+                            else:
+                                print("[TrajectoryDistributor] No more crazyflies in simulation.")
+                    
+                
+
                     if cmd == "upload":
                         print(id + " upload")
-                        cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[id])
+                        cf = self.id_to_vehicle.get(id)
 
                         if cf is not None:
                             trajectory_data = json.loads(split_data[3])
                             cf.trajectory.update_trajectory_data(trajectory_data)
 
+                            if not self._vehicle_has_teleported[id]:
+                                p, v = evaluate_trajectory(trajectory_data, 0.0)
+                                cf.set_qpos(p)
+                                self._vehicle_has_teleported[id] = True
+
                     elif cmd == "takeoff":
                         print(id + " takeoff")
-                        cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[id])
+                        cf = self.id_to_vehicle.get(id)
 
-                        cf.trajectory.set_target_z(float(split_data[3]))
+                        if cf is not None:
+                            cf.trajectory.set_target_z(float(split_data[3]))
 
 
                     elif cmd == "land":
                         print(id + " land")
-                        cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[id])
+                        cf = self.id_to_vehicle.get(id)
 
-                        cf.trajectory.clear_trajectory_data()
-                        cf.trajectory.set_target_z(0.0)
+                        if cf is not None:
+                            cf.trajectory.clear_trajectory_data()
+                            cf.trajectory.set_target_z(0.0)
                         
                     
                     elif cmd == "start":
 
                         if split_data[3] == "absolute":
-                            cf = MovingObject.get_object_by_name_in_xml(self.list_of_vehicles, DRONE_IDS[id])
-                            cf.trajectory.start()
+                            cf = self.id_to_vehicle.get(id)
+                            if cf is not None:
+                                cf.trajectory.start()
                             print(id + " start absolute")
 
                         elif split_data[3] == "relative":
@@ -244,7 +316,6 @@ class RemoteDroneTrajectory(TrajectoryBase):
 
     def __init__(self, can_execute: bool = True, directory: str = None, init_pos=np.zeros(3)):
         super().__init__()
-
         
         self.data_lock = threading.Lock()
 
@@ -293,20 +364,18 @@ class RemoteDroneTrajectory(TrajectoryBase):
         self.output["target_pos"][2] = target_z
 
     def evaluate(self, state, i, time, control_step) -> dict:
-
-        self.current_time = i * control_step
         
+        self.current_time = time
         self.data_lock.acquire()
-        if (self.trajectory_data is not None):
-            if self._can_execute:
-                time = self.current_time - self.start_time
-                target_pos, target_vel = self.evaluate_trajectory(time)
-                self.output["target_pos"] = target_pos
-                self.output["target_vel"] = target_vel
-            else:
-                target_pos, target_vel = self.evaluate_trajectory(0.0)
-                self.output["target_pos"] = target_pos
-                self.output["target_vel"] = target_vel
+        if self._can_execute:
+            time = self.current_time - self.start_time
+            target_pos, target_vel = self.evaluate_trajectory(time)
+            self.output["target_pos"] = target_pos
+            self.output["target_vel"] = target_vel
+        else:
+            target_pos, target_vel = self.evaluate_trajectory(0.0)
+            self.output["target_pos"] = target_pos
+            self.output["target_vel"] = target_vel
 
         self.data_lock.release()
 
@@ -321,6 +390,8 @@ class RemoteDroneTrajectory(TrajectoryBase):
         """
         if self.trajectory_data is not None:
             return evaluate_trajectory(self.trajectory_data, time)
+        else:
+            return (self.output["target_pos"], self.output["target_vel"])
     
 
     def print_data(self):

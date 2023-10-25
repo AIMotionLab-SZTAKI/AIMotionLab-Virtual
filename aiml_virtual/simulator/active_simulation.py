@@ -4,7 +4,7 @@ import glfw
 import time
 from aiml_virtual.util import mujoco_helper
 from aiml_virtual.util.util import sync
-from aiml_virtual.simulator.mujoco_display import Display
+from aiml_virtual.simulator.mujoco_display import Display, INIT_WWIDTH, INIT_WHEIGHT
 from aiml_virtual.object.moving_object import MocapObject
 from aiml_virtual.object.object_parser import parseMovingObjects, parseMocapObjects
 
@@ -12,9 +12,9 @@ from aiml_virtual.object.object_parser import parseMovingObjects, parseMocapObje
 class ActiveSimulator(Display):
 
     def __init__(self, xml_file_name, video_intervals, control_step, graphics_step,
-                 virt_parsers: list = [parseMovingObjects], mocap_parsers: list = [parseMocapObjects], connect_to_optitrack=False):
+                 virt_parsers: list = [parseMovingObjects], mocap_parsers: list = [parseMocapObjects], connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT]):
 
-        super().__init__(xml_file_name, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack)
+        super().__init__(xml_file_name, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack, window_size)
         self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)
 
         #self.sim_step = sim_step

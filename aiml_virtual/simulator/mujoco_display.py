@@ -17,7 +17,7 @@ from aiml_virtual.object.moving_object import MocapObject, MovingObject
 import ffmpeg
 import motioncapture
 
-MAX_GEOM = 200
+MAX_GEOM = 1000
 INIT_WWIDTH = 1536
 INIT_WHEIGHT = 864
 
@@ -27,7 +27,7 @@ class Display:
     """ Base class for passive and active simulation
     """
 
-    def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=False):
+    def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT]):
         #print(f'Working directory:  {os.getcwd()}\n')
         
         self.is_paused = False
@@ -68,7 +68,7 @@ class Display:
 
         fps = 1.0 / self.graphics_step
 
-        self.init_glfw()
+        self.init_glfw(window_size)
         self.init_cams()
         self.load_model(xml_file_name)
 
@@ -93,14 +93,14 @@ class Display:
 
         #print(self.data.qpos.size)
         
-    def init_glfw(self):
+    def init_glfw(self, window_size):
         # Initialize the library
         if not glfw.init():
             print("Could not initialize glfw...")
             return
 
         # Create a windowed mode window and its OpenGL context
-        self.window = glfw.create_window(INIT_WWIDTH, INIT_WHEIGHT, self.title0, None, None)
+        self.window = glfw.create_window(window_size[0], window_size[1], self.title0, None, None)
         if not self.window:
             print("Could not create glfw window...")
             glfw.terminate()

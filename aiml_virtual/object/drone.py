@@ -270,6 +270,20 @@ class Bumblebee(Drone):
 
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
+    def spin_propellers(self):
+        #print("angle step: " + str(angle_step))
+
+        if self.sensor_posimeter[2] > 0.1:
+            
+            self.prop1_angle += self.ctrl0[0] * 100
+            self.prop2_angle -= self.ctrl1[0] * 100
+            self.prop3_angle += self.ctrl2[0] * 100
+            self.prop4_angle -= self.ctrl3[0] * 100
+
+        self.prop1_qpos[0] = self.prop1_angle
+        self.prop2_qpos[0] = self.prop2_angle
+        self.prop3_qpos[0] = self.prop3_angle
+        self.prop4_qpos[0] = self.prop4_angle
 
 
 

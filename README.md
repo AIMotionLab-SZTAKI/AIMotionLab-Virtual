@@ -9,17 +9,13 @@ The documentation can be accessed [here](https://github.com/AIMotionLab-SZTAKI/M
 ```
 $ pip install -e .
 ```
-3. On Windows additionally
-```
-$ pip install windows-curses
-```
-4. Navigate to scripts
+3. Navigate to scripts
 
 ```
 $ cd scripts
 ```
 
-5. Run one of the scripts like below
+4. Run one of the scripts like below
 ```
 $ python3.8 simulate_dummies.py
 or

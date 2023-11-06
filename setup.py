@@ -32,6 +32,8 @@ setup(name='aiml_virtual',
         'mosek==9.3.21',
         'control==0.9.2',
         'cvxopt',  # @ https://github.com/AIMotionLab-SZTAKI/cvxopt/raw/mosek_handler/dist/cvxopt-0%2Buntagged.55.gc611b51.dirty-cp38-cp38-linux_x86_64.whl'
-        'ffmpeg-python==0.2.0'
+        'ffmpeg-python==0.2.0',
+        'win-precise-time==1.4.2 ; platform_system=="Windows"'
+        'windows-curses==2.3.1 ; platform_system=="Windows"'
         ]
       )

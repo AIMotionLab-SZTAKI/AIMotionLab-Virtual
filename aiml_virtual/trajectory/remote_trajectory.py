@@ -366,7 +366,6 @@ class RemoteDroneTrajectory(TrajectoryBase):
     def evaluate(self, state, i, time, control_step) -> dict:
         
         self.current_time = time
-        self.data_lock.acquire()
         if self._can_execute:
             time = self.current_time - self.start_time
             target_pos, target_vel = self.evaluate_trajectory(time)
@@ -376,8 +375,8 @@ class RemoteDroneTrajectory(TrajectoryBase):
             target_pos, target_vel = self.evaluate_trajectory(0.0)
             self.output["target_pos"] = target_pos
             self.output["target_vel"] = target_vel
+            pass
 
-        self.data_lock.release()
 
         return self.output
 
@@ -388,9 +387,13 @@ class RemoteDroneTrajectory(TrajectoryBase):
         position and velocity
 
         """
+        self.data_lock.acquire()
         if self.trajectory_data is not None:
-            return evaluate_trajectory(self.trajectory_data, time)
+            pos, vel = evaluate_trajectory(self.trajectory_data, time)
+            self.data_lock.release()
+            return (pos, vel)
         else:
+            self.data_lock.release()
             return (self.output["target_pos"], self.output["target_vel"])
     
 

@@ -39,7 +39,6 @@ class ActiveSimulator(Display):
 
         fc_target = 1.0 / control_step
         self.control_freq_warning_limit = fc_target - (0.05 * fc_target)
-        print(self.control_freq_warning_limit)
     
     @staticmethod
     def __check_video_intervals(video_intervals):

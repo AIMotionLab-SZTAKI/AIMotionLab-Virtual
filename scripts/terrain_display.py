@@ -1,5 +1,5 @@
 import os
-from aiml_virtual.xml_generator import xml_generator
+from aiml_virtual.xml_generator import SceneXmlGenerator
 from aiml_virtual.simulator import ActiveSimulator
 from aiml_virtual.controller import GeomControl
 from aiml_virtual.object.drone import BUMBLEBEE_PROP, DRONE_TYPES
@@ -49,7 +49,7 @@ load0_mass = 0.1
 load0_size = np.array([.07, .07, .03])
 load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_pos[2] - (2 * load0_size[2]) - (rod_length + .2) ])
 
-scene = xml_generator.SceneXmlGenerator(xml_base_file_name)
+scene = SceneXmlGenerator(xml_base_file_name)
 drone0_name = scene.add_drone("0 0 15", "1 0 0 0", BLUE, DRONE_TYPES.BUMBLEBEE)
 
 #drone0_name = scene.add_drone(np.array2string(drone0_init_pos[0:3])[1:-1], "1 0 0 0", TRANSPARENT_BLUE, DRONE_TYPES.BUMBLEBEE_HOOKED, 1)

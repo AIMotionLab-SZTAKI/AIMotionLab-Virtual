@@ -16,7 +16,7 @@
 
   <asset>
 
-    <hfield name="terrain0" file="heightmaps/terrain_hmap_512.png" size="15 15 7 0.01" />
+    <hfield name="terrain0" file="heightmaps/terrain_hmap_full.png" size="15 15 7 0.01" />
 
     <mesh file="meshes/payload/payload_simplified.stl" name="payload_simplified" smoothnormal="false" scale="0.00115 0.00115 0.00115"/>
 
@@ -25,7 +25,6 @@
     <mesh file="meshes/crazyflie/4_motors.stl" name="crazyflie_4_motors" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
     <mesh file="meshes/crazyflie/ccw_prop.stl" name="crazyflie_ccw_prop" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
     <mesh file="meshes/crazyflie/cw_prop.stl" name="crazyflie_cw_prop" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
-    <mesh file="meshes/terrain/mountain0.stl" name="mountain0" smoothnormal="true" scale="0.00002 0.00002 0.00002"/>
 
 
     <mesh file="meshes/bumblebee/quad_model_no_prop_simplified.stl" name="bumblebee_body" smoothnormal="true" scale="0.001 0.001 0.001"/>

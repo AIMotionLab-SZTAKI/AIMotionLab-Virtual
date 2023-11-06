@@ -2,12 +2,10 @@ import math
 import os
 import sys
 
-import time
 import numpy as np
 import mujoco
 import glfw
 import numpy as np
-import time
 import threading
 from aiml_virtual.util import mujoco_helper
 from aiml_virtual.gui.vehicle_name_gui import VehicleNameGui
@@ -16,6 +14,12 @@ from aiml_virtual.util.mujoco_helper import LiveLFilter
 from aiml_virtual.object.moving_object import MocapObject, MovingObject
 import ffmpeg
 import motioncapture
+if os.name == 'nt':
+    import win_precise_time as time
+else:
+    import time
+
+import time as timec
 
 MAX_GEOM = 1000
 INIT_WWIDTH = 1536
@@ -525,7 +529,7 @@ class Display:
         depth = np.zeros(self.viewport.height * self.viewport.width)
 
         # draw a time stamp on the rendered image
-        stamp = time.strftime("%Y. %m. %d. %H:%M:%S")
+        stamp = timec.strftime("%Y. %m. %d. %H:%M:%S")
         mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_TOPLEFT, self.viewport, stamp, None, self.con)
         
         mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
@@ -544,7 +548,7 @@ class Display:
             os.mkdir(self.video_save_folder)
 
 
-        filename = os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time.strftime("%Y%m%d-%H%M%S") + '.mp4')
+        filename = os.path.join(self.video_save_folder, self.video_file_name_base + '_' + timec.strftime("%Y%m%d-%H%M%S") + '.mp4')
 
         fps = 1.0 / self.graphics_step
         video_process = (

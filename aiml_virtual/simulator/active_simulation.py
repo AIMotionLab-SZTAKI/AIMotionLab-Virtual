@@ -1,12 +1,15 @@
-import time
 import mujoco
 import glfw
-import time
 from aiml_virtual.util import mujoco_helper
 from aiml_virtual.util.util import sync
 from aiml_virtual.simulator.mujoco_display import Display, INIT_WWIDTH, INIT_WHEIGHT
 from aiml_virtual.object.moving_object import MocapObject
 from aiml_virtual.object.object_parser import parseMovingObjects, parseMocapObjects
+import os
+if os.name == 'nt':
+    import win_precise_time as time
+else:
+    import time
 
 
 class ActiveSimulator(Display):
@@ -24,10 +27,15 @@ class ActiveSimulator(Display):
 
         # To obtain inertia matrix
         self.start_time = 0.0
-        self.prev_time = time.time()
         self.vid_rec_cntr = 0
 
         self.i = 0
+        self.frame_counter = 0
+
+        self.n_controlstep_sum = int(1 / control_step)
+        self.actual_controlstep = self.control_step
+        self.n_graphicstep_sum = int(1 / graphics_step)
+        self.actual_graphicstep = self.graphics_step
     
     @staticmethod
     def __check_video_intervals(video_intervals):
@@ -52,14 +60,14 @@ class ActiveSimulator(Display):
                 
                 return checked_video_intervals
 
-        
         return None
 
-    
     def update(self):
 
         if self.i == 0:
             self.start_time = time.time()
+            self.prev_tc = time.time()
+            self.prev_tg = time.time()
         
         self.manage_video_recording(self.i)
         
@@ -89,26 +97,39 @@ class ActiveSimulator(Display):
 
             self.all_moving_objects[l].update(self.i, self.control_step)
         
-        
-        if not self.is_paused:
-            mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
-            self.i += 1
-
         if self.i % (self.graphics_step / self.control_step) == 0:
 
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)
             self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
-            mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL,
-                                    scn=self.scn)
+            mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL, scn=self.scn)
             mujoco.mjr_render(self.viewport, self.scn, self.con)
+            
+            self.frame_counter += 1
+            if self.frame_counter % self.n_graphicstep_sum == 0:
+                self.actual_graphicstep = self.calc_actual_graphics_step()  
+        
+            fc = 1.0 / self.actual_controlstep
+            fg = 1.0 / self.actual_graphicstep
+            fst = "Control: {:10.3f} Hz\nGraphics: {:10.3f} Hz".format(fc, fg)
+            mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_BOTTOMLEFT, self.viewport, fst, None, self.con)
+
             if self.is_recording:
                  
                 self.append_frame_to_list()
-
+            
             glfw.swap_buffers(self.window)
             glfw.poll_events()
+
         sync(self.i, self.start_time, self.control_step)
 
+        if self.i % self.n_controlstep_sum == 0:
+            self.actual_controlstep = self.calc_actual_control_step()
+        
+        
+        if not self.is_paused:
+            mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
+            self.i += 1
+        
         return self.data
 
     def update_(self):
@@ -140,6 +161,19 @@ class ActiveSimulator(Display):
                     self.is_recording = True
                     self.is_recording_automatically = True
                     self.append_title(" (Recording automatically...)")
+
+
+    def calc_actual_control_step(self):
+        self.tc = time.time()
+        time_elapsed =  self.tc - self.prev_tc
+        self.prev_tc = self.tc
+        return time_elapsed / self.n_controlstep_sum
+    
+    def calc_actual_graphics_step(self):
+        self.tg = time.time()
+        time_elapsed = self.tg - self.prev_tg
+        self.prev_tg = self.tg
+        return time_elapsed / self.n_graphicstep_sum
 
     
     def print_time_diff(self):

@@ -1,10 +1,14 @@
 from typing import Union, Callable
-import time
 import math
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
+import os
+if os.name == 'nt':
+    import win_precise_time as time
+else:
+    import time
 
 
 def carHeading2quaternion(phi: float)-> str:

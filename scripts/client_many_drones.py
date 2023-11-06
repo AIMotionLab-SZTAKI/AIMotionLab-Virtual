@@ -7,13 +7,16 @@ from aiml_virtual.object.drone import DRONE_TYPES
 from aiml_virtual.object import parseMovingObjects
 import os
 import numpy as np
-import time
+if os.name == 'nt':
+    import win_precise_time as time
+else:
+    import time
 
 RED = "0.85 0.2 0.2 1.0"
 BLUE = "0.2 0.2 0.85 1.0"
 
-NUM_ROWS_CF = 4
-NUM_COLS_CF = 5
+NUM_ROWS_CF = 5
+NUM_COLS_CF = 6
 DIST_ROWS = 0.3
 DIST_COLS = 0.3
 
@@ -32,9 +35,9 @@ for i in range(NUM_ROWS_CF):
     c_r = str(float(i) / NUM_ROWS_CF)
     for j in range(NUM_COLS_CF):
         c_b = str(float(j) / NUM_COLS_CF)
-        drone_initpos = np.array((DIST_COLS * j - (((NUM_COLS_CF - 1) * DIST_COLS) / 2.0), DIST_ROWS * i - (((NUM_ROWS_CF - 1) * DIST_ROWS) / 2.0), 0.0))
+        drone_initpos = np.array((DIST_COLS * j - (((NUM_COLS_CF - 1) * DIST_COLS) / 2.0), DIST_ROWS * i - (((NUM_ROWS_CF - 1) * DIST_ROWS) / 2.0), 0.1))
         color = c_r + " 0.1 " + c_b + " 1.0" 
-        drone_names += [scene.add_drone(np.array2string(drone_initpos)[1:-1], "1 0 0 0", color, DRONE_TYPES.CRAZYFLIE)]
+        drone_names += [scene.add_drone(np.array2string(drone_initpos)[1:-1], "1 0 0 0", color, DRONE_TYPES.BUMBLEBEE)]
 
 
 scene.save_xml(os.path.join(xml_path, save_filename))
@@ -47,7 +50,7 @@ xml_filename = os.path.join(xml_path, save_filename)
 
 
 simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers,
-                            connect_to_optitrack=False, window_size=[1800, 1200])
+                            connect_to_optitrack=False, window_size=[1200, 800])
 
 simulator.cam.distance = 2.5
 simulator.cam.azimuth = 0
@@ -66,7 +69,8 @@ for name in drone_names:
     #    j += 1.0
     #    i = 0.0
     drone = simulator.get_MovingObject_by_name_in_xml(name)
-    trajectory = RemoteDroneTrajectory(can_execute=False, init_pos=drone.get_qpos()[:3]) # + np.array((0.0, 0.0, h)))
+    init_pos = drone.get_qpos()[:3].copy()
+    trajectory = RemoteDroneTrajectory(can_execute=False, init_pos=init_pos) # + np.array((0.0, 0.0, h)))
     controller = GeomControl(drone.mass, drone.inertia, simulator.gravity)
     drone.set_trajectory(trajectory)
     drone.set_controllers([controller])
@@ -78,9 +82,14 @@ if td.connect("127.0.0.1", 7002):
 #if td.connect("192.168.2.77", 7002):
     td.start_background_thread()
 
+d0 = simulator.get_MovingObject_by_name_in_xml(drone_names[0])
 while not simulator.glfw_window_should_close():
 
+    #print(d0.trajectory.evaluate_trajectory(0.0))
     simulator.update()
 
-    
+time_past = time.time() - simulator.start_time
+print("wall time: " + str(time_past))
+print("simulator time: " + str(simulator.data.time))
+print("i * control_step: " + str(simulator.i * simulator.control_step))
 simulator.close()

@@ -123,6 +123,4 @@ def evaluate_trajectory(trajectory, time):
         # points will contain all points of the bezier curve, including the start and end, unlike in trajectory.json
         points = [start_point, *ctrl_points, end_point] if ctrl_points else [start_point, end_point]
         return evaluate_segment(points, start_time, end_time, time, trajectory.get("has_yaw", False))
-            
-    return eval
 

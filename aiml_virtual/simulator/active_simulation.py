@@ -36,6 +36,10 @@ class ActiveSimulator(Display):
         self.actual_controlstep = self.control_step
         self.n_graphicstep_sum = int(1 / graphics_step)
         self.actual_graphicstep = self.graphics_step
+
+        fc_target = 1.0 / control_step
+        self.control_freq_warning_limit = fc_target - (0.05 * fc_target)
+        print(self.control_freq_warning_limit)
     
     @staticmethod
     def __check_video_intervals(video_intervals):
@@ -112,6 +116,9 @@ class ActiveSimulator(Display):
             fg = 1.0 / self.actual_graphicstep
             fst = "Control: {:10.3f} Hz\nGraphics: {:10.3f} Hz".format(fc, fg)
             mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_BOTTOMLEFT, self.viewport, fst, None, self.con)
+
+            if fc < self.control_freq_warning_limit:
+                mujoco.mjr_text(mujoco.mjtFont.mjFONT_NORMAL, "Control frequency below target", self.con, 1.0, .4, 1.0, 0.1, 0.1)
 
             if self.is_recording:
                  

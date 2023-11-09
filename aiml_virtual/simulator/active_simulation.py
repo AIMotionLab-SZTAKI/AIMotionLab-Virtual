@@ -1,7 +1,6 @@
 import mujoco
 import glfw
-from aiml_virtual.util import mujoco_helper
-from aiml_virtual.util.util import sync
+from aiml_virtual.util import mujoco_helper, sync
 from aiml_virtual.simulator.mujoco_display import Display, INIT_WWIDTH, INIT_WHEIGHT
 from aiml_virtual.object.moving_object import MocapObject
 from aiml_virtual.object.object_parser import parseMovingObjects, parseMocapObjects
@@ -32,6 +31,8 @@ class ActiveSimulator(Display):
         self.i = 0
         self.frame_counter = 0
 
+        self.graphics_control_ratio = int(self.graphics_step / self.control_step)
+
         self.n_controlstep_sum = int(1 / control_step)
         self.actual_controlstep = self.control_step
         self.n_graphicstep_sum = int(1 / graphics_step)
@@ -39,6 +40,8 @@ class ActiveSimulator(Display):
 
         fc_target = 1.0 / control_step
         self.control_freq_warning_limit = fc_target - (0.05 * fc_target)
+
+        self.pause_time = 0.0
     
     @staticmethod
     def __check_video_intervals(video_intervals):
@@ -100,7 +103,7 @@ class ActiveSimulator(Display):
 
             self.all_moving_objects[l].update(self.i, self.control_step)
         
-        if self.i % (self.graphics_step / self.control_step) == 0:
+        if self.i % self.graphics_control_ratio == 0:
 
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)
             self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
@@ -113,11 +116,14 @@ class ActiveSimulator(Display):
         
             fc = 1.0 / self.actual_controlstep
             fg = 1.0 / self.actual_graphicstep
-            fst = "Control: {:10.3f} Hz\nGraphics: {:10.3f} Hz".format(fc, fg)
+            if not self._is_paused:
+                fst = "Control: {:10.3f} Hz\nGraphics: {:10.3f} Hz".format(fc, fg)
+            else:
+                fst = "Control: ------ Hz\nGraphics: {:10.3f} Hz".format(fg)
             mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_BOTTOMLEFT, self.viewport, fst, None, self.con)
 
             if fc < self.control_freq_warning_limit:
-                mujoco.mjr_text(mujoco.mjtFont.mjFONT_NORMAL, "Control frequency below target", self.con, 1.0, .4, 1.0, 0.1, 0.1)
+                mujoco.mjr_text(mujoco.mjtFont.mjFONT_NORMAL, "Control frequency below target", self.con, 1.0, .1, 1.0, 0.1, 0.1)
 
             if self.is_recording:
                  
@@ -126,17 +132,19 @@ class ActiveSimulator(Display):
             glfw.swap_buffers(self.window)
             glfw.poll_events()
 
-        sync(self.i, self.start_time, self.control_step)
-
-        if self.i % self.n_controlstep_sum == 0:
-            self.actual_controlstep = self.calc_actual_control_step()
-        
-        
-        if not self.is_paused:
+        if not self._is_paused:
             mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
+            if self.i % self.n_controlstep_sum == 0:
+                self.actual_controlstep = self.calc_actual_control_step()   
             self.i += 1
         
-        return self.data
+        else:
+            self.tc = time.time()
+            self.tg = time.time()
+        
+        sync(self.i, self.start_time, self.pause_time, self.control_step)
+
+        return
 
     def update_(self):
         if self.i == 0:
@@ -181,23 +189,19 @@ class ActiveSimulator(Display):
         self.prev_tg = self.tg
         return time_elapsed / self.n_graphicstep_sum
 
+    def pause_unpause(self):
+
+        if not self._is_paused:
+            self.t_lastpaused = time.time()
+        
+        else:
+            self.pause_time += time.time() - self.t_lastpaused
+
+        super().pause_unpause()
     
-    def print_time_diff(self):
-        self.tc = time.time()
-        time_elapsed =  self.tc - self.prev_time
-        self.prev_time = self.tc
-        print(f'{time_elapsed:.4f}')
-
+    def is_paused(self):
+        return self._is_paused
     
-    def log(self):
-        pass
-
-    def plot_log(self):
-        pass
-
-    def save_log(self):
-        pass
-
     def close(self):
         
         glfw.terminate()

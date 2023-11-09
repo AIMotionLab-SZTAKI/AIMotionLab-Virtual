@@ -34,7 +34,7 @@ class Display:
     def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT]):
         #print(f'Working directory:  {os.getcwd()}\n')
         
-        self.is_paused = False
+        self._is_paused = False
 
         self.virt_parsers = virt_parsers
         self.mocap_parsers = mocap_parsers
@@ -419,7 +419,7 @@ class Display:
             """
             pause simulation
             """
-            self.is_paused = not self.is_paused
+            self.pause_unpause()
         
         if key == glfw.KEY_T and action == glfw.RELEASE:
             """
@@ -504,6 +504,9 @@ class Display:
     
     def reset_title(self):
         glfw.set_window_title(self.window, self.title0)
+    
+    def pause_unpause(self):
+        self._is_paused = not self._is_paused
 
 
     def connect_to_Optitrack(self):

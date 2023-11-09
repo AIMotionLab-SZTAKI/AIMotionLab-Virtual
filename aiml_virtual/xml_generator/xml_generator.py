@@ -24,6 +24,7 @@ class SceneXmlGenerator:
 
         self.root = ET.Element("mujoco")
         ET.SubElement(self.root, "include", file=base_scene_filename)
+        self.asset = ET.SubElement(self.root, "asset")
         self.worldbody = ET.SubElement(self.root, "worldbody")
         self.contact = ET.SubElement(self.root, "contact")
         self.actuator = ET.SubElement(self.root, "actuator")
@@ -51,6 +52,8 @@ class SceneXmlGenerator:
         self._teardrop_payload_cntr = 0
         self._mocap_box_payload_cntr = 0
         self._mocap_teardrop_payload_cntr = 0
+
+        self.radar_cntr = 0
 
         self._mocap_drone_names = []
         self._mocap_payload_names = []
@@ -756,6 +759,56 @@ class SceneXmlGenerator:
 
         if has_rod:
             ET.SubElement(car, "geom", name=name + "_rod", type="cylinder", size="0.02 0.5225", pos="-.175 0 0.5225", rgba="0.3 0.3 0.3 1.0", euler="0 0.1 0")
+    
+
+    def add_radar_pyramids(self, pos, number_of_pyramids=18, scale="1 1 1", color="0.5 0.5 0.5 0.2"):
+        
+        name = "radar_" + str(self.radar_cntr)
+        mesh_name = "pyramid_tobe_rotated_" + str(self.radar_cntr)
+
+        angle = 2 * math.pi / number_of_pyramids
+        
+        h = 1.0
+
+        aper2 = math.tan(angle / 2) * h
+
+        z_dim = 0.5
+
+        v0 = str(aper2) + " 1 -" + str(z_dim)
+        v1 = str(aper2) + " 1 " + str(z_dim)
+        v2 = "-" + str(aper2) + " 1 " + str(z_dim)
+        v3 = "-" + str(aper2) + " 1 -" + str(z_dim)
+        v4 = "0 0 0"
+
+        vertices = v0 + "  " + v1 + "  " + v2 + "  " + v3 + "  " + v4
+
+        pyramid_mesh = ET.SubElement(self.asset, "mesh", name=mesh_name, vertex=vertices, scale=scale)
+
+        body = ET.SubElement(self.worldbody, "body", name=name, pos=pos)
+
+        angle_rotated = 0.0
+        for i in range(number_of_pyramids):
+            euler = "0 0 " + str(angle_rotated)
+            ET.SubElement(body, "geom", type="mesh", mesh=mesh_name, rgba=color, euler=euler)
+
+            angle_rotated += angle
+
+        self.radar_cntr += 1
+
+        return name
+    
+    def add_radar_field(self, pos, color="0.5 0.5 0.5 0.2"):
+
+        name = "radar_" + str(self.radar_cntr)
+
+        body = ET.SubElement(self.worldbody, "body", name=name, pos=pos)
+        ET.SubElement(body, "geom", type="mesh", mesh="radar_field", material="matte_tp_red_mat")
+
+
+        self.radar_cntr += 1
+
+        return name
+
 
 
     def save_xml(self, file_name):

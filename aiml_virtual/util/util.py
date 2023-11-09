@@ -44,7 +44,7 @@ def linear_schedule(initial_value: Union[float, str]) -> Callable[[float], float
     return func
 
 
-def sync(i, start_time, timestep):
+def sync(i, start_time, pause_time, timestep):
     """Syncs the stepped simulation with the wall-clock.
     Function `sync` calls time.sleep() to pause a for-loop
     running faster than the expected timestep.
@@ -58,7 +58,7 @@ def sync(i, start_time, timestep):
         Desired, wall-clock step of the simulation's rendering.
     """
     #if timestep > .04 or i % (int(1 / (24 * timestep))) == 0:
-    elapsed = time.time() - start_time
+    elapsed = time.time() - (start_time + pause_time)
     sim_time = i * timestep
     #print(sim_time - elapsed)
     if elapsed < sim_time:

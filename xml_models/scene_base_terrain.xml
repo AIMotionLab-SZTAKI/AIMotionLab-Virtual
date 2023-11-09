@@ -11,12 +11,12 @@
     <flag sensornoise="enable"/>
   </option>
   <visual>
-    <quality shadowsize="8192"/>
+    <quality shadowsize="16384"/>
   </visual>
 
   <asset>
 
-    <hfield name="terrain0" file="heightmaps/terrain_hmap_full.png" size="15 15 7 0.01" />
+    <hfield name="terrain0" file="heightmaps/wm_test01.png" size="30 30 7 0.01" />
 
     <mesh file="meshes/payload/payload_simplified.stl" name="payload_simplified" smoothnormal="false" scale="0.00115 0.00115 0.00115"/>
 
@@ -26,12 +26,16 @@
     <mesh file="meshes/crazyflie/ccw_prop.stl" name="crazyflie_ccw_prop" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
     <mesh file="meshes/crazyflie/cw_prop.stl" name="crazyflie_cw_prop" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
 
+    <!--<mesh name="pyramid" vertex="0.5 .86603 -0.5  0.5 .86603 0.5  -0.5 .86603 0.5  -0.5 .86603 -0.5  0 0 0" scale="10 10 1" />-->
+    <mesh file="meshes/radar/radar_field.stl" name="radar_field" smoothnormal="true" scale="0.03 0.03 0.02" />
+
 
     <mesh file="meshes/bumblebee/quad_model_no_prop_simplified.stl" name="bumblebee_body" smoothnormal="true" scale="0.001 0.001 0.001"/>
     <mesh file="meshes/bumblebee/ccw_propeller_simplified.stl" name="bumblebee_ccw_prop" smoothnormal="true" scale="0.001 0.001 0.001"/>
     <mesh file="meshes/bumblebee/cw_propeller_simplified.stl" name="bumblebee_cw_prop" smoothnormal="true" scale="0.001 0.001 0.001"/>
 
-    <texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512"/>
+    <!--<texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512"/>-->
+    <texture type="skybox" file="textures/desert.png" gridsize="3 4" gridlayout=".U..LFRB.D.." />
     <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .1 .1" rgb2=".2 .2 .2"/>
     <material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".05"/>
 
@@ -39,20 +43,32 @@
     <material name="material_check" texture="tex_check" texrepeat="2 2" texuniform="true"/>
 
     
-    <texture name="tex_ground" type="2d" file="textures/terrain_tex.png" />
-    <material name="mat_ground" texture="tex_ground" specular="0.9" shininess="1.0" />
+    <texture name="tex_ground" type="2d" file="textures/wm_test01.png" />
+    <material name="mat_ground" texture="tex_ground" specular="0.0" shininess="0.0" />
+
+    <material name="matte_tp_red_mat" rgba="0.7 0.2 0.2 0.15" specular="0.0" shininess="0.0" />
   </asset>
 
   <worldbody>
     <camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958"/>
 
     <!--<light dir="0 -0.3 -1" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="1 1 15" cutoff="70"/>
-    <light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70"/>-->
-    <light dir="0.1 0.1 -1" diffuse=".9 .9 .9" castshadow="true" specular="0.6 0.9 0.6" directional="true" pos="100 10 6" cutoff="700"/>
+    <light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70"/>
+    <light dir="-1.0 -1.0 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="10 10 6" directional="true" cutoff="70"/>-->
+    <light dir="-1 -1 -1" diffuse="1.0 1.0 1.0" castshadow="true" specular="1.0 1.0 1.0" directional="true" pos="10 10 6" cutoff="70"/>
     
     <!--<geom size="20 20 .05" type="plane" material="grid" condim="3"/>-->
     <geom name="terrain0" type="hfield" hfield="terrain0" material="mat_ground" />
+
     <!--
+    <body name="radar_fov" pos="1 1 10">
+      <geom type="mesh" mesh="pyramid" rgba="0.5 0.5 0.5 0.2" />
+      <geom type="mesh" mesh="pyramid" rgba="0.5 0.5 0.5 0.2" euler="0 0 1.0472" />
+      <geom type="mesh" mesh="pyramid" rgba="0.5 0.5 0.5 0.2" euler="0 0 2.0944" />
+      <geom type="mesh" mesh="pyramid" rgba="0.5 0.5 0.5 0.2" euler="0 0 3.1416" />
+      <geom type="mesh" mesh="pyramid" rgba="0.5 0.5 0.5 0.2" euler="0 0 4.1888" />
+      <geom type="mesh" mesh="pyramid" rgba="0.5 0.5 0.5 0.2" euler="0 0 5.236" />
+    </body>
     <body>
       <geom name="mountain0" type="mesh" mesh="mountain0" pos="0 0 2"/>
     </body>

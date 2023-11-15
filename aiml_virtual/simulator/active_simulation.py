@@ -42,6 +42,8 @@ class ActiveSimulator(Display):
         self.control_freq_warning_limit = fc_target - (0.05 * fc_target)
 
         self.pause_time = 0.0
+
+        self._first_loop = True
     
     @staticmethod
     def __check_video_intervals(video_intervals):
@@ -70,10 +72,11 @@ class ActiveSimulator(Display):
 
     def update(self):
 
-        if self.i == 0:
+        if self._first_loop:
             self.start_time = time.time()
             self.prev_tc = time.time()
             self.prev_tg = time.time()
+            self._first_loop = False
         
         self.manage_video_recording(self.i)
         
@@ -99,9 +102,6 @@ class ActiveSimulator(Display):
                                             self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
             
 
-        for l in range(len(self.all_moving_objects)):
-
-            self.all_moving_objects[l].update(self.i, self.control_step)
         
         if self.i % self.graphics_control_ratio == 0:
 
@@ -122,7 +122,7 @@ class ActiveSimulator(Display):
                 fst = "Control: ------ Hz\nGraphics: {:10.3f} Hz".format(fg)
             mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_BOTTOMLEFT, self.viewport, fst, None, self.con)
 
-            if fc < self.control_freq_warning_limit:
+            if fc < self.control_freq_warning_limit and not self._is_paused:
                 mujoco.mjr_text(mujoco.mjtFont.mjFONT_NORMAL, "Control frequency below target", self.con, 1.0, .1, 1.0, 0.1, 0.1)
 
             if self.is_recording:
@@ -133,6 +133,10 @@ class ActiveSimulator(Display):
             glfw.poll_events()
 
         if not self._is_paused:
+            
+            for l in range(len(self.all_moving_objects)):
+
+                self.all_moving_objects[l].update(self.i, self.control_step)
             mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
             if self.i % self.n_controlstep_sum == 0:
                 self.actual_controlstep = self.calc_actual_control_step()   

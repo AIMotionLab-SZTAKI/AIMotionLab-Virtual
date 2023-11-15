@@ -19,6 +19,8 @@ simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01,
 simulator.set_title("AIMotionLab-Virtual")
 
 def load_model():
+    global simulator
+    simulator.pause_unpause()
     tkinter.Tk().withdraw()
     filetypes = (('XML files', '*.xml'),('all files', '*.*'))
     filename = filedialog.askopenfilename(title="Open XML", initialdir=xml_path, filetypes=filetypes)
@@ -26,12 +28,15 @@ def load_model():
         simulator.reload_model(filename)
 
     tkinter.Tk().destroy()
+    simulator.pause_unpause()
 
 def main():
     simulator.set_key_l_callback(load_model)
 
     simulator.cam.azimuth = 0
 
+    # update once to get initial times
+    simulator.update()
     load_model()
     
     while not simulator.glfw_window_should_close():

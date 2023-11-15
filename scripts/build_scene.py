@@ -34,6 +34,7 @@ pole_counter = 0
 
 def add_building():
     global scene, simulator, is_scene_cleared
+    simulator.pause_unpause()
     input_gui = BuildingInputGui()
     input_gui.show()
 
@@ -98,14 +99,18 @@ def add_building():
     
     else:
         print("Non-existent building")
+        simulator.pause_unpause()
         return
     
+    simulator.pause_unpause()
     is_scene_cleared = False
     
 
     
 def add_vehicle():
     global scene, simulator, is_scene_cleared
+
+    simulator.pause_unpause()
     
     input_gui = VehicleInputGui()
     input_gui.show()
@@ -154,12 +159,16 @@ def add_vehicle():
         else:
             #print(input_gui.vehicle_type)
             print("Non-existent vehicle type: " + input_gui.vehicle_type)
+            simulator.pause_unpause()
             return
     
         is_scene_cleared = False
+    
+    simulator.pause_unpause()
 
 def add_payload():
     global scene, simulator
+    simulator.pause_unpause()
     input_gui = PayloadInputGui()
     input_gui.show()
 
@@ -169,6 +178,7 @@ def add_payload():
                 if input_gui.type == PAYLOAD_TYPES.Box:
                     if input_gui.size == "":
                         print("Payload size was unspecified...")
+                        simulator.pause_unpause()
                         return
                     scene.add_mocap_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type)
                 elif input_gui.type == PAYLOAD_TYPES.Teardrop:
@@ -180,6 +190,7 @@ def add_payload():
                     if input_gui.type == PAYLOAD_TYPES.Box:
                         if input_gui.size == "":
                             print("Payload size was unspecified...")
+                            simulator.pause_unpause()
                             return
                         scene.add_payload(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
                     elif input_gui.type == PAYLOAD_TYPES.Teardrop:
@@ -190,6 +201,8 @@ def add_payload():
                     print("Payload mass was unspecified...")
 
             save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+    
+    simulator.pause_unpause()
 
 
 def save_and_reload_model(scene, simulator, save_filename, vehicle_names_in_motive=None):
@@ -212,6 +225,7 @@ def build_from_optitrack():
     """
     global is_scene_cleared
     global scene, simulator
+    simulator.pause_unpause()
 
     if is_scene_cleared:
 
@@ -280,6 +294,7 @@ def build_from_optitrack():
 
         save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename), vehicle_names_in_motive)
         is_scene_cleared = False
+    simulator.pause_unpause()
         #if car_added:
         #    mocapid = simulator.model.body("car0").mocapid[0]
         #    car = CarMocap(simulator.model, simulator.data, mocapid, "car0", "AI_car_01")

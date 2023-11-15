@@ -602,7 +602,9 @@ class Display:
         if len(self.all_mocap_objects) > 0:
             object_names = MocapObject.get_object_names_motive(self.all_mocap_objects)
             object_labels = MocapObject.get_object_names_in_xml(self.all_mocap_objects)
+            self.pause_unpause()
             gui = VehicleNameGui(vehicle_labels=object_labels, vehicle_names=object_names)
             gui.show()
             MocapObject.set_object_names_motive(self.all_mocap_objects, gui.vehicle_names)
+            self.pause_unpause()
 

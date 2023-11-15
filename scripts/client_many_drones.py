@@ -37,7 +37,7 @@ for i in range(NUM_ROWS_CF):
         c_b = str(float(j) / NUM_COLS_CF)
         drone_initpos = np.array((DIST_COLS * j - (((NUM_COLS_CF - 1) * DIST_COLS) / 2.0), DIST_ROWS * i - (((NUM_ROWS_CF - 1) * DIST_ROWS) / 2.0), 0.1))
         color = c_r + " 0.1 " + c_b + " 1.0" 
-        drone_names += [scene.add_drone(np.array2string(drone_initpos)[1:-1], "1 0 0 0", color, DRONE_TYPES.BUMBLEBEE)]
+        drone_names += [scene.add_drone(np.array2string(drone_initpos)[1:-1], "1 0 0 0", color, DRONE_TYPES.CRAZYFLIE)]
 
 
 scene.save_xml(os.path.join(xml_path, save_filename))

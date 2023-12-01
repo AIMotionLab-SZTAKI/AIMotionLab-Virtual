@@ -802,8 +802,11 @@ class SceneXmlGenerator:
         name = "radar_" + str(self.radar_cntr)
 
         body = ET.SubElement(self.worldbody, "body", name=name, pos=pos)
-        ET.SubElement(body, "geom", type="mesh", mesh="radar_field", material="matte_tp_red_mat")
 
+        ET.SubElement(self.asset, "material", name=name + "_mat", rgba=color, specular="0.0", shininess="0.0")
+
+        #ET.SubElement(body, "geom", type="mesh", mesh="radar_field", material="matte_tp_red_mat")
+        ET.SubElement(body, "geom", type="mesh", mesh="radar_field", contype="0", conaffinity="0", material=name + "_mat")
 
         self.radar_cntr += 1
 

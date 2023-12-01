@@ -39,12 +39,15 @@ class Display:
         self.virt_parsers = virt_parsers
         self.mocap_parsers = mocap_parsers
 
+        self.key_a_callback = None
         self.key_b_callback = None
         self.key_d_callback = None
         self.key_l_callback = None
         self.key_o_callback = None
+        self.key_s_callback = None
         self.key_t_callback = None
         self.key_v_callback = None
+        self.key_w_callback = None
         self.key_delete_callback = None
         self.key_left_callback = None
         self.key_left_release_callback = None
@@ -54,6 +57,10 @@ class Display:
         self.key_up_release_callback = None
         self.key_down_callback = None
         self.key_down_release_callback = None
+        self.key_a_release_callback = None
+        self.key_d_release_callback = None
+        self.key_s_release_callback = None
+        self.key_w_release_callback = None
 
         self.connect_to_optitrack = connect_to_optitrack
 
@@ -94,6 +101,7 @@ class Display:
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
         self.scroll_distance_step = 0.2
+        self.right_button_move_scale = 0.1
 
         #print(self.data.qpos.size)
         
@@ -232,6 +240,10 @@ class Display:
     def glfw_window_should_close(self):
         return glfw.window_should_close(self.window)
 
+    def set_key_a_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_a_callback = callback_function
+
     def set_key_b_callback(self, callback_function):
         if callable(callback_function):
             self.key_b_callback = callback_function
@@ -248,6 +260,10 @@ class Display:
         if callable(callback_function):
             self.key_o_callback = callback_function
 
+    def set_key_s_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_s_callback = callback_function
+
     def set_key_t_callback(self, callback_function):
         if callable(callback_function):
             self.key_t_callback = callback_function
@@ -255,6 +271,26 @@ class Display:
     def set_key_v_callback(self, callback_function):
         if callable(callback_function):
             self.key_v_callback = callback_function
+    
+    def set_key_w_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_w_callback = callback_function
+    
+    def set_key_a_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_a_release_callback = callback_function
+    
+    def set_key_d_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_d_release_callback = callback_function
+    
+    def set_key_s_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_s_release_callback = callback_function
+    
+    def set_key_w_release_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_w_release_callback = callback_function
     
     def set_key_delete_callback(self, callback_function):
         if callable(callback_function):
@@ -323,14 +359,14 @@ class Display:
             dx, dy = self.calc_dxdy(window)
             scale = 0.005
             angle = math.radians(self.cam.azimuth + 90)
-            dx3d = math.cos(angle) * dx * scale
-            dy3d = math.sin(angle) * dx * scale
+            dx3d = math.cos(angle) * dx * self.right_button_move_scale
+            dy3d = math.sin(angle) * dx * self.right_button_move_scale
 
             self.cam.lookat[0] += dx3d
             self.cam.lookat[1] += dy3d
 
             # vertical axis is Z in 3D, so 3rd element in the lookat array
-            self.cam.lookat[2] += dy * scale
+            self.cam.lookat[2] += dy * self.right_button_move_scale
 
     def calc_dxdy(self, window):
         """
@@ -367,6 +403,21 @@ class Display:
                 d = self.all_vehicles[self.followed_vehicle_idx]
                 mujoco_helper.update_onboard_cam(d.get_qpos(), self.camOnBoard)
         
+        
+        if key == glfw.KEY_A and action == glfw.PRESS:
+            """
+            Pass on this event
+            """
+            if self.key_a_callback:
+                self.key_a_callback()
+        
+        if key == glfw.KEY_A and action == glfw.RELEASE:
+            """
+            Pass on this event
+            """
+            if self.key_a_release_callback:
+                self.key_a_release_callback()
+
         if key == glfw.KEY_B and action == glfw.RELEASE:
             """
             Pass on this event
@@ -374,12 +425,19 @@ class Display:
             if self.key_b_callback:
                 self.key_b_callback()
 
-        if key == glfw.KEY_D and action == glfw.RELEASE:
+        if key == glfw.KEY_D and action == glfw.PRESS:
             """
             Pass on this event
             """
             if self.key_d_callback:
                 self.key_d_callback()
+        
+        if key == glfw.KEY_D and action == glfw.RELEASE:
+            """
+            Pass on this event
+            """
+            if self.key_d_release_callback:
+                self.key_d_release_callback()
 
         if key == glfw.KEY_R and action == glfw.RELEASE:
             """
@@ -421,6 +479,20 @@ class Display:
             """
             self.pause_unpause()
         
+        if key == glfw.KEY_S and action == glfw.PRESS:
+            """
+            Pass on this event
+            """
+            if self.key_s_callback:
+                self.key_s_callback()
+        
+        if key == glfw.KEY_S and action == glfw.RELEASE:
+            """
+            Pass on this event
+            """
+            if self.key_s_release_callback:
+                self.key_s_release_callback()
+        
         if key == glfw.KEY_T and action == glfw.RELEASE:
             """
             pass on this event
@@ -435,6 +507,20 @@ class Display:
             """
             if self.key_v_callback:
                 self.key_v_callback()
+        
+        if key == glfw.KEY_W and action == glfw.PRESS:
+            """
+            Pass on this event
+            """
+            if self.key_w_callback:
+                self.key_w_callback()
+        
+        if key == glfw.KEY_W and action == glfw.RELEASE:
+            """
+            Pass on this event
+            """
+            if self.key_w_release_callback:
+                self.key_w_release_callback()
         
         if key == glfw.KEY_DELETE and action == glfw.RELEASE:
             """

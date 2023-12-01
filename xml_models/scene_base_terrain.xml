@@ -4,19 +4,20 @@
   </default>
   
 
-  <compiler angle="radian" meshdir=""/>
+  <compiler angle="radian" meshdir="" convexhull="false" />
   <option timestep="0.001"/>
   <!--<option gravity="0 0 0"/>-->
   <option>
     <flag sensornoise="enable"/>
   </option>
   <visual>
-    <quality shadowsize="16384"/>
+    <quality shadowsize="0"/>
+    <map znear="0.00025" />
   </visual>
 
   <asset>
 
-    <hfield name="terrain0" file="heightmaps/wm_test01.png" size="30 30 7 0.01" />
+    <hfield name="terrain0" file="heightmaps/world0.png" size="2500 2500 1000 0.01" />
 
     <mesh file="meshes/payload/payload_simplified.stl" name="payload_simplified" smoothnormal="false" scale="0.00115 0.00115 0.00115"/>
 
@@ -27,7 +28,7 @@
     <mesh file="meshes/crazyflie/cw_prop.stl" name="crazyflie_cw_prop" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
 
     <!--<mesh name="pyramid" vertex="0.5 .86603 -0.5  0.5 .86603 0.5  -0.5 .86603 0.5  -0.5 .86603 -0.5  0 0 0" scale="10 10 1" />-->
-    <mesh file="meshes/radar/radar_field.stl" name="radar_field" smoothnormal="true" scale="0.03 0.03 0.02" />
+    <mesh file="meshes/radar/radar_field.stl" name="radar_field" smoothnormal="true" scale="9 9 9" />
 
 
     <mesh file="meshes/bumblebee/quad_model_no_prop_simplified.stl" name="bumblebee_body" smoothnormal="true" scale="0.001 0.001 0.001"/>
@@ -43,10 +44,10 @@
     <material name="material_check" texture="tex_check" texrepeat="2 2" texuniform="true"/>
 
     
-    <texture name="tex_ground" type="2d" file="textures/wm_test01.png" />
+    <texture name="tex_ground" type="2d" file="textures/texture0.png" />
     <material name="mat_ground" texture="tex_ground" specular="0.0" shininess="0.0" />
 
-    <material name="matte_tp_red_mat" rgba="0.7 0.2 0.2 0.15" specular="0.0" shininess="0.0" />
+    <material name="matte_tp_red_mat" rgba="0.7 0.2 0.2 1" specular="0.0" shininess="0.0" />
   </asset>
 
   <worldbody>
@@ -55,7 +56,9 @@
     <!--<light dir="0 -0.3 -1" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="1 1 15" cutoff="70"/>
     <light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70"/>
     <light dir="-1.0 -1.0 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="10 10 6" directional="true" cutoff="70"/>-->
-    <light dir="-1 -1 -1" diffuse="1.0 1.0 1.0" castshadow="true" specular="1.0 1.0 1.0" directional="true" pos="10 10 6" cutoff="70"/>
+    <light dir="-1 -1 -1" diffuse="1.0 1.0 1.0" castshadow="false" specular="0.1 0.1 0.1" directional="true" pos="10 10 6" cutoff="70"/>
+    <light dir="1 -1 -1" diffuse=".9 .9 .9" castshadow="false" specular="0.1 0.1 0.1" directional="true" pos="10 10 6" cutoff="70"/>
+    <light dir="-1 1 -1" diffuse=".9 .9 .9" castshadow="false" specular="0.1 0.1 0.1" directional="true" pos="10 10 6" cutoff="70"/>
     
     <!--<geom size="20 20 .05" type="plane" material="grid" condim="3"/>-->
     <geom name="terrain0" type="hfield" hfield="terrain0" material="mat_ground" />

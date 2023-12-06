@@ -7,6 +7,8 @@ from aiml_virtual.object.payload import PAYLOAD_TYPES
 from aiml_virtual.object.drone import DRONE_TYPES, BUMBLEBEE_PROP, CRAZYFLIE_PROP 
 from aiml_virtual.object.car import F1T_PROP
 
+from aiml_virtual.util import mujoco_helper
+
 import os
 
 
@@ -21,6 +23,8 @@ ROD_LENGTH = float(BUMBLEBEE_PROP.ROD_LENGTH.value)
 class SceneXmlGenerator:
 
     def __init__(self, base_scene_filename):
+
+        self.base_scene_filename = base_scene_filename
 
         self.root = ET.Element("mujoco")
         ET.SubElement(self.root, "include", file=base_scene_filename)
@@ -797,16 +801,20 @@ class SceneXmlGenerator:
 
         return name
     
-    def add_radar_field(self, pos, color="0.5 0.5 0.5 0.2"):
+    def add_radar_field(self, pos, color="0.5 0.5 0.5 0.2", a=5.0, exponent=1.3, rot_resolution=90, resolution=100,
+                        mesh_directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "xml_models", "meshes", "radar")):
 
         name = "radar_" + str(self.radar_cntr)
 
         body = ET.SubElement(self.worldbody, "body", name=name, pos=pos)
 
+        filename = mujoco_helper.create_radar_field_stl(a, exponent, rot_resolution, resolution, os.path.join(mesh_directory))
+
+        ET.SubElement(self.asset, "mesh", file=os.path.join(mesh_directory, filename), name="radar_field_" + str(self.radar_cntr), smoothnormal="true", scale="1 1 1")
+
         ET.SubElement(self.asset, "material", name=name + "_mat", rgba=color, specular="0.0", shininess="0.0")
 
-        #ET.SubElement(body, "geom", type="mesh", mesh="radar_field", material="matte_tp_red_mat")
-        ET.SubElement(body, "geom", type="mesh", mesh="radar_field", contype="0", conaffinity="0", material=name + "_mat")
+        ET.SubElement(body, "geom", type="mesh", mesh="radar_field_" + str(self.radar_cntr), contype="0", conaffinity="0", material=name + "_mat")
 
         self.radar_cntr += 1
 

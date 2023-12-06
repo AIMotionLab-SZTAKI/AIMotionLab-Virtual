@@ -14,7 +14,7 @@ xmlBaseFileName = "scene_base.xml"
 # create list of parsers
 virt_parsers = [parseMovingObjects]
 mocap_parsers = [parseMocapObjects]
-simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False)
+simulator = ActiveSimulator(os.path.join(xml_path, xmlBaseFileName), None, 0.01, 0.02, virt_parsers, mocap_parsers, False, window_size=[1920, 1088])
 
 simulator.set_title("AIMotionLab-Virtual")
 

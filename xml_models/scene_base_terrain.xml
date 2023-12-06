@@ -28,7 +28,8 @@
     <mesh file="meshes/crazyflie/cw_prop.stl" name="crazyflie_cw_prop" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
 
     <!--<mesh name="pyramid" vertex="0.5 .86603 -0.5  0.5 .86603 0.5  -0.5 .86603 0.5  -0.5 .86603 -0.5  0 0 0" scale="10 10 1" />-->
-    <mesh file="meshes/radar/radar_field.stl" name="radar_field" smoothnormal="true" scale="9 9 9" />
+    <!--<mesh file="meshes/radar/radar_field.stl" name="radar_field" smoothnormal="true" scale="9 9 9" />
+    <mesh file="meshes/radar/radar_field_a20.0_exp1.3_rres45_res50.stl" name="radar_field" smoothnormal="true" scale="1 1 1" /> -->
 
 
     <mesh file="meshes/bumblebee/quad_model_no_prop_simplified.stl" name="bumblebee_body" smoothnormal="true" scale="0.001 0.001 0.001"/>

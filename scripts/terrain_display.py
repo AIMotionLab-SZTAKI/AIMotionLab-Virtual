@@ -3,13 +3,11 @@ from aiml_virtual.xml_generator import SceneXmlGenerator
 from aiml_virtual.simulator import ActiveSimulator
 from aiml_virtual.controller import GeomControl
 from aiml_virtual.object.drone import BUMBLEBEE_PROP, DRONE_TYPES
-from aiml_virtual.airflow import AirflowSampler
 from aiml_virtual.object import parseMovingObjects
 from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
 import numpy as np
-from aiml_virtual.object.payload import Payload, PAYLOAD_TYPES
-from aiml_virtual.util import plot_payload_and_airflow_volume
 from aiml_virtual.util import mujoco_helper
+import math
 
 
 BLUE = "0.2 0.6 0.85 1.0"
@@ -154,17 +152,18 @@ class DummyKeyboardTraj(TrajectoryBase):
     def rot_left(self, state):
 
         self.target_rpy[2] += self.rot_speed
-        print(self.target_rpy)
+        #print(self.target_rpy)
     
     def rot_right(self, state):
 
         self.target_rpy[2] -= self.rot_speed
-        print(self.target_rpy)
+        #print(self.target_rpy)
 
 
 rod_length = float(BUMBLEBEE_PROP.ROD_LENGTH.value)
 
-hover_height = 250
+hover_height = 550
+radar_pos = np.array((40, 0, hover_height))
 
 # ------- 1. -------
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -172,10 +171,14 @@ xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain.xml"
 save_filename = "built_scene.xml"
 
+radar_a = 10.
+radar_exp = 5
+radar_rres = 90
+radar_res = 100
 
 scene = SceneXmlGenerator(xml_base_file_name)
 drone0_name = scene.add_drone("0 0 " + str(hover_height + 15), "1 0 0 0", BLUE, DRONE_TYPES.BUMBLEBEE)
-scene.add_radar_field("-2000 2000 1000", ".5 .2 .2 0.5")
+scene.add_radar_field(np.array2string(radar_pos)[1:-1], ".5 .2 .2 0.5", radar_a, radar_exp, radar_rres, radar_res)
 #scene.add_radar_field("-1.6 10.35 6.5", "0.1 0.8 0.1 1.0")
 #scene.add_radar_field("2.11 -7.65 5.40")
 
@@ -222,18 +225,31 @@ d0.set_trajectory(trajectory)
 
 ctrl3_max = 0
 
-def is_greater_than(new_value, current_max):
 
-    if new_value > current_max:
-        return new_value
+def is_point_inside_lobe(point, radar_center, a, exponent):
+
+    d = math.sqrt((radar_center[0] - point[0])**2 + (radar_center[1] - point[1])**2)
+
+    if d <= 2 * a:
+
+        z_lim = a * math.sin(math.acos((a - d) / a)) * math.sin(math.acos((a - d) / a) / 2.0)**exponent
+
+        if point[2] < radar_center[2] + z_lim and point[2] > (radar_center[2] - z_lim):
+            return True
     
-    return current_max
+    return False
 
-# ------- 7. -------
 while not simulator.glfw_window_should_close():
     simulator.update()
-    #if simulator.i % 2 == 0:
-    #    simulator.cam.azimuth -= 0.5
+    d0_pos = d0.get_state()["pos"]
+    #print()
+    #print(d0.xquat)
+    #print(d0.state["quat"])
+
+    if is_point_inside_lobe(d0_pos, radar_pos, radar_a, radar_exp):
+        simulator.append_title(" DRONE INSIDE")
+    else:
+        simulator.reset_title()
 
 simulator.close()
 

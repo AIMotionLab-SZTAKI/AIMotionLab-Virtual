@@ -45,6 +45,7 @@ class Drone(MovingObject):
         self.data = data
 
         free_joint = self.data.joint(self.name_in_xml)
+        self.xquat = self.data.body(self.name_in_xml).xquat
 
         self.qpos = free_joint.qpos
         self.mass = model.body(self.name_in_xml).mass

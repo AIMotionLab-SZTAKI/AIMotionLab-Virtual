@@ -1,5 +1,7 @@
 import mujoco
 import math
+import os
+from stl import mesh
 
 import numpy as np
 from collections import deque
@@ -325,3 +327,120 @@ def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, el
 
     else:
         cam.elevation = new_elev
+
+def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")):
+
+    xs = np.linspace(0., 2 * a, resolution)
+    ys = np.zeros(2 * resolution - 2)
+    zps = a * np.sin(np.arccos((-xs + a) / a)) * (np.sin(np.arccos((-xs + a) / a) / 2.))**exp
+    zns = -zps[1:-1].copy()
+
+    zs = np.append(zps, np.flip(zns))
+    xs = np.append(xs, np.flip(xs[1:-1]))
+
+    points = np.vstack((xs, ys, zs)).T
+
+    #ax = plt.axes(projection="3d")
+    #ax.plot(xs, ys, zs)
+    #ax.plot(points[:, 0], points[:, 1], points[:, 2])
+
+    #plt.plot(xs, zs)
+    #plt.show()
+
+    rotated_lobes = [points]
+
+    rot_step = 2 * math.pi / rot_resolution
+    current_rotation = rot_step
+
+    for i in range(rot_resolution - 1):
+
+        euler = np.array((0.0, 0.0, current_rotation))
+
+        quat = quaternion_from_euler(*euler)
+
+        rot_points = quat_vect_array_mult(quat, points)
+        #ax.plot(rot_points[:, 0], rot_points[:, 1], rot_points[:, 2])
+
+        rotated_lobes += [rot_points]
+
+        current_rotation += rot_step
+
+    #plt.show()
+
+    triangles = []
+
+    for i in range(rot_resolution):
+
+        for j in range(2 * resolution - 2):
+
+            if j == 0:
+                #triangles += [rotated_lobes[0][0], rotated_lobes[i][1], rotated_lobes[i + 1][0]]
+                if i == rot_resolution - 1:
+                    triangles += [rotated_lobes[0][0]]
+                    triangles += [rotated_lobes[i][1]]
+                    triangles += [rotated_lobes[0][1]]
+                    
+                else:
+                    triangles += [rotated_lobes[0][0]]
+                    triangles += [rotated_lobes[i][1]]
+                    triangles += [rotated_lobes[i + 1][1]]
+                
+            
+            else:
+                if j == 2 * resolution - 3:
+                    if i == rot_resolution - 1:
+                        triangles += [rotated_lobes[i][j]]
+                        triangles += [rotated_lobes[0][0]]
+                        triangles += [rotated_lobes[0][j]]
+                    else:
+                        triangles += [rotated_lobes[i][j]]
+                        triangles += [rotated_lobes[0][0]]
+                        triangles += [rotated_lobes[i + 1][j]]
+
+
+                else:
+                    if i == rot_resolution - 1:
+                        triangles += [rotated_lobes[i][j]]
+                        triangles += [rotated_lobes[i][j + 1]]
+                        triangles += [rotated_lobes[0][j]]
+
+                        triangles += [rotated_lobes[i][j + 1]]
+                        triangles += [rotated_lobes[0][j + 1]]
+                        triangles += [rotated_lobes[0][j]]
+
+                    else:
+                        
+                        triangles += [rotated_lobes[i][j]]
+                        triangles += [rotated_lobes[i][j + 1]]
+                        triangles += [rotated_lobes[i + 1][j]]
+
+                        triangles += [rotated_lobes[i][j + 1]]
+                        triangles += [rotated_lobes[i + 1][j + 1]]
+                        triangles += [rotated_lobes[i + 1][j]]
+
+    triangles = np.array(triangles)
+    #print(triangles.shape)
+
+    #ax = plt.axes(projection="3d")
+
+    #plot_from = 0
+    #plot_to = triangles.shape[0]
+    #ax.plot(triangles[plot_from:plot_to, 0], triangles[plot_from:plot_to, 1], triangles[plot_from:plot_to, 2])
+    #plt.show()
+
+    num_triangles = int(triangles.shape[0] / 3)
+    radar_field_mesh = mesh.Mesh(np.zeros(num_triangles, dtype=mesh.Mesh.dtype))
+
+    v_idx = 0
+    for i in range(num_triangles):
+        for j in range(3):
+            radar_field_mesh.vectors[i][j] = triangles[v_idx]
+            v_idx += 1
+    
+    filename = "radar_field_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + ".stl"
+
+    radar_field_mesh.save(os.path.join(filepath, filename))
+
+    print("[mujoco_helper] Saved radar mesh in: " + os.path.join(filepath, filename))
+
+    return filename

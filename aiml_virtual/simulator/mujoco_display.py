@@ -61,6 +61,10 @@ class Display:
         self.key_d_release_callback = None
         self.key_s_release_callback = None
         self.key_w_release_callback = None
+        self.key_tab_callback = None
+
+        self.mouse_wheel_callback = None
+        self.mouse_btn_callback = None
 
         self.connect_to_optitrack = connect_to_optitrack
 
@@ -322,6 +326,18 @@ class Display:
     def set_key_down_release_callback(self, callback_function):
         if callable(callback_function):
             self.key_down_release_callback = callback_function
+    
+    def set_key_tab_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_tab_callback = callback_function
+    
+    def set_mouse_wheel_callback(self, callback_function):
+        if callable(callback_function):
+            self.mouse_wheel_callback = callback_function
+
+    def set_mouse_btn_callback(self, callback_function):
+        if callable(callback_function):
+            self.mouse_btn_callback = callback_function
 
     def mouse_button_callback(self, window, button, action, mods):
 
@@ -351,6 +367,10 @@ class Display:
             scale = 0.1
             self.cam.azimuth -= dx * scale
             self.cam.elevation -= dy * scale
+            
+            # pass on this event
+            if self.mouse_btn_callback is not None:
+                self.mouse_btn_callback(xpos, ypos)
 
         if self.mouse_right_btn_down:
             """
@@ -367,6 +387,13 @@ class Display:
 
             # vertical axis is Z in 3D, so 3rd element in the lookat array
             self.cam.lookat[2] += dy * self.right_button_move_scale
+            
+            # pass on this event
+            if self.mouse_btn_callback is not None:
+                self.mouse_btn_callback(xpos, ypos)
+
+
+
 
     def calc_dxdy(self, window):
         """
@@ -385,6 +412,10 @@ class Display:
         """
         self.activeCam.distance -= self.scroll_distance_step * y
 
+        # pass the event on
+        if self.mouse_wheel_callback is not None:
+            self.mouse_wheel_callback(x, y)
+
     def key_callback(self, window, key, scancode, action, mods):
         """
         Switch camera on TAB press
@@ -392,6 +423,8 @@ class Display:
         """
         if key == glfw.KEY_TAB and action == glfw.PRESS:
             self.change_cam()
+            if self.key_tab_callback is not None:
+                self.key_tab_callback()
         elif key == glfw.KEY_SPACE and action == glfw.PRESS:
             if self.activeCam == self.camOnBoard:
                 if self.followed_vehicle_idx + 1 == len(self.all_vehicles):

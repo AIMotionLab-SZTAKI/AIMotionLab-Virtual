@@ -441,6 +441,6 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, fil
 
     radar_field_mesh.save(os.path.join(filepath, filename))
 
-    print("[mujoco_helper] Saved radar mesh in: " + os.path.join(filepath, filename))
+    print("[mujoco_helper] Saved radar mesh at: " + os.path.join(filepath, filename))
 
     return filename

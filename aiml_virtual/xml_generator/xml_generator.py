@@ -58,6 +58,7 @@ class SceneXmlGenerator:
         self._mocap_teardrop_payload_cntr = 0
 
         self.radar_cntr = 0
+        self.sphere_cntr = 0
 
         self._mocap_drone_names = []
         self._mocap_payload_names = []
@@ -264,7 +265,7 @@ class SceneXmlGenerator:
         motor_param = CRAZYFLIE_PROP.MOTOR_PARAM.value
         max_thrust = CRAZYFLIE_PROP.MAX_THRUST.value
 
-        drone = self._add_drone_common_parts(name, pos, quat, PROP_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "crazyflie")
+        drone = self._add_drone_common_parts(name, pos, quat, color, PROP_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "crazyflie")
 
         ET.SubElement(drone, "geom", name=name + "_body", type="mesh", mesh="crazyflie_body", rgba=color)
         ET.SubElement(drone, "geom", name=name + "_4_motormounts", type="mesh", mesh="crazyflie_4_motormounts", rgba=color)
@@ -273,9 +274,14 @@ class SceneXmlGenerator:
 
         return drone
 
-    def _add_drone_common_parts(self, name, pos, quat, propeller_color, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, mesh_prefix):
+    def _add_drone_common_parts(self, name, pos, quat, color, propeller_color, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, mesh_prefix):
+
+        rgba = color.split()
+
+        color = rgba[0] + " " + rgba[1] + " " + rgba[2] + " 0.0"
 
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
+        ET.SubElement(drone, "geom", type="sphere", name=name + "_sphere", size="1.0", rgba=color, contype="0", conaffinity="0")
         ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia=diaginertia, mass=mass)
         ET.SubElement(drone, "joint", name=name, type="free")
         #drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
@@ -372,7 +378,7 @@ class SceneXmlGenerator:
         max_thrust = BUMBLEBEE_PROP.MAX_THRUST.value
         
 
-        drone = self._add_drone_common_parts(name, pos, quat, PROP_LARGE_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "bumblebee")
+        drone = self._add_drone_common_parts(name, pos, quat, color, PROP_LARGE_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "bumblebee")
 
         # need to rotate the body mesh to match optitrack orientation
         quat_mesh = mh.quaternion_from_euler(0, 0, math.radians(270))
@@ -819,8 +825,6 @@ class SceneXmlGenerator:
         self.radar_cntr += 1
 
         return name
-
-
 
     def save_xml(self, file_name):
         

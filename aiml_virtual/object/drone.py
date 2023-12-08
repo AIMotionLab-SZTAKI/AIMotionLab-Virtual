@@ -88,6 +88,9 @@ class Drone(MovingObject):
         self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
         self.sensor_ang_accelerometer = self.data.sensor(self.name_in_xml + "_ang_accelerometer").data
 
+        self.sphere_geom = self.model.geom(self.name_in_xml + "_sphere")
+        self.initial_sphere_color = self.sphere_geom.rgba[:3].copy()
+
         self.state = {
             "pos" : self.sensor_posimeter,
             "vel" : self.sensor_velocimeter,
@@ -216,6 +219,31 @@ class Drone(MovingObject):
     
     def get_name_in_xml(self):
         return self.name_in_xml
+
+    def set_sphere_color(self, new_rgb):
+        self.sphere_geom.rgba[0] = new_rgb[0]
+        self.sphere_geom.rgba[1] = new_rgb[1]
+        self.sphere_geom.rgba[2] = new_rgb[2]
+    
+    def reset_sphere_color(self):
+        self.sphere_geom.rgba[:3] = self.initial_sphere_color
+
+    def set_sphere_alpha(self, new_alpha):
+        self.sphere_geom.rgba[3] = new_alpha
+    
+    def toggle_sphere_alpha(self):
+        if self.sphere_geom.rgba[3] > 0.01:
+            self.sphere_geom.rgba[3] = 0.0
+        else:
+            self.sphere_geom.rgba[3] = 0.5
+
+    def get_sphere_size(self):
+
+        return self.sphere_geom.size
+
+    def set_sphere_size(self, new_size):
+        
+        self.sphere_geom.size = new_size
 
 
     @staticmethod

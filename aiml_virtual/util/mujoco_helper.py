@@ -2,6 +2,7 @@ import mujoco
 import math
 import os
 from stl import mesh
+import matplotlib.pyplot as plt
 
 import numpy as np
 from collections import deque
@@ -328,9 +329,18 @@ def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, el
     else:
         cam.elevation = new_elev
 
-def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")):
+def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
+                           sampling="curv"):
 
-    xs = np.linspace(0., 2 * a, resolution)
+    if sampling == "curv":
+        xs = curv_space(a, exp, resolution)
+    elif sampling == "lin":
+        xs = np.linspace(0., 2 * a, resolution)
+    else:
+        raise RuntimeError("Unknown sampling type")
+    
+    #xs[xs > 2 * a] = 2 * a
+
     ys = np.zeros(2 * resolution - 2)
     zps = a * np.sin(np.arccos((-xs + a) / a)) * (np.sin(np.arccos((-xs + a) / a) / 2.))**exp
     zns = -zps[1:-1].copy()
@@ -339,6 +349,7 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, fil
     xs = np.append(xs, np.flip(xs[1:-1]))
 
     points = np.vstack((xs, ys, zs)).T
+
 
     #ax = plt.axes(projection="3d")
     #ax.plot(xs, ys, zs)
@@ -379,8 +390,7 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, fil
                     triangles += [rotated_lobes[0][0]]
                     triangles += [rotated_lobes[i][1]]
                     triangles += [rotated_lobes[0][1]]
-                    
-                else:
+                elif i < rot_resolution - 1:
                     triangles += [rotated_lobes[0][0]]
                     triangles += [rotated_lobes[i][1]]
                     triangles += [rotated_lobes[i + 1][1]]
@@ -392,12 +402,12 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, fil
                         triangles += [rotated_lobes[i][j]]
                         triangles += [rotated_lobes[0][0]]
                         triangles += [rotated_lobes[0][j]]
-                    else:
+                    elif i < rot_resolution - 1:
                         triangles += [rotated_lobes[i][j]]
                         triangles += [rotated_lobes[0][0]]
                         triangles += [rotated_lobes[i + 1][j]]
 
-
+                
                 else:
                     if i == rot_resolution - 1:
                         triangles += [rotated_lobes[i][j]]
@@ -417,6 +427,7 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, fil
                         triangles += [rotated_lobes[i][j + 1]]
                         triangles += [rotated_lobes[i + 1][j + 1]]
                         triangles += [rotated_lobes[i + 1][j]]
+                        
 
     triangles = np.array(triangles)
     #print(triangles.shape)
@@ -437,10 +448,60 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, fil
             radar_field_mesh.vectors[i][j] = triangles[v_idx]
             v_idx += 1
     
-    filename = "radar_field_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + ".stl"
+    filename = "radar_field_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + "_" + sampling + ".stl"
 
     radar_field_mesh.save(os.path.join(filepath, filename))
 
     print("[mujoco_helper] Saved radar mesh at: " + os.path.join(filepath, filename))
 
     return filename
+
+
+def clamp(value, min, max):
+
+    if value <= min:
+        return min
+    if value >= max:
+        return max
+    
+    return value
+
+def curv_space(a, exp, num_samples) -> np.array:
+
+    xs_lin = np.linspace(0., 2 * a, num_samples)
+    zs = a * np.sin(np.arccos((-xs_lin + a) / a)) * (np.sin(np.arccos((-xs_lin + a) / a) / 2.))**exp
+
+    xs = np.empty(num_samples)
+
+
+    xs[0] = 0.0
+
+    x_step = 2 * a / (num_samples - 1)
+
+    z_diff = np.empty(num_samples)
+    z_diff[0] = 0.0
+    z_diffdiff = np.empty(num_samples)
+    z_diffdiff[0] = 0.0
+
+    for i in range(num_samples):
+
+        if i < num_samples - 1:
+
+            z_diff[i + 1] = (zs[i + 1] - zs[i]) / x_step
+            z_diffdiff[i + 1] = (z_diff[i + 1] - z_diff[i]) / x_step
+
+            k_inv = clamp((1.0 + z_diff[i + 1]**2)**1.5 / abs(z_diffdiff[i + 1]) / 100., 5.0, 300.)
+
+            #print(k_inv)
+
+            xs[i + 1] = xs[i] + k_inv
+
+    plt.plot(xs_lin, z_diff)
+
+    corrector = xs[-1] / xs_lin[-1]
+
+    xs /= corrector
+
+    #print(xs)
+
+    return xs

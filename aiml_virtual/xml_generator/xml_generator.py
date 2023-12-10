@@ -808,13 +808,14 @@ class SceneXmlGenerator:
         return name
     
     def add_radar_field(self, pos, color="0.5 0.5 0.5 0.2", a=5.0, exponent=1.3, rot_resolution=90, resolution=100,
-                        mesh_directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "xml_models", "meshes", "radar")):
+                        mesh_directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "xml_models", "meshes", "radar"),
+                        sampling="lin"):
 
         name = "radar_" + str(self.radar_cntr)
 
         body = ET.SubElement(self.worldbody, "body", name=name, pos=pos)
 
-        filename = mujoco_helper.create_radar_field_stl(a, exponent, rot_resolution, resolution, os.path.join(mesh_directory))
+        filename = mujoco_helper.create_radar_field_stl(a, exponent, rot_resolution, resolution, os.path.join(mesh_directory), sampling=sampling)
 
         ET.SubElement(self.asset, "mesh", file=os.path.join(mesh_directory, filename), name="radar_field_" + str(self.radar_cntr), smoothnormal="true", scale="1 1 1")
 

@@ -35,6 +35,7 @@ setup(name='aiml_virtual',
         'ffmpeg-python==0.2.0',
         'win-precise-time==1.4.2 ; platform_system=="Windows"',
         'windows-curses==2.3.1 ; platform_system=="Windows"',
-        'numpy-stl==3.1.1'
+        'numpy-stl==3.1.1',
+        'casadi=3.6.4'
         ]
       )

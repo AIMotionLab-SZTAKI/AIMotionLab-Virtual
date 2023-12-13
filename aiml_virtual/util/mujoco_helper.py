@@ -476,7 +476,7 @@ def curv_space(a, exp, num_samples) -> np.array:
 
     xs[0] = 0.0
 
-    x_step = 2 * a / (num_samples - 1)
+    x_step = 2 * a / ((num_samples) - 1)
 
     z_diff = np.empty(num_samples)
     z_diff[0] = 0.0
@@ -485,7 +485,7 @@ def curv_space(a, exp, num_samples) -> np.array:
 
     for i in range(num_samples):
 
-        if i < num_samples - 1:
+        if i < (num_samples) - 1:
 
             z_diff[i + 1] = (zs[i + 1] - zs[i]) / x_step
             z_diffdiff[i + 1] = (z_diff[i + 1] - z_diff[i]) / x_step
@@ -494,9 +494,11 @@ def curv_space(a, exp, num_samples) -> np.array:
 
             #print(k_inv)
 
-            xs[i + 1] = xs[i] + k_inv
+            xs[i + 1] = xs[i] + (k_inv)
 
-    plt.plot(xs_lin, z_diff)
+    #print(xs)
+
+    #plt.plot(xs_lin, z_diff)
 
     corrector = xs[-1] / xs_lin[-1]
 

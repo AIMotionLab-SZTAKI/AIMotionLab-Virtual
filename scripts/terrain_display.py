@@ -17,8 +17,8 @@ BLACK = "0.1 0.1 0.1 1.0"
 
 rod_length = float(BUMBLEBEE_PROP.ROD_LENGTH.value)
 
-hover_height = 550
-radar_pos = np.array((50, 0, hover_height))
+hover_height = 1010
+radar_pos = np.array((-2200, 2200, hover_height))
 
 # ------- 1. -------
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -26,14 +26,17 @@ xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain.xml"
 save_filename = "built_scene.xml"
 
-radar_a = 20.
-radar_exp = 3.0
+radar_a = 100.
+radar_exp = 2.5
 radar_rres = 45
-radar_res = 50
+radar_res = 100
+
+drone0_initpos = np.array((radar_pos[0] + (2 * radar_a) + 1., radar_pos[1], hover_height))
+
 
 scene = SceneXmlGenerator(xml_base_file_name)
-drone0_name = scene.add_drone("0 0 " + str(hover_height + 15), "1 0 0 0", BLUE, DRONE_TYPES.BUMBLEBEE)
-scene.add_radar_field(np.array2string(radar_pos)[1:-1], ".2 .5 .2 0.5", radar_a, radar_exp, radar_rres, radar_res, sampling="curv")
+drone0_name = scene.add_drone(np.array2string(drone0_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.BUMBLEBEE)
+scene.add_radar_field(np.array2string(radar_pos)[1:-1], ".5 .5 .5 0.5", radar_a, radar_exp, radar_rres, radar_res, sampling="curv")
 #scene.add_radar_field("-1.6 10.35 6.5", "0.1 0.8 0.1 1.0")
 #scene.add_radar_field("2.11 -7.65 5.40")
 
@@ -46,16 +49,16 @@ mocap_parsers = None
 control_step, graphics_step = 0.01, 0.02
 xml_filename = os.path.join(xml_path, save_filename)
 
-simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack=False)
-simulator.cam.lookat = np.array((0., 0., hover_height))
+simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack=False, window_size=[1920, 1088])
+simulator.cam.lookat = drone0_initpos
 simulator.cam.distance = 2
 simulator.cam.azimuth = 0
-simulator.scroll_distance_step = 15
-simulator.right_button_move_scale = 1
+simulator.scroll_distance_step = 2
+simulator.right_button_move_scale = .1
 simulator.camOnBoard.distance = 2
 simulator.onBoard_elev_offset = 15
 
-trajectory = DroneKeyboardTraj(0, np.array((0., 0., hover_height)))
+trajectory = DroneKeyboardTraj(0, drone0_initpos)
 
 simulator.set_key_up_callback(trajectory.up_press)
 simulator.set_key_up_release_callback(trajectory.up_release)
@@ -125,7 +128,7 @@ while not simulator.glfw_window_should_close():
 
     if is_point_inside_lobe(d0_pos, radar_pos, radar_a, radar_exp):
         simulator.append_title(" DRONE INSIDE")
-        d0.set_sphere_color(np.array((.9, .2, .2)))
+        d0.set_sphere_color(np.array((.8, .2, .2)))
     else:
         simulator.reset_title()
         d0.reset_sphere_color()

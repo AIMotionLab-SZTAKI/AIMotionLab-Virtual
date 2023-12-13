@@ -235,15 +235,17 @@ class Drone(MovingObject):
         if self.sphere_geom.rgba[3] > 0.01:
             self.sphere_geom.rgba[3] = 0.0
         else:
-            self.sphere_geom.rgba[3] = 0.5
+            self.sphere_geom.rgba[3] = 0.3
 
     def get_sphere_size(self):
 
         return self.sphere_geom.size
 
     def set_sphere_size(self, new_size):
+
+        s = max(0.25, new_size)
         
-        self.sphere_geom.size = new_size
+        self.sphere_geom.size = s
 
 
     @staticmethod

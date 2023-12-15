@@ -1,12 +1,11 @@
 import os
-from aiml_virtual.xml_generator import SceneXmlGenerator
+from aiml_virtual.xml_generator import RadarXmlGenerator
 from aiml_virtual.simulator import ActiveSimulator
-from aiml_virtual.controller import GeomControl
+from aiml_virtual.controller import LqrControl
 from aiml_virtual.object.drone import BUMBLEBEE_PROP, DRONE_TYPES
 from aiml_virtual.object import parseMovingObjects
 from aiml_virtual.trajectory.drone_keyboard_trajectory import DroneKeyboardTraj
 import numpy as np
-from aiml_virtual.util import mujoco_helper
 import math
 
 
@@ -27,14 +26,14 @@ xml_base_file_name = "scene_base_terrain.xml"
 save_filename = "built_scene.xml"
 
 radar_a = 100.
-radar_exp = 2.5
-radar_rres = 45
-radar_res = 100
+radar_exp = 2.
+radar_rres = 60
+radar_res = 50
 
 drone0_initpos = np.array((radar_pos[0] + (2 * radar_a) + 1., radar_pos[1], hover_height))
 
 
-scene = SceneXmlGenerator(xml_base_file_name)
+scene = RadarXmlGenerator(xml_base_file_name)
 drone0_name = scene.add_drone(np.array2string(drone0_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.BUMBLEBEE)
 scene.add_radar_field(np.array2string(radar_pos)[1:-1], ".5 .5 .5 0.5", radar_a, radar_exp, radar_rres, radar_res, sampling="curv")
 #scene.add_radar_field("-1.6 10.35 6.5", "0.1 0.8 0.1 1.0")
@@ -78,7 +77,7 @@ simulator.set_key_w_callback(trajectory.w_press)
 simulator.set_key_w_release_callback(trajectory.w_release)
 
 d0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
-d0.set_controllers([GeomControl(d0.mass, d0.inertia, simulator.gravity)])
+d0.set_controllers([LqrControl(d0.mass, d0.inertia, simulator.gravity)])
 d0.set_trajectory(trajectory)
 
 simulator.set_key_t_callback(d0.toggle_sphere_alpha)

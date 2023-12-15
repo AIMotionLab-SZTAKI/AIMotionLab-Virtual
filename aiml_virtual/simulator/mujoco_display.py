@@ -105,7 +105,7 @@ class Display:
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
 
         self.scroll_distance_step = 0.2
-        self.right_button_move_scale = 0.1
+        self.right_button_move_scale = 0.005
 
         #print(self.data.qpos.size)
         

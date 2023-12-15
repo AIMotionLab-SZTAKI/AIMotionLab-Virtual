@@ -132,7 +132,7 @@ class DroneKeyboardTraj(TrajectoryBase):
     
     def move_up(self, state):
 
-        self.target_pos[2] += self.speed
+        self.target_pos[2] += self.speed / 3.0
     
     def move_down(self, state):
 

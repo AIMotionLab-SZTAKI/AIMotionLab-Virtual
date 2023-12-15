@@ -490,11 +490,11 @@ def curv_space(a, exp, num_samples) -> np.array:
             z_diff[i + 1] = (zs[i + 1] - zs[i]) / x_step
             z_diffdiff[i + 1] = (z_diff[i + 1] - z_diff[i]) / x_step
 
-            k_inv = clamp((1.0 + z_diff[i + 1]**2)**1.5 / abs(z_diffdiff[i + 1]) / 100., 5.0, 300.)
+            k_inv = clamp((1.0 + z_diff[i + 1]**2)**1.5 / abs(z_diffdiff[i + 1]) / 100., 5.0, 100.)
 
             #print(k_inv)
 
-            xs[i + 1] = xs[i] + (k_inv)
+            xs[i + 1] = xs[i] + (k_inv / clamp(abs(z_diff[i + 1]), 0.4, 2.5))
 
     #print(xs)
 

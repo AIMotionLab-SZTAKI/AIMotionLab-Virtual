@@ -22,7 +22,7 @@ class LqrControl(ControllerBase):
             for j in range(self.K.shape[1]):
                 if np.abs(self.K[i, j]) < 1e-4:
                     self.K[i, j] = 0
-        print(self.K)
+        #print(self.K)
 
     ################################################################################
     def compute_control(self, state, setpoint, time) -> np.array:

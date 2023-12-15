@@ -12,37 +12,17 @@ from aiml_virtual.util import mujoco_helper
 import os
 
 
+class XmlGeneratorBase:
 
-PROP_COLOR = "0.1 0.1 0.1 1.0"
-PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
-
-SITE_NAME_END = "_cog"
-
-ROD_LENGTH = float(BUMBLEBEE_PROP.ROD_LENGTH.value)
-
-class SceneXmlGenerator:
-
-    def __init__(self, base_scene_filename):
-
-        self.base_scene_filename = base_scene_filename
-
+    def __init__(self) -> None:
         self.root = ET.Element("mujoco")
-        ET.SubElement(self.root, "include", file=base_scene_filename)
         self.asset = ET.SubElement(self.root, "asset")
         self.worldbody = ET.SubElement(self.root, "worldbody")
         self.contact = ET.SubElement(self.root, "contact")
         self.actuator = ET.SubElement(self.root, "actuator")
         self.sensor = ET.SubElement(self.root, "sensor")
 
-        self.parking_lot = None
-        self.airport = None
-        self.hospital = None
-        self.post_office = None
-        self.sztaki = None
-
-        self._bicycle_counter = 0
-
-        self._pole_cntr = 0
+        
         self._virtcrazyflie_cntr = 0
         self._virtbumblebee_cntr = 0
         self._virtbumblebee_hooked_cntr = 0
@@ -51,17 +31,17 @@ class SceneXmlGenerator:
         self._realbumblebee_hooked_cntr = 0
         self._virtfleet1tenth_cntr = 0
         self._realfleet1tenth_cntr = 0
+
+        self._bicycle_counter = 0
         
         self._box_payload_cntr = 0
         self._teardrop_payload_cntr = 0
         self._mocap_box_payload_cntr = 0
         self._mocap_teardrop_payload_cntr = 0
-
-        self.radar_cntr = 0
-        self.sphere_cntr = 0
-
+        
         self._mocap_drone_names = []
         self._mocap_payload_names = []
+
 
     def add_bicycle(self, pos, quat, color):
 
@@ -96,58 +76,6 @@ class SceneXmlGenerator:
         
         ET.SubElement(self.actuator, "motor", name=name + "_actr", joint=rear_wheel_name)
         ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
-
-
-    def add_airport(self, pos, quat=None):
-        if self.airport is None:
-
-            tag = "geom"
-            name = "airport"
-            size = "0.105 0.105 .05"
-            type = "plane"
-            material = "mat-airport"
-
-            if quat is None:
-                self.airport = ET.SubElement(self.worldbody, tag, name=name, pos=pos, size=size, type=type, material=material)
-            else:
-                self.airport = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat, size=size, type=type, material=material)
-            return self.airport
-        else:
-            print("[SceneXmlGenerator] Airport already added")
-
-
-    def add_parking_lot(self, pos, quat=None):
-        if self.parking_lot is None:
-
-            tag = "geom"
-            name = "parking_lot"
-            size = "0.105 0.115 .05"
-            type = "plane"
-            material = "mat-parking_lot"
-
-            if quat is None:
-                self.parking_lot = ET.SubElement(self.worldbody, tag, name=name, pos=pos, size=size, type=type, material=material)
-            else:
-                self.parking_lot = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat, size=size, type=type, material=material)
-            return self.parking_lot
-        else:
-            print("[SceneXmlGenerator] Parking lot already added")
-    
-
-    def add_pole(self, pos, quat=None):
-        name = "pole_" + str(self._pole_cntr)
-        self._pole_cntr += 1
-        tag = "body"
-        if quat is None:
-            pole = ET.SubElement(self.worldbody, tag, name=name, pos=pos)
-        else:
-            pole = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat)
-        
-        ET.SubElement(pole, "geom", {"class": "pole_top"})
-        ET.SubElement(pole, "geom", {"class": "pole_bottom1"})
-        ET.SubElement(pole, "geom", {"class": "pole_bottom2"})
-
-        return pole
 
 
     def add_drone(self, pos, quat, color, type: DRONE_TYPES, hook_dof = 1):
@@ -486,65 +414,6 @@ class SceneXmlGenerator:
         ET.SubElement(hookbody, "geom", type="capsule", pos="0 0.01299 0.0925", euler="1.0472 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hookbody, "geom", type="capsule", pos="0 -0.01299 0.0925", euler="2.0944 0 0", size="0.005 0.018", mass="0.0001")
 
-
-
-    def add_hospital(self, pos, quat=None):
-        name = "hospital"
-        if self.hospital is None:
-            tag = "body"
-            if quat is None:
-                self.hospital = ET.SubElement(self.worldbody, tag, name=name, pos=pos)
-            else:
-                self.hospital = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat)
-
-            ET.SubElement(self.hospital, "geom", name=name, type="box", pos="0 0 0.445", size="0.1275 0.13 0.445", material="mat-hospital")
-
-            return self.hospital
-        else:
-            print("[SceneXmlGenerator] Hospital already added")
-
-
-    def add_post_office(self, pos, quat=None):
-        name = "post_office"
-        if self.post_office is None:
-            tag = "body"
-            if quat is None:
-                self.post_office = ET.SubElement(self.worldbody, tag, name=name, pos=pos)
-            else:
-                self.post_office = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat)
-
-            ET.SubElement(self.post_office, "geom", name=name, type="box", pos="0 0 0.205", size="0.1275 0.1275 0.205", material="mat-post_office")
-
-            return self.post_office
-        else:
-            print("[SceneXmlGenerator] Post office already added")
-
-
-    def add_landing_zone(self, name, pos, quat=None):
-        tag = "body"
-        if quat is None:
-            landing_zone = ET.SubElement(self.worldbody, tag, name=name, pos=pos)
-        else:
-            landing_zone = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat)
-        
-        ET.SubElement(landing_zone, "geom", {"class" : "landing_zone"})
-
-        return landing_zone
-
-
-    def add_sztaki(self, pos, quat):
-        if self.sztaki is None:
-            name = "sztaki"
-            
-            self.sztaki = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
-
-            ET.SubElement(self.sztaki, "geom", name=name, type="box", pos="0 0 0.0925", size="0.105 0.105 0.0925", rgba="0.8 0.8 0.8 1.0", material="mat-sztaki")
-
-            return self.sztaki
-
-        else:
-            print("[SceneXmlGenerator] Sztaki already added")
-    
     def add_payload(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box):
 
         if type == PAYLOAD_TYPES.Box:
@@ -643,7 +512,6 @@ class SceneXmlGenerator:
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.10561", euler="1.17810 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01061 0.10561", euler="1.96350 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.09061", euler="2.74889 0 0", size="0.004 0.01378", mass=hook_mass)
-
 
     def add_car(self, pos, quat, color, is_virtual, has_rod=False, type="fleet1tenth"):
 
@@ -770,42 +638,166 @@ class SceneXmlGenerator:
         if has_rod:
             ET.SubElement(car, "geom", name=name + "_rod", type="cylinder", size="0.02 0.5225", pos="-.175 0 0.5225", rgba="0.3 0.3 0.3 1.0", euler="0 0.1 0")
     
-
-    def add_radar_pyramids(self, pos, number_of_pyramids=18, scale="1 1 1", color="0.5 0.5 0.5 0.2"):
+    def save_xml(self, file_name):
         
-        name = "radar_" + str(self.radar_cntr)
-        mesh_name = "pyramid_tobe_rotated_" + str(self.radar_cntr)
+        tree = ET.ElementTree(self.root)
+        #ET.indent(tree, space="\t", level=0) # uncomment this if python version >= 3.9
+        tree.write(file_name)
+        print()
+        print("[SceneXmlGenerator] Scene xml file saved at: " + os.path.normpath(file_name))
 
-        angle = 2 * math.pi / number_of_pyramids
+
+PROP_COLOR = "0.1 0.1 0.1 1.0"
+PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
+
+SITE_NAME_END = "_cog"
+
+ROD_LENGTH = float(BUMBLEBEE_PROP.ROD_LENGTH.value)
+
+class SceneXmlGenerator(XmlGeneratorBase):
+
+    def __init__(self, base_scene_filename):
+        super().__init__()
+
+        self.base_scene_filename = base_scene_filename
+
+        ET.SubElement(self.root, "include", file=base_scene_filename)
+
+        self.parking_lot = None
+        self.airport = None
+        self.hospital = None
+        self.post_office = None
+        self.sztaki = None
+
+
+        self._pole_cntr = 0
+
+
+    def add_airport(self, pos, quat=None):
+        if self.airport is None:
+
+            tag = "geom"
+            name = "airport"
+            size = "0.105 0.105 .05"
+            type = "plane"
+            material = "mat-airport"
+
+            if quat is None:
+                self.airport = ET.SubElement(self.worldbody, tag, name=name, pos=pos, size=size, type=type, material=material)
+            else:
+                self.airport = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat, size=size, type=type, material=material)
+            return self.airport
+        else:
+            print("[SceneXmlGenerator] Airport already added")
+
+
+    def add_parking_lot(self, pos, quat=None):
+        if self.parking_lot is None:
+
+            tag = "geom"
+            name = "parking_lot"
+            size = "0.105 0.115 .05"
+            type = "plane"
+            material = "mat-parking_lot"
+
+            if quat is None:
+                self.parking_lot = ET.SubElement(self.worldbody, tag, name=name, pos=pos, size=size, type=type, material=material)
+            else:
+                self.parking_lot = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat, size=size, type=type, material=material)
+            return self.parking_lot
+        else:
+            print("[SceneXmlGenerator] Parking lot already added")
+    
+
+    def add_pole(self, pos, quat=None):
+        name = "pole_" + str(self._pole_cntr)
+        self._pole_cntr += 1
+        tag = "body"
+        if quat is None:
+            pole = ET.SubElement(self.worldbody, tag, name=name, pos=pos)
+        else:
+            pole = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat)
         
-        h = 1.0
+        ET.SubElement(pole, "geom", {"class": "pole_top"})
+        ET.SubElement(pole, "geom", {"class": "pole_bottom1"})
+        ET.SubElement(pole, "geom", {"class": "pole_bottom2"})
 
-        aper2 = math.tan(angle / 2) * h
+        return pole
 
-        z_dim = 0.5
 
-        v0 = str(aper2) + " 1 -" + str(z_dim)
-        v1 = str(aper2) + " 1 " + str(z_dim)
-        v2 = "-" + str(aper2) + " 1 " + str(z_dim)
-        v3 = "-" + str(aper2) + " 1 -" + str(z_dim)
-        v4 = "0 0 0"
+    def add_hospital(self, pos, quat=None):
+        name = "hospital"
+        if self.hospital is None:
+            tag = "body"
+            if quat is None:
+                self.hospital = ET.SubElement(self.worldbody, tag, name=name, pos=pos)
+            else:
+                self.hospital = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat)
 
-        vertices = v0 + "  " + v1 + "  " + v2 + "  " + v3 + "  " + v4
+            ET.SubElement(self.hospital, "geom", name=name, type="box", pos="0 0 0.445", size="0.1275 0.13 0.445", material="mat-hospital")
 
-        pyramid_mesh = ET.SubElement(self.asset, "mesh", name=mesh_name, vertex=vertices, scale=scale)
+            return self.hospital
+        else:
+            print("[SceneXmlGenerator] Hospital already added")
 
-        body = ET.SubElement(self.worldbody, "body", name=name, pos=pos)
 
-        angle_rotated = 0.0
-        for i in range(number_of_pyramids):
-            euler = "0 0 " + str(angle_rotated)
-            ET.SubElement(body, "geom", type="mesh", mesh=mesh_name, rgba=color, euler=euler)
+    def add_post_office(self, pos, quat=None):
+        name = "post_office"
+        if self.post_office is None:
+            tag = "body"
+            if quat is None:
+                self.post_office = ET.SubElement(self.worldbody, tag, name=name, pos=pos)
+            else:
+                self.post_office = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat)
 
-            angle_rotated += angle
+            ET.SubElement(self.post_office, "geom", name=name, type="box", pos="0 0 0.205", size="0.1275 0.1275 0.205", material="mat-post_office")
 
-        self.radar_cntr += 1
+            return self.post_office
+        else:
+            print("[SceneXmlGenerator] Post office already added")
 
-        return name
+
+    def add_landing_zone(self, name, pos, quat=None):
+        tag = "body"
+        if quat is None:
+            landing_zone = ET.SubElement(self.worldbody, tag, name=name, pos=pos)
+        else:
+            landing_zone = ET.SubElement(self.worldbody, tag, name=name, pos=pos, quat=quat)
+        
+        ET.SubElement(landing_zone, "geom", {"class" : "landing_zone"})
+
+        return landing_zone
+
+
+    def add_sztaki(self, pos, quat):
+        if self.sztaki is None:
+            name = "sztaki"
+            
+            self.sztaki = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
+
+            ET.SubElement(self.sztaki, "geom", name=name, type="box", pos="0 0 0.0925", size="0.105 0.105 0.0925", rgba="0.8 0.8 0.8 1.0", material="mat-sztaki")
+
+            return self.sztaki
+
+        else:
+            print("[SceneXmlGenerator] Sztaki already added")
+    
+
+
+
+class RadarXmlGenerator(XmlGeneratorBase):
+
+    def __init__(self, base_scene_filename) -> None:
+        super().__init__()
+
+        
+        self.base_scene_filename = base_scene_filename
+
+        ET.SubElement(self.root, "include", file=base_scene_filename)
+
+        
+        self.radar_cntr = 0
+
     
     def add_radar_field(self, pos, color="0.5 0.5 0.5 0.2", a=5.0, exponent=1.3, rot_resolution=90, resolution=100,
                         mesh_directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "xml_models", "meshes", "radar"),
@@ -826,12 +818,3 @@ class SceneXmlGenerator:
         self.radar_cntr += 1
 
         return name
-
-    def save_xml(self, file_name):
-        
-        tree = ET.ElementTree(self.root)
-        #ET.indent(tree, space="\t", level=0) # uncomment this if python version >= 3.9
-        tree.write(file_name)
-        print()
-        print("[SceneXmlGenerator] Scene xml file saved at: " + os.path.normpath(file_name))
-

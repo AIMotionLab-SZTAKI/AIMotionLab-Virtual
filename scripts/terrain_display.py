@@ -1,5 +1,5 @@
 import os
-from aiml_virtual.xml_generator import RadarXmlGenerator
+from aiml_virtual.xml_generator import SceneXmlGenerator
 from aiml_virtual.simulator import ActiveSimulator
 from aiml_virtual.controller import LqrControl
 from aiml_virtual.object.drone import BUMBLEBEE_PROP, DRONE_TYPES
@@ -25,15 +25,15 @@ xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain.xml"
 save_filename = "built_scene.xml"
 
-radar_a = 100.
-radar_exp = 2.
+radar_a = 800.
+radar_exp = 5.
 radar_rres = 60
-radar_res = 50
+radar_res = 30
 
 drone0_initpos = np.array((radar_pos[0] + (2 * radar_a) + 1., radar_pos[1], hover_height))
 
 
-scene = RadarXmlGenerator(xml_base_file_name)
+scene = SceneXmlGenerator(xml_base_file_name)
 drone0_name = scene.add_drone(np.array2string(drone0_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.BUMBLEBEE)
 scene.add_radar_field(np.array2string(radar_pos)[1:-1], ".5 .5 .5 0.5", radar_a, radar_exp, radar_rres, radar_res, sampling="curv")
 #scene.add_radar_field("-1.6 10.35 6.5", "0.1 0.8 0.1 1.0")
@@ -52,7 +52,7 @@ simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, vir
 simulator.cam.lookat = drone0_initpos
 simulator.cam.distance = 2
 simulator.cam.azimuth = 0
-simulator.scroll_distance_step = 2
+simulator.scroll_distance_step = 20
 simulator.right_button_move_scale = .1
 simulator.camOnBoard.distance = 2
 simulator.onBoard_elev_offset = 15

@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from collections import deque
+from sympy import diff, sin, acos, lambdify
+from sympy.abc import x as sympyx
 
 
 class LiveFilter:
@@ -329,7 +331,7 @@ def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, el
     else:
         cam.elevation = new_elev
 
-def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
+def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, tilt=0.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
                            sampling="curv"):
 
     if sampling == "curv":
@@ -350,13 +352,19 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, fil
 
     points = np.vstack((xs, ys, zs)).T
 
+    euler_tilt = np.array((0.0, tilt, 0.0))
 
-    #ax = plt.axes(projection="3d")
+    quat_tilt = quaternion_from_euler(*euler_tilt)
+
+    points = quat_vect_array_mult(quat_tilt, points)
+
+
+    ax = plt.axes(projection="3d")
     #ax.plot(xs, ys, zs)
-    #ax.plot(points[:, 0], points[:, 1], points[:, 2])
+    ax.plot(points[:, 0], points[:, 1], points[:, 2])
 
     #plt.plot(xs, zs)
-    #plt.show()
+    plt.show()
 
     rotated_lobes = [points]
 
@@ -448,7 +456,7 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, fil
             radar_field_mesh.vectors[i][j] = triangles[v_idx]
             v_idx += 1
     
-    filename = "radar_field_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + "_" + sampling + ".stl"
+    filename = "radar_field_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + "_tilt" + str(tilt) + "_" + sampling + ".stl"
 
     radar_field_mesh.save(os.path.join(filepath, filename))
 
@@ -468,37 +476,55 @@ def clamp(value, min, max):
 
 def curv_space(a, exp, num_samples) -> np.array:
 
-    xs_lin = np.linspace(0., 2 * a, num_samples)
-    zs = a * np.sin(np.arccos((-xs_lin + a) / a)) * (np.sin(np.arccos((-xs_lin + a) / a) / 2.))**exp
+    upscale = 2
 
-    xs = np.empty(num_samples)
+    squeeze = 0.0001
+
+    xs_lin = np.linspace(squeeze, 2 * a - squeeze, num_samples * upscale)
+    #zs = a * np.sin(np.arccos((-xs_lin + a) / a)) * (np.sin(np.arccos((-xs_lin + a) / a) / 2.))**exp
+
+    expr = a * sin(acos((a - sympyx) / a)) * sin(acos((a - sympyx) / a) / 2)**exp
+    d_expr = diff(expr)
+    dd_expr = diff(d_expr)
+
+    f = lambdify(sympyx, expr, "numpy")
+    f_bar = lambdify(sympyx, d_expr, "numpy")
+    f_barbar = lambdify(sympyx, dd_expr, "numpy")
+
+    zs = f(xs_lin)
+    z_diff = f_bar(xs_lin)
+    z_diffdiff = f_barbar(xs_lin)
+
+    xs = np.empty(num_samples * upscale)
 
 
     xs[0] = 0.0
 
-    x_step = 2 * a / ((num_samples) - 1)
+    x_step = 2 * a / ((num_samples * upscale) - 1)
 
-    z_diff = np.empty(num_samples)
-    z_diff[0] = 0.0
-    z_diffdiff = np.empty(num_samples)
-    z_diffdiff[0] = 0.0
+    #z_diff = np.empty(num_samples)
+    #z_diff[0] = 0.0
+    #z_diffdiff = np.empty(num_samples)
+    #z_diffdiff[0] = 0.0
 
-    for i in range(num_samples):
+    for i in range((num_samples * upscale) - 1):
 
-        if i < (num_samples) - 1:
 
-            z_diff[i + 1] = (zs[i + 1] - zs[i]) / x_step
-            z_diffdiff[i + 1] = (z_diff[i + 1] - z_diff[i]) / x_step
+        #z_diff[i + 1] = (zs[i + 1] - zs[i]) / x_step
+        #z_diffdiff[i + 1] = (z_diff[i + 1] - z_diff[i]) / x_step
 
-            k_inv = clamp((1.0 + z_diff[i + 1]**2)**1.5 / abs(z_diffdiff[i + 1]) / 100., 5.0, 100.)
+        #k_inv = clamp((1.0 + z_diff[i + 1]**2)**1.5 / abs(z_diffdiff[i + 1]) / 100., 5.0, 100.)
+        k_inv = (1.0 + z_diff[i + 1]**2)**1.5 / abs(z_diffdiff[i + 1])
 
-            #print(k_inv)
+        #print(k_inv)
 
-            xs[i + 1] = xs[i] + (k_inv / clamp(abs(z_diff[i + 1]), 0.4, 2.5))
+        #xs[i + 1] = xs[i] + (k_inv / clamp(abs(z_diff[i + 1]), 0.4, 2.5))
+        xs[i + 1] = xs[i] + (clamp(k_inv, 0.5 * a, 5. * a) / clamp(abs(z_diff[i + 1]), 0.4, 2.5))
 
     #print(xs)
 
     #plt.plot(xs_lin, z_diff)
+    xs = xs[0::upscale]
 
     corrector = xs[-1] / xs_lin[-1]
 
@@ -507,3 +533,38 @@ def curv_space(a, exp, num_samples) -> np.array:
     #print(xs)
 
     return xs
+
+
+class Radar:
+
+    """ NOT A MUJOCO OBJECT, ONLY A CONTAINER FOR DATA & CALCULATIONS """
+
+    def __init__(self, pos, a, exp, res, rres, tilt=0.0, color="0.5 0.5 0.5 0.5") -> None:
+        
+        self.pos = pos # center of the radar field
+        self.a = a # size of the radar field (radius = 2 * a)
+        self.exp = exp # shape of the radar field
+        self.res = res # sample size of the 2D teardrop function
+        self.rres = rres # how many times to rotate the tear drop to get the circular shape
+        self.tilt = tilt # how much the teardrop is tilted before being rotated by 360°
+        self.color = color # color of the radar field
+
+    @staticmethod
+    def is_point_inside_lobe(point, radar_center, a, exponent, tilt):
+
+        d = math.sqrt((radar_center[0] - point[0])**2 + (radar_center[1] - point[1])**2)
+
+        if d <= 2 * a:
+
+            z_lim = a * math.sin(math.acos((a - d) / a)) * math.sin(math.acos((a - d) / a) / 2.0)**exponent
+
+            if point[2] < radar_center[2] + z_lim and point[2] > (radar_center[2] - z_lim):
+                return True
+        
+        return False
+    
+    def sees_drone(self, drone):
+
+        drone_pos = drone.get_state()["pos"]
+
+        return Radar.is_point_inside_lobe(drone_pos, self.pos, self.a, self.exp, self.tilt)

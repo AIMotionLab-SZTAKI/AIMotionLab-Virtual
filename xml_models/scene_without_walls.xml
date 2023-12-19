@@ -1,4 +1,5 @@
 <mujoco model="Lagyi">
+  <include file="common_assets.xml" />
 
   <default class="main">
     <!-- 
@@ -48,26 +49,6 @@
     
     <mesh file="meshes/bucket/Bucket3.obj" name="bucket" smoothnormal="false" scale="0.035 0.035 0.035"/>
 
-    <mesh file="meshes/payload/payload_simplified.stl" name="payload_simplified" smoothnormal="false" scale="0.00115 0.00115 0.00115"/>
-
-    <mesh file="meshes/crazyflie/cf_body.stl" name="crazyflie_body" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
-    <mesh file="meshes/crazyflie/4_motormounts.stl" name="crazyflie_4_motormounts" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
-    <mesh file="meshes/crazyflie/4_motors.stl" name="crazyflie_4_motors" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
-    <mesh file="meshes/crazyflie/ccw_prop.stl" name="crazyflie_ccw_prop" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
-    <mesh file="meshes/crazyflie/cw_prop.stl" name="crazyflie_cw_prop" smoothnormal="true" scale="1.0452 1.0452 1.0452"/>
-
-<!--
-    <mesh file="meshes/cf_body.stl" name="drone_body_large" smoothnormal="true" scale="5 5 5"/>
-    <mesh file="meshes/4_motormounts.stl" name="drone_4_motormounts_large" smoothnormal="true" scale="5 5 5"/>
-    <mesh file="meshes/4_motors.stl" name="drone_4_motors_large" smoothnormal="true" scale="5 5 5"/>
-    <mesh file="meshes/ccw_prop.stl" name="drone_ccw_prop_large" smoothnormal="true" scale="5 5 5"/>
-    <mesh file="meshes/cw_prop.stl" name="drone_cw_prop_large" smoothnormal="true" scale="5 5 5"/>
--->
-
-    <mesh file="meshes/bumblebee/quad_model_no_prop_simplified.stl" name="bumblebee_body" smoothnormal="true" scale="0.001 0.001 0.001"/>
-    <mesh file="meshes/bumblebee/ccw_propeller_simplified.stl" name="bumblebee_ccw_prop" smoothnormal="true" scale="0.001 0.001 0.001"/>
-    <mesh file="meshes/bumblebee/cw_propeller_simplified.stl" name="bumblebee_cw_prop" smoothnormal="true" scale="0.001 0.001 0.001"/>
-
     <texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512"/>
     <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .1 .1" rgb2=".2 .2 .2"/>
     <texture name="tex-carpet" type="2d" file="textures/carpet_lagyi4.png"/>
@@ -86,8 +67,6 @@
     <material name="mat-parking_lot" reflectance="0.7" texrepeat="9.524 8.696" texture="tex-parking_lot" texuniform="true"/>
     <material name="mat-sztaki" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-sztaki" texuniform="true"/>
 
-    <texture name="tex_check" builtin="checker" type="2d" width="256" height="256" rgb1=".8 .1 .1" rgb2=".1 .1 .8"/>
-    <material name="material_check" texture="tex_check" texrepeat="2 2" texuniform="true"/>
   </asset>
 
   <worldbody>

@@ -330,6 +330,24 @@ def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, el
 
     else:
         cam.elevation = new_elev
+    
+
+def move_point_on_sphere(point, delta_theta, delta_phi):
+    # convert to polar coordinates
+    r = math.sqrt(point[0]**2 + point[1]**2 + point[2]**2)
+    theta = math.acos(point[2] / r)
+    phi = math.atan2(point[1], point[0])
+
+    theta_n = theta + delta_theta
+    phi_n = phi + delta_phi
+
+    # convert back to cartesian
+    x_n = r * math.sin(theta_n) * math.cos(phi_n)
+    y_n = r * math.sin(theta_n) * math.sin(phi_n)
+    z_n = r * math.cos(theta_n)
+
+    return np.array((x_n, y_n, z_n))
+
 
 def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, tilt=0.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
                            sampling="curv"):
@@ -552,13 +570,17 @@ class Radar:
     @staticmethod
     def is_point_inside_lobe(point, radar_center, a, exponent, tilt):
 
-        d = math.sqrt((radar_center[0] - point[0])**2 + (radar_center[1] - point[1])**2)
+        p = move_point_on_sphere(point - radar_center, -tilt, 0.0) + radar_center
+
+        #plt.plot(p[0], p[2], marker='x')
+
+        d = math.sqrt((radar_center[0] - p[0])**2 + (radar_center[1] - p[1])**2)
 
         if d <= 2 * a:
 
             z_lim = a * math.sin(math.acos((a - d) / a)) * math.sin(math.acos((a - d) / a) / 2.0)**exponent
 
-            if point[2] < radar_center[2] + z_lim and point[2] > (radar_center[2] - z_lim):
+            if p[2] < radar_center[2] + z_lim and p[2] > (radar_center[2] - z_lim):
                 return True
         
         return False

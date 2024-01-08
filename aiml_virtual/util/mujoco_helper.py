@@ -349,11 +349,11 @@ def move_point_on_sphere(point, delta_theta, delta_phi):
     return np.array((x_n, y_n, z_n))
 
 
-def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, tilt=0.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
+def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height_scale=1.0, tilt=0.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
                            sampling="curv"):
 
     if sampling == "curv":
-        xs = curv_space(a, exp, resolution)
+        xs = curv_space(a, exp, height_scale, resolution)
     elif sampling == "lin":
         xs = np.linspace(0., 2 * a, resolution)
     else:
@@ -362,7 +362,7 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, til
     #xs[xs > 2 * a] = 2 * a
 
     ys = np.zeros(2 * resolution - 2)
-    zps = a * np.sin(np.arccos((-xs + a) / a)) * (np.sin(np.arccos((-xs + a) / a) / 2.))**exp
+    zps = height_scale * a * np.sin(np.arccos((-xs + a) / a)) * (np.sin(np.arccos((-xs + a) / a) / 2.))**exp
     zns = -zps[1:-1].copy()
 
     zs = np.append(zps, np.flip(zns))
@@ -474,7 +474,7 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, til
             radar_field_mesh.vectors[i][j] = triangles[v_idx]
             v_idx += 1
     
-    filename = "radar_field_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + "_tilt" + str(tilt) + "_" + sampling + ".stl"
+    filename = "radar_field_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + "_hs" + str(height_scale) + "_tilt" + str(tilt) + "_" + sampling + ".stl"
 
     radar_field_mesh.save(os.path.join(filepath, filename))
 
@@ -492,7 +492,7 @@ def clamp(value, min, max):
     
     return value
 
-def curv_space(a, exp, num_samples) -> np.array:
+def curv_space(a, exp, height_scale, num_samples) -> np.array:
 
     upscale = 2
 
@@ -501,7 +501,7 @@ def curv_space(a, exp, num_samples) -> np.array:
     xs_lin = np.linspace(squeeze, 2 * a - squeeze, num_samples * upscale)
     #zs = a * np.sin(np.arccos((-xs_lin + a) / a)) * (np.sin(np.arccos((-xs_lin + a) / a) / 2.))**exp
 
-    expr = a * sin(acos((a - sympyx) / a)) * sin(acos((a - sympyx) / a) / 2)**exp
+    expr = height_scale * a * sin(acos((a - sympyx) / a)) * sin(acos((a - sympyx) / a) / 2)**exp
     d_expr = diff(expr)
     dd_expr = diff(d_expr)
 
@@ -557,7 +557,7 @@ class Radar:
 
     """ NOT A MUJOCO OBJECT, ONLY A CONTAINER FOR DATA & CALCULATIONS """
 
-    def __init__(self, pos, a, exp, res, rres, tilt=0.0, color="0.5 0.5 0.5 0.5") -> None:
+    def __init__(self, pos, a, exp, res, rres, height_scale=1.0, tilt=0.0, color="0.5 0.5 0.5 0.5") -> None:
         
         self.pos = pos # center of the radar field
         self.a = a # size of the radar field (radius = 2 * a)
@@ -566,9 +566,10 @@ class Radar:
         self.rres = rres # how many times to rotate the tear drop to get the circular shape
         self.tilt = tilt # how much the teardrop is tilted before being rotated by 360°
         self.color = color # color of the radar field
+        self.height_scale = height_scale
 
     @staticmethod
-    def is_point_inside_lobe(point, radar_center, a, exponent, tilt):
+    def is_point_inside_lobe(point, radar_center, a, exponent, height_scale, tilt):
 
         p = move_point_on_sphere(point - radar_center, -tilt, 0.0) + radar_center
 
@@ -578,7 +579,7 @@ class Radar:
 
         if d <= 2 * a:
 
-            z_lim = a * math.sin(math.acos((a - d) / a)) * math.sin(math.acos((a - d) / a) / 2.0)**exponent
+            z_lim = height_scale * a * math.sin(math.acos((a - d) / a)) * math.sin(math.acos((a - d) / a) / 2.0)**exponent
 
             if p[2] < radar_center[2] + z_lim and p[2] > (radar_center[2] - z_lim):
                 return True
@@ -589,4 +590,4 @@ class Radar:
 
         drone_pos = drone.get_state()["pos"]
 
-        return Radar.is_point_inside_lobe(drone_pos, self.pos, self.a, self.exp, self.tilt)
+        return Radar.is_point_inside_lobe(drone_pos, self.pos, self.a, self.exp, self.height_scale, self.tilt)

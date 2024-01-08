@@ -147,3 +147,21 @@ class DroneKeyboardTraj(TrajectoryBase):
 
         self.target_rpy[2] -= self.rot_speed
         #print(self.target_rpy)
+
+    def set_key_callbacks(self, simulator):
+        simulator.set_key_up_callback(self.up_press)
+        simulator.set_key_up_release_callback(self.up_release)
+        simulator.set_key_down_callback(self.down_press)
+        simulator.set_key_down_release_callback(self.down_release)
+        simulator.set_key_left_callback(self.left_press)
+        simulator.set_key_left_release_callback(self.left_release)
+        simulator.set_key_right_callback(self.right_press)
+        simulator.set_key_right_release_callback(self.right_release)
+        simulator.set_key_a_callback(self.a_press)
+        simulator.set_key_a_release_callback(self.a_release)
+        simulator.set_key_s_callback(self.s_press)
+        simulator.set_key_s_release_callback(self.s_release)
+        simulator.set_key_d_callback(self.d_press)
+        simulator.set_key_d_release_callback(self.d_release)
+        simulator.set_key_w_callback(self.w_press)
+        simulator.set_key_w_release_callback(self.w_release)

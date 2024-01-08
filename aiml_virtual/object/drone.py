@@ -246,6 +246,25 @@ class Drone(MovingObject):
         s = max(0.25, new_size)
         
         self.sphere_geom.size = s
+    
+    def scale_sphere(self, simulator):
+        
+        drone0_pos = self.state["pos"]
+
+        elev_rad = math.radians(simulator.activeCam.elevation)
+        azim_rad = math.radians(simulator.activeCam.azimuth)
+
+        a = simulator.activeCam.distance * math.cos(elev_rad)
+        dz = simulator.activeCam.distance * math.sin(elev_rad)
+
+        dx = a * math.cos(azim_rad)
+        dy = a * math.sin(azim_rad)
+
+        c = simulator.activeCam.lookat - np.array((dx, dy, dz))
+
+        d_cs = math.sqrt((c[0] - drone0_pos[0])**2 + (c[1] - drone0_pos[1])**2 + (c[2] - drone0_pos[2])**2)
+
+        self.set_sphere_size(d_cs / 100.0)
 
 
     @staticmethod

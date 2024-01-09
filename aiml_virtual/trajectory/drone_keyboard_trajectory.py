@@ -11,8 +11,8 @@ class DroneKeyboardTraj(TrajectoryBase):
         self.target_pos = np.copy(target_pos)
         self.target_rpy = np.array((0.0, 0.0, 0.0))
 
-        self.speed = 0.04
-        self.rot_speed = 0.004
+        self.speed = 2
+        self.rot_speed = 0.2
 
         self.up_pressed = False
         self.down_pressed = False
@@ -28,28 +28,28 @@ class DroneKeyboardTraj(TrajectoryBase):
     def evaluate(self, state, i, time, control_step):
 
         if self.up_pressed:
-            self.move_forward(state)
+            self.move_forward(state, control_step)
         
         if self.down_pressed:
-            self.move_backward(state)
+            self.move_backward(state, control_step)
 
         if self.left_pressed:
-            self.move_left(state)
+            self.move_left(state, control_step)
 
         if self.right_pressed:
-            self.move_right(state)
+            self.move_right(state, control_step)
         
         if self.a_pressed:
-            self.rot_left(state)
+            self.rot_left(state, control_step)
         
         if self.d_pressed:
-            self.rot_right(state)
+            self.rot_right(state, control_step)
         
         if self.w_pressed:
-            self.move_up(state)
+            self.move_up(state, control_step)
             
         if self.s_pressed:
-            self.move_down(state)
+            self.move_down(state, control_step)
 
         self.output["load_mass"] = self.load_mass
         self.output["target_pos"] = self.target_pos
@@ -110,42 +110,42 @@ class DroneKeyboardTraj(TrajectoryBase):
     def w_release(self):
         self.w_pressed = False
     
-    def move_forward(self, state):
-        diff = mujoco_helper.qv_mult(state["quat"], np.array((self.speed, 0.0, 0.0)))
+    def move_forward(self, state, control_step):
+        diff = mujoco_helper.qv_mult(state["quat"], np.array((self.speed * control_step, 0.0, 0.0)))
         diff[2] = 0.0
         self.target_pos += diff
         
-    def move_backward(self, state):
-        diff = mujoco_helper.qv_mult(state["quat"], np.array((self.speed, 0.0, 0.0)))
+    def move_backward(self, state, control_step):
+        diff = mujoco_helper.qv_mult(state["quat"], np.array((self.speed * control_step, 0.0, 0.0)))
         diff[2] = 0.0
         self.target_pos -= diff
     
-    def move_left(self, state):
-        diff = mujoco_helper.qv_mult(state["quat"], np.array((0.0, self.speed, 0.0)))
+    def move_left(self, state, control_step):
+        diff = mujoco_helper.qv_mult(state["quat"], np.array((0.0, self.speed * control_step, 0.0)))
         diff[2] = 0.0
         self.target_pos += diff
     
-    def move_right(self, state):
-        diff = mujoco_helper.qv_mult(state["quat"], np.array((0.0, self.speed, 0.0)))
+    def move_right(self, state, control_step):
+        diff = mujoco_helper.qv_mult(state["quat"], np.array((0.0, self.speed * control_step, 0.0)))
         diff[2] = 0.0
         self.target_pos -= diff
     
-    def move_up(self, state):
+    def move_up(self, state, control_step):
 
-        self.target_pos[2] += self.speed / 3.0
+        self.target_pos[2] += self.speed * control_step / 3.0
     
-    def move_down(self, state):
+    def move_down(self, state, control_step):
 
-        self.target_pos[2] -= self.speed
+        self.target_pos[2] -= self.speed * control_step
 
-    def rot_left(self, state):
+    def rot_left(self, state, control_step):
 
-        self.target_rpy[2] += self.rot_speed
+        self.target_rpy[2] += self.rot_speed * control_step
         #print(self.target_rpy)
     
-    def rot_right(self, state):
+    def rot_right(self, state, control_step):
 
-        self.target_rpy[2] -= self.rot_speed
+        self.target_rpy[2] -= self.rot_speed * control_step
         #print(self.target_rpy)
 
     def set_key_callbacks(self, simulator):

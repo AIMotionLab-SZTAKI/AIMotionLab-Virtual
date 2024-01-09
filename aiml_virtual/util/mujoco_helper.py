@@ -377,12 +377,12 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, hei
     points = quat_vect_array_mult(quat_tilt, points)
 
 
-    ax = plt.axes(projection="3d")
+    #ax = plt.axes(projection="3d")
     #ax.plot(xs, ys, zs)
-    ax.plot(points[:, 0], points[:, 1], points[:, 2])
+    #ax.plot(points[:, 0], points[:, 1], points[:, 2])
 
     #plt.plot(xs, zs)
-    plt.show()
+    #plt.show()
 
     rotated_lobes = [points]
 

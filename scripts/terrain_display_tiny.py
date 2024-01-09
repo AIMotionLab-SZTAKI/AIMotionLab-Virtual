@@ -2,7 +2,7 @@ import os
 from aiml_virtual.xml_generator import SceneXmlGenerator
 from aiml_virtual.simulator import ActiveSimulator
 from aiml_virtual.controller import LqrControl
-from aiml_virtual.object.drone import BUMBLEBEE_PROP, DRONE_TYPES
+from aiml_virtual.object.drone import DRONE_TYPES
 from aiml_virtual.object import parseMovingObjects
 from aiml_virtual.trajectory.drone_keyboard_trajectory import DroneKeyboardTraj
 import numpy as np
@@ -17,27 +17,24 @@ BLACK = "0.1 0.1 0.1 1.0"
 GREEN = "0.2 0.6 0.2 1.0"
 
 
-rod_length = float(BUMBLEBEE_PROP.ROD_LENGTH.value)
-
-
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain_tiny.xml"
 save_filename = "built_scene.xml"
 
-radar0 = Radar(np.array((-45, 45, 26)), 4., 1.5, 50, 60, height_scale=.5, tilt=-0.2)
-#radar1 = Radar(np.array((20, 38, 21)), 20., 2.5, 50, 60)
-#radar2 = Radar(np.array((-36, -38, 10)), 15., 2.5, 50, 60)
+radar0 = Radar(np.array((-45, 45, 25)), 20., 1.5, 50, 60, height_scale=.5, tilt=-0.2)
+radar1 = Radar(np.array((20, 38, 20)), 20., 2.5, 50, 60, height_scale=.5, tilt=-0.2)
+radar2 = Radar(np.array((-36, -38, 9)), 15., 2.5, 50, 60, height_scale=.5, tilt=-0.2)
 
 hover_height = radar0.pos[2]
-#radars = [radar0, radar1, radar2]
-radars = [radar0]
+radars = [radar0, radar1, radar2]
+#radars = [radar0]
 
 drone0_initpos = np.array((radar0.pos[0] - (2 * radar0.a) - 1., radar0.pos[1], hover_height))
 
 
 scene = SceneXmlGenerator(xml_base_file_name)
-drone0_name = scene.add_drone(np.array2string(drone0_initpos)[1:-1], "1 0 0 0", GREEN, DRONE_TYPES.BUMBLEBEE)
+drone0_name = scene.add_drone(np.array2string(drone0_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.BUMBLEBEE)
 
 for radar in radars:
     scene.add_radar_field(np.array2string(radar.pos)[1:-1], radar.color, radar.a, radar.exp, radar.rres, radar.res, radar.height_scale, radar.tilt, sampling="curv")

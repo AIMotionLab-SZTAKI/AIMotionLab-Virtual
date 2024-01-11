@@ -131,7 +131,7 @@ log_ff=[]
 #payload0.set_force_torque(np.array([0, 0, 0]), np.array([-0.04, .04, 0]))
 #simulator.update(0)
 
-simulator.pause_unpause()
+simulator.pause()
 while not simulator.glfw_window_should_close():
     simulator.update()
 

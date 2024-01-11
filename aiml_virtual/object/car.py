@@ -143,6 +143,7 @@ class Car(MovingObject):
 
     
     def set_torque(self, torque):
+        torque = self.clamp(torque, -2.0, 2.0)
         self.wheelrl.ctrl[0] = torque
         self.wheelrr.ctrl[0] = torque
         self.wheelfl.ctrl[0] = torque

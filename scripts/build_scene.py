@@ -34,7 +34,7 @@ pole_counter = 0
 
 def add_building():
     global scene, simulator, is_scene_cleared
-    simulator.pause_unpause()
+    simulator.pause()
     input_gui = BuildingInputGui()
     input_gui.show()
 
@@ -99,10 +99,10 @@ def add_building():
     
     else:
         print("Non-existent building")
-        simulator.pause_unpause()
+        simulator.unpause()
         return
     
-    simulator.pause_unpause()
+    simulator.unpause()
     is_scene_cleared = False
     
 
@@ -110,7 +110,7 @@ def add_building():
 def add_vehicle():
     global scene, simulator, is_scene_cleared
 
-    simulator.pause_unpause()
+    simulator.pause()
     
     input_gui = VehicleInputGui()
     input_gui.show()
@@ -141,34 +141,38 @@ def add_vehicle():
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Virtual Fleet1Tenth":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_car(input_gui.position, input_gui.quaternion, RED, True, False, "fleet1tenth")
+                scene.add_car(input_gui.position, input_gui.quaternion, RED, True, False, False, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Virtual F1Tenth with rod":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_car(input_gui.position, input_gui.quaternion, RED, True, True, "fleet1tenth")
+                scene.add_car(input_gui.position, input_gui.quaternion, RED, True, True, False, "fleet1tenth")
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Virtual F1Tenth with trailer":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_car(input_gui.position, input_gui.quaternion, RED, True, False, True, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Mocap Fleet1Tenth":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_car(input_gui.position, input_gui.quaternion, BLUE, False, False, "fleet1tenth")
+                scene.add_car(input_gui.position, input_gui.quaternion, BLUE, False, False, False, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         elif input_gui.vehicle_type == "Mocap F1Tenth with rod":
             if input_gui.position != "" and input_gui.quaternion != "":
-                scene.add_car(input_gui.position, input_gui.quaternion, BLUE, False, True, "fleet1tenth")
+                scene.add_car(input_gui.position, input_gui.quaternion, BLUE, False, True, False, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         
         else:
             #print(input_gui.vehicle_type)
             print("Non-existent vehicle type: " + input_gui.vehicle_type)
-            simulator.pause_unpause()
+            simulator.unpause()
             return
     
         is_scene_cleared = False
     
-    simulator.pause_unpause()
+    simulator.unpause()
 
 def add_payload():
     global scene, simulator
-    simulator.pause_unpause()
+    simulator.pause()
     input_gui = PayloadInputGui()
     input_gui.show()
 
@@ -178,7 +182,7 @@ def add_payload():
                 if input_gui.type == PAYLOAD_TYPES.Box:
                     if input_gui.size == "":
                         print("Payload size was unspecified...")
-                        simulator.pause_unpause()
+                        simulator.unpause()
                         return
                     scene.add_mocap_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type)
                 elif input_gui.type == PAYLOAD_TYPES.Teardrop:
@@ -190,7 +194,7 @@ def add_payload():
                     if input_gui.type == PAYLOAD_TYPES.Box:
                         if input_gui.size == "":
                             print("Payload size was unspecified...")
-                            simulator.pause_unpause()
+                            simulator.unpause()
                             return
                         scene.add_payload(input_gui.position, input_gui.size, input_gui.mass, input_gui.quaternion, input_gui.color)
                     elif input_gui.type == PAYLOAD_TYPES.Teardrop:
@@ -202,7 +206,7 @@ def add_payload():
 
             save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
     
-    simulator.pause_unpause()
+    simulator.unpause()
 
 
 def save_and_reload_model(scene, simulator, save_filename, vehicle_names_in_motive=None):
@@ -225,7 +229,7 @@ def build_from_optitrack():
     """
     global is_scene_cleared
     global scene, simulator
-    simulator.pause_unpause()
+    simulator.pause()
 
     if is_scene_cleared:
 
@@ -294,7 +298,7 @@ def build_from_optitrack():
 
         save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename), vehicle_names_in_motive)
         is_scene_cleared = False
-    simulator.pause_unpause()
+    simulator.unpause()
         #if car_added:
         #    mocapid = simulator.model.body("car0").mocapid[0]
         #    car = CarMocap(simulator.model, simulator.data, mocapid, "car0", "AI_car_01")

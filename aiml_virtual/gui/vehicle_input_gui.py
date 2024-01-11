@@ -11,6 +11,7 @@ VEHICLE_TYPE_OPTIONS = [
     "Mocap bb with hook",
     "Virtual Fleet1Tenth",
     "Virtual F1Tenth with rod",
+    "Virtual F1Tenth with trailer",
     "Mocap Fleet1Tenth",
     "Mocap F1Tenth with rod"
 ]

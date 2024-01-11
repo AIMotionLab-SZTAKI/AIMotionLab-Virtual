@@ -14,9 +14,10 @@ class CarTrajectory(TrajectoryBase):
         self._tck = None # BSpline vector knots/coeffs/degree
         self.s_bounds = None # path parameter vector
         self.s=None # running path parameter
+        self.start_delay = 0
 
 
-    def build_from_points_const_speed(self, path_points: np.ndarray, path_smoothing: float, path_degree: int, const_speed: float):
+    def build_from_points_const_speed(self, path_points: np.ndarray, path_smoothing: float, path_degree: int, const_speed: float, start_delay: float = 0):
         """Object responsible for storing the reference trajectory data.
 
         Args:
@@ -25,6 +26,7 @@ class CarTrajectory(TrajectoryBase):
             degree (int): Degree of the fitted Spline
         """
 
+        self.start_delay=start_delay
         x_points = path_points[:, 0].tolist()
         y_points = path_points[:, 1].tolist()
 
@@ -114,6 +116,11 @@ class CarTrajectory(TrajectoryBase):
 
     def evaluate(self, state, i, time, control_step) -> dict:
         """Evaluates the trajectory based on the vehicle state & time"""
+
+        if i * control_step < self.start_delay:
+            self.output["running"] = False
+            return self.output
+
         if self._tck is None:
             raise ValueError("Trajectory must be defined before evaluation")
         

@@ -43,7 +43,7 @@ virt_parsers = [parseMovingObjects]
 
 
 
-control_step, graphics_step = 0.01, 0.02 # the car controller operates in 40 Hz
+control_step, graphics_step = 0.01, 0.02
 xml_filename = os.path.join(xml_path, save_filename)
 
 # recording interval for automatic video capture
@@ -101,7 +101,7 @@ car0_trajectory.build_from_points_const_speed(path_points=path_points, path_smoo
 
 
 
-car0_controller = CarLPVController(car0.mass, car0.inertia) # kiszedtem a gravitációt, az a kocsit nem érdekli
+car0_controller = CarLPVController(car0.mass, car0.inertia)
 
 car0_controllers = [car0_controller]
 

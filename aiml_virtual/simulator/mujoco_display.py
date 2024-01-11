@@ -510,7 +510,10 @@ class Display:
             """
             pause simulation
             """
-            self.pause_unpause()
+            if self._is_paused:
+                self.unpause()
+            else:
+                self.pause()
         
         if key == glfw.KEY_S and action == glfw.PRESS:
             """
@@ -624,8 +627,13 @@ class Display:
     def reset_title(self):
         glfw.set_window_title(self.window, self.title0)
     
-    def pause_unpause(self):
-        self._is_paused = not self._is_paused
+    def pause(self):
+        if not self._is_paused:
+            self._is_paused = True
+
+    def unpause(self):
+        if self._is_paused:
+            self._is_paused = False
 
 
     def connect_to_Optitrack(self):
@@ -721,9 +729,9 @@ class Display:
         if len(self.all_mocap_objects) > 0:
             object_names = MocapObject.get_object_names_motive(self.all_mocap_objects)
             object_labels = MocapObject.get_object_names_in_xml(self.all_mocap_objects)
-            self.pause_unpause()
+            self.pause()
             gui = VehicleNameGui(vehicle_labels=object_labels, vehicle_names=object_names)
             gui.show()
             MocapObject.set_object_names_motive(self.all_mocap_objects, gui.vehicle_names)
-            self.pause_unpause()
+            self.unpause()
 

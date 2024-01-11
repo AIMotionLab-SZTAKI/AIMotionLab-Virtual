@@ -20,7 +20,7 @@ simulator.set_title("AIMotionLab-Virtual")
 
 def load_model():
     global simulator
-    simulator.pause_unpause()
+    simulator.pause()
     tkinter.Tk().withdraw()
     filetypes = (('XML files', '*.xml'),('all files', '*.*'))
     filename = filedialog.askopenfilename(title="Open XML", initialdir=xml_path, filetypes=filetypes)
@@ -28,7 +28,7 @@ def load_model():
         simulator.reload_model(filename)
 
     tkinter.Tk().destroy()
-    simulator.pause_unpause()
+    simulator.unpause()
 
 def main():
     simulator.set_key_l_callback(load_model)

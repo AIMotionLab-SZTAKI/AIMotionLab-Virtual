@@ -192,16 +192,18 @@ class ActiveSimulator(Display):
         time_elapsed = self.tg - self.prev_tg
         self.prev_tg = self.tg
         return time_elapsed / self.n_graphicstep_sum
-
-    def pause_unpause(self):
-
+    
+    def pause(self):
         if not self._is_paused:
             self.t_lastpaused = time.time()
-        
-        else:
-            self.pause_time += time.time() - self.t_lastpaused
+            self._is_paused = True
 
-        super().pause_unpause()
+
+    def unpause(self):
+        if self._is_paused:
+            self.pause_time += time.time() - self.t_lastpaused
+            self._is_paused = False
+
     
     def is_paused(self):
         return self._is_paused

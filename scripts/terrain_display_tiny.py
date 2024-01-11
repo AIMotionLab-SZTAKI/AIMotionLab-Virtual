@@ -34,7 +34,9 @@ drone0_initpos = np.array((radar0.pos[0] - (2 * radar0.a) - 1., radar0.pos[1], h
 
 
 scene = SceneXmlGenerator(xml_base_file_name)
+scene.ground_geom_name = "terrain0"
 drone0_name = scene.add_drone(np.array2string(drone0_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.BUMBLEBEE)
+car0_name = scene.add_car("0 0 10", "1 0 0 0", GREEN, True, False)
 
 for radar in radars:
     scene.add_radar_field(np.array2string(radar.pos)[1:-1], radar.color, radar.a, radar.exp, radar.rres, radar.res, radar.height_scale, radar.tilt, sampling="curv")

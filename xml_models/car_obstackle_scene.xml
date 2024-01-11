@@ -81,7 +81,6 @@
     
     <geom name="roundabout" size="1.5 1.5 .05" quat="0.7071 0 0 0.7071" pos="0 0 0.001" type="plane" material="mat-roundabout" condim="3"/>
     <!--<geom name="carpet" size="7.644 7.644 .001" pos="3.16 1.115 0.0005" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet"/>
-    --> 
     <geom name="bucket1" type="box" pos=".3 .75 .142" size="0.105 0.105 0.125" rgba="0.8 0.8 0.8 1.0" material="mat-sztaki"/>
     <geom name="bucket2" type="box" size="0.105 0.105 0.125" rgba="0.8 0.8 0.8 1.0" material="mat-sztaki" pos="2.5 1.7 .142"/>
     <geom name="bucket3" type="box" pos="3.8 0 .142" size="0.105 0.105 0.125" rgba="0.8 0.8 0.8 1.0" material="mat-sztaki"/>
@@ -97,6 +96,7 @@
     <geom name="bucket13" type="box" pos="-4.5 -2.3 .142" size="0.105 0.105 0.125" rgba="0.8 0.8 0.8 1.0" material="mat-sztaki"/>
     <geom name="bucket14" type="box" pos="-2.8 -1.8 .142" size="0.105 0.105 0.125" rgba="0.8 0.8 0.8 1.0" material="mat-sztaki"/>
     <geom name="bucket15" type="box" pos="-1 0 .142" size="0.105 0.105 0.125" rgba="0.8 0.8 0.8 1.0" material="mat-sztaki"/>
+    --> 
 <!--
     <geom name="bucket1" type="mesh" mesh="bucket" pos=".3 .75 .142" euler="1.57 0 0" rgba=".20 .5 .5 1.0" />
     <geom name="bucket2"  type="mesh" mesh="bucket" euler="1.57 0 0" rgba=".20 .5 .5 1.0" pos="2.5 1.7 .142"/>

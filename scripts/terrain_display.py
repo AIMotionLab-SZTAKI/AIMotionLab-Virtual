@@ -6,7 +6,7 @@ from aiml_virtual.object.drone import BUMBLEBEE_PROP, DRONE_TYPES
 from aiml_virtual.object import parseMovingObjects
 from aiml_virtual.trajectory.drone_keyboard_trajectory import DroneKeyboardTraj
 import numpy as np
-from aiml_virtual.util.mujoco_helper import Radar
+from aiml_virtual.object import Radar
 import math
 
 

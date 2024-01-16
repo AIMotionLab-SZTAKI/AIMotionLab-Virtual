@@ -830,8 +830,8 @@ class SceneXmlGenerator:
 
         axle_distance = 0.225
 
-        #tilt = "0"
-        tilt = "-0.04"
+        tilt = "0"
+        #tilt = "-0.04"
 
         # top plate
         ET.SubElement(rear_structure, "geom", type="box", size=".25 .1475 .003", pos="-.18 0 .08", rgba="0.7 0.6 0.35 1.0", euler="0 " + tilt + " 0")
@@ -855,6 +855,7 @@ class SceneXmlGenerator:
         # rear holder
         ET.SubElement(rear_structure, "geom", type="cylinder", size="0.008 0.031", pos=str(-axle_distance + 0.02) + " 0 0.04", rgba="0.1 0.1 0.1 1.0", euler="0 " + tilt + " 0")
 
+        # joint for the rear part
         ET.SubElement(rear_structure, "joint", type="hinge", axis="0 0 1")
 
         # rear wheels

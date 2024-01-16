@@ -32,7 +32,7 @@ payload_quat = np.array(mujoco_helper.quaternion_from_euler(0, 0, 0))
 # create xml with a car
 scene = SceneXmlGenerator(xml_base_filename)
 car0_name = scene.add_car(pos="0 0 0.052", quat=carHeading2quaternion(0.64424), color=RED, is_virtual=True, has_rod=False, has_trailer=True)
-drone0_name = scene.add_payload("-.45 -.35 .3", None, "0.5", np.array2string(payload_quat)[1:-1], BLACK, PAYLOAD_TYPES.Teardrop)
+payload0_name = scene.add_payload("-.4 -.3 .3", None, "0.5", np.array2string(payload_quat)[1:-1], BLACK, PAYLOAD_TYPES.Teardrop)
  
 
 # saving the scene as xml so that the simulator can load it
@@ -114,7 +114,7 @@ car0.set_controllers(car0_controllers)
 # start simulation
 x=[]
 y=[]
-simulator.pause()
+#simulator.pause()
 while not simulator.glfw_window_should_close():
     simulator.update()
     st=car0.get_state()

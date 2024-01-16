@@ -34,7 +34,7 @@
   <compiler angle="radian" meshdir=""/>
   <option timestep="0.001"/>
   <visual>
-    <quality shadowsize="4096"/>
+    <quality shadowsize="16384"/>
   </visual>
 
   <asset>

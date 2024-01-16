@@ -583,7 +583,14 @@ class SceneXmlGenerator:
             self._teardrop_payload_cntr += 1
             load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
             ET.SubElement(load, "geom", name=name, type="mesh", mesh="payload_simplified", pos="0 0 0.0405", mass=mass, rgba=color, euler="1.57 0 0")
+            #ET.SubElement(load, "geom", name=name, type="cylinder", size=".08 .03 .05", pos="0 0 0.05", solref="0.02 5.5", mass=mass, rgba="1.0 0.0 0.0 1.0")
+            # to prevent sliding and gliding on the trailer
+            ET.SubElement(load, "geom", name=name + "_bottom", type="box", size=".016 .016 .02", pos="0 0 0.0175", mass="0.0000001", rgba="1.0 1.0 1.0 0.0")
             hook_pos = "0 0 0.05"
+        
+        else:
+            print("[SceneXmlGenerator] Unknown payload type.")
+            return None
 
         self._add_hook_to_payload(load, name, hook_pos)
 
@@ -759,7 +766,7 @@ class SceneXmlGenerator:
             self._add_trailer_to_car(car, name, "-.205888 0 0", color)
 
 
-    def _add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod):
+    def _add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod, has_trailer):
 
         posxyz = str.split(pos)
         pos = posxyz[0] + " " + posxyz[1] + " " + F1T_PROP.WHEEL_RADIUS.value
@@ -853,7 +860,7 @@ class SceneXmlGenerator:
         ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos="-.01 0.015 0.05", euler="0 " + tilt + " 0")
 
         # rear holder
-        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.008 0.031", pos=str(-axle_distance + 0.02) + " 0 0.04", rgba="0.1 0.1 0.1 1.0", euler="0 " + tilt + " 0")
+        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.008 0.032", pos=str(-axle_distance + 0.02) + " 0 0.045", rgba="0.1 0.1 0.1 1.0", euler="0 " + tilt + " 0")
 
         # joint for the rear part
         ET.SubElement(rear_structure, "joint", type="hinge", axis="0 0 1")

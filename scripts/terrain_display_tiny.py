@@ -9,11 +9,14 @@ from aiml_virtual.object import parseMovingObjects
 from aiml_virtual.trajectory.drone_keyboard_trajectory import DroneKeyboardTraj
 import numpy as np
 import math
-from aiml_virtual.util.mujoco_helper import Radar
+from aiml_virtual.object import Radar
 from PIL import Image
 
 
 def radars_see_point(radars, point):
+
+    if radars is None:
+        return False
 
     for radar in radars:
         if radar.sees_point(point):
@@ -21,7 +24,7 @@ def radars_see_point(radars, point):
 
     return False
 
-def create_2D_slice(slice_height, terrain_hfield, radars):
+def create_2D_slice(slice_height, terrain_hfield, radars=None):
     slice2D = np.empty(terrain_hfield.data.shape)
     dimensions = terrain_hfield.size[:3]
     x_offset = dimensions[0]
@@ -102,9 +105,9 @@ simulator.onBoard_elev_offset = 15
 
 # get the height field
 terrain_hfield = simulator.model.hfield("terrain0")
-slice_height = 5 # in meters
+slice_height = 4 # in meters
 
-create_2D_slice(slice_height, terrain_hfield, radars)
+create_2D_slice(slice_height, terrain_hfield, None)
 
 
 trajectory = DroneKeyboardTraj(0, drone0_initpos)
@@ -123,8 +126,8 @@ while not simulator.glfw_window_should_close():
     d0_pos = d0.get_state()["pos"]
     d0.scale_sphere(simulator)
 
-    if simulator.i % 20 == 0:
-        print(d0_pos)
+    #if simulator.i % 20 == 0:
+    #    print(d0_pos)
     
     if radars_see_point(radars, d0_pos):
         simulator.append_title(" BUSTED")

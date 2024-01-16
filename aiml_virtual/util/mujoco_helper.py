@@ -591,3 +591,7 @@ class Radar:
         drone_pos = drone.get_state()["pos"]
 
         return Radar.is_point_inside_lobe(drone_pos, self.pos, self.a, self.exp, self.height_scale, self.tilt)
+    
+    def sees_point(self, point):
+        
+        return Radar.is_point_inside_lobe(point, self.pos, self.a, self.exp, self.height_scale, self.tilt)

@@ -26,7 +26,6 @@ $ python3.8 load_and_display_scene.py
 
 ## Usage of build_scene.py
 
-For drone naming convention see naming_convention_in_xml.txt
 
 To add a building:
   * Press 'b' (as in building)

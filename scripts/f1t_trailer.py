@@ -23,7 +23,7 @@ BLACK = "0.1 0.1 0.1 1.0"
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
-xml_base_filename = "car_obstackle_scene.xml"
+xml_base_filename = "scene_base.xml"
 save_filename = "built_scene.xml"
 
 payload_quat = np.array(mujoco_helper.quaternion_from_euler(0, 0, 0))
@@ -32,7 +32,7 @@ payload_quat = np.array(mujoco_helper.quaternion_from_euler(0, 0, 0))
 # create xml with a car
 scene = SceneXmlGenerator(xml_base_filename)
 car0_name = scene.add_car(pos="0 0 0.052", quat=carHeading2quaternion(0.64424), color=RED, is_virtual=True, has_rod=False, has_trailer=True)
-payload0_name = scene.add_payload("-.4 -.3 .3", None, "0.5", np.array2string(payload_quat)[1:-1], BLACK, PAYLOAD_TYPES.Teardrop)
+payload0_name = scene.add_payload("-.4 -.3 .18", "0.05 0.05 0.05", "1", np.array2string(payload_quat)[1:-1], BLACK, PAYLOAD_TYPES.Teardrop)
  
 
 # saving the scene as xml so that the simulator can load it
@@ -54,11 +54,6 @@ rec_interval = None # no video capture
 simulator = ActiveSimulator(xml_filename, rec_interval, control_step, graphics_step)
 
 simulator.onBoard_elev_offset = 20
-
-# ONLY for recording
-#simulator.activeCam
-#simulator.activeCam.distance=9
-#simulator.activeCam.azimuth=230
 
 # grabbing the drone and the car
 car0 = simulator.get_MovingObject_by_name_in_xml(car0_name)
@@ -96,10 +91,8 @@ path_points = np.array(
 
 path_points /= 1.5
 
-car0_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=0.01, path_degree=4, const_speed=1.4, start_delay=1.0)
+car0_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=0.01, path_degree=4, const_speed=1., start_delay=1.0)
 #car0_trajectory.plot_trajectory()
-
-
 
 car0_controller = CarLPVController(car0.mass, car0.inertia)
 
@@ -114,7 +107,7 @@ car0.set_controllers(car0_controllers)
 # start simulation
 x=[]
 y=[]
-#simulator.pause()
+simulator.pause()
 while not simulator.glfw_window_should_close():
     simulator.update()
     st=car0.get_state()

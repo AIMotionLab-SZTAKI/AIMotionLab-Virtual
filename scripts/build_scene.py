@@ -268,16 +268,27 @@ def build_from_optitrack():
                 scene.add_mocap_payload(position, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop, int(name[7:]))
                 vehicle_names_in_motive += [name]
 
-            elif name == "bu11":
-                scene.add_hospital(position, "0.71 0 0 0.71")
-            elif name == "bu12":
-                scene.add_sztaki(position, "0.71 0 0 0.71")
-            elif name == "bu13":
-                scene.add_post_office(position, "0.71 0 0 0.71")
-            elif name == "bu14":
-                position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.001"
-                #scene.add_airport(position, "0.71 0 0 0.71")
-                scene.add_sztaki(position, "0.71 0 0 0.71")
+            #elif name == "bu11":
+            #    scene.add_hospital(position, "0.71 0 0 0.71")
+            #elif name == "bu12":
+            #    scene.add_sztaki(position, "0.71 0 0 0.71")
+            #elif name == "bu13":
+            #    scene.add_post_office(position, "0.71 0 0 0.71")
+            #elif name == "bu14":
+            #    position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.001"
+            #    #scene.add_airport(position, "0.71 0 0 0.71")
+            #    scene.add_sztaki(position, "0.71 0 0 0.71")
+                
+            elif name.startswith("bu"):
+                if obj.position[2] > 0.6:
+                    scene.add_hospital(position, "0.71 0 0 0.71")
+                elif obj.position[2] > 0.35:
+                    scene.add_post_office(position, "0.71 0 0 0.71")
+                elif obj.position[2] > 0.1:
+                    scene.add_sztaki(position, "0.71 0 0 0.71")
+                else:
+                    position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.001"
+                    scene.add_airport(position, "0.71 0 0 0.71")
 
             elif name.startswith("obs"):
                 scene.add_pole(position, "0.3826834 0 0 0.9238795")
@@ -289,10 +300,10 @@ def build_from_optitrack():
                 vehicle_names_in_motive += [name]
                 #car_added = True
             
-            elif "AI_car" in name:
+            elif "AI_car" in name or "JoeBush" in name:
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
                 #scene.add_car(position, orientation, BLUE, False, True)
-                scene.add_car(position, orientation, BLUE, False, True)
+                scene.add_car(position, orientation, BLUE, False, False, True)
                 vehicle_names_in_motive += [name]
 
 

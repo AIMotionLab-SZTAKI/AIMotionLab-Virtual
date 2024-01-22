@@ -14,7 +14,7 @@ class Radar:
         self.rres = rres # how many times to rotate the tear drop to get the circular shape
         self.tilt = tilt # how much the teardrop is tilted before being rotated by 360°
         self.color = color # color of the radar field
-        self.height_scale = height_scale
+        self.height_scale = height_scale # scale the height of the model
 
     @staticmethod
     def is_point_inside_lobe(point, radar_center, a, exponent, height_scale, tilt):

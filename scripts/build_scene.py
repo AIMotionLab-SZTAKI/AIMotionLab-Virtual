@@ -294,14 +294,14 @@ def build_from_optitrack():
                 scene.add_pole(position, "0.3826834 0 0 0.9238795")
             
             elif ("RC_car" in name) or (name.startswith("Trailer")) or "JoeBush" in name:
-                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.05"
                 #scene.add_car(position, orientation, BLUE, False, True)
                 scene.add_car(position, orientation, BLUE, False, False)
                 vehicle_names_in_motive += [name]
                 #car_added = True
             
             elif "AI_car" in name:
-                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + '0.05'
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " 0.05"
                 #scene.add_car(position, orientation, BLUE, False, True)
                 scene.add_car(position, orientation, BLUE, False, True)
                 vehicle_names_in_motive += [name]

@@ -8,10 +8,8 @@ import glfw
 import numpy as np
 import threading
 from aiml_virtual.util import mujoco_helper
-from aiml_virtual.gui.vehicle_name_gui import VehicleNameGui
 import scipy.signal
 from aiml_virtual.util.mujoco_helper import LiveLFilter
-from aiml_virtual.object.moving_object import MocapObject, MovingObject
 import ffmpeg
 import motioncapture
 if os.name == 'nt':
@@ -31,13 +29,11 @@ class Display:
     """ Base class for passive and active simulation
     """
 
-    def __init__(self, xml_file_name, graphics_step, virt_parsers: list = None, mocap_parsers: list = None, connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT]):
+    def __init__(self, xml_file_name, graphics_step, connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT]):
         #print(f'Working directory:  {os.getcwd()}\n')
         
         self._is_paused = False
 
-        self.virt_parsers = virt_parsers
-        self.mocap_parsers = mocap_parsers
 
         self.key_a_callback = None
         self.key_b_callback = None
@@ -181,64 +177,11 @@ class Display:
         self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
         self.sim_step = self.model.opt.timestep
-
-        self.all_moving_objects = []
-        self.all_mocap_objects = []
-
-
-        if self.virt_parsers is not None:
-
-            for i in range(len(self.virt_parsers)):
-                self.all_moving_objects += self.virt_parsers[i](self.data, self.model)
-        
-        if self.mocap_parsers is not None:
-
-            for i in range(len(self.mocap_parsers)):
-                self.all_mocap_objects += self.mocap_parsers[i](self.data, self.model)
-
-        print()
-        print(str(len(self.all_moving_objects)) + " virtual object(s) found in xml.")
-        print()
-        print(str(len(self.all_mocap_objects)) + " mocap objects(s) found in xml.")
-        print("______________________________")
-        
-        self.all_vehicles = self.all_moving_objects + self.all_mocap_objects
         
         # to obtain inertia matrix
         mujoco.mj_step(self.model, self.data)
+
     
-    def get_all_MovingObjects(self):
-        return self.all_moving_objects
-    
-
-    def get_MovingObject_by_name_in_xml(self, name) -> MovingObject:
-
-        for i in range(len(self.all_moving_objects)):
-
-            vehicle = self.all_moving_objects[i]
-            if name == vehicle.name_in_xml:
-
-                return vehicle
-
-        return None
-
-    def get_MocapObject_by_name_in_xml(self, name):
-
-        for i in range(len(self.all_mocap_objects)):
-
-            vehicle = self.all_mocap_objects[i]
-            if name == vehicle.name_in_xml:
-                return vehicle
-        
-        return None
-    
-    def reload_model(self, xml_file_name, vehicle_names_in_motive = None):
-        
-        self.load_model(xml_file_name)
-
-        if vehicle_names_in_motive is not None:
-            for i in range(len(self.all_mocap_objects)):
-                self.all_mocap_objects[i].name_in_motive = vehicle_names_in_motive[i]
         
 
     def glfw_window_should_close(self):
@@ -259,6 +202,10 @@ class Display:
     def set_key_l_callback(self, callback_function):
         if callable(callback_function):
             self.key_l_callback = callback_function
+            
+    def set_key_n_callback(self, callback_function):
+        if callable(callback_function):
+            self.key_n_callback = callback_function
     
     def set_key_o_callback(self, callback_function):
         if callable(callback_function):
@@ -490,7 +437,11 @@ class Display:
             self.connect_to_Optitrack()
 
         if key == glfw.KEY_N and action == glfw.RELEASE:
-            self.set_vehicle_names()
+            """
+            pass on this event
+            """
+            if self.key_n_callback:
+                self.key_n_callback()
 
         if key == glfw.KEY_L and action == glfw.RELEASE:
             """
@@ -616,6 +567,28 @@ class Display:
             if self.key_down_release_callback:
                 self.key_down_release_callback()
 
+    def render(self, overlay=None, frequency_warning=False):
+        
+            self.viewport = mujoco.MjrRect(0, 0, 0, 0)
+            self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
+            mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL, scn=self.scn)
+            mujoco.mjr_render(self.viewport, self.scn, self.con)
+            
+            if overlay is not None:
+                mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_BOTTOMLEFT, self.viewport, overlay, None, self.con)
+
+            if frequency_warning:
+                mujoco.mjr_text(mujoco.mjtFont.mjFONT_NORMAL, "Control frequency below target", self.con, 1.0, .1, 1.0, 0.1, 0.1)
+
+            if self.is_recording:
+                 
+                self.append_frame_to_list()
+            
+            glfw.swap_buffers(self.window)
+            glfw.poll_events()
+
+
+
     
     def set_title(self, window_title):
         self.title0 = window_title
@@ -723,15 +696,4 @@ class Display:
         # Wait for sub-process to finish
         self.video_process.wait()
 
-
-    def set_vehicle_names(self):
-        
-        if len(self.all_mocap_objects) > 0:
-            object_names = MocapObject.get_object_names_motive(self.all_mocap_objects)
-            object_labels = MocapObject.get_object_names_in_xml(self.all_mocap_objects)
-            self.pause()
-            gui = VehicleNameGui(vehicle_labels=object_labels, vehicle_names=object_names)
-            gui.show()
-            MocapObject.set_object_names_motive(self.all_mocap_objects, gui.vehicle_names)
-            self.unpause()
 

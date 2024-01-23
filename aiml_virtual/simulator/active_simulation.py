@@ -2,8 +2,9 @@ import mujoco
 import glfw
 from aiml_virtual.util import mujoco_helper, sync
 from aiml_virtual.simulator.mujoco_display import Display, INIT_WWIDTH, INIT_WHEIGHT
-from aiml_virtual.object.moving_object import MocapObject
+from aiml_virtual.object.moving_object import MocapObject, MovingObject
 from aiml_virtual.object.object_parser import parseMovingObjects, parseMocapObjects
+from aiml_virtual.gui.vehicle_name_gui import VehicleNameGui
 import os
 if os.name == 'nt':
     import win_precise_time as time
@@ -16,12 +17,13 @@ class ActiveSimulator(Display):
     def __init__(self, xml_file_name, video_intervals, control_step, graphics_step,
                  virt_parsers: list = [parseMovingObjects], mocap_parsers: list = [parseMocapObjects], connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT]):
 
-        super().__init__(xml_file_name, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack, window_size)
+        super().__init__(xml_file_name, graphics_step, connect_to_optitrack, window_size)
         self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)
 
+        self.virt_parsers = virt_parsers
+        self.mocap_parsers = mocap_parsers
         #self.sim_step = sim_step
         self.control_step = control_step
-        self.graphics_step = graphics_step
         self.is_recording_automatically = False
 
         # To obtain inertia matrix
@@ -44,6 +46,69 @@ class ActiveSimulator(Display):
         self.pause_time = 0.0
 
         self._first_loop = True
+
+        self.set_key_n_callback(self.set_vehicle_names)
+
+        self.parse_model()
+    
+    def parse_model(self):
+        
+        self.all_moving_objects = []
+        self.all_mocap_objects = []
+
+
+        if self.virt_parsers is not None:
+
+            for i in range(len(self.virt_parsers)):
+                self.all_moving_objects += self.virt_parsers[i](self.data, self.model)
+        
+        if self.mocap_parsers is not None:
+
+            for i in range(len(self.mocap_parsers)):
+                self.all_mocap_objects += self.mocap_parsers[i](self.data, self.model)
+
+        print()
+        print(str(len(self.all_moving_objects)) + " virtual object(s) found in xml.")
+        print()
+        print(str(len(self.all_mocap_objects)) + " mocap objects(s) found in xml.")
+        print("______________________________")
+        
+        self.all_vehicles = self.all_moving_objects + self.all_mocap_objects
+        
+    def get_all_MovingObjects(self):
+        return self.all_moving_objects
+    
+
+    def get_MovingObject_by_name_in_xml(self, name) -> MovingObject:
+
+        for i in range(len(self.all_moving_objects)):
+
+            vehicle = self.all_moving_objects[i]
+            if name == vehicle.name_in_xml:
+
+                return vehicle
+
+        return None
+
+    def get_MocapObject_by_name_in_xml(self, name):
+
+        for i in range(len(self.all_mocap_objects)):
+
+            vehicle = self.all_mocap_objects[i]
+            if name == vehicle.name_in_xml:
+                return vehicle
+        
+        return None
+    
+    def reload_model(self, xml_file_name, vehicle_names_in_motive = None):
+        
+        self.load_model(xml_file_name)
+
+        self.parse_model()
+
+        if vehicle_names_in_motive is not None:
+            for i in range(len(self.all_mocap_objects)):
+                self.all_mocap_objects[i].name_in_motive = vehicle_names_in_motive[i]
     
     @staticmethod
     def __check_video_intervals(video_intervals):
@@ -105,32 +170,21 @@ class ActiveSimulator(Display):
         
         if self.i % self.graphics_control_ratio == 0:
 
-            self.viewport = mujoco.MjrRect(0, 0, 0, 0)
-            self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
-            mujoco.mjv_updateScene(self.model, self.data, self.opt, pert=None, cam=self.activeCam, catmask=mujoco.mjtCatBit.mjCAT_ALL, scn=self.scn)
-            mujoco.mjr_render(self.viewport, self.scn, self.con)
-            
             self.frame_counter += 1
             if self.frame_counter % self.n_graphicstep_sum == 0:
                 self.actual_graphicstep = self.calc_actual_graphics_step()  
         
             fc = 1.0 / self.actual_controlstep
             fg = 1.0 / self.actual_graphicstep
+            
             if not self._is_paused:
                 fst = "Control: {:10.3f} Hz\nGraphics: {:10.3f} Hz".format(fc, fg)
             else:
                 fst = "Control: ------ Hz\nGraphics: {:10.3f} Hz".format(fg)
-            mujoco.mjr_overlay(mujoco.mjtFont.mjFONT_NORMAL, mujoco.mjtGridPos.mjGRID_BOTTOMLEFT, self.viewport, fst, None, self.con)
 
-            if fc < self.control_freq_warning_limit and not self._is_paused:
-                mujoco.mjr_text(mujoco.mjtFont.mjFONT_NORMAL, "Control frequency below target", self.con, 1.0, .1, 1.0, 0.1, 0.1)
+            needs_warning = (fc < self.control_freq_warning_limit and not self._is_paused)
 
-            if self.is_recording:
-                 
-                self.append_frame_to_list()
-            
-            glfw.swap_buffers(self.window)
-            glfw.poll_events()
+            self.render(fst, needs_warning)
 
         if not self._is_paused:
             
@@ -207,6 +261,19 @@ class ActiveSimulator(Display):
     
     def is_paused(self):
         return self._is_paused
+    
+
+    def set_vehicle_names(self):
+        
+        if len(self.all_mocap_objects) > 0:
+            object_names = MocapObject.get_object_names_motive(self.all_mocap_objects)
+            object_labels = MocapObject.get_object_names_in_xml(self.all_mocap_objects)
+            self.pause()
+            gui = VehicleNameGui(vehicle_labels=object_labels, vehicle_names=object_names)
+            gui.show()
+            MocapObject.set_object_names_motive(self.all_mocap_objects, gui.vehicle_names)
+            self.unpause()
+
     
     def close(self):
         

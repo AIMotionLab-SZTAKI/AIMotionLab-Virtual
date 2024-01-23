@@ -390,7 +390,7 @@ class DroneHooked(Drone):
         
         self.state["load_pos"] = np.array(self.sensor_hook_pos)
         self.state["load_vel"] = np.array(self.sensor_hook_vel)
-        self.state["pole_eul"] = Rotation.from_quat(np.roll(np.array(self.sensor_hook_quat), -1)).as_euler('XYZ')[0:2]
+        self.state["pole_eul"] = Rotation.from_quat(np.roll(np.array(self.sensor_hook_quat), -1)).as_euler('xyz')[0:2]
         self.state["pole_ang_vel"] = np.array(self.sensor_hook_ang_vel)[0:2]
         return self.state
     

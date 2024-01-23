@@ -364,7 +364,7 @@ class SceneXmlGenerator:
 
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
         ET.SubElement(drone, "geom", type="sphere", name=name + "_sphere", size="1.0", rgba=color, contype="0", conaffinity="0")
-        ET.SubElement(drone, "inertial", pos="0 0 0", diaginertia=diaginertia, mass=mass)
+        ET.SubElement(drone, "inertial", pos="0.0085 0 0", diaginertia=diaginertia, mass=mass)
         ET.SubElement(drone, "joint", name=name, type="free")
         #drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
 
@@ -407,7 +407,7 @@ class SceneXmlGenerator:
         ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr4", gear=" 0 0 1 0 0 -" + motor_param, ctrllimited="true", ctrlrange="0 " + max_thrust)
 
         ET.SubElement(self.sensor, "gyro", noise="0.0027", site=site_name, name=name + "_gyro")
-        ET.SubElement(self.sensor, "velocimeter", noise="0.00078", site=site_name, name=name + "_velocimeter")
+        ET.SubElement(self.sensor, "framelinvel", noise="0.00078", objtype="site", objname=site_name, name=name + "_velocimeter")
         ET.SubElement(self.sensor, "accelerometer", site=site_name, name=name + "_accelerometer")
         ET.SubElement(self.sensor, "framepos", noise="0.00014", objtype="site", objname=site_name, name=name + "_posimeter")
         ET.SubElement(self.sensor, "framequat", noise="0.00026", objtype="site", objname=site_name, name=name + "_orimeter")
@@ -513,7 +513,7 @@ class SceneXmlGenerator:
 
     def _add_hook_to_drone(self, drone, drone_name, hook_dof = 1):
         
-        hook_structure = ET.SubElement(drone, "body", name=drone_name + "_hookstructure", pos="0 0 0")
+        hook_structure = ET.SubElement(drone, "body", name=drone_name + "_hookstructure", pos="0.0085 0 0")
         site_name = drone_name + "_rod_end"
         ET.SubElement(hook_structure, "site", name=site_name, pos="0 0 -" + str(ROD_LENGTH), type="sphere", size="0.002")
         ET.SubElement(hook_structure, "joint", name=drone_name + "_hook_y", axis="0 1 0", pos="0 0 0", damping="0.001")

@@ -1,9 +1,9 @@
 import os
 from aiml_virtual.simulator import ActiveSimulator
 from aiml_virtual.xml_generator import SceneXmlGenerator
-from aiml_virtual.trajectory.hooked_drone_trajectory import HookedDroneTrajectory
-from aiml_virtual.controller.drone_geom_control import GeomControl
-from aiml_virtual.controller.hooked_drone_lq_control import LqrLoadControl
+from aiml_virtual.trajectory import HookedDroneTrajectory, HookedDronePolyTrajectory
+from aiml_virtual.controller import GeomControl
+from aiml_virtual.controller import LqrLoadControl, LtvLqrLoadControl
 from aiml_virtual.object.drone import BUMBLEBEE_PROP, DRONE_TYPES
 import numpy as np
 import matplotlib.pyplot as plt
@@ -30,15 +30,21 @@ if __name__ == '__main__':
     rod_length = float(BUMBLEBEE_PROP.ROD_LENGTH.value)
 
     # Set scenario parameters
-    drone_init_pos = np.array([-0.76, 1.13, 1, 0])  # initial drone position and yaw angle
-    load_init_pos = np.array([-0.01, -1, 0.1995 + rod_length])  # TODO: Do some transformations in z direction
-    load_target_pos = np.array([0.76, 1.13, 0.19 + rod_length])
+    # drone_init_pos = np.array([-0.76, 1.13, 1, 0])  # initial drone position and yaw angle
+    # load_init_pos = np.array([-0.01, -1, 0.18])  # TODO: Do some transformations in z direction
+    # load_target_pos = np.array([0.76, 1.13, 0.19])
     load_mass = 0.03
 
+    drone_init_pos = np.array([0.76, -1.13, 1, 0])  # initial drone position and yaw angle
+    # load_init_pos = drone_init_pos[0:3] - np.array([0, 0, 0.8])
+    load_init_pos = np.array([0.05309104, -0.08713943, 0.2])# 0.15795468])
+    load_init_yaw = 0
+    grasp_speed = 0.3
+    load_target_pos = np.array([0.76, 1.13, 0.19])
 
     # create xml with a drone and a car
     scene = SceneXmlGenerator(xmlBaseFileName)
-    drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-2], "1 0 0 0", RED_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 1)
+    drone0_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-2], "1 0 0 0", RED_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 2)
     payload0_name = scene.add_payload(np.array2string(load_init_pos)[1:-2], ".05 .05 .025", str(load_mass), "1 0 0 0", BLUE_COLOR)
 
     # saving the scene as xml so that the simulator can load it
@@ -58,10 +64,10 @@ if __name__ == '__main__':
     payload0 = simulator.get_MovingObject_by_name_in_xml(payload0_name)
 
     # creating trajectory and controller for drone0
-    drone0_trajectory = HookedDroneTrajectory()
+    drone0_trajectory = HookedDronePolyTrajectory()
     drone0_trajectory.set_control_step(control_step)
     drone0_trajectory.set_rod_length(drone0.rod_length)
-    drone0_controller = LqrLoadControl(drone0.mass, drone0.inertia, simulator.gravity)
+    drone0_controller = LtvLqrLoadControl(drone0.mass, drone0.inertia, simulator.gravity)
     drone0_controller.L = rod_length
 
     drone0_controllers = [drone0_controller]
@@ -97,7 +103,11 @@ if __name__ == '__main__':
 
 
     # Plan trajectory
-    drone0_trajectory.construct(drone_init_pos, load_init_pos - np.array([-.02, 0, rod_length + 0.04]), load_target_pos - np.array([0, 0, rod_length + .05]), load_mass)
+    drone0_trajectory.construct(drone_init_pos[0:3], drone_init_pos[3], load_init_pos, load_init_yaw,
+                                load_target_pos, 0, load_mass, grasp_speed)
+
+    # Compute control gains
+    drone0_controller.setup_hook_up(drone0_trajectory, hook_mass=0.01, payload_mass=load_mass)
 
     while not simulator.glfw_window_should_close():
         simulator.update()

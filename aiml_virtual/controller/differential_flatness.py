@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.interpolate as si
 from scipy.spatial.transform import Rotation
+import casadi as ca
+import spatial_casadi as sca
 
 
 def my_dot(a: np.ndarray, b: np.ndarray):
@@ -94,3 +96,74 @@ def compute_state_trajectory_from_splines(spl, m, hook_mass, payload_mass, L, g,
     states = np.hstack((r[0], r[1], eul, w, pole_ang))
     inputs = np.hstack((F[0], tau))
     return states, inputs, mL[:, 0]
+
+
+def compute_state_trajectory_casadi(ref, m=0.605, payload_mass=0.01, L=0.4, g=9.81,
+                                    J=ca.diag(ca.vertcat(1.5e-3, 1.45e-3, 2.66e-3))):
+    # ref.t: casadi symbolic time
+    xL = ref.x  # derivatives of payload position
+    yL = ref.y  # derivatives of payload position
+    zL = ref.z  # derivatives of payload position
+    yaw = ref.yaw  # derivatives of yaw angle
+    mL = payload_mass
+    rL = [ca.vertcat(x, y, z) for x, y, z in zip(xL, yL, zL)]
+    # for dim in range(3):
+    #     rL[dim][6] = [0 * elem for elem in rL[dim][5]]  # sixth derivative is zero
+    # yaw = [np.expand_dims(np.array(yaw_), axis=1) for yaw_ in yaw]  # convert to numpy arrays
+    # rL = [np.asarray(x).T for x in zip(*rL)]  # convert to numpy arrays
+
+    q = 5 * [ref.t]
+    T = 5 * [ref.t]
+    e3 = ca.vertcat(0, 0, 1)
+    q[0] = -mL * (rL[2] + g * e3)
+    T[0] = ca.norm_2(q[0])
+    q[0] = q[0] / T[0]
+    T[1] = -mL * (ca.dot(q[0], rL[3]))
+    q[1] = -(mL * rL[3] + T[1] * q[0]) / T[0]
+    T[2] = -mL * (ca.dot(q[0], rL[4]) + ca.dot(q[1], rL[3]))
+    q[2] = -(mL * rL[4] + 2 * T[1] * q[1] + T[2] * q[0]) / T[0]
+    T[3] = -mL * (ca.dot(q[0], rL[5]) + 2 * ca.dot(q[1], rL[4]) + ca.dot(q[2], rL[3]))
+    q[3] = -(mL * rL[5] + 3 * T[1] * q[2] + 3 * T[2] * q[1] + T[3] * q[0]) / T[0]
+    T[4] = -mL * (ca.dot(q[0], rL[6]) + 3 * ca.dot(q[1], rL[5]) + 3 * ca.dot(q[2], rL[4]) + ca.dot(q[3], rL[3]))
+    q[4] = -(mL * rL[6] + 4 * T[1] * q[3] + 6 * T[2] * q[2] + 4 * T[3] * q[1] + T[4] * q[0]) / T[0]
+
+    r = rL.copy()
+    for der in range(5):
+        r[der] = rL[der] - L * q[der]
+
+    F = 3 * [ref.t]
+    F[0] = ca.norm_2(m * (r[2] + g * e3) + mL * (rL[2] + g * e3))
+
+    Re3 = (m * (r[2] + g * e3) + mL * (rL[2] + g * e3)) / F[0]
+    Re2 = ca.cross(Re3, ca.vertcat(ca.cos(yaw[0]), ca.sin(yaw[0]), 0*yaw[0]))
+    Re2 = Re2 / ca.norm_2(Re2)
+    Re1 = ca.cross(Re2, Re3)
+
+    F[1] = ca.dot(m * r[3] + mL * rL[3], Re3)
+    h_w = ((m * r[3] + mL * rL[3]) - F[1] * Re3) / F[0]
+    w = ca.vertcat(-ca.dot(h_w, Re2), ca.dot(h_w, Re1), yaw[1] * Re3[2])
+
+    temp = ca.cross(w, Re3)
+    F[2] = ca.dot(m * r[4] + mL * rL[4], Re3) - F[1] * ca.dot(ca.cross(w, temp), Re3)
+    h_dw = 1 / F[0] * (m * r[4] + mL * rL[4]) - ca.cross(w, ca.cross(w, Re3)) - 2 * F[1] / F[0] * ca.cross(w, Re3) - \
+           1 / F[0] * F[2] * Re3
+    dw = ca.vertcat(-ca.dot(h_dw, Re2), ca.dot(h_dw, Re1), yaw[2] * Re3[2])
+
+    tau = J @ dw + ca.cross(w, J @ dw)
+
+    beta = ca.arcsin(-q[0][0])
+    alpha = ca.arcsin(q[0][1]/ca.cos(beta))
+    dbeta = -q[1][0]/ca.cos(beta)
+    dalpha = (q[1][1] + ca.sin(alpha)*ca.sin(beta)*dbeta) / ca.cos(alpha) / ca.cos(beta)
+
+    R = ca.horzcat(Re1, Re2, Re3)
+    eul = sca.Rotation.from_matrix(R).as_euler('xyz')
+    # eul = ca.vertcat(0, 0, 0)
+    # eul = np.asarray([Rotation.from_matrix(np.vstack((Re1[i, :], Re2[i, :], Re3[i, :])).T).as_euler('xyz')
+    #                   for i in range(Re1.shape[0])])
+    pole_ang = ca.vertcat(alpha, beta, dalpha, dbeta)
+    states = ca.vertcat(r[0], r[1], eul, w, pole_ang)
+    inputs = ca.vertcat(F[0], tau)
+    states = ca.Function('x', [ref.t], [states])
+    inputs = ca.Function('u', [ref.t], [inputs])
+    return states, inputs

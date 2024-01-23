@@ -36,6 +36,8 @@ setup(name='aiml_virtual',
         'win-precise-time==1.4.2 ; platform_system=="Windows"',
         'windows-curses==2.3.1 ; platform_system=="Windows"',
         'numpy-stl==3.1.1',
-        'casadi==3.6.4'
+        'casadi==3.6.4',
+        'cvxpy==1.4.2',
+        'spatial-casadi==1.1.0'
         ]
       )

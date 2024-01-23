@@ -5,8 +5,11 @@ import cvxopt as opt
 import os
 import pickle
 import sys
+import casadi as ca
+import cvxpy as cp
 from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
-from aiml_virtual.controller.differential_flatness import compute_state_trajectory_from_splines
+from aiml_virtual.controller.differential_flatness import compute_state_trajectory_from_splines, \
+    compute_state_trajectory_casadi
 
 
 class HookedDroneTrajectory(TrajectoryBase):
@@ -867,3 +870,252 @@ class HookedDroneTrajectory(TrajectoryBase):
         @staticmethod
         def __enablePrint():
             sys.stdout = sys.__stdout__
+
+
+class HookedDronePolyTrajectory(TrajectoryBase):
+    def __init__(self):
+        super().__init__()
+        self.segment_times = np.zeros(5)
+        self.t = ca.MX.sym("t")
+        self.num_der = 7
+
+    def construct(self, drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos, load_target_yaw,
+                  load_mass, grasp_speed):
+        self.x, self.y, self.z, self.yaw = self.define_traj(drone_init_pos, drone_init_yaw, load_init_pos,
+                                                            load_init_yaw, load_target_pos, load_target_yaw,
+                                                            grasp_speed)
+        self.traj = {}
+        hook_mass = 0.001
+        payload_mass = load_mass
+        x_f_hook, u_f_hook = compute_state_trajectory_casadi(self, payload_mass=hook_mass)
+        x_f_load, u_f_load = compute_state_trajectory_casadi(self, payload_mass=hook_mass + payload_mass)
+        t = np.arange(0, self.segment_times[-3] + 5, 0.01)
+
+        def x_f(t_):
+            if isinstance(t_, np.ndarray):
+                t_ = t_.T
+            elif isinstance(t_, float):
+                t_ = [t_]
+            return np.asarray(
+                [x_f_load(t__) if self.segment_times[1] < t__ <= self.segment_times[3] else x_f_hook(t__) for t__ in t_])[
+                   :, :, 0]
+
+        def u_f(t_):
+            if isinstance(t_, np.ndarray):
+                t_ = t_.T
+            elif isinstance(t_, float):
+                t_ = [t_]
+            return np.asarray(
+                [u_f_load(t__) if self.segment_times[1] < t__ <= self.segment_times[3] else u_f_hook(t__) for t__ in t_])[
+                   :, :, 0]
+
+        x = x_f(np.expand_dims(t, 0))
+        u = u_f(np.expand_dims(t, 0))
+        x[0, :] = 0
+        u[0, :] = 0
+        self.states = x_f
+        self.inputs = u_f
+
+    def set_control_step(self, control_step):
+        self.control_step = control_step
+
+    def set_rod_length(self, rod_length):
+        self.rod_length = rod_length
+
+    def evaluate(self, state, i, time, control_step) -> dict:
+
+        states = self.states(time)[0, :]
+        inputs = self.inputs(time)[0, :]
+        self.output["load_mass"] = None
+        self.output["target_pos"] = states[0:3]
+        self.output["target_rpy"] = states[6:9]
+        self.output["target_vel"] = states[3:6]
+        self.output["target_acc"] = None
+        self.output["target_quat"] = None
+        self.output["target_quat_vel"] = None
+        self.output["target_pos_load"] = None
+        self.output["target_eul"] = states[6:9]
+        self.output["target_ang_vel"] = states[9:12]
+        self.output["target_pole_eul"] = states[12:14]
+        self.output["target_pole_ang_vel"] = states[14:16]
+        self.output["target_thrust"] = inputs[0]
+        self.output["target_torques"] = inputs[1:4]
+        return self.output
+
+    def define_traj(self, drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos,
+                    load_target_yaw, grasp_speed):
+        constraints = self.get_hook_waypoints(drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw,
+                                              load_target_pos, load_target_yaw, grasp_speed)
+        poly_deg = 7
+        optim_order = 6  # minimum pop
+
+        coeff = self.generate_trajectory(poly_deg=poly_deg, optim_order=optim_order, constraints=constraints,
+                                         continuity_order=3)
+
+        T_lst = [pos[0] for pos in constraints["pos"]]
+        T_arr = np.array(T_lst)
+
+        def casadi_ppoly(v, breakpoints, coefficients, der):
+            bp = ca.MX(ca.DM(breakpoints))
+            y = ca.MX(ca.DM(coefficients))
+            n = y.shape[0]
+            L = ca.low(bp, v)
+            co = y[:, L]
+            res = ca.dot(co, v ** ca.DM(range(n)))
+            for _ in range(der):
+                res = ca.gradient(res, v)
+            return res
+
+        x = self.num_der * [self.t]
+        y = self.num_der * [self.t]
+        z = self.num_der * [self.t]
+        yaw = self.num_der * [self.t]
+        for d in range(self.num_der):
+            x[d] = casadi_ppoly(v=self.t, breakpoints=T_lst,
+                                coefficients=coeff[0:poly_deg+1, :].tolist(), der=d)
+            y[d] = casadi_ppoly(v=self.t, breakpoints=T_lst,
+                                coefficients=coeff[poly_deg+1:2*(poly_deg+1), :].tolist(), der=d)
+            z[d] = casadi_ppoly(v=self.t, breakpoints=T_lst,
+                                coefficients=coeff[2*(poly_deg+1):3*(poly_deg+1), :].tolist(), der=d)
+            yaw[d] = casadi_ppoly(v=self.t, breakpoints=T_lst,
+                                  coefficients=coeff[3*(poly_deg+1):4*(poly_deg+1), :].tolist(), der=d)
+        self.segment_times = T_arr
+        return x, y, z, yaw
+
+    @staticmethod
+    def get_hook_waypoints(drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos,
+                           load_target_yaw, grasp_speed):
+        # init_pos_drone = np.array([-1.5, -1, 1.1])  # Drone position after takeoff
+        # init_yaw_drone = np.pi/6  # Drone yaw at takeoff
+        # init_pos_load = np.array([0, 0, 0.25])  # Load initial position, only z coordinate is offset
+        # init_yaw_load = 0  # Load initial orientation
+        # target_pos_load = np.array([0.5, -1.2, 0.25])  # Load target position
+        # target_yaw_load = np.pi/3  # Load target yaw
+
+        init_pos_drone = drone_init_pos  # Drone position after takeoff
+        init_yaw_drone = drone_init_yaw  # Drone yaw at takeoff
+        init_pos_load = load_init_pos  # Load initial position, only z coordinate is offset
+        init_yaw_load = load_init_yaw  # Load initial orientation
+        target_pos_load = load_target_pos  # Load target position
+        target_yaw_load = load_target_yaw  # Load target yaw
+
+        while init_yaw_load - init_yaw_drone > np.pi:
+            init_yaw_load -= 2 * np.pi
+        while init_yaw_load - init_yaw_drone < -np.pi:
+            init_yaw_load += 2 * np.pi
+        while target_yaw_load - init_yaw_load > np.pi:
+            target_yaw_load -= 2 * np.pi
+        while target_yaw_load - init_yaw_load < -np.pi:
+            target_yaw_load += 2 * np.pi
+
+        # Rotation matrices
+        R_attach = np.array([[np.cos(init_yaw_load), -np.sin(init_yaw_load), 0],
+                             [np.sin(init_yaw_load), np.cos(init_yaw_load), 0], [0, 0, 1]])
+        R_detach = np.array([[np.cos(target_yaw_load), -np.sin(target_yaw_load), 0],
+                             [np.sin(target_yaw_load), np.cos(target_yaw_load), 0], [0, 0, 1]])
+
+        t_scale = 3
+        T1 = 10  # t_scale * np.linalg.norm(init_pos_load - init_pos_drone)
+        T2 = t_scale * np.linalg.norm(target_pos_load + np.array([0, 0, 0.45]) - init_pos_load)
+        T3 = 2*t_scale * 0.45
+        T4 = 3*t_scale * 0.3
+
+        print(f"Duration of trajectory: {T1+T2+T3+T4}")
+
+        T5 = 20
+
+        v_grasp = grasp_speed
+
+        constraints = {"pos": [[0] + (init_pos_drone - np.array([0, 0, 0])).tolist() + [init_yaw_drone],
+                               [T1] + (init_pos_load - np.array([0, 0, 0])).tolist() + [init_yaw_load],
+                               [T1 + T2] + (target_pos_load + np.array([0, 0, 0.45])).tolist() + [target_yaw_load],
+                               [T1 + T2 + T3] + (target_pos_load - np.array([0, 0, 0])).tolist() + [target_yaw_load],
+                               [T1 + T2 + T3 + T4] + (target_pos_load - np.array([0, 0, 0]) + R_detach @ np.array(
+                                   [-0.3, 0, 0])).tolist() + [target_yaw_load],
+                               [T1 + T2 + T3 + T4 + T5] + (target_pos_load - np.array([0, 0, 0]) + R_detach @ np.array(
+                                   [-0.3, 0, 0])).tolist() + [target_yaw_load]
+                               ],  # syntax: [t, x, y, z]
+                       "vel": [[0, 0, 0, 0, 0],
+                               [T1] + (R_attach @ np.array([v_grasp, 0, 0])).tolist() + [0],
+                               [T1 + T2, 0, 0, 0, 0],
+                               [T1 + T2 + T3, 0, 0, 0, 0],
+                               [T1 + T2 + T3 + T4, 0, 0, 0, 0],
+                               [T1 + T2 + T3 + T4 + T5, 0, 0, 0, 0]
+                               ],
+                       "acc": [[0, 0, 0, 0, 0],
+                               [T1, 0, 0, 0, 0],
+                               [T1 + T2, 0, 0, 0, 0],
+                               [T1 + T2 + T3, 0, 0, 0, 0],
+                               [T1 + T2 + T3 + T4, 0, 0, 0, 0],
+                               [T1 + T2 + T3 + T4 + T5, 0, 0, 0, 0]
+                               ]}
+        return constraints
+
+    @staticmethod
+    def generate_trajectory(poly_deg, optim_order, constraints, continuity_order):
+        n = poly_deg + 1  # no. of coefficients (polynomial degree + 1)
+        m = len(constraints["pos"])  # no. of waypoints
+        # Compute hessian of objective function
+        t = ca.SX.sym('t')
+        c = ca.SX.sym('c', n)
+        basis = ca.vertcat(*[t ** i for i in range(n)])
+        basis_ders = [basis]
+        for der in range(optim_order - 1):
+            basis_ders = basis_ders + [ca.jacobian(basis_ders[der], t)]
+        poly = c.T @ basis
+
+        poly_der_sqr = poly
+        for _ in range(optim_order):
+            poly_der_sqr = ca.gradient(poly_der_sqr, t)
+        poly_der_sqr = poly_der_sqr ** 2
+
+        poly_der_sqr_2 = ca.gradient(poly, t) ** 2
+        c_poly_der_2 = ca.poly_coeff(poly_der_sqr_2, t)[::-1]
+        c_poly_der_int_2 = ca.vertcat(0, ca.vertcat(*[c_poly_der_2[i] / (i + 1) for i in range(c_poly_der_2.shape[0])]))
+        basis_int_2 = ca.vertcat(*[t ** i for i in range(c_poly_der_int_2.shape[0])])
+
+        c_poly_der = ca.poly_coeff(poly_der_sqr, t)[::-1]
+        c_poly_der_int = ca.vertcat(0, ca.vertcat(*[c_poly_der[i] / (i + 1) for i in range(c_poly_der.shape[0])]))
+        basis_int = ca.vertcat(*[t ** i for i in range(c_poly_der_int.shape[0])])
+        int_exp = c_poly_der_int.T @ basis_int  # + c_poly_der_int_2.T @ basis_int_2
+        Q = ca.hessian(int_exp, c)[0]
+        Q_f = ca.Function('Q', [t], [Q])
+        basis_f = [ca.Function(f'basis{i}', [t], [basis_ders[i]]) for i in range(len(basis_ders))]
+
+        # Put together the optimization
+        x = cp.Variable((4 * n, m - 1))  # 3 position coordinates + yaw, m-1 sections
+        Q_lst = [np.array(Q_f(con[0])) for con in constraints["pos"]]
+        Q_obj_lst = [Q_lst[i + 1] - Q_lst[i] for i in range(len(Q_lst) - 1)]
+        Q_blkdiag_lst = [np.kron(np.eye(4, dtype=int), Q) for Q in Q_obj_lst]
+        Q_max = [np.max(Q_) for Q_ in Q_blkdiag_lst]
+        # obj_lst = [cp.quad_form(x[:, i], cp.Parameter(shape=Q_blkdiag_lst[i].shape, value=Q_blkdiag_lst[i], PSD=True))
+        #            for i in range(m-1)]
+        # print([a/b for a, b in zip(Q_blkdiag_lst, Q_max)])
+        obj_lst = [cp.quad_form(x[:, i], Q_blkdiag_lst[i] / Q_max[i])
+                   for i in range(m - 1)]
+        obj = cp.Minimize(cp.sum(cp.hstack(obj_lst)))
+        const = []
+
+        # continuity constraints
+        for i in range(4):  # x, y, z, yaw
+            for j in range(m - 2):  # joints between sections
+                for der in range(continuity_order):
+                    const += [
+                        x[i * n:(i + 1) * n, j].T @ np.array(basis_f[der](constraints["pos"][j + 1][0])).flatten() ==
+                        x[i * n:(i + 1) * n, j + 1].T @ np.array(basis_f[der](constraints["pos"][j + 1][0])).flatten()]
+
+        # waypoint constraints
+        for i in range(4):  # x, y, z, yaw
+            for j in range(m - 1):
+                const += [x[i * n:(i + 1) * n, j].T @ np.array(basis_f[0](pos[0])).flatten() == pos[i + 1]
+                          for pos in constraints["pos"][j:j + 2]]
+                const += [x[i * n:(i + 1) * n, j].T @ np.array(basis_f[1](vel[0])).flatten() == vel[i + 1]
+                          for vel in constraints["vel"][j:j + 2] if vel is not None]
+                const += [x[i * n:(i + 1) * n, j].T @ np.array(basis_f[2](acc[0])).flatten() == acc[i + 1]
+                          for acc in constraints["acc"][j:j + 2] if acc is not None]
+
+        prob = cp.Problem(obj, const)
+
+        prob.solve(solver='MOSEK')
+
+        return x.value

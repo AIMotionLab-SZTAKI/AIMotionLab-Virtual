@@ -12,6 +12,7 @@ import scipy.signal
 from aiml_virtual.util.mujoco_helper import LiveLFilter
 import ffmpeg
 import motioncapture
+import cv2
 if os.name == 'nt':
     import win_precise_time as time
 else:
@@ -650,38 +651,35 @@ class Display:
             # then create folder
             os.mkdir(self.video_save_folder)
 
-
         filename = os.path.join(self.video_save_folder, self.video_file_name_base + '_' + timec.strftime("%Y%m%d-%H%M%S") + '.mp4')
 
         fps = 1.0 / self.graphics_step
-        video_process = (
-                        ffmpeg
-                        .input('pipe:', vsync=0, format='rawvideo', pix_fmt='rgb24', s=f'{self.viewport.width}x{self.viewport.height}', r=f'{fps}')
-                        .vflip()
-                        .output(filename)
-                        .overwrite_output()
-                        .run_async(pipe_stdin=True, overwrite_output=True)
-                    )
+        #video_process = (
+        #                ffmpeg
+        #                .input('pipe:', vsync=0, format='rawvideo', pix_fmt='rgb24', s=f'{self.viewport.width}x{self.viewport.height}', r=f'{fps}')
+        #                .vflip()
+        #                .output(filename)
+        #                .overwrite_output()
+        #                .run_async(pipe_stdin=True, overwrite_output=True)
+        #            )
 
         fps = 1 / self.graphics_step
         #print("fps: " + str(fps))
         self.append_title(" (Saving video...)")
-        time_stamp = image_list[0][0].replace('.', '_')
 
-        #out = cv2.VideoWriter(os.path.join(self.video_save_folder, self.video_file_name_base + '_' + time_stamp + '.mp4'),\
-        #      cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+        out = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
         for i in range(len(image_list)):
             
             rgb = np.reshape(image_list[i][1], (height, width, 3))
-            #rgb = np.flip(rgb, 0)
-            video_process.stdin.write(rgb.tobytes())
-            #rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
-            #out.write(rgb)
-        #out.release()
+            rgb = np.flip(rgb, 0)
+            #video_process.stdin.write(rgb.tobytes())
+            rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+            out.write(rgb)
+        out.release()
         # Close and flush stdin
-        video_process.stdin.close()
+        #video_process.stdin.close()
         # Wait for sub-process to finish
-        video_process.wait()
+        #video_process.wait()
         print("[Display] Saved video at " + os.path.normpath(filename))
         self.reset_title()
 

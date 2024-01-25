@@ -3,7 +3,7 @@ import os
 from sympy import true
 from aiml_virtual.xml_generator import SceneXmlGenerator
 from aiml_virtual.simulator import ActiveSimulator
-from aiml_virtual.controller import LqrControl
+from aiml_virtual.controller import LqrControl, GeomControl
 from aiml_virtual.object.drone import DRONE_TYPES
 from aiml_virtual.object import parseMovingObjects
 from aiml_virtual.trajectory.drone_keyboard_trajectory import DroneKeyboardTraj
@@ -115,7 +115,7 @@ trajectory = DroneKeyboardTraj(0, drone0_initpos)
 trajectory.set_key_callbacks(simulator)
 
 d0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
-d0.set_controllers([LqrControl(d0.mass, d0.inertia, simulator.gravity)])
+d0.set_controllers([GeomControl(d0.mass, d0.inertia, simulator.gravity)])
 d0.set_trajectory(trajectory)
 
 simulator.set_key_t_callback(d0.toggle_sphere_alpha)

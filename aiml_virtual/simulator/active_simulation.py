@@ -1,7 +1,7 @@
 import mujoco
 import glfw
 from aiml_virtual.util import mujoco_helper, sync
-from aiml_virtual.simulator.mujoco_display import Display, INIT_WWIDTH, INIT_WHEIGHT
+from aiml_virtual.simulator.mujoco_display import Display, INIT_WWIDTH, INIT_WHEIGHT, OPTITRACK_IP
 from aiml_virtual.object.moving_object import MocapObject, MovingObject
 from aiml_virtual.object.object_parser import parseMovingObjects, parseMocapObjects
 from aiml_virtual.gui.vehicle_name_gui import VehicleNameGui
@@ -15,7 +15,8 @@ else:
 class ActiveSimulator(Display):
 
     def __init__(self, xml_file_name, video_intervals, control_step, graphics_step,
-                 virt_parsers: list = [parseMovingObjects], mocap_parsers: list = [parseMocapObjects], connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT]):
+                 virt_parsers: list = [parseMovingObjects], mocap_parsers: list = [parseMocapObjects], connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT],
+                 optitrack_ip=OPTITRACK_IP):
 
         super().__init__(xml_file_name, graphics_step, connect_to_optitrack, window_size)
         self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)

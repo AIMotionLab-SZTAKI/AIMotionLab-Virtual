@@ -32,9 +32,10 @@ class Display:
     """ Base class for passive and active simulation
     """
 
-    def __init__(self, xml_file_name, graphics_step, connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT]):
+    def __init__(self, xml_file_name, graphics_step, connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT], optitrack_ip=OPTITRACK_IP):
         #print(f'Working directory:  {os.getcwd()}\n')
         
+        self.optitrack_ip = optitrack_ip
         self._is_paused = False
 
 
@@ -89,7 +90,7 @@ class Display:
         
         # Connect to optitrack
         if connect_to_optitrack:
-            self.mc = motioncapture.MotionCaptureOptitrack(OPTITRACK_IP)
+            self.mc = motioncapture.MotionCaptureOptitrack(self.optitrack_ip)
             print("[Display] Connected to Optitrack")
 
         self.t1 = time.time()
@@ -612,9 +613,10 @@ class Display:
             self._is_paused = False
 
 
-    def connect_to_Optitrack(self):
+    def connect_to_Optitrack(self, optitrack_ip=OPTITRACK_IP):
         self.connect_to_optitrack = True
-        self.mc = motioncapture.MotionCaptureOptitrack(OPTITRACK_IP)
+        self.optitrack_ip = optitrack_ip
+        self.mc = motioncapture.MotionCaptureOptitrack(self.optitrack_ip)
         print("[Display] Connected to Optitrack")   
 
 

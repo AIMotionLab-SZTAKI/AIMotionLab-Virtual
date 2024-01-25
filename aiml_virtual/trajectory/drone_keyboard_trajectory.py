@@ -11,8 +11,8 @@ class DroneKeyboardTraj(TrajectoryBase):
         self.target_pos = np.copy(target_pos)
         self.target_rpy = np.array((0.0, 0.0, 0.0))
 
-        self.speed = 2
-        self.rot_speed = 0.2
+        self.speed = 4
+        self.rot_speed = 0.4
 
         self.up_pressed = False
         self.down_pressed = False
@@ -132,7 +132,7 @@ class DroneKeyboardTraj(TrajectoryBase):
     
     def move_up(self, state, control_step):
 
-        self.target_pos[2] += self.speed * control_step / 3.0
+        self.target_pos[2] += self.speed * control_step
     
     def move_down(self, state, control_step):
 

@@ -16,39 +16,44 @@ class ActiveSimulator(Display):
 
     def __init__(self, xml_file_name, video_intervals, control_step, graphics_step,
                  virt_parsers: list = [parseMovingObjects], mocap_parsers: list = [parseMocapObjects], connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT],
-                 optitrack_ip=OPTITRACK_IP):
+                 optitrack_ip=OPTITRACK_IP, with_graphics=True):
+        
+        self._with_graphics = with_graphics
+        self.control_step = control_step
 
-        super().__init__(xml_file_name, graphics_step, connect_to_optitrack, window_size)
-        self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)
+        if with_graphics:
+            super().__init__(xml_file_name, graphics_step, connect_to_optitrack, window_size)
+            self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)
+            self.is_recording_automatically = False
+            self.frame_counter = 0
+
+            self.graphics_control_ratio = int(self.graphics_step / self.control_step)
+
+            self.n_controlstep_sum = int(1 / control_step)
+            self.actual_controlstep = self.control_step
+            self.n_graphicstep_sum = int(1 / graphics_step)
+            self.actual_graphicstep = self.graphics_step
+
+            self.start_time = 0.0
+            self.vid_rec_cntr = 0
+            fc_target = 1.0 / control_step
+            self.control_freq_warning_limit = fc_target - (0.05 * fc_target)
+            self.pause_time = 0.0
+
+            self._first_loop = True
+
+            self.set_key_n_callback(self.set_vehicle_names)
+
+        else:
+            
+            self.load_model(xml_file_name)
 
         self.virt_parsers = virt_parsers
         self.mocap_parsers = mocap_parsers
-        #self.sim_step = sim_step
-        self.control_step = control_step
-        self.is_recording_automatically = False
-
-        # To obtain inertia matrix
-        self.start_time = 0.0
-        self.vid_rec_cntr = 0
+        
 
         self.i = 0
-        self.frame_counter = 0
-
-        self.graphics_control_ratio = int(self.graphics_step / self.control_step)
-
-        self.n_controlstep_sum = int(1 / control_step)
-        self.actual_controlstep = self.control_step
-        self.n_graphicstep_sum = int(1 / graphics_step)
-        self.actual_graphicstep = self.graphics_step
-
-        fc_target = 1.0 / control_step
-        self.control_freq_warning_limit = fc_target - (0.05 * fc_target)
-
-        self.pause_time = 0.0
-
-        self._first_loop = True
-
-        self.set_key_n_callback(self.set_vehicle_names)
+        self.time = self.data.time
 
         self.parse_model()
     
@@ -138,72 +143,78 @@ class ActiveSimulator(Display):
 
     def update(self):
 
-        if self._first_loop:
-            self.start_time = time.time()
-            self.prev_tc = time.time()
-            self.prev_tg = time.time()
-            self._first_loop = False
-        
-        self.manage_video_recording(self.i)
-        
-        # getting data from optitrack server
-        if self.connect_to_optitrack:
+        if self._with_graphics:
 
-            self.mc.waitForNextFrame()
-            for name, obj in self.mc.rigidBodies.items():
-
-                # have to put rotation.w to the front because the order is different
-                # only update real vehicles
-                vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
- 
-                vehicle_to_update = MocapObject.get_object_by_name_in_motive(self.all_mocap_objects, name)
-
-                if vehicle_to_update is not None:
-                    vehicle_to_update.update(obj.position, vehicle_orientation)
-
-        if self.activeCam == self.camOnBoard and len(self.all_vehicles) > 0:
-            v = self.all_vehicles[self.followed_vehicle_idx]
-            mujoco_helper.update_onboard_cam(v.get_qpos(), self.camOnBoard,\
-                                            self.azim_filter_sin, self.azim_filter_cos,\
-                                            self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
+            if self._first_loop:
+                self.start_time = time.time()
+                self.prev_tc = time.time()
+                self.prev_tg = time.time()
+                self._first_loop = False
             
-
-        
-        if self.i % self.graphics_control_ratio == 0:
-
-            self.frame_counter += 1
-            if self.frame_counter % self.n_graphicstep_sum == 0:
-                self.actual_graphicstep = self.calc_actual_graphics_step()  
-        
-            fc = 1.0 / self.actual_controlstep
-            fg = 1.0 / self.actual_graphicstep
+            self.manage_video_recording(self.i)
             
+            # getting data from optitrack server
+            if self.connect_to_optitrack:
+
+                self.mc.waitForNextFrame()
+                for name, obj in self.mc.rigidBodies.items():
+
+                    # have to put rotation.w to the front because the order is different
+                    # only update real vehicles
+                    vehicle_orientation = [obj.rotation.w, obj.rotation.x, obj.rotation.y, obj.rotation.z]
+    
+                    vehicle_to_update = MocapObject.get_object_by_name_in_motive(self.all_mocap_objects, name)
+
+                    if vehicle_to_update is not None:
+                        vehicle_to_update.update(obj.position, vehicle_orientation)
+
+            if self.activeCam == self.camOnBoard and len(self.all_vehicles) > 0:
+                v = self.all_vehicles[self.followed_vehicle_idx]
+                mujoco_helper.update_onboard_cam(v.get_qpos(), self.camOnBoard,\
+                                                self.azim_filter_sin, self.azim_filter_cos,\
+                                                self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
+                
+
+            
+            if self.i % self.graphics_control_ratio == 0:
+
+                self.frame_counter += 1
+                if self.frame_counter % self.n_graphicstep_sum == 0:
+                    self.actual_graphicstep = self.calc_actual_graphics_step()  
+            
+                fc = 1.0 / self.actual_controlstep
+                fg = 1.0 / self.actual_graphicstep
+                
+                if not self._is_paused:
+                    fst = "Control: {:10.3f} Hz\nGraphics: {:10.3f} Hz".format(fc, fg)
+                else:
+                    fst = "Control: ------ Hz\nGraphics: {:10.3f} Hz".format(fg)
+
+                needs_warning = (fc < self.control_freq_warning_limit and not self._is_paused)
+
+                self.render(fst, needs_warning)
+
             if not self._is_paused:
-                fst = "Control: {:10.3f} Hz\nGraphics: {:10.3f} Hz".format(fc, fg)
-            else:
-                fst = "Control: ------ Hz\nGraphics: {:10.3f} Hz".format(fg)
+                
+                for l in range(len(self.all_moving_objects)):
 
-            needs_warning = (fc < self.control_freq_warning_limit and not self._is_paused)
-
-            self.render(fst, needs_warning)
-
-        if not self._is_paused:
+                    self.all_moving_objects[l].update(self.i, self.control_step)
+                mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
+                if self.i % self.n_controlstep_sum == 0:
+                    self.actual_controlstep = self.calc_actual_control_step()   
+                self.i += 1
             
-            for l in range(len(self.all_moving_objects)):
+            else:
+                self.tc = time.time()
+                self.tg = time.time()
+            
+            sync(self.i, self.start_time, self.pause_time, self.control_step)
 
-                self.all_moving_objects[l].update(self.i, self.control_step)
-            mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
-            if self.i % self.n_controlstep_sum == 0:
-                self.actual_controlstep = self.calc_actual_control_step()   
-            self.i += 1
-        
         else:
-            self.tc = time.time()
-            self.tg = time.time()
+            # no window, no graphics
+            self.update_()
         
-        sync(self.i, self.start_time, self.pause_time, self.control_step)
-
-        return
+        self.time = self.data.time
 
     def update_(self):
         if self.i == 0:
@@ -249,19 +260,22 @@ class ActiveSimulator(Display):
         return time_elapsed / self.n_graphicstep_sum
     
     def pause(self):
-        if not self._is_paused:
-            self.t_lastpaused = time.time()
-            self._is_paused = True
+        if self._with_graphics:
+            if not self._is_paused:
+                self.t_lastpaused = time.time()
+                self._is_paused = True
 
 
     def unpause(self):
-        if self._is_paused:
-            self.pause_time += time.time() - self.t_lastpaused
-            self._is_paused = False
+        if self._with_graphics:
+            if self._is_paused:
+                self.pause_time += time.time() - self.t_lastpaused
+                self._is_paused = False
 
     
     def is_paused(self):
-        return self._is_paused
+        if self._with_graphics:
+            return self._is_paused
     
 
     def set_vehicle_names(self):
@@ -274,8 +288,14 @@ class ActiveSimulator(Display):
             gui.show()
             MocapObject.set_object_names_motive(self.all_mocap_objects, gui.vehicle_names)
             self.unpause()
-
     
+    def should_close(self, end_time=float("inf")):
+
+        if self._with_graphics:
+            return self.glfw_window_should_close() or self.time >= end_time
+        else:
+            return self.time >= end_time
+
     def close(self):
         
         glfw.terminate()

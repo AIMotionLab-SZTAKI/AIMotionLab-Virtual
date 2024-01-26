@@ -86,6 +86,9 @@ class Display:
         self.init_glfw(window_size)
         self.init_cams()
         self.load_model(xml_file_name)
+        
+        self.scn = mujoco.MjvScene(self.model, maxgeom=MAX_GEOM)
+        self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
         
         # Connect to optitrack
@@ -177,8 +180,6 @@ class Display:
 
         self.gravity = self.model.opt.gravity
 
-        self.scn = mujoco.MjvScene(self.model, maxgeom=MAX_GEOM)
-        self.con = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)
 
         self.sim_step = self.model.opt.timestep
         

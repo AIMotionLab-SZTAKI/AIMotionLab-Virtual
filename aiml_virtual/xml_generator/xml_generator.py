@@ -183,7 +183,7 @@ class SceneXmlGenerator:
 
         name = "radar_" + str(self.radar_cntr)
 
-        body = ET.SubElement(self.worldbody, "body", name=name, pos=pos)
+        body = ET.SubElement(self.worldbody, "body", name=name, pos=pos, mocap="true")
 
         filename = mujoco_helper.create_radar_field_stl(a, exponent, rot_resolution, resolution, height_scale, tilt, os.path.join(mesh_directory), sampling=sampling)
 

@@ -1,9 +1,9 @@
+import numpy as np
 from aiml_virtual.util.mujoco_helper import move_point_on_sphere
 import math
 
 class Radar:
 
-    """ NOT A MUJOCO OBJECT, ONLY A CONTAINER FOR DATA & CALCULATIONS """
 
     def __init__(self, pos, a, exp, res, rres, height_scale=1.0, tilt=0.0, color="0.5 0.5 0.5 0.5") -> None:
         
@@ -43,3 +43,28 @@ class Radar:
     def sees_point(self, point):
         
         return Radar.is_point_inside_lobe(point, self.pos, self.a, self.exp, self.height_scale, self.tilt)
+
+    def set_name(self, name: str):
+
+        self._name = name
+
+    
+    def parse(self, model, data):
+
+        self.model = model
+        self.data = data
+
+        self._body = model.body(self._name)
+
+        self._mocap_id = self._body.mocapid[0]
+    
+    
+    def get_qpos(self):
+        return np.append(self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid])
+    
+    def set_qpos(self, position, quaternion=np.array((1., 0., 0., 0.))):
+
+        self.pos = position
+
+        self.data.mocap_pos[self._mocap_id] = position
+        self.data.mocap_quat[self._mocap_id] = quaternion

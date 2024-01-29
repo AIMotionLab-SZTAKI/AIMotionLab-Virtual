@@ -1,6 +1,5 @@
 import os
 
-from sympy import true
 from aiml_virtual.xml_generator import SceneXmlGenerator
 from aiml_virtual.simulator import ActiveSimulator
 from aiml_virtual.controller import LqrControl, GeomControl
@@ -66,12 +65,14 @@ xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain_tiny.xml"
 save_filename = "built_scene.xml"
 
-radar0 = Radar(np.array((-45, 45, 25)), 20., 1.5, 50, 60, height_scale=1., tilt=0.0)
+radar0 = Radar(np.array((-45, 45, 25)), 20., 1.5, 50, 60, height_scale=1., tilt=-0.3)
 radar1 = Radar(np.array((20, 38, 20)), 20., 2.5, 50, 60, height_scale=1., tilt=0.0)
 radar2 = Radar(np.array((-36, -38, 9)), 15., 2.5, 50, 60, height_scale=1., tilt=0.0)
+radar_on_board = Radar(np.array((0, 0, 0)), .3, 2.5, 50, 60, height_scale=1.0, tilt=0.0)
 
 hover_height = radar0.pos[2]
-radars = [radar0, radar1, radar2]
+#radars = [radar0, radar1, radar2]
+radars = [radar0, radar1, radar2, radar_on_board]
 #radars = [radar0]
 
 drone0_initpos = np.array((radar0.pos[0] - (2 * radar0.a) - 1., radar0.pos[1], hover_height))
@@ -83,7 +84,8 @@ drone0_name = scene.add_drone(np.array2string(drone0_initpos)[1:-1], "1 0 0 0", 
 car0_name = scene.add_car("0 0 10", "1 0 0 0", GREEN, True, False)
 
 for radar in radars:
-    scene.add_radar_field(np.array2string(radar.pos)[1:-1], radar.color, radar.a, radar.exp, radar.rres, radar.res, radar.height_scale, radar.tilt, sampling="curv")
+    radar_name = scene.add_radar_field(np.array2string(radar.pos)[1:-1], radar.color, radar.a, radar.exp, radar.rres, radar.res, radar.height_scale, radar.tilt, sampling="curv")
+    radar.set_name(radar_name)
 
 scene.save_xml(os.path.join(xml_path, save_filename))
 
@@ -103,6 +105,9 @@ simulator.right_button_move_scale = .01
 simulator.camOnBoard.distance = 4
 simulator.onBoard_elev_offset = 15
 
+for radar in radars:
+    radar.parse(simulator.model, simulator.data)
+
 # get the height field
 terrain_hfield = simulator.model.hfield("terrain0")
 slice_height = 4 # in meters
@@ -121,10 +126,12 @@ d0.set_trajectory(trajectory)
 simulator.set_key_t_callback(d0.toggle_sphere_alpha)
 
 
-while not simulator.glfw_window_should_close():
+while not simulator.should_close():
     simulator.update()
     d0_pos = d0.get_state()["pos"]
     d0.scale_sphere(simulator)
+
+    radar_on_board.set_qpos(d0_pos)
 
     #if simulator.i % 20 == 0:
     #    print(d0_pos)

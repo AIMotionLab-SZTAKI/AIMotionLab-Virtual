@@ -290,11 +290,20 @@ class ActiveSimulator(Display):
             self.unpause()
     
     def should_close(self, end_time=float("inf")):
+        """
+        end_time: in seconds
+        """
 
         if self._with_graphics:
             return self.glfw_window_should_close() or self.time >= end_time
         else:
             return self.time >= end_time
+        
+    
+    def reset_data(self):
+        mujoco.mj_resetData(self.model, self.data)
+        mujoco.mj_step(self.model, self.data)
+        self.i = 0
 
     def close(self):
         

@@ -304,6 +304,9 @@ class ActiveSimulator(Display):
         mujoco.mj_resetData(self.model, self.data)
         mujoco.mj_step(self.model, self.data)
         self.i = 0
+        self.pause_time = 0.0
+        self._first_loop = True
+        self.frame_counter = 0
 
     def close(self):
         

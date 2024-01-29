@@ -51,7 +51,7 @@ xml_filename = os.path.join(xml_path, save_filename)
 rec_interval = None # no video capture
 
 # initializing simulator
-simulator = ActiveSimulator(xml_filename, rec_interval, control_step, graphics_step)
+simulator = ActiveSimulator(xml_filename, rec_interval, control_step, graphics_step, with_graphics=True)
 
 simulator.onBoard_elev_offset = 20
 
@@ -108,7 +108,8 @@ car0.set_controllers(car0_controllers)
 x=[]
 y=[]
 simulator.pause()
-while not simulator.glfw_window_should_close():
+#while simulator.time < 25.:
+while not simulator.should_close(25.):
     simulator.update()
     st=car0.get_state()
     x.append(st["pos_x"])
@@ -116,6 +117,6 @@ while not simulator.glfw_window_should_close():
     
 simulator.close()
 
-#plt.plot(x,y)
-#plt.axis('equal')
-#plt.show()
+plt.plot(x,y)
+plt.axis('equal')
+plt.show()

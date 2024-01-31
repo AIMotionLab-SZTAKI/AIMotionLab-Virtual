@@ -1,5 +1,6 @@
 import mujoco
 import glfw
+import numpy as np
 from aiml_virtual.util import mujoco_helper, sync
 from aiml_virtual.simulator.mujoco_display import Display, INIT_WWIDTH, INIT_WHEIGHT, OPTITRACK_IP
 from aiml_virtual.object.moving_object import MocapObject, MovingObject
@@ -15,7 +16,8 @@ else:
 class ActiveSimulator(Display):
 
     def __init__(self, xml_file_name, video_intervals, control_step, graphics_step,
-                 virt_parsers: list = [parseMovingObjects], mocap_parsers: list = [parseMocapObjects], connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT],
+                 virt_parsers: list = [parseMovingObjects], mocap_parsers: list = [parseMocapObjects],
+                 connect_to_optitrack=False, window_size=[INIT_WWIDTH, INIT_WHEIGHT],
                  optitrack_ip=OPTITRACK_IP, with_graphics=True):
         
         self._with_graphics = with_graphics
@@ -55,6 +57,7 @@ class ActiveSimulator(Display):
         self.i = 0
         self.time = self.data.time
 
+        self.frame = None
         self.parse_model()
     
     def parse_model(self):
@@ -228,6 +231,13 @@ class ActiveSimulator(Display):
         mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
         self.i += 1
 
+    def get_frame(self):
+        rgb = np.empty((self.viewport.height, self.viewport.width, 3), dtype=np.uint8)
+        depth = np.empty((self.viewport.height, self.viewport.width, 1))
+
+        stamp = self.data.time
+        mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
+        return rgb, stamp
     
     def manage_video_recording(self, i):
         time_since_start = i * self.control_step

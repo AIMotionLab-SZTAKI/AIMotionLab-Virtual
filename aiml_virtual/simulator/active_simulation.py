@@ -88,7 +88,7 @@ class ActiveSimulator(Display):
     def get_all_MovingObjects(self):
         return self.all_moving_objects
     
-    def show_overlay(self, show):
+    def show_overlay(self, show: bool):
 
         self._show_overlay = show
 

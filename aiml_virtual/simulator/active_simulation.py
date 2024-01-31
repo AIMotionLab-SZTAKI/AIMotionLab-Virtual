@@ -58,6 +58,7 @@ class ActiveSimulator(Display):
         self.time = self.data.time
 
         self.frame = None
+        self._show_overlay = True
         self.parse_model()
     
     def parse_model(self):
@@ -87,6 +88,10 @@ class ActiveSimulator(Display):
     def get_all_MovingObjects(self):
         return self.all_moving_objects
     
+    def show_overlay(self, show):
+
+        self._show_overlay = show
+
 
     def get_MovingObject_by_name_in_xml(self, name) -> MovingObject:
 
@@ -193,9 +198,12 @@ class ActiveSimulator(Display):
                 else:
                     fst = "Control: ------ Hz\nGraphics: {:10.3f} Hz".format(fg)
 
-                needs_warning = (fc < self.control_freq_warning_limit and not self._is_paused)
-
-                self.render(fst, needs_warning)
+                
+                if self._show_overlay:
+                    needs_warning = (fc < self.control_freq_warning_limit and not self._is_paused)
+                    self.render(fst, needs_warning)
+                else:
+                    self.render()
 
             if not self._is_paused:
                 

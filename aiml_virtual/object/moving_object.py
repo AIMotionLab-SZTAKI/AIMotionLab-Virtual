@@ -14,7 +14,7 @@ class MovingObject:
         self.controllers = None
         self.controller = None
 
-        self.update_controller_type_method = None
+        self.update_controller_type_function = None
 
         self.sensors = []
     
@@ -36,21 +36,21 @@ class MovingObject:
                 self.controller = self.controllers[0]
                 return
 
-            if self.update_controller_type_method is not None:
-                idx = self.update_controller_type_method(state, setpoint, time, i)
+            if self.update_controller_type_function is not None:
+                idx = self.update_controller_type_function(state, setpoint, time, i)
                 self.controller = self.controllers[idx]
                 return
             
-            print("update controller type method is None")
+            print("update controller type function is None")
 
     
-    def set_update_controller_type_method(self, method):
+    def set_update_controller_type_function(self, function):
 
-        if callable(method):
-            self.update_controller_type_method = method
+        if callable(function):
+            self.update_controller_type_function = function
         
         else:
-            raise TypeError("passed method is not callable")
+            raise TypeError("passed function is not callable")
         
     def get_state(self):
         state = []

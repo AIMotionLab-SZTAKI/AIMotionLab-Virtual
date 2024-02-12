@@ -100,8 +100,8 @@ def update_controller_type(state, setpoint, time, i):
 
 
 
-# setting update_controller_type method, trajectory and controller for car0
-car0.set_update_controller_type_method(update_controller_type)
+# setting update_controller_type function, trajectory and controller for car0
+car0.set_update_controller_type_function(update_controller_type)
 car0.set_trajectory(car0_trajectory)
 car0.set_controllers(car0_controllers)
 

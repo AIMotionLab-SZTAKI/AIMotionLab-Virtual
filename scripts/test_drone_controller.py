@@ -65,7 +65,7 @@ if __name__ == '__main__':
     drone0_controllers = [drone0_controller]
 
     # setting update_controller_type method, trajectory and controller for drone0
-    drone0.set_update_controller_type_method(update_controller_type)
+    drone0.set_update_controller_type_function(update_controller_type)
     drone0.set_trajectory(drone0_trajectory)
     drone0.set_controllers(drone0_controllers)
 

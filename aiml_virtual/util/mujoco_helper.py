@@ -351,6 +351,7 @@ def move_point_on_sphere(point, delta_theta, delta_phi):
 def teardrop_curve(a=5., exp=1.3, resolution=100, height_scale=1.0, sampling="curv"):
 
     if sampling == "curv":
+        # create sampling points based on the curvature of the function
         xs = curv_space(a, exp, height_scale, resolution)
     elif sampling == "lin":
         xs = np.linspace(0., 2 * a, resolution)

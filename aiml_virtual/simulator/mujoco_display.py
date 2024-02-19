@@ -644,6 +644,8 @@ class Display:
         mujoco.mjr_readPixels(rgb, depth, self.viewport, self.con)
         
         self.image_list.append([stamp, rgb])
+    
+
 
 
     def save_video(self, image_list, width, height):

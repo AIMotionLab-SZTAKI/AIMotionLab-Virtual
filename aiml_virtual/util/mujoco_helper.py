@@ -348,9 +348,7 @@ def move_point_on_sphere(point, delta_theta, delta_phi):
 
     return np.array((x_n, y_n, z_n))
 
-
-def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height_scale=1.0, tilt=0.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
-                           sampling="curv"):
+def teardrop_curve(a=5., exp=1.3, resolution=100, height_scale=1.0, sampling="curv"):
 
     if sampling == "curv":
         xs = curv_space(a, exp, height_scale, resolution)
@@ -361,8 +359,16 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, hei
     
     #xs[xs > 2 * a] = 2 * a
 
-    ys = np.zeros(2 * resolution - 2)
     zps = height_scale * a * np.sin(np.arccos((-xs + a) / a)) * (np.sin(np.arccos((-xs + a) / a) / 2.))**exp
+
+    return xs, zps
+
+
+
+def create_teardrop_points(a=5., exp=1.3, resolution=100, height_scale=1.0, tilt=0.0, sampling="curv"):
+
+    xs, zps = teardrop_curve(a, exp, resolution, height_scale, sampling)
+    ys = np.zeros(2 * resolution - 2)
     zns = -zps[1:-1].copy()
 
     zs = np.append(zps, np.flip(zns))
@@ -375,14 +381,24 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, hei
     quat_tilt = quaternion_from_euler(*euler_tilt)
 
     points = quat_vect_array_mult(quat_tilt, points)
-
-
+    
     #ax = plt.axes(projection="3d")
     #ax.plot(xs, ys, zs)
     #ax.plot(points[:, 0], points[:, 1], points[:, 2])
 
     #plt.plot(xs, zs)
     #plt.show()
+
+    return points
+
+
+
+def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height_scale=1.0, tilt=0.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
+                           sampling="curv"):
+
+    
+    points = create_teardrop_points(a, exp, resolution, height_scale, tilt, sampling)
+
 
     rotated_lobes = [points]
 

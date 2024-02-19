@@ -1,5 +1,5 @@
 import numpy as np
-from aiml_virtual.util.mujoco_helper import move_point_on_sphere
+from aiml_virtual.util.mujoco_helper import move_point_on_sphere, create_teardrop_points, teardrop_curve
 import math
 
 class Radar:
@@ -68,3 +68,11 @@ class Radar:
 
         self.data.mocap_pos[self._mocap_id] = position
         self.data.mocap_quat[self._mocap_id] = quaternion
+    
+    def get_half_curve(self, sampling="curv"):
+
+        return teardrop_curve(self.a, self.exp, self.res, self.height_scale, sampling)
+
+    def get_curve(self, sampling="curv"):
+
+        return create_teardrop_points(self.a, self.exp, self.res, self.height_scale, self.tilt, sampling)

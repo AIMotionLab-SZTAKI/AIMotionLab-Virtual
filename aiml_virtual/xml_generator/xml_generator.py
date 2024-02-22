@@ -53,6 +53,8 @@ class SceneXmlGenerator:
         self._mocap_payload_names = []
 
         self.radar_cntr = 0
+
+        self.airplane_cntr = 0
         
         self.parking_lot = None
         self.airport = None
@@ -875,6 +877,20 @@ class SceneXmlGenerator:
         ET.SubElement(trailer_wheelrr, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0")
         ET.SubElement(trailer_wheelrr, "joint", type="hinge", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature)
 
+    def add_airplane(self, pos, quat, color):
+
+        name = "Airplane_" + str(self.airplane_cntr)
+        self.airplane_cntr += 1
+
+        body = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
+
+        freejoint = ET.SubElement(body, "joint", type="free", name=name)
+
+        ET.SubElement(body, "inertial", pos="0.0 0.0 0.0", diaginertia="0.5 0.5 0.5", mass="1.0")
+        ET.SubElement(body, "geom", type="mesh", mesh="airplane_mesh", rgba=color)
+
+        return name
+        
     
     def save_xml(self, file_name):
         

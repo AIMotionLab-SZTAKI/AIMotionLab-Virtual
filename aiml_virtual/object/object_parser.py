@@ -4,6 +4,7 @@ from aiml_virtual.object.car import Fleet1Tenth, CarMocap
 from aiml_virtual.object.drone import Crazyflie, Bumblebee, BumblebeeHooked, DroneMocap, DroneMocapHooked, HookMocap
 from aiml_virtual.object.payload import BoxPayload, TeardropPayload, PayloadMocap
 from aiml_virtual.object.bicycle import Bicycle
+from aiml_virtual.object.airplane import Airplane
 
 
 def parseMovingObjects(data: mujoco.MjData, model: mujoco.MjModel):

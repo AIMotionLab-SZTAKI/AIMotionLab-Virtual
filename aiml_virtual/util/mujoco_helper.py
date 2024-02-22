@@ -500,6 +500,41 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, hei
     return filename
 
 
+def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height_scale=1.0, tilt=0.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
+                           sampling="curv"):
+    
+    xs, zps = teardrop_curve(a, exp, resolution, height_scale, sampling)
+    ys = np.zeros(resolution)
+
+    points = np.vstack((xs, ys, zps)).T
+
+    points_tobe_rotated = points[1:]
+
+    points_list = [points]
+
+    rot_step = 2 * math.pi / rot_resolution
+
+    current_rotation = rot_step
+
+    pitimes2 = 2 * math.pi
+
+    while current_rotation < pitimes2:
+        euler = np.array((current_rotation, 0.0, 0.0))
+        quat = quaternion_from_euler(*euler)
+        rot_points = quat_vect_array_mult(quat, points_tobe_rotated)
+
+        points_list += [rot_points]
+        current_rotation += rot_step
+
+    
+    
+    fig = plt.figure(figsize=(12, 12))
+    ax = fig.add_subplot(projection='3d')
+    for pts in points_list:
+        ax.scatter(pts[:, 0], pts[:, 1], pts[:, 2])
+    plt.show()
+
+
 def clamp(value, min, max):
 
     if value <= min:
@@ -510,6 +545,10 @@ def clamp(value, min, max):
     return value
 
 def curv_space(a, exp, height_scale, num_samples) -> np.array:
+    """
+    This function creates sampling points based on the curvature of the function.
+    The greater the curvature, the more sampling points are created.
+    """
 
     upscale = 2
 

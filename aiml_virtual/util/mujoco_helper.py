@@ -500,7 +500,7 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, hei
     return filename
 
 
-def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height_scale=1.0, tilt=0.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
+def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height_scale=1.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
                            sampling="curv"):
     
     xs, zps = teardrop_curve(a, exp, resolution, height_scale, sampling)
@@ -508,7 +508,7 @@ def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height
 
     points = np.vstack((xs, ys, zps)).T
 
-    points_tobe_rotated = points[1:]
+    points[-1][2] = 0.0
 
     points_list = [points]
 
@@ -516,17 +516,63 @@ def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height
 
     current_rotation = rot_step
 
-    pitimes2 = 2 * math.pi
-
-    while current_rotation < pitimes2:
+    for i in range(rot_resolution - 1):
         euler = np.array((current_rotation, 0.0, 0.0))
         quat = quaternion_from_euler(*euler)
-        rot_points = quat_vect_array_mult(quat, points_tobe_rotated)
+        rot_points = quat_vect_array_mult(quat, points)
 
         points_list += [rot_points]
         current_rotation += rot_step
 
+    triangles = []
+
+    for i in range(rot_resolution):
+        for j in range(resolution - 1):
+            if j == 0:
+                if i == rot_resolution - 1:
+                    triangles += [points_list[0][0]]
+                    triangles += [points_list[i][1]]
+                    triangles += [points_list[0][1]]
+                
+                else:
+                    triangles += [points_list[0][0]]
+                    triangles += [points_list[i][1]]
+                    triangles += [points_list[i + 1][1]]
+            
+            else:
+                if i == rot_resolution - 1:
+                    triangles += [points_list[i][j]]
+                    triangles += [points_list[i][j + 1]]
+                    triangles += [points_list[0][j]]
+
+                    triangles += [points_list[i][j + 1]]
+                    triangles += [points_list[0][j + 1]]
+                    triangles += [points_list[0][j]]
+
+                else:
+                    triangles += [points_list[i][j]]
+                    triangles += [points_list[i][j + 1]]
+                    triangles += [points_list[i + 1][j]]
+
+                    triangles += [points_list[i][j + 1]]
+                    triangles += [points_list[i + 1][j + 1]]
+                    triangles += [points_list[i + 1][j]]
+
     
+    triangles = np.array(triangles)
+    num_triangles = int(triangles.shape[0] / 3)
+    teardrop_mesh = mesh.Mesh(np.zeros(num_triangles, dtype=mesh.Mesh.dtype))
+
+    v_idx = 0
+    for i in range(num_triangles):
+        for j in range(3):
+            teardrop_mesh.vectors[i][j] = triangles[v_idx]
+            v_idx += 1
+    
+    filename = "teardrop_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + "_hs" + "_" + sampling + ".stl"
+
+    teardrop_mesh.save(os.path.join(filepath, filename))
+    print("[mujoco_helper] Saved teardrop mesh at: " + os.path.join(filepath, filename))
     
     fig = plt.figure(figsize=(12, 12))
     ax = fig.add_subplot(projection='3d')

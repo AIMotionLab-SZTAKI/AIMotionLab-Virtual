@@ -495,12 +495,12 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, hei
 
     radar_field_mesh.save(os.path.join(filepath, filename))
 
-    print("[mujoco_helper] Saved radar mesh at: " + os.path.join(filepath, filename))
+    print("[mujoco_helper] Saved radar mesh at: " + os.path.normpath(os.path.join(filepath, filename)))
 
     return filename
 
 
-def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height_scale=1.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."),
+def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height_scale=1.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."),
                            sampling="curv"):
     
     xs, zps = teardrop_curve(a, exp, resolution, height_scale, sampling)
@@ -572,7 +572,7 @@ def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height
     filename = "teardrop_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + "_hs" + "_" + sampling + ".stl"
 
     teardrop_mesh.save(os.path.join(filepath, filename))
-    print("[mujoco_helper] Saved teardrop mesh at: " + os.path.join(filepath, filename))
+    print("[mujoco_helper] Saved teardrop mesh at: " + os.path.normpath(os.path.join(filepath, filename)))
     
     fig = plt.figure(figsize=(12, 12))
     ax = fig.add_subplot(projection='3d')

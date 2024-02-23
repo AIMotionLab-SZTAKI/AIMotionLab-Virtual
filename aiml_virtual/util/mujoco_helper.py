@@ -500,7 +500,7 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, hei
     return filename
 
 
-def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height_scale=1.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."),
+def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height_scale=1.0, tilt=0.0, filepath=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."),
                            sampling="curv"):
     
     xs, zps = teardrop_curve(a, exp, resolution, height_scale, sampling)
@@ -510,14 +510,14 @@ def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height
 
     points[-1][2] = 0.0
 
-    points_list = [points]
+    points_list = []
 
     rot_step = 2 * math.pi / rot_resolution
 
-    current_rotation = rot_step
+    current_rotation = 0
 
-    for i in range(rot_resolution - 1):
-        euler = np.array((current_rotation, 0.0, 0.0))
+    for i in range(rot_resolution):
+        euler = np.array((current_rotation, tilt, 0.0))
         quat = quaternion_from_euler(*euler)
         rot_points = quat_vect_array_mult(quat, points)
 
@@ -569,16 +569,20 @@ def create_teardrop_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, height
             teardrop_mesh.vectors[i][j] = triangles[v_idx]
             v_idx += 1
     
-    filename = "teardrop_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + "_hs" + "_" + sampling + ".stl"
+    filename = "teardrop_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + "_hs" + str(height_scale) + "_tilt" + "_" + sampling + ".stl"
 
     teardrop_mesh.save(os.path.join(filepath, filename))
     print("[mujoco_helper] Saved teardrop mesh at: " + os.path.normpath(os.path.join(filepath, filename)))
     
-    fig = plt.figure(figsize=(12, 12))
-    ax = fig.add_subplot(projection='3d')
-    for pts in points_list:
-        ax.scatter(pts[:, 0], pts[:, 1], pts[:, 2])
-    plt.show()
+    #fig = plt.figure(figsize=(12, 12))
+    #ax = fig.add_subplot(projection='3d')
+    #for pts in points_list:
+    #    ax.scatter(pts[:, 0], pts[:, 1], pts[:, 2])
+    #
+    #ax.axis("equal")
+    #plt.show()
+
+    return filename
 
 
 def clamp(value, min, max):

@@ -57,6 +57,9 @@ class Radar:
         self._body = model.body(self._name)
 
         self._mocap_id = self._body.mocapid[0]
+        self._lobe_qvel = data.joint(self._name + "_lobe").qvel
+
+        self._lobe_qvel[0] = math.pi
     
     
     def get_qpos(self):
@@ -71,8 +74,8 @@ class Radar:
     
     def get_half_curve(self, sampling="curv"):
 
-        return teardrop_curve(self.a, self.exp, self.res, self.height_scale, sampling)
+        return teardrop_curve(self.a, self.exp, self.res, self.height_scale, sampling) + self.pos
 
     def get_curve(self, sampling="curv"):
 
-        return create_teardrop_points(self.a, self.exp, self.res, self.height_scale, self.tilt, sampling)
+        return create_teardrop_points(self.a, self.exp, self.res, self.height_scale, self.tilt, sampling) + self.pos

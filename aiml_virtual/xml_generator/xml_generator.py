@@ -181,24 +181,25 @@ class SceneXmlGenerator:
     
     def add_radar_field(self, pos, color="0.5 0.5 0.5 0.2", a=5.0, exponent=1.3, rot_resolution=90, resolution=100, height_scale=1.0, tilt=0.0,
                         mesh_directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "xml_models", "meshes", "radar"),
-                        sampling="lin"):
+                        sampling="lin", display_lobe=False):
 
         name = "radar_field_" + str(self.radar_cntr)
 
         body = ET.SubElement(self.worldbody, "body", name=name, pos=pos, mocap="true")
 
         filename = mujoco_helper.create_radar_field_stl(a, exponent, rot_resolution, resolution, height_scale, tilt, os.path.join(mesh_directory), sampling=sampling)
-        filename_lobe = mujoco_helper.create_teardrop_stl(a, exponent, rot_resolution, resolution, height_scale, tilt, os.path.join(mesh_directory), sampling=sampling)
-
         ET.SubElement(self.asset, "mesh", file=os.path.join(mesh_directory, filename), name=name, smoothnormal="true", scale="1 1 1")
-        ET.SubElement(self.asset, "mesh", file=os.path.join(mesh_directory, filename_lobe), name=name + "_lobe", smoothnormal="true", scale="1 1 1")
-
         ET.SubElement(self.asset, "material", name=name + "_mat", rgba=color, specular="0.0", shininess="0.0")
 
         ET.SubElement(body, "geom", type="mesh", mesh=name, contype="0", conaffinity="0", material=name + "_mat")
-        lobe_body = ET.SubElement(body, "body", name=name + "_lobe")
-        ET.SubElement(lobe_body, "geom", type="mesh", mesh=name + "_lobe", contype="0", conaffinity="0", rgba="0.2 0.8 0.2 0.5")
-        ET.SubElement(lobe_body, "joint", type="hinge", axis="0 0 1", name=name + "_lobe")
+
+        if display_lobe:
+            filename_lobe = mujoco_helper.create_teardrop_stl(a, exponent, rot_resolution, resolution, height_scale, tilt, os.path.join(mesh_directory), sampling=sampling)
+            ET.SubElement(self.asset, "mesh", file=os.path.join(mesh_directory, filename_lobe), name=name + "_lobe", smoothnormal="true", scale="1 1 1")
+            lobe_body = ET.SubElement(body, "body", name=name + "_lobe")
+            ET.SubElement(lobe_body, "geom", type="mesh", mesh=name + "_lobe", contype="0", conaffinity="0", rgba="0.2 0.8 0.2 0.1")
+            ET.SubElement(lobe_body, "joint", type="hinge", axis="0 0 1", name=name + "_lobe")
+        
         self.radar_cntr += 1
 
         return name

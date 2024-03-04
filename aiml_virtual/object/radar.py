@@ -1,11 +1,12 @@
 import numpy as np
 from aiml_virtual.util.mujoco_helper import move_point_on_sphere, create_teardrop_points, teardrop_curve
 import math
+import random
 
 class Radar:
 
 
-    def __init__(self, pos, a, exp, res, rres, height_scale=1.0, tilt=0.0, color="0.5 0.5 0.5 0.5") -> None:
+    def __init__(self, pos, a, exp, res, rres, height_scale=1.0, tilt=0.0, color="0.5 0.5 0.5 0.5", display_lobe=False) -> None:
         
         self.pos = pos # center of the radar field
         self.a = a # size of the radar field (radius = 2 * a)
@@ -15,6 +16,8 @@ class Radar:
         self.tilt = tilt # how much the teardrop is tilted before being rotated by 360°
         self.color = color # color of the radar field
         self.height_scale = height_scale # scale the height of the model
+        self.display_lobe = display_lobe
+        self.rot_speed = 2 * math.pi
 
     @staticmethod
     def is_point_inside_lobe(point, radar_center, a, exponent, height_scale, tilt):
@@ -57,9 +60,12 @@ class Radar:
         self._body = model.body(self._name)
 
         self._mocap_id = self._body.mocapid[0]
-        self._lobe_qvel = data.joint(self._name + "_lobe").qvel
 
-        self._lobe_qvel[0] = math.pi
+        if self.display_lobe:
+            data.joint(self._name + "_lobe").qpos[0] = random.random() * math.pi * 2
+            self._lobe_qvel = data.joint(self._name + "_lobe").qvel
+
+            self._lobe_qvel[0] = self.rot_speed
     
     
     def get_qpos(self):

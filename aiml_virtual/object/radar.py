@@ -1,5 +1,5 @@
 import numpy as np
-from aiml_virtual.util.mujoco_helper import move_point_on_sphere, create_teardrop_points, teardrop_curve
+from aiml_virtual.util.mujoco_helper import move_point_on_sphere, move_points_on_sphere, create_teardrop_points, teardrop_curve
 import math
 import random
 
@@ -36,6 +36,27 @@ class Radar:
                 return True
         
         return False
+
+    @staticmethod
+    def are_points_inside_lobe(points, radar_center, a, exponent, height_scale, tilt):
+
+        p = move_points_on_sphere(points - radar_center, -tilt, 0.0) + radar_center
+        
+        d = np.sqrt((radar_center[0] - p[:, :, 0])**2 + (radar_center[1] - p[:, :, 1])**2)
+
+        bool_arr1 = d <= (2 * a)
+
+        indices_where_to_compute = np.where(bool_arr1 == True)
+
+        z_lim = np.zeros_like(d)
+
+        z_lim[indices_where_to_compute] = height_scale * a * np.sin(np.arccos((a - d[indices_where_to_compute]) / a)) * np.sin(np.arccos((a - d[indices_where_to_compute]) / a) / 2.0)**exponent
+
+        bool_arr2 = np.logical_and(p[:, :, 2] < radar_center[2] + z_lim, p[:, :, 2] > radar_center[2] - z_lim)
+
+        return np.logical_and(bool_arr1, bool_arr2)
+
+
     
     def sees_drone(self, drone):
 
@@ -46,6 +67,10 @@ class Radar:
     def sees_point(self, point):
         
         return Radar.is_point_inside_lobe(point, self.pos, self.a, self.exp, self.height_scale, self.tilt)
+
+    def sees_points(self, points):
+
+        return Radar.are_points_inside_lobe(points, self.pos, self.a, self.exp, self.height_scale, self.tilt)
 
     def set_name(self, name: str):
 

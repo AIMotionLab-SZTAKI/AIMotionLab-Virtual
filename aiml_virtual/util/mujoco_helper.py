@@ -8,6 +8,7 @@ import numpy as np
 from collections import deque
 from sympy import diff, sin, acos, lambdify
 from sympy.abc import x as sympyx
+from PIL import Image
 
 
 class LiveFilter:
@@ -348,6 +349,28 @@ def move_point_on_sphere(point, delta_theta, delta_phi):
 
     return np.array((x_n, y_n, z_n))
 
+def move_points_on_sphere(points, delta_theta, delta_phi):
+    # convert to polar coordinates
+    r = np.sqrt(points[:, :, 0]**2 + points[:, :, 1]**2 + points[:, :, 2]**2)
+    theta = np.arccos(points[:, :, 2] / r)
+    phi = np.arctan2(points[:, :, 1], points[:, :, 0])
+
+    theta_n = theta + delta_theta
+    phi_n = phi + delta_phi
+
+    # convert back to cartesian
+    x_n = r * np.sin(theta_n) * np.cos(phi_n)
+    y_n = r * np.sin(theta_n) * np.sin(phi_n)
+    z_n = r * np.cos(theta_n)
+
+    res = np.empty_like(points)
+
+    res[:, :, 0] = x_n
+    res[:, :, 1] = y_n
+    res[:, :, 2] = z_n
+
+    return res
+
 def teardrop_curve(a=5., exp=1.3, resolution=100, height_scale=1.0, sampling="curv"):
 
     if sampling == "curv":
@@ -491,7 +514,8 @@ def create_radar_field_stl(a=5., exp=1.3, rot_resolution=90, resolution=100, hei
             radar_field_mesh.vectors[i][j] = triangles[v_idx]
             v_idx += 1
     
-    filename = "radar_field_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) + "_hs" + str(height_scale) + "_tilt" + str(tilt) + "_" + sampling + ".stl"
+    filename = "radar_field_a" + str(a) + "_exp" + str(exp) + "_rres" + str(rot_resolution) + "_res" + str(resolution) +\
+               "_hs" + str(height_scale) + "_tilt" + str(tilt) + "_" + sampling + ".stl"
 
     radar_field_mesh.save(os.path.join(filepath, filename))
 
@@ -658,3 +682,105 @@ def curv_space(a, exp, height_scale, num_samples) -> np.array:
 
     return xs
 
+
+def radars_see_point(radars, point):
+
+    if radars is None:
+        return False
+
+    for radar in radars:
+        if radar.sees_point(point):
+            return True
+
+    return False
+
+
+def radars_see_points(radars, points):
+
+    if radars is None:
+        return False
+
+    bool_arr = np.zeros((points.shape[0], points.shape[1]), dtype=bool)
+
+    for radar in radars:
+        bool_arr = np.logical_or(bool_arr, radar.sees_points(points))
+
+    return bool_arr
+
+def create_2D_slice(slice_height, terrain_hfield, radars=None, save_folder="", save_images=False):
+
+    dimensions = terrain_hfield.size[:3]
+    x_offset = dimensions[0]
+    y_offset = dimensions[1]
+
+    hfield_copy = np.copy(terrain_hfield.data)
+    sh_normalized = slice_height / dimensions[2]
+    slice2D = hfield_copy >= sh_normalized
+
+    if radars is not None:
+        slice2D_radars = np.empty(terrain_hfield.data.shape, dtype=bool)
+
+        points_grid = np.empty((slice2D_radars.shape[0], slice2D_radars.shape[1], 3))
+
+        if slice2D_radars.shape[0] == slice2D_radars.shape[1]:
+            for i in range(slice2D_radars.shape[0]):
+                points_grid[:, i, 0] = i * (2 * dimensions[0] / slice2D_radars.shape[0]) - x_offset
+                points_grid[i, :, 1] = i * (2 * dimensions[1] / slice2D_radars.shape[1]) - y_offset
+        
+        else:
+            for i in range(slice2D_radars.shape[1]):
+                points_grid[:, i, 0] = i * (2 * dimensions[0] / slice2D_radars.shape[0]) - x_offset
+            for i in range(slice2D_radars.shape[0]):
+                points_grid[i, :, 1] = i * (2 * dimensions[1] / slice2D_radars.shape[1]) - y_offset
+
+        
+
+        points_grid[:, :, 2] = slice_height
+
+        slice2D_radars = radars_see_points(radars, points_grid)
+        slice2D = np.logical_or(slice2D, slice2D_radars)
+        
+    if save_images:
+        if not os.path.exists(save_folder):
+            os.mkdir(save_folder)
+        im = Image.fromarray(np.flip(slice2D, 0) * 255)
+        #im = Image.fromarray(slice2D * 255)
+        if im.mode != 'RGB':
+            im = im.convert('RGB')
+        im.save(os.path.join(save_folder, "slice_" + str(create_2D_slice.i) + ".png"))
+    
+    return slice2D
+
+
+def create_3D_bool_array(terrain_hfield, radars=None, save_folder="", save_images=False):
+
+    dimx, dimy, dimz = terrain_hfield.size[0] * 2., terrain_hfield.size[1] * 2., terrain_hfield.size[2]
+
+    resx, resy = terrain_hfield.nrow[0], terrain_hfield.ncol[0]
+
+    pixelsize_x = dimx / resx
+    pixelsize_y = dimy / resy
+
+    if abs(pixelsize_x - pixelsize_y) > 0.0001:
+        raise RuntimeError("Pixel sizes must match in x and y directions.")
+
+    n_slices = int(round((dimz / dimx) * resx))
+
+    height_step = dimz / n_slices
+
+    slices = []
+
+
+    for i in range(n_slices):
+        print("Computing slice at height: ", i * height_step)
+        create_2D_slice.i = i
+        slices += [create_2D_slice(i * height_step, terrain_hfield, radars, save_folder, save_images)]
+    
+    slices = np.array(slices, dtype=bool)
+    #slices = np.array(slices)
+
+    if not os.path.exists(save_folder):
+        os.mkdir(save_folder)
+    np.save(os.path.join(save_folder, "3D_bool_space.npy"), slices)
+
+    return slices

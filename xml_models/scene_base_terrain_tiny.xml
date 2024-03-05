@@ -18,8 +18,8 @@
 
   <asset>
 
-    <hfield name="terrain0" file="heightmaps/world0.png" size="50 50 25 0.01" />
-
+    <!--<hfield name="terrain0" file="heightmaps/world0_512_nonsquare.png" size="50 21.77734375 25 0.01" />-->
+    <hfield name="terrain0" file="heightmaps/world0_512.png" size="50 50 25 0.01" />
     <texture type="skybox" file="textures/desert.png" gridsize="3 4" gridlayout=".U..LFRB.D.." />
     
     <texture name="tex_ground" type="2d" file="textures/texture0.png" />

@@ -24,12 +24,12 @@ xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain_tiny.xml"
 save_filename = "built_scene.xml"
 
-#radar0 = Radar(np.array((-45, 45, 25)), 20., 1.5, 50, 60, height_scale=0.5, tilt=-0.2, display_lobe=True)
-#radar1 = Radar(np.array((20, 38, 20)), 20., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
-#radar2 = Radar(np.array((-36, -38, 9)), 15., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
-radar0 = Radar(np.array((0, 20, 20)), 10., 1.5, 50, 60, height_scale=0.5, tilt=-0.2, display_lobe=True)
+radar0 = Radar(np.array((-45, 45, 25)), 20., 1.5, 50, 60, height_scale=0.5, tilt=-0.2, display_lobe=True)
 radar1 = Radar(np.array((20, 38, 20)), 20., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
-radar2 = Radar(np.array((-36, -20, 9)), 15., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
+radar2 = Radar(np.array((-36, -38, 9)), 15., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
+#radar0 = Radar(np.array((0, 20, 20)), 10., 1.5, 50, 60, height_scale=0.5, tilt=-0.2, display_lobe=True)
+#radar1 = Radar(np.array((20, 38, 20)), 20., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
+#radar2 = Radar(np.array((-36, -20, 9)), 15., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
 radar_on_board = Radar(np.array((0, 0, 0)), 3., 2.5, 50, 60, height_scale=1.0, tilt=0.0, display_lobe=True)
 
 hover_height = radar0.pos[2]
@@ -62,9 +62,9 @@ control_step, graphics_step = 0.01, 0.02
 xml_filename = os.path.join(xml_path, save_filename)
 
 simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack=False, window_size=[1280, 720])
-simulator.cam.lookat = drone0_initpos
-simulator.cam.distance = 2
-simulator.cam.azimuth = -90
+simulator.cam.lookat = np.array((0.0, 0.0, 0.0))
+simulator.cam.distance = 50
+simulator.cam.elevation = -90
 simulator.scroll_distance_step = 2
 simulator.right_button_move_scale = .01
 simulator.camOnBoard.distance = 4
@@ -75,7 +75,6 @@ for radar in radars:
 
 # get the height field
 terrain_hfield = simulator.model.hfield("terrain0")
-print(type(terrain_hfield))
 
 #create_2D_slice(slice_height, terrain_hfield, None)
 

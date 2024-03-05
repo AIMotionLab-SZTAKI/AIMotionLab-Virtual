@@ -718,20 +718,20 @@ def create_2D_slice(slice_height, terrain_hfield, radars=None, save_folder="", s
     slice2D = hfield_copy >= sh_normalized
 
     if radars is not None:
-        slice2D_radars = np.empty(terrain_hfield.data.shape, dtype=bool)
+        slice2D_radars = np.empty_like(terrain_hfield.data, dtype=bool)
 
         points_grid = np.empty((slice2D_radars.shape[0], slice2D_radars.shape[1], 3))
 
         if slice2D_radars.shape[0] == slice2D_radars.shape[1]:
-            for i in range(slice2D_radars.shape[0]):
-                points_grid[:, i, 0] = i * (2 * dimensions[0] / slice2D_radars.shape[0]) - x_offset
-                points_grid[i, :, 1] = i * (2 * dimensions[1] / slice2D_radars.shape[1]) - y_offset
+            for j in range(slice2D_radars.shape[0]):
+                points_grid[:, j, 0] = j * (2 * x_offset / slice2D_radars.shape[0]) - x_offset
+                points_grid[j, :, 1] = j * (2 * y_offset / slice2D_radars.shape[1]) - y_offset
         
         else:
-            for i in range(slice2D_radars.shape[1]):
-                points_grid[:, i, 0] = i * (2 * dimensions[0] / slice2D_radars.shape[0]) - x_offset
-            for i in range(slice2D_radars.shape[0]):
-                points_grid[i, :, 1] = i * (2 * dimensions[1] / slice2D_radars.shape[1]) - y_offset
+            for j in range(slice2D_radars.shape[1]):
+                points_grid[:, j, 0] = j * (2 * x_offset / slice2D_radars.shape[1]) - x_offset
+            for j in range(slice2D_radars.shape[0]):
+                points_grid[j, :, 1] = j * (2 * y_offset / slice2D_radars.shape[0]) - y_offset
 
         
 
@@ -756,7 +756,7 @@ def create_3D_bool_array(terrain_hfield, radars=None, save_folder="", save_image
 
     dimx, dimy, dimz = terrain_hfield.size[0] * 2., terrain_hfield.size[1] * 2., terrain_hfield.size[2]
 
-    resx, resy = terrain_hfield.nrow[0], terrain_hfield.ncol[0]
+    resx, resy = terrain_hfield.ncol[0], terrain_hfield.nrow[0]
 
     pixelsize_x = dimx / resx
     pixelsize_y = dimy / resy

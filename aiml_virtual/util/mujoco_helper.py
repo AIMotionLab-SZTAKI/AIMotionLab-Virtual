@@ -363,13 +363,7 @@ def move_points_on_sphere(points, delta_theta, delta_phi):
     y_n = r * np.sin(theta_n) * np.sin(phi_n)
     z_n = r * np.cos(theta_n)
 
-    res = np.empty_like(points)
-
-    res[:, :, 0] = x_n
-    res[:, :, 1] = y_n
-    res[:, :, 2] = z_n
-
-    return res
+    return np.dstack((x_n, y_n, z_n))
 
 def teardrop_curve(a=5., exp=1.3, resolution=100, height_scale=1.0, sampling="curv"):
 
@@ -710,8 +704,8 @@ def radars_see_points(radars, points):
 def create_2D_slice(slice_height, terrain_hfield, radars=None, save_folder="", save_images=False):
 
     dimensions = terrain_hfield.size[:3]
-    x_offset = dimensions[0]
-    y_offset = dimensions[1]
+    x_offset, y_offset = dimensions[0], dimensions[1]
+    resx, resy = terrain_hfield.ncol[0], terrain_hfield.nrow[0]
 
     hfield_copy = np.copy(terrain_hfield.data)
     sh_normalized = slice_height / dimensions[2]
@@ -719,22 +713,11 @@ def create_2D_slice(slice_height, terrain_hfield, radars=None, save_folder="", s
 
     if radars is not None:
         slice2D_radars = np.empty_like(terrain_hfield.data, dtype=bool)
-
-        points_grid = np.empty((slice2D_radars.shape[0], slice2D_radars.shape[1], 3))
-
-        if slice2D_radars.shape[0] == slice2D_radars.shape[1]:
-            for j in range(slice2D_radars.shape[0]):
-                points_grid[:, j, 0] = j * (2 * x_offset / slice2D_radars.shape[0]) - x_offset
-                points_grid[j, :, 1] = j * (2 * y_offset / slice2D_radars.shape[1]) - y_offset
         
-        else:
-            for j in range(slice2D_radars.shape[1]):
-                points_grid[:, j, 0] = j * (2 * x_offset / slice2D_radars.shape[1]) - x_offset
-            for j in range(slice2D_radars.shape[0]):
-                points_grid[j, :, 1] = j * (2 * y_offset / slice2D_radars.shape[0]) - y_offset
+        points_grid = np.empty((resy, resx, 3))
 
-        
-
+        points_grid[:, :, 0] = np.linspace(-x_offset, x_offset, resx)
+        points_grid[:, :, 1] = np.linspace(-y_offset, y_offset, resy).reshape(resy, 1)
         points_grid[:, :, 2] = slice_height
 
         slice2D_radars = radars_see_points(radars, points_grid)
@@ -747,8 +730,11 @@ def create_2D_slice(slice_height, terrain_hfield, radars=None, save_folder="", s
         #im = Image.fromarray(slice2D * 255)
         if im.mode != 'RGB':
             im = im.convert('RGB')
-        im.save(os.path.join(save_folder, "slice_" + str(create_2D_slice.i) + ".png"))
-    
+        if hasattr(create_2D_slice, "i"):
+            im.save(os.path.join(save_folder, "slice_" + str(create_2D_slice.i) + ".png"))
+        else:
+            im.save(os.path.join(save_folder, "slice_h" + str(slice_height) + ".png"))
+
     return slice2D
 
 
@@ -766,10 +752,9 @@ def create_3D_bool_array(terrain_hfield, radars=None, save_folder="", save_image
 
     n_slices = int(round((dimz / dimx) * resx))
 
-    height_step = dimz / n_slices
+    height_step = dimz / (n_slices - 1)
 
     slices = []
-
 
     for i in range(n_slices):
         print("Computing slice at height: ", i * height_step)

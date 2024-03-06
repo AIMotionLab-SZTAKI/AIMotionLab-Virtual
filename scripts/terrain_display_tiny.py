@@ -12,6 +12,8 @@ from aiml_virtual.object import Radar
 
 from aiml_virtual.util.mujoco_helper import radars_see_point, create_3D_bool_array
 
+import win_precise_time as time
+
 
 BLUE = "0.2 0.6 0.85 1.0"
 TRANSPARENT_BLUE = "0.2 0.2 0.85 0.1"
@@ -45,7 +47,6 @@ drone0_initpos = np.array((radar0.pos[0] - (2 * radar0.a) - 1., radar0.pos[1], 2
 scene = SceneXmlGenerator(xml_base_file_name)
 scene.ground_geom_name = "terrain0"
 drone0_name = scene.add_drone(np.array2string(drone0_initpos)[1:-1], "1 0 0 0", BLUE, DRONE_TYPES.BUMBLEBEE)
-car0_name = scene.add_car("0 0 10", "1 0 0 0", GREEN, True, False)
 
 for radar in radars:
     radar_name = scene.add_radar_field(np.array2string(radar.pos)[1:-1], radar.color, radar.a, radar.exp, radar.rres, radar.res,
@@ -79,7 +80,10 @@ terrain_hfield = simulator.model.hfield("terrain0")
 #create_2D_slice(slice_height, terrain_hfield, None)
 
 bool_space_save_folder = os.path.join(abs_path, "..", "3D_bool_space")
+t1 = time.time()
 slices = create_3D_bool_array(terrain_hfield, radars, bool_space_save_folder, save_images=True)
+dt = time.time() - t1
+print("Time passed: ", dt)
 
 #print(slices)
 

@@ -1,6 +1,7 @@
 import mujoco
 import math
 import os
+from python_utils import delta_to_seconds
 from stl import mesh
 import matplotlib.pyplot as plt
 
@@ -339,6 +340,7 @@ def move_point_on_sphere(point, delta_theta, delta_phi):
     theta = math.acos(point[2] / r)
     phi = math.atan2(point[1], point[0])
 
+    # calculate new angles
     theta_n = theta + delta_theta
     phi_n = phi + delta_phi
 
@@ -355,6 +357,7 @@ def move_points_on_sphere(points, delta_theta, delta_phi):
     theta = np.arccos(points[:, :, 2] / r)
     phi = np.arctan2(points[:, :, 1], points[:, :, 0])
 
+    # calculate new angles
     theta_n = theta + delta_theta
     phi_n = phi + delta_phi
 

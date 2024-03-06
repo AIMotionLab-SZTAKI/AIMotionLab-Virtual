@@ -26,7 +26,7 @@ xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain_tiny.xml"
 save_filename = "built_scene.xml"
 
-radar0 = Radar(np.array((-45, 45, 25)), 20., 1.5, 50, 60, height_scale=0.5, tilt=-0.2, display_lobe=True)
+radar0 = Radar(np.array((-45, 45, 25)), 20., 1.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
 radar1 = Radar(np.array((20, 38, 20)), 20., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
 radar2 = Radar(np.array((-36, -38, 9)), 15., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
 #radar0 = Radar(np.array((0, 20, 20)), 10., 1.5, 50, 60, height_scale=0.5, tilt=-0.2, display_lobe=True)

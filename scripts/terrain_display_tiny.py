@@ -12,7 +12,10 @@ from aiml_virtual.object import Radar
 
 from aiml_virtual.util.mujoco_helper import radars_see_point, create_3D_bool_array
 
-import win_precise_time as time
+if os.name == 'nt':
+    import win_precise_time as time
+else:
+    import time
 
 
 BLUE = "0.2 0.6 0.85 1.0"
@@ -26,9 +29,9 @@ xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain_tiny.xml"
 save_filename = "built_scene.xml"
 
-radar0 = Radar(np.array((-45, 45, 25)), 20., 1.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
-radar1 = Radar(np.array((20, 38, 20)), 20., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
-radar2 = Radar(np.array((-36, -38, 9)), 15., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
+radar0 = Radar(np.array((-45, 45, 25)), 20., 1.5, 50, 60, height_scale=0.5, tilt=-0.15, display_lobe=True)
+radar1 = Radar(np.array((20, 38, 20)), 20., 2.5, 50, 60, height_scale=0.5, tilt=0.05, display_lobe=True)
+radar2 = Radar(np.array((-36, -38, 9)), 15., 2.5, 50, 60, height_scale=0.5, tilt=-0.05, display_lobe=True)
 #radar0 = Radar(np.array((0, 20, 20)), 10., 1.5, 50, 60, height_scale=0.5, tilt=-0.2, display_lobe=True)
 #radar1 = Radar(np.array((20, 38, 20)), 20., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
 #radar2 = Radar(np.array((-36, -20, 9)), 15., 2.5, 50, 60, height_scale=0.5, tilt=0.0, display_lobe=True)
@@ -81,7 +84,7 @@ terrain_hfield = simulator.model.hfield("terrain0")
 
 bool_space_save_folder = os.path.join(abs_path, "..", "3D_bool_space")
 t1 = time.time()
-slices = create_3D_bool_array(terrain_hfield, radars, bool_space_save_folder, save_images=True)
+slices = create_3D_bool_array(terrain_hfield, None, bool_space_save_folder, save_images=True)
 dt = time.time() - t1
 print("Time passed: ", dt)
 

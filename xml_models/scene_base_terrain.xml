@@ -5,7 +5,7 @@
   </default>
   
   <asset>
-    <hfield name="terrain0" file="heightmaps/world0.png" size="2500 2500 1000 0.01" />
+    <!--<hfield name="terrain0" file="heightmaps/world0.png" size="2500 2500 1000 0.01" />-->
 
     <texture name="tex_ground" type="2d" file="textures/texture0.png" />
     <material name="mat_ground" texture="tex_ground" specular="0.0" shininess="0.0" />
@@ -32,11 +32,11 @@
     <light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70"/>
     <light dir="-1.0 -1.0 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="10 10 6" directional="true" cutoff="70"/>-->
     <light dir="-1 -1 -1" diffuse="1.0 1.0 1.0" castshadow="true" specular="0.5 0.5 0.5" directional="true" pos="1000 1000 600" cutoff="100"/>
-    <!--<light dir="1 -1 -1" diffuse=".9 .9 .9" castshadow="true" specular="0.5 0.5 0.5" directional="true" pos="10 10 6" cutoff="100"/>
-    <light dir="-1 1 -1" diffuse=".9 .9 .9" castshadow="true" specular="0.5 0.5 0.5" directional="true" pos="10 10 6" cutoff="100"/>-->
+    <light dir="1 -1 -1" diffuse=".9 .9 .9" castshadow="true" specular="0.5 0.5 0.5" directional="true" pos="10 10 6" cutoff="100"/>
+    <light dir="-1 1 -1" diffuse=".9 .9 .9" castshadow="true" specular="0.5 0.5 0.5" directional="true" pos="10 10 6" cutoff="100"/>
     
     <!--<geom size="20 20 .05" type="plane" material="grid" condim="3"/>-->
-    <geom name="terrain0" type="hfield" hfield="terrain0" material="mat_ground" />
+    <!--<geom name="terrain0" type="hfield" hfield="terrain0" material="mat_ground" />-->
 
   </worldbody>
 

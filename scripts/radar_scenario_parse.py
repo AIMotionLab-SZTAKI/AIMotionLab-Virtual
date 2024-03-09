@@ -1,4 +1,6 @@
+from curses import def_prog_mode
 import os
+from aiml_virtual.util import mujoco_helper
 
 from aiml_virtual.xml_generator import SceneXmlGenerator
 from aiml_virtual.simulator import ActiveSimulator
@@ -32,7 +34,8 @@ class DroneParams:
 class RadarScenario:
 
     def __init__(self, sim_volume_size=np.array((0.0, 0.0, 0.0)), mountain_height=0.0, height_map_name="",
-                 target_point_list=np.array(((0., 0., 0.), (0., 0., 0.))), drone_param_list=[DroneParams(np.array((0.1, 0.1, 0.1)), 0, 0.0)],
+                 target_point_list=np.array(((0., 0., 0.), (0., 0., 0.))),
+                 drone_param_list=[DroneParams(np.array((0.1, 0.1, 0.1)), 0, 0.0)],
                  radar_list=[Radar(np.array((0.0, 0.0, 0.0)), 1.0, 1.0, 50, 60)]) -> None:
         
         self.sim_volume_size = sim_volume_size
@@ -131,22 +134,27 @@ save_filename = "built_scene.xml"
 
 
 scene = SceneXmlGenerator(xml_base_file_name)
-scene.ground_geom_name = "terrain0"
 
+terrain_hfield_filename = os.path.join("heightmaps", radar_scenario.height_map_name)
+terrain_size = radar_scenario.sim_volume_size / 2.
+terrain_size[2] = radar_scenario.mountain_height
+
+scene.add_terrain(terrain_hfield_filename, size=np.array2string(terrain_size)[1:-1])
 
 drone_names = []
 for dp in radar_scenario.drone_param_list:
 
     pos = np.array2string(radar_scenario.target_point_list[dp.position_idx])[1:-1]
     size = dp.size
-    safe_sphere_radius = dp.safe_sphere_radius
+    safe_sphere_radius = str(dp.safe_sphere_radius)
 
-    drone_names += [scene.add_drone(pos, "1 0 0 0", BLUE, DRONE_TYPES.BUMBLEBEE)]
+    drone_names += [scene.add_drone(pos, "1 0 0 0", BLUE, type=DRONE_TYPES.BUMBLEBEE, safety_sphere_size=safe_sphere_radius)]
 
 
 for radar in radar_scenario.radar_list:
 
-    name = scene.add_radar_field(np.array2string(radar.pos)[1:-1], radar.color, radar.a, radar.exp, radar.rres, radar.res, radar.height_scale, radar.tilt, sampling="curv", display_lobe=True)
+    name = scene.add_radar_field(np.array2string(radar.pos)[1:-1], radar.color, radar.a, radar.exp, radar.rres,
+                                 radar.res, radar.height_scale, radar.tilt, sampling="curv", display_lobe=True)
 
     radar.set_name(name)
 
@@ -160,15 +168,15 @@ mocap_parsers = None
 control_step, graphics_step = 0.01, 0.02
 xml_filename = os.path.join(xml_path, save_filename)
 
-simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers, connect_to_optitrack=False, window_size=[1280, 720])
+simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers,
+                            connect_to_optitrack=False, window_size=[1280, 720])
 simulator.cam.lookat = np.array((0.0, 0.0, 800.0))
 simulator.cam.distance = 10000
 simulator.cam.elevation = -90
-simulator.scroll_distance_step = 2
+simulator.scroll_distance_step = 20
 simulator.right_button_move_scale = .01
 simulator.camOnBoard.distance = 4
 simulator.onBoard_elev_offset = 15
-
 
 
 for radar in radar_scenario.radar_list:
@@ -178,6 +186,7 @@ for radar in radar_scenario.radar_list:
 d0 = simulator.get_MovingObject_by_name_in_xml(drone_names[0])
 
 trajectory = DroneKeyboardTraj(0, d0.get_qpos()[:3])
+trajectory.speed = 30
 
 trajectory.set_key_callbacks(simulator)
 
@@ -188,17 +197,28 @@ d0.set_trajectory(trajectory)
 simulator.set_key_t_callback(d0.toggle_sphere_alpha)
 
 radars_overlap_checklist = radar_scenario.radar_list
-
+d0_safe_sphere_radius = radar_scenario.drone_param_list[0].safe_sphere_radius
 
 while not simulator.should_close():
     simulator.update()
+
     d0_pos = d0.get_state()["pos"]
     d0.scale_sphere(simulator)
 
+    d0_target_pos = d0.trajectory.get_target_pos()
+    dist_pos_target_pos = mujoco_helper.distance(d0_pos, d0_target_pos)
+
+    if dist_pos_target_pos > d0_safe_sphere_radius:
+        d0.set_safety_sphere_color(np.array((.8, .2, .2)))
+    else:
+        d0.reset_safety_sphere_color()
+
+    d0.set_safety_sphere_pos(d0_target_pos)
+
     #radar_on_board.set_qpos(d0_pos)
 
-    if simulator.i % 20 == 0:
-        print(d0_pos)
+    #if simulator.i % 20 == 0:
+    #    print(d0_pos)
 
     if radars_see_point(radars_overlap_checklist, d0_pos):
         simulator.append_title(" BUSTED")

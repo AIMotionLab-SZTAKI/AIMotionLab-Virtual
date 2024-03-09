@@ -11,6 +11,8 @@ from aiml_virtual.util import mujoco_helper
 
 import os
 
+import numpy as np
+
 PROP_COLOR = "0.1 0.1 0.1 1.0"
 PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
 
@@ -118,7 +120,19 @@ class SceneXmlGenerator:
         ET.SubElement(pole, "geom", {"class": "pole_bottom2"})
 
         return pole
+    
 
+    def add_terrain(self, relative_filepath="heightmaps/world0.png", size="2500 2500 1000", material_name="mat_ground"):
+        
+        hfield_name = "terrain0"
+
+        size += " 0.01"
+
+        ET.SubElement(self.asset, "hfield", name=hfield_name, file=relative_filepath, size=size)
+
+        ET.SubElement(self.worldbody, "geom", type="hfield", hfield=hfield_name, name=hfield_name, material=material_name)
+
+        self.ground_geom_name = hfield_name
 
     def add_hospital(self, pos, quat=None):
         name = "hospital"
@@ -239,12 +253,12 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "velocimeter", site=site_name, name=name + "_velocimeter")
 
 
-    def add_drone(self, pos, quat, color, type: DRONE_TYPES, hook_dof = 1):
+    def add_drone(self, pos, quat, color, type: DRONE_TYPES, hook_dof = 1, safety_sphere_size=None):
 
         if type == DRONE_TYPES.BUMBLEBEE_HOOKED:
             name = "BumblebeeHooked_" + str(self._virtbumblebee_hooked_cntr)
 
-            drone = self._add_bumblebee(name, pos, quat, color, True, hook_dof)
+            drone = self._add_bumblebee(name, pos, quat, color, True, hook_dof, safety_sphere_size=safety_sphere_size)
 
             self._virtbumblebee_hooked_cntr += 1
             return name
@@ -252,7 +266,7 @@ class SceneXmlGenerator:
         elif type == DRONE_TYPES.BUMBLEBEE:
 
             name = "Bumblebee_" + str(self._virtbumblebee_cntr)
-            drone = self._add_bumblebee(name, pos, quat, color)
+            drone = self._add_bumblebee(name, pos, quat, color, safety_sphere_size=safety_sphere_size)
 
             self._virtbumblebee_cntr += 1
             return name
@@ -260,7 +274,7 @@ class SceneXmlGenerator:
         elif type == DRONE_TYPES.CRAZYFLIE:
             name = "Crazyflie_" + str(self._virtcrazyflie_cntr)
 
-            drone = self._add_crazyflie(name, pos, quat, color)
+            drone = self._add_crazyflie(name, pos, quat, color, safety_sphere_size=safety_sphere_size)
 
             self._virtcrazyflie_cntr += 1
             return name
@@ -342,7 +356,7 @@ class SceneXmlGenerator:
 
         
     
-    def _add_crazyflie(self, name, pos, quat, color):
+    def _add_crazyflie(self, name, pos, quat, color, safety_sphere_size=None):
 
         
         mass = CRAZYFLIE_PROP.MASS.value
@@ -354,7 +368,7 @@ class SceneXmlGenerator:
         motor_param = CRAZYFLIE_PROP.MOTOR_PARAM.value
         max_thrust = CRAZYFLIE_PROP.MAX_THRUST.value
 
-        drone = self._add_drone_common_parts(name, pos, quat, color, PROP_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "crazyflie")
+        drone = self._add_drone_common_parts(name, pos, quat, color, PROP_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "crazyflie", safety_sphere_size)
 
         ET.SubElement(drone, "geom", name=name + "_body", type="mesh", mesh="crazyflie_body", rgba=color)
         ET.SubElement(drone, "geom", name=name + "_4_motormounts", type="mesh", mesh="crazyflie_4_motormounts", rgba=color)
@@ -363,14 +377,20 @@ class SceneXmlGenerator:
 
         return drone
 
-    def _add_drone_common_parts(self, name, pos, quat, color, propeller_color, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, mesh_prefix):
+    def _add_drone_common_parts(self, name, pos, quat, color, propeller_color, mass, diaginertia,
+                                Lx1, Lx2, Ly, Lz, motor_param, max_thrust, mesh_prefix, safety_sphere_size=None):
 
         rgba = color.split()
 
         color = rgba[0] + " " + rgba[1] + " " + rgba[2] + " 0.0"
+        ss_color = rgba[0] + " " + rgba[1] + " " + rgba[2] + " 0.2"
 
         drone = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
         ET.SubElement(drone, "geom", type="sphere", name=name + "_sphere", size="1.0", rgba=color, contype="0", conaffinity="0")
+        if safety_sphere_size is not None:
+            safety_sphere_body = ET.SubElement(self.worldbody, "body", name=name + "_safety_sphere", pos=pos, mocap="true")
+            ET.SubElement(safety_sphere_body, "geom", type="sphere", name=name + "_safety_sphere",
+                          size=safety_sphere_size, rgba=ss_color, contype="0", conaffinity="0")
         ET.SubElement(drone, "inertial", pos="0.0085 0 0", diaginertia=diaginertia, mass=mass)
         ET.SubElement(drone, "joint", name=name, type="free")
         #drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
@@ -455,7 +475,7 @@ class SceneXmlGenerator:
 
 
     
-    def _add_bumblebee(self, name, pos, quat, color, is_hooked=False, hook_dof = 1):
+    def _add_bumblebee(self, name, pos, quat, color, is_hooked=False, hook_dof = 1, safety_sphere_size=None):
 
         mass = BUMBLEBEE_PROP.MASS.value
         diaginertia = BUMBLEBEE_PROP.DIAGINERTIA.value
@@ -467,7 +487,7 @@ class SceneXmlGenerator:
         max_thrust = BUMBLEBEE_PROP.MAX_THRUST.value
         
 
-        drone = self._add_drone_common_parts(name, pos, quat, color, PROP_LARGE_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "bumblebee")
+        drone = self._add_drone_common_parts(name, pos, quat, color, PROP_LARGE_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "bumblebee", safety_sphere_size)
 
         # need to rotate the body mesh to match optitrack orientation
         quat_mesh = mh.quaternion_from_euler(0, 0, math.radians(270))

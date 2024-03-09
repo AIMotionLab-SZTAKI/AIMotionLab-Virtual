@@ -258,6 +258,8 @@ def quat_vect_array_mult_passive(q, v_array):
     q_array = np.append(np.zeros((v_array.shape[0], 1)), v_array, axis=1)
     return quat_array_quat_multiply(quat_quat_array_multiply(q, q_array), q_conjugate(q))[:, 1:]
 
+def distance(pts1, pts2):
+    return np.sqrt(np.sum((pts1-pts2)**2, axis=0))
 
 def euler_rad_to_euler_deg(array_3elem):
     return [math.degrees(array_3elem[0]), math.degrees(array_3elem[1]), math.degrees(array_3elem[2])]

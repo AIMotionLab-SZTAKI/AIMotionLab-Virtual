@@ -90,6 +90,12 @@ class Drone(MovingObject):
 
         self.sphere_geom = self.model.geom(self.name_in_xml + "_sphere")
         self.initial_sphere_color = self.sphere_geom.rgba[:3].copy()
+        try:
+            self.safety_sphere_mocapid = self.model.body(self.name_in_xml + "_safety_sphere").mocapid[0]
+            self.safety_sphere_geom = self.model.geom(self.name_in_xml + "_safety_sphere")
+            self.initial_safety_sphere_color = self.safety_sphere_geom.rgba[:3].copy()
+        except:
+            print("[Drone] No safety sphere found.")
 
         self.state = {
             "pos" : self.sensor_posimeter,
@@ -167,7 +173,6 @@ class Drone(MovingObject):
     
     def get_ctrl_input(self):
         return self.ctrl_input
-
     
     def set_ctrl(self, ctrl):
         self.ctrl0[0] = ctrl[0]
@@ -265,7 +270,16 @@ class Drone(MovingObject):
         d_cs = math.sqrt((c[0] - drone0_pos[0])**2 + (c[1] - drone0_pos[1])**2 + (c[2] - drone0_pos[2])**2)
 
         self.set_sphere_size(d_cs / 100.0)
+    
+    def set_safety_sphere_pos(self, new_pos):
 
+        self.data.mocap_pos[self.safety_sphere_mocapid] = new_pos
+
+    def set_safety_sphere_color(self, rgb):
+        self.safety_sphere_geom.rgba[:3] = rgb
+
+    def reset_safety_sphere_color(self):
+        self.safety_sphere_geom.rgba[:3] = self.initial_safety_sphere_color
 
     @staticmethod
     def find_hook_for_drone(names, drone_name):

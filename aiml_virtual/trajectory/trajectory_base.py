@@ -11,6 +11,9 @@ class TrajectoryBase:
     def evaluate(self, state, i, time, control_step) -> dict:
 
         raise NotImplementedError("evaluate method must be implemented")
+    
+    def get_target_pos(self):
+        return self.output["target_pos"]
 
 
 class DummyDroneTrajectory(TrajectoryBase):

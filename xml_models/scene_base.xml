@@ -39,7 +39,7 @@
     <flag sensornoise="enable"/>
   </option>
   <visual>
-    <quality shadowsize="16384"/>
+    <quality shadowsize="4096"/>
   </visual>
 
   <asset>

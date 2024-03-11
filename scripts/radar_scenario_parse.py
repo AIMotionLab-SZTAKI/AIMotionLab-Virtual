@@ -1,4 +1,3 @@
-from curses import def_prog_mode
 import os
 from aiml_virtual.util import mujoco_helper
 
@@ -8,6 +7,7 @@ from aiml_virtual.controller import LqrControl, GeomControl
 from aiml_virtual.object.drone import DRONE_TYPES
 from aiml_virtual.object import parseMovingObjects
 from aiml_virtual.trajectory.drone_keyboard_trajectory import DroneKeyboardTraj
+from aiml_virtual.trajectory import RemoteDroneTrajectory
 import numpy as np
 import math
 from aiml_virtual.object import Radar
@@ -26,43 +26,15 @@ BLUE = "0.2 0.6 0.85 1.0"
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain.xml"
-save_filename = "built_scene.xml"
 
 
-scene = SceneXmlGenerator(xml_base_file_name)
-
-terrain_hfield_filename = os.path.join("heightmaps", radar_scenario.height_map_name)
-terrain_size = radar_scenario.sim_volume_size / 2.
-terrain_size[2] = radar_scenario.mountain_height
-
-scene.add_terrain(terrain_hfield_filename, size=np.array2string(terrain_size)[1:-1])
-
-drone_names = []
-for dp in radar_scenario.drone_param_list:
-
-    pos = np.array2string(radar_scenario.target_point_list[dp.position_idx])[1:-1]
-    size = dp.size
-    safe_sphere_radius = str(dp.safe_sphere_radius)
-
-    drone_names += [scene.add_drone(pos, "1 0 0 0", BLUE, type=DRONE_TYPES.BUMBLEBEE, safety_sphere_size=safe_sphere_radius)]
-
-
-for radar in radar_scenario.radar_list:
-
-    name = scene.add_radar_field(np.array2string(radar.pos)[1:-1], radar.color, radar.a, radar.exp, radar.rres,
-                                 radar.res, radar.height_scale, radar.tilt, sampling="curv", display_lobe=True)
-
-    radar.set_name(name)
-
-
-scene.save_xml(os.path.join(xml_path, save_filename))
-
+xml_filename, drone_names = radar_scenario.generate_xml(xml_base_file_name, xml_path)
 
 virt_parsers = [parseMovingObjects]
 mocap_parsers = None
 
 control_step, graphics_step = 0.01, 0.02
-xml_filename = os.path.join(xml_path, save_filename)
+xml_filename = os.path.join(xml_path, xml_filename)
 
 simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, virt_parsers, mocap_parsers,
                             connect_to_optitrack=False, window_size=[1280, 720])
@@ -70,7 +42,7 @@ simulator.cam.lookat = np.array((0.0, 0.0, 800.0))
 simulator.cam.distance = 10000
 simulator.cam.elevation = -90
 simulator.scroll_distance_step = 20
-simulator.right_button_move_scale = .01
+simulator.right_button_move_scale = 10
 simulator.camOnBoard.distance = 4
 simulator.onBoard_elev_offset = 15
 
@@ -81,10 +53,13 @@ for radar in radar_scenario.radar_list:
 
 d0 = simulator.get_MovingObject_by_name_in_xml(drone_names[0])
 
+
 trajectory = DroneKeyboardTraj(0, d0.get_qpos()[:3])
 trajectory.speed = 30
-
 trajectory.set_key_callbacks(simulator)
+
+#trajectory = RemoteDroneTrajectory(directory=os.path.join(abs_path, "..", ""))
+
 
 d0.set_controllers([GeomControl(d0.mass, d0.inertia, simulator.gravity)])
 d0.set_trajectory(trajectory)
@@ -115,8 +90,8 @@ while not simulator.should_close():
 
     #radar_on_board.set_qpos(d0_pos)
 
-    if simulator.i % 20 == 0:
-        print(d0_vel)
+    #if simulator.i % 20 == 0:
+    #    print(d0_vel)
 
     if radars_see_point(radars_overlap_checklist, d0_pos):
         simulator.append_title(" BUSTED")

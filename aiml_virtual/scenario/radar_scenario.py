@@ -1,5 +1,9 @@
-from aiml_virtual.object import Radar
 import numpy as np
+import os
+from aiml_virtual.object import Radar
+from aiml_virtual.xml_generator import SceneXmlGenerator
+from aiml_virtual.object.drone import DRONE_TYPES
+
 
 
 def parentheses_contents(string: str):
@@ -32,6 +36,7 @@ class RadarScenario:
         self.target_point_list = target_point_list
         self.drone_param_list = drone_param_list
         self.radar_list = radar_list
+        self.drone_names = []
 
     @staticmethod
     def parse_config_file(full_filename: str) -> "RadarScenario":
@@ -104,3 +109,40 @@ class RadarScenario:
 
         return RadarScenario(volume_size, mountain_height, height_map_filename,
                              target_point_list, drone_param_list, radar_list)
+    
+
+    def generate_xml(self, xml_base_file_name, xml_path, display_radar_lobe=True):
+
+        save_filename = "built_scene.xml"
+
+        drone_colors = ["0.2 0.6 0.85 1.0", "0.2 0.85 0.6 1.0", "0.85 0.2 0.6 1.0", "0.85 0.6 0.2 1.0"]
+
+        scene = SceneXmlGenerator(xml_base_file_name)
+
+        terrain_hfield_filename = os.path.join("heightmaps", self.height_map_name)
+        terrain_size = self.sim_volume_size / 2.
+        terrain_size[2] = self.mountain_height
+
+        scene.add_terrain(terrain_hfield_filename, size=np.array2string(terrain_size)[1:-1])
+
+        for i, dp in enumerate(self.drone_param_list):
+
+            pos = np.array2string(self.target_point_list[dp.position_idx])[1:-1]
+            size = dp.size
+            safe_sphere_radius = str(dp.safe_sphere_radius)
+
+            self.drone_names += [scene.add_drone(pos, "1 0 0 0", drone_colors[i], type=DRONE_TYPES.BUMBLEBEE, safety_sphere_size=safe_sphere_radius)]
+
+
+        for radar in self.radar_list:
+
+            name = scene.add_radar_field(np.array2string(radar.pos)[1:-1], radar.color, radar.a, radar.exp, radar.rres,
+                                        radar.res, radar.height_scale, radar.tilt, sampling="curv", display_lobe=display_radar_lobe)
+
+            radar.set_name(name)
+        
+        save_path = os.path.join(xml_path, save_filename)
+
+        scene.save_xml(save_path)
+
+        return os.path.abspath(save_path), self.drone_names

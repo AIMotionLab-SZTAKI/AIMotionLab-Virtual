@@ -91,6 +91,7 @@ d0.set_trajectory(trajectory)
 
 
 simulator.set_key_t_callback(d0.toggle_sphere_alpha)
+simulator.set_key_b_callback(d0.toggle_safety_sphere_alpha)
 
 radars_overlap_checklist = radar_scenario.radar_list
 d0_safe_sphere_radius = radar_scenario.drone_param_list[0].safe_sphere_radius
@@ -99,6 +100,7 @@ while not simulator.should_close():
     simulator.update()
 
     d0_pos = d0.get_state()["pos"]
+    d0_vel = d0.get_state()["vel"]
     d0.scale_sphere(simulator)
 
     d0_target_pos = d0.trajectory.get_target_pos()
@@ -113,8 +115,8 @@ while not simulator.should_close():
 
     #radar_on_board.set_qpos(d0_pos)
 
-    #if simulator.i % 20 == 0:
-    #    print(d0_pos)
+    if simulator.i % 20 == 0:
+        print(d0_vel)
 
     if radars_see_point(radars_overlap_checklist, d0_pos):
         simulator.append_title(" BUSTED")

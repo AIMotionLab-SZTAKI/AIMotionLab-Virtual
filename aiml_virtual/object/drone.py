@@ -281,6 +281,13 @@ class Drone(MovingObject):
     def reset_safety_sphere_color(self):
         self.safety_sphere_geom.rgba[:3] = self.initial_safety_sphere_color
 
+    def toggle_safety_sphere_alpha(self):
+        if self.safety_sphere_geom.rgba[3] > 0.01:
+            self.safety_sphere_geom.rgba[3] = 0.0
+        else:
+            self.safety_sphere_geom.rgba[3] = 0.2
+
+
     @staticmethod
     def find_hook_for_drone(names, drone_name):
         hook_names = []

@@ -95,7 +95,8 @@ class Drone(MovingObject):
             self.safety_sphere_geom = self.model.geom(self.name_in_xml + "_safety_sphere")
             self.initial_safety_sphere_color = self.safety_sphere_geom.rgba[:3].copy()
         except:
-            print("[Drone] No safety sphere found.")
+            #print("[Drone] No safety sphere found.")
+            pass
 
         self.state = {
             "pos" : self.sensor_posimeter,

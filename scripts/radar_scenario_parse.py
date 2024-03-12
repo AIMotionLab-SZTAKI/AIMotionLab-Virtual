@@ -19,6 +19,8 @@ abs_path = os.path.dirname(os.path.abspath(__file__))
 
 filename = os.path.join(abs_path, "..", "radar_scenario.config")
 
+RadarScenario.radar_stl_resolution = 50
+RadarScenario.radar_stl_rot_resolution = 60
 radar_scenario = RadarScenario.parse_config_file(filename)
 
 BLUE = "0.2 0.6 0.85 1.0"
@@ -26,7 +28,6 @@ BLUE = "0.2 0.6 0.85 1.0"
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain.xml"
-
 
 xml_filename, drone_names = radar_scenario.generate_xml(xml_base_file_name, xml_path)
 
@@ -41,7 +42,7 @@ simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, vir
 simulator.cam.lookat = np.array((0.0, 0.0, 800.0))
 simulator.cam.distance = 10000
 simulator.cam.elevation = -90
-simulator.scroll_distance_step = 20
+simulator.scroll_distance_step = 50
 simulator.right_button_move_scale = 10
 simulator.camOnBoard.distance = 4
 simulator.onBoard_elev_offset = 15

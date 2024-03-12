@@ -25,6 +25,9 @@ class DroneParams:
 
 class RadarScenario:
 
+    radar_stl_resolution = 50
+    radar_stl_rot_resolution = 60
+
     def __init__(self, sim_volume_size=np.array((0.0, 0.0, 0.0)), mountain_height=0.0, height_map_name="",
                  target_point_list=np.array(((0., 0., 0.), (0., 0., 0.))),
                  drone_param_list=[DroneParams(np.array((0.1, 0.1, 0.1)), 0, 0.0)],
@@ -104,7 +107,10 @@ class RadarScenario:
                 height_scale = float(split_r[3])
                 tilt = float(split_r[4])    
 
-                radar_list += [Radar(pos, a, exp, 50, 60, height_scale, tilt, display_lobe=True)]
+                res = RadarScenario.radar_stl_resolution
+                rres = RadarScenario.radar_stl_rot_resolution
+
+                radar_list += [Radar(pos, a, exp, res, rres, height_scale, tilt, display_lobe=True)]
 
 
         return RadarScenario(volume_size, mountain_height, height_map_filename,

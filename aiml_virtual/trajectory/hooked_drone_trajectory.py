@@ -7,6 +7,10 @@ import pickle
 import sys
 import casadi as ca
 import cvxpy as cp
+import matplotlib
+import matplotlib.pyplot as plt
+matplotlib.use('TkAgg')
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
 from aiml_virtual.controller.differential_flatness import compute_state_trajectory_from_splines, \
     compute_state_trajectory_casadi
@@ -58,8 +62,6 @@ class HookedDroneTrajectory(TrajectoryBase):
 
     @staticmethod
     def __plot_3d_trajectory(x, y, z, vel, title, load_target):
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d.art3d import Line3DCollection
         points = np.array([x, y, z]).T.reshape(-1, 1, 3)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         fig = plt.figure()
@@ -128,30 +130,31 @@ class HookedDroneTrajectory(TrajectoryBase):
         spl = list(zip(*[spl_ + [yaw_spl_] for spl_, yaw_spl_ in zip(spl, yaw_spl)]))
         return spl
 
-    def construct(self, drone_init_pos, load_init_pos, load_target_pos, load_mass, plot_result=False,
-                  save_result=False, inertia=np.diag((1.5e-3, 1.45e-3, 2.66e-3))):
+    def construct(self, drone_init_pos, load_init_pos, load_target_abs, load_mass, plot_result=False, save_result=False,
+                  drone_init_yaw=0, load_init_yaw=0, load_target_yaw=0, inertia=np.diag((1.5e-3, 1.45e-3, 2.66e-3))):
+
+        while load_init_yaw - drone_init_yaw > np.pi:
+            load_init_yaw -= 2 * np.pi
+        while load_init_yaw - drone_init_yaw < -np.pi:
+            load_init_yaw += 2 * np.pi
+        while load_target_yaw - load_init_yaw > np.pi:
+            load_target_yaw -= 2 * np.pi
+        while load_target_yaw - load_init_yaw < -np.pi:
+            load_target_yaw += 2 * np.pi
+
+        # Convert to relative vectors
+        R_yaw = np.array([[np.cos(load_init_yaw), -np.sin(load_init_yaw), 0],
+                          [np.sin(load_init_yaw), np.cos(load_init_yaw), 0], [0, 0, 1]])
+        init_pos = (np.linalg.inv(R_yaw) @ (drone_init_pos - load_init_pos)).tolist() + [drone_init_yaw]
+        load_target = np.linalg.inv(R_yaw) @ (load_target_abs - load_init_pos)
+
         save_splines = save_result
         enable_plotting = plot_result
-        # Convert to relative position
-        drone_init_pos[0:3] -= load_init_pos
-        load_target_pos -= load_init_pos
-        invert_traj = False
-        hook_yaw = 0
-        final_yaw = 0
-        final_pos = [p + o for p, o in zip(load_target_pos, [-0.3 * np.cos(final_yaw), -0.3 * np.sin(final_yaw), 0])]
-        if drone_init_pos[0] > 0:
-            hook_yaw = np.pi
-            invert_traj = True
-            drone_init_pos[0] = -1 * drone_init_pos[0]
-            drone_init_pos[1] = -1 * drone_init_pos[1]
-            load_target_pos[0] = -1 * load_target_pos[0]
-            load_target_pos[1] = -1 * load_target_pos[1]
-            final_pos = [p + o for p, o in zip(load_target_pos, [0.3 * np.cos(final_yaw), 0.3 * np.sin(final_yaw), 0])]
-        # init_pos_list = [[-1.5, 2, 0.6], [-1, 0, 1.2], [0, 1.2, 0.6], [-0.3, 0.3, 1]]
-        # load_target_list = [[1.5, 1.5, -0.01], [0.5, 2, -0.01], [1.8, 0, -0.01], [1, -1, -0.01]]
-        # for init_pos, load_target in zip(init_pos_list, load_target_list):
-        # init_pos = [-1.5, 2, 1]  # initial position compared to the load
-        # load_target = [1.5, 1, -0.05]  # target position of the load (compared to initial position)
+
+        load_yaw_diff = load_target_yaw - load_init_yaw
+        final_pos = [p + o for p, o in
+                     zip(load_target, [-0.3 * np.cos(load_yaw_diff), -0.3 * np.sin(load_yaw_diff), 0])]
+
         num_sec = 5  # number of trajectory sections
         n = num_sec * [12]
         k = num_sec * [5]
@@ -169,10 +172,10 @@ class HookedDroneTrajectory(TrajectoryBase):
         xs = -0.3
         zs = 0.1
         dzs = 0.12
-        bc[0] = {'init_pos': drone_init_pos[0:3], 'init_vel': [0, 0, 0], 'init_acc': [0, 0, 0],
+        bc[0] = {'init_pos': init_pos[0:3], 'init_vel': [0, 0, 0], 'init_acc': [0, 0, 0],
                  'final_pos': [xs, 0, [0, zs]], 'final_vel': [[None, 0.3], 0, [None, 0.2]],
-                 'final_dir': [[0.2, None], 0, [-dzs, dzs]],
-                 'final_curve': [None, 0, None], 'init_yaw': drone_init_pos[3], 'final_yaw': hook_yaw}
+                 'final_dir': [[0.2, None], 0, [-dzs, 0]],
+                 'final_curve': [None, 0, None], 'init_yaw': init_pos[3], 'final_yaw': load_init_yaw}
         params = [bc, n, k, rho, w, K, a_max, v_max, lam]
         params = [list(x) for x in zip(*params)]
         planner[0] = self._TrajectoryPlanner(*params[0])
@@ -190,7 +193,7 @@ class HookedDroneTrajectory(TrajectoryBase):
         bc[1] = {'init_pos': [xyz[0][-1, 0], 0, xyz[0][-1, 2]], 'final_vel': 3 * [[None, 0.2]],
                  'init_vel': planner[0].vel_traj[-1] * final_der / np.linalg.norm(final_der),
                  'final_pos': [0, 0, 0], 'final_dir': [[0, None], 0, 0], 'final_curve': [None, None, 0],
-                 'init_dir': final_der, 'init_yaw': hook_yaw, 'final_yaw': hook_yaw}
+                 'init_dir': final_der, 'init_yaw': load_init_yaw, 'final_yaw': load_init_yaw}
         params = [bc, n, k, rho, w, K, a_max, v_max, lam]
         params = [list(x) for x in zip(*params)]
         planner[1] = self._TrajectoryPlanner(*params[1])
@@ -208,19 +211,21 @@ class HookedDroneTrajectory(TrajectoryBase):
         final_der[1] = 0
         bc[2] = {'init_pos': [xyz[1][-1, 0], 0, xyz[1][-1, 2]],
                  'init_vel': planner[1].vel_traj[-1] * final_der / np.linalg.norm(final_der), 'final_vel': 3 * [0.0],
-                 'final_pos': load_target_pos + np.array([0.0, 0.0, 0.45]), 'init_curve': [None, None, [0.2, None]], 'final_dir': [0.0, 0.0, [None, -0.2]],#'final_curve': [0.0, 0.0, 0.0],
-                 'init_dir': [[0.5, None], 0, 0], 'init_yaw': hook_yaw, 'final_yaw': 0}
+                 'final_pos': load_target + np.array([0.0, 0.0, 0.35]), 'init_curve': [None, None, [0.3, None]],
+                 'final_dir': [0.0, 0.0, [None, -0.2]],  # 'final_curve': [0.0, 0.0, 0.0],
+                 'init_dir': [[0.5, None], 0, 0], 'init_yaw': load_init_yaw, 'final_yaw': load_target_yaw}
         params = [bc, n, k, rho, w, K, a_max, v_max, lam]
         params = [list(x) for x in zip(*params)]
         planner[2] = self._TrajectoryPlanner(*params[2])
+        planner[2].a_max = 0.1
         planner[2].construct_trajectory()
         xyz[2] = np.array(si.splev(planner[2].s_arr, planner[2].spl)).T
         yaw[2] = self.__compute_yaw_setpoints(bc[2]['init_yaw'], bc[2]['final_yaw'], planner[2].t_arr[-1])
 
         bc[3] = {'init_pos': [xyz[2][-1, 0], xyz[2][-1, 1], xyz[2][-1, 2]],
                  'init_vel': 3 * [0], 'final_vel': 3 * [0],
-                 'final_pos': load_target_pos, 'init_dir': [0.0, 0.0, -0.01],
-                 'init_yaw': 0}
+                 'final_pos': load_target, 'init_dir': [0.0, 0.0, -0.01],
+                 'init_yaw': load_target_yaw, 'final_yaw': load_target_yaw}
         w[3] = 1e-5
         params = [bc, n, k, rho, w, K, a_max, v_max, lam]
         params = [list(x) for x in zip(*params)]
@@ -228,26 +233,33 @@ class HookedDroneTrajectory(TrajectoryBase):
         planner[3].v_max = 0.3
         planner[3].construct_trajectory()
         xyz[3] = np.array(si.splev(planner[3].s_arr, planner[3].spl)).T
-        yaw[3] = self.__compute_yaw_setpoints(bc[3]['init_yaw'], 0, planner[3].t_arr[-1])
+        yaw[3] = self.__compute_yaw_setpoints(bc[3]['init_yaw'], bc[3]['final_yaw'], planner[3].t_arr[-1])
 
         bc[4] = {'init_pos': [xyz[3][-1, 0], xyz[3][-1, 1], xyz[3][-1, 2]],
                  'init_vel': 3 * [0], 'final_vel': 3 * [0],
-                 'final_pos': final_pos, 'init_curve': [None, None, 0],
-                 'init_dir': [2 * np.cos(yaw[2][-1]), 2 * np.sin(yaw[2][-1]), 0], 'init_yaw': yaw[2][-1]}
+                 'final_pos': final_pos,
+                 'init_dir': [1, 1, -15], 'init_yaw': load_target_yaw}
         params = [bc, n, k, rho, w, K, a_max, v_max, lam]
         params = [list(x) for x in zip(*params)]
         planner[4] = self._TrajectoryPlanner(*params[4])
         planner[4].v_max = 0.2
+        planner[4].a_max = 0.2
         planner[4].construct_trajectory()
         xyz[4] = np.array(si.splev(planner[4].s_arr, planner[4].spl)).T
         yaw[4] = self.__compute_yaw_setpoints(bc[4]['init_yaw'], bc[4]['init_yaw'], planner[4].t_arr[-1])
 
+        R_yaw = np.array([[np.cos(load_init_yaw), -np.sin(load_init_yaw), 0],
+                          [np.sin(load_init_yaw), np.cos(load_init_yaw), 0], [0, 0, 1]])
         xyz = np.vstack([xyz_ for xyz_ in xyz])
+        xyz = (R_yaw @ xyz.T).T + load_init_pos
         vel_traj = np.hstack([planner_.vel_traj for planner_ in planner])
         T = [planner_.t_arr[-1] for planner_ in planner]
 
         t = [np.arange(0, T_, self.control_step) for T_ in T]
-        pos, spl = list(zip(*[planner_.eval_trajectory(t_, 0) for planner_, t_ in zip(planner, t)]))
+        pos, spl = list(zip(*[planner_.eval_trajectory(t_, der=0, yaw=load_init_yaw,
+                                                       init_pos_abs=load_init_pos,
+                                                       grasp_offset=np.array([0, 0, 0]))
+                              for planner_, t_ in zip(planner, t)]))
         pos = list(pos)
         yaw_spl = [self.__compute_yaw_spline(t_, yaw_) for t_, yaw_ in zip(t, yaw)]
         t_wait = self.num_lqr_steps * self.control_step
@@ -255,10 +267,7 @@ class HookedDroneTrajectory(TrajectoryBase):
         wait_spl = [si.splrep(np.linspace(0, t_wait, 20), pos[2][-1, i]*np.ones(20), k=5, task=-1, t=knots) for i in range(3)]
         wait_yaw_spl = si.splrep(np.linspace(0, t_wait, 20), yaw[2][-1]*np.ones(20), k=5, task=-1, t=knots)
         spl = self.__insert_wait_spl(spl, yaw_spl, wait_spl, wait_yaw_spl)
-
-
-
-        vel = [planner_.eval_trajectory(t_, 1)[0] for planner_, t_ in zip(planner, t)]
+        vel = [planner_.eval_trajectory(t_, 1, yaw=load_init_yaw)[0] for planner_, t_ in zip(planner, t)]
         acc = [planner_.eval_trajectory(t_, 2)[0] for planner_, t_ in zip(planner, t)]
         ctrl_type = sum([len(pos[i]) for i in range(2)]) * ['geom'] + len(pos[2]) * ['geom_load' + "{:.3f}".format(load_mass)] + \
                     self.num_lqr_steps * ['lqr' + "{:.3f}".format(load_mass)] + len(pos[3]) * ['geom_load' + "{:.3f}".format(load_mass)] + len(pos[4]) * ['geom']
@@ -270,7 +279,6 @@ class HookedDroneTrajectory(TrajectoryBase):
         yaw = yaw[0:3] + self.num_lqr_steps*[yaw[2][-1]] + yaw[3:]
         yaw = np.hstack(yaw)
 
-        pos += load_init_pos
 
         if save_splines:
             from datetime import datetime
@@ -279,8 +287,7 @@ class HookedDroneTrajectory(TrajectoryBase):
 
         if enable_plotting:
             tle = 'Duration of trajectory: ' + "{:.2f}".format(sum(T)) + ' seconds'
-            self.__plot_3d_trajectory(xyz[:, 0], xyz[:, 1], xyz[:, 2], vel_traj, tle, load_target_pos)
-            import matplotlib.pyplot as plt
+            self.__plot_3d_trajectory(xyz[:, 0], xyz[:, 1], xyz[:, 2], vel_traj, tle, load_target)
             t = np.arange(0, sum(T) + self.control_step, self.control_step)
             plot_len = min((t.shape[0], pos.shape[0])) - 1
             fig = plt.figure()
@@ -326,11 +333,6 @@ class HookedDroneTrajectory(TrajectoryBase):
             # plt.plot(t, acc)
             # plt.plot(t, np.linalg.norm(pos, axis=1))
             # plt.show()
-        if invert_traj:
-            pos[:, 0] = -1*pos[:, 0]
-            pos[:, 1] = -1*pos[:, 1]
-            vel[:, 0] = -1*vel[:, 0]
-            vel[:, 1] = -1*vel[:, 1]
         T[3] = T[3] + self.num_lqr_steps * self.control_step
         self.traj = {'pos': pos, 'vel': vel, 'yaw': yaw, 'ctrl_type': ctrl_type}
 
@@ -365,11 +367,14 @@ class HookedDroneTrajectory(TrajectoryBase):
             self.log_optim = False
             self.z_max = 10
 
-        def eval_trajectory(self, t, der=0):
+        def eval_trajectory(self, t, der=0, yaw=0, init_pos_abs=np.zeros(3), grasp_offset=np.zeros(3)):
             t_span = t[-1] - t[0]
             knots = np.linspace(t[0] + t_span / 7, t[-1] - t_span / 7, 7)
             if der == 0:
-                y = si.splev(self.s_arr, self.spl)
+                y = np.array(si.splev(self.s_arr, self.spl))
+                R_yaw = np.array([[np.cos(yaw), -np.sin(yaw), 0],
+                                  [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]])
+                y = ((R_yaw @ (y.T + grasp_offset).T).T + init_pos_abs).T
                 # spl = [si.splrep(self.t_arr, y_, s=0, k=5) for y_ in y]
                 spl = [si.splrep(self.t_arr, y_, k=5, task=-1, t=knots) for y_ in y]
                 arr = np.array([si.splev(t, spl_) for spl_ in spl]).T
@@ -377,7 +382,11 @@ class HookedDroneTrajectory(TrajectoryBase):
                 m = self.n
                 idx = np.hstack([np.arange(i * (self.K + 1), (i + 1) * (self.K + 1) - 1) for i in range(m + 1)])
                 idx = np.hstack((idx, (self.K + 1) * (m + 1) - 1))
-                y = [si.splev(self.s_arr, self.spl, der=1)[i] * np.sqrt(self.b[idx].flatten()) for i in range(3)]
+                y = np.array(
+                    [si.splev(self.s_arr, self.spl, der=1)[i] * np.sqrt(self.b[idx].flatten()) for i in range(3)])
+                R_yaw = np.array([[np.cos(yaw), -np.sin(yaw), 0],
+                                  [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]])
+                y = ((R_yaw @ (y.T + grasp_offset).T).T + init_pos_abs).T
                 # spl = [si.splrep(self.t_arr, y_, s=0, k=5) for y_ in y]
                 spl = [si.splrep(self.t_arr, y_, k=5, task=-1, t=knots) for y_ in y]
                 arr = np.array([si.splev(t, spl_) for spl_ in spl]).T

@@ -45,11 +45,13 @@ class Payload(MovingObject):
         self.qfrc_passive = self.free_joint.qfrc_passive
         self.qfrc_applied = self.free_joint.qfrc_applied
 
-        
+        self.qpos = self.free_joint.qpos
+        self.qvel = self.free_joint.qvel
+
         self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
         self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
+        self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data
 
-        
         self._airflow_samplers = []
 
         #self._top_rectangle_positions_world = np.zeros_like(self._top_rectangle_positions)

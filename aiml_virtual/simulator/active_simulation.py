@@ -47,8 +47,8 @@ class ActiveSimulator(Display):
             self.set_key_n_callback(self.set_vehicle_names)
 
         else:
-            
             self.load_model(xml_file_name)
+            self.start_time = 0.0
 
         self.virt_parsers = virt_parsers
         self.mocap_parsers = mocap_parsers

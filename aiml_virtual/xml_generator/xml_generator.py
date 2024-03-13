@@ -625,6 +625,7 @@ class SceneXmlGenerator:
         
         ET.SubElement(self.sensor, "framepos", objtype="body", objname=name, name=name + "_posimeter")
         ET.SubElement(self.sensor, "framequat", objtype="body", objname=name, name=name + "_orimeter")
+        ET.SubElement(self.sensor, "framelinvel", objtype="body", objname=name, name=name + "_velocimeter")
 
 
         return name
@@ -839,14 +840,14 @@ class SceneXmlGenerator:
         
         trailer = ET.SubElement(car_body, "body", name=car_name + "_trailer", pos=hitch_pos)
         #ET.SubElement(trailer, "inertial", pos="0 0 0", diaginertia=".03 .03 .05", mass="1.0")
-        ET.SubElement(trailer, "joint", type="ball")
+        ET.SubElement(trailer, "joint", type="ball", name="car_to_rod")
         ET.SubElement(trailer, "geom", type="cylinder", size=".0025 " + str(draw_bar_length / 2), euler="0 1.571 0", pos=str(-draw_bar_length / 2) + " 0 0")
 
         front_structure = ET.SubElement(trailer, "body", name=car_name + "_trailer_front_structure", pos=str(-draw_bar_length) + " 0 0")
 
         track_distance = 0.193
 
-        ET.SubElement(front_structure, "joint", type="hinge", axis="0 1 0")
+        ET.SubElement(front_structure, "joint", type="hinge", axis="0 1 0", name="rod_to_front")
         # front axle
         ET.SubElement(front_structure, "geom", type="box", size="0.0075 " + str(track_distance / 2) + " 0.0075")
 
@@ -861,6 +862,7 @@ class SceneXmlGenerator:
         ET.SubElement(trailer_wheelfr, "joint", type="hinge", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature)
 
         rear_structure = ET.SubElement(front_structure, "body", name=car_name + "_trailer_rear_structure")
+        top_plate_middle = ET.SubElement(front_structure, "site", pos="-0.1 0 0", name=car_name + "_trailer_middle")
 
         axle_distance = 0.225
 
@@ -890,7 +892,7 @@ class SceneXmlGenerator:
         ET.SubElement(rear_structure, "geom", type="cylinder", size="0.008 0.032", pos=str(-axle_distance + 0.02) + " 0 0.045", rgba="0.1 0.1 0.1 1.0", euler="0 " + tilt + " 0")
 
         # joint for the rear part
-        ET.SubElement(rear_structure, "joint", type="hinge", axis="0 0 1")
+        ET.SubElement(rear_structure, "joint", type="hinge", axis="0 0 1", name="front_to_rear")
 
         # rear wheels
         trailer_wheelrl = ET.SubElement(rear_structure, "body", pos=str(-axle_distance) + " " + str(track_distance / 2) + " 0", name=car_name + "_trailer_wheelrl")

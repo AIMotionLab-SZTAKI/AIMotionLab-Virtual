@@ -296,6 +296,14 @@ class ActiveSimulator(Display):
             return self._is_paused
     
 
+    def goto(self, time):
+
+        self.time = time
+        self.data.time = time
+        self.start_time -= time
+        self.i = int(round(self.time / self.control_step))
+    
+
     def set_vehicle_names(self):
         
         if len(self.all_mocap_objects) > 0:

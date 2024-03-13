@@ -86,7 +86,7 @@ class FpsLimiter:
 
 def plot_payload_and_airflow_volume(payload, airflow_sampler, payload_color: str = "tab:blue"):
 
-    p, pos, n, a = payload.get_top_minirectangle_data()
+    p, pos, n, a = payload.get_top_rectangle_data()
 
     payload_offset = airflow_sampler.get_payload_offset_z_meter()
 
@@ -99,13 +99,13 @@ def plot_payload_and_airflow_volume(payload, airflow_sampler, payload_color: str
     ax = fig.add_subplot(projection='3d')
     ax.scatter(p[:, 0], p[:, 1], p[:, 2], color=col, alpha=alp)
 
-    p_n, p_p, pown_n, pown_p, n_n, n_p, area_xz = payload.get_side_xz_minirectangle_data()
+    p_n, p_p, pown_n, pown_p, n_n, n_p, area_xz = payload.get_side_xz_rectangle_data()
     p_n[:, 2] += payload_offset
     p_p[:, 2] += payload_offset
     ax.scatter(p_n[:, 0], p_n[:, 1], p_n[:, 2], color=col, alpha=alp)
     ax.scatter(p_p[:, 0], p_p[:, 1], p_p[:, 2], color=col, alpha=alp)
 
-    p_n, p_p, pown_n, pown_p, n_n, n_p, area_xz = payload.get_side_yz_minirectangle_data()
+    p_n, p_p, pown_n, pown_p, n_n, n_p, area_xz = payload.get_side_yz_rectangle_data()
     p_n[:, 2] += payload_offset
     p_p[:, 2] += payload_offset
     ax.scatter(p_n[:, 0], p_n[:, 1], p_n[:, 2], color=col, alpha=alp)

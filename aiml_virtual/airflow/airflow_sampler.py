@@ -97,7 +97,7 @@ class AirflowSampler:
 #        for x in range(payload_subdiv_x):
 #            for y in range(payload_subdiv_y):
 #
-#                pos, pos_in_own_frame, normal, area = payload.get_top_minirectangle_data_at(x, y)
+#                pos, pos_in_own_frame, normal, area = payload.get_top_rectangle_data_at(x, y)
 #
 #                # transforming them into pressure volume coordinate system
 #                pos_traffed = pos - selfposition
@@ -131,14 +131,14 @@ class AirflowSampler:
         force_sum = np.array([0., 0., 0.])
         torque_sum = np.array([0., 0., 0.])
 
-        pos, pos_in_own_frame, normal, area = payload.get_top_minirectangle_data()
+        pos, pos_in_own_frame, normal, area = payload.get_top_rectangle_data()
 
         force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area)
         force_sum += force
         torque_sum += torque
 
         
-        pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_xz_minirectangle_data()
+        pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_xz_rectangle_data()
 
         force, torque = self._gen_forces_one_side(pos_n, pos_in_own_frame_n, normal_n, area)
         force_sum += force
@@ -148,7 +148,7 @@ class AirflowSampler:
         torque_sum += torque
 
         
-        pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_yz_minirectangle_data()
+        pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_yz_rectangle_data()
 
         force, torque = self._gen_forces_one_side(pos_n, pos_in_own_frame_n, normal_n, area)
         force_sum += force

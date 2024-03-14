@@ -315,6 +315,7 @@ class ActiveSimulator(Display):
         if self._with_graphics:
             self._first_loop = True
             self._past_time = time
+            self.pause_time = 0.0
     
 
     def set_vehicle_names(self):

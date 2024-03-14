@@ -48,7 +48,6 @@ class ActiveSimulator(Display):
 
         else:
             self.load_model(xml_file_name)
-            self.start_time = 0.0
 
         self.virt_parsers = virt_parsers
         self.mocap_parsers = mocap_parsers
@@ -300,8 +299,9 @@ class ActiveSimulator(Display):
 
         self.time = time
         self.data.time = time
-        self.start_time -= time
         self.i = int(round(self.time / self.control_step))
+        if self._with_graphics:
+            self.start_time -= time
     
 
     def set_vehicle_names(self):

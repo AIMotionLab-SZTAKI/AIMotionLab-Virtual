@@ -10,10 +10,9 @@ from aiml_virtual.object.payload import PAYLOAD_TYPES, TeardropPayload, BoxPaylo
 from aiml_virtual.object.car import Fleet1Tenth
 import numpy as np
 import matplotlib.pyplot as plt
-
 from aiml_virtual.object import parseMovingObjects
-
 from scipy.spatial.transform import Rotation
+
 
 RED = "0.85 0.2 0.2 1.0"
 BLUE = "0.2 0.2 0.85 1.0"
@@ -149,8 +148,8 @@ class TrailerPredictor:
             self.payload.qpos = init_state[17:24]
 
         # start simulation
-        payload_trajectory = []
-        while not self.simulator.should_close(prediction_time):
+        payload_trajectory = []  # maybe preallocate numpy array later
+        for _ in range(int(prediction_time / self.simulator.control_step)):
             self.simulator.update()
             # get payload state and save
             payload_trajectory += [np.hstack((self.payload.sensor_posimeter,
@@ -159,12 +158,81 @@ class TrailerPredictor:
         return np.asarray(payload_trajectory)
 
 
-if __name__ == "__main__":
+class DummyPredictor(TrailerPredictor):
+    def __init__(self, car_trajectory: CarTrajectory):
+        super().__init__(car_trajectory)
+        self.prediction_time = 10
+        self.payload_nominal_points = self.simulate(self.init_state, self.prediction_time)
+        self.payload_disturbed_points = self.simulate(self.init_state, self.prediction_time,
+                                                      np.array([0.05, 0.05, 0]))
+    
+    def simulate(self, init_state, prediction_time, payload_pos_error=np.zeros(3)):
+        # reset simulation
+        self.simulator.goto(0)
+        self.simulator.reset_data()
+        self.car.set_trajectory(get_car_trajectory())
+        self.car.set_controllers([CarLPVController(self.car.mass, self.car.inertia)])
+
+        # set initial states
+        # state: car position, orientation, velocity, angular velocity; car_to_rod orientation, ang_vel;
+        # front_to_rear orientation, ang_vel; payload position, orientation  --  ndim = 24
+        self.car.joint.qpos = init_state[0:7]
+        self.car.joint.qvel = init_state[7:13]
+        self.car_to_rod.qpos = np.roll(Rotation.from_euler('xyz', [0, self.rod_pitch, init_state[13]]).as_quat(), 1)
+        self.car_to_rod.qvel = np.array([0, 0, init_state[14]])
+        self.front_to_rear.qpos = init_state[15]
+        self.front_to_rear.qvel = init_state[16]
+
+        if np.isnan(np.sum(init_state[17:24])):  # Compute payload configuration from trailer configuration
+            self.simulator.update()
+            self.payload.qpos[0:2] = self.car.data.site(self.car.name_in_xml + "_trailer_middle").xpos[0:2]
+            self.payload.qpos[2] = self.trailer_top_plate_height
+            payload_rotm = np.reshape(self.car.data.site(self.car.name_in_xml + "_trailer_middle").xmat, (3, 3))
+            payload_quat = Rotation.from_matrix(payload_rotm).as_quat()
+            self.payload.qpos[3:7] = np.roll(payload_quat, 1)
+        else:
+            self.payload.qpos = init_state[17:24]
+        self.payload.qpos[0:3] += payload_pos_error
+        # start simulation
+        payload_trajectory = []  # maybe preallocate numpy array later
+        for _ in range(int(prediction_time / self.simulator.control_step)):
+            self.simulator.update()
+            # get payload state and save
+            payload_trajectory += [np.hstack((self.payload.sensor_posimeter,
+                                              self.payload.sensor_velocimeter,
+                                              self.payload.sensor_orimeter))]
+        return np.asarray(payload_trajectory)
+    
+    def payload_pos(self, t, disturbed):
+        t_interp = np.linspace(0, self.prediction_time, self.payload_nominal_points.shape[0])
+        if not disturbed:
+            payload_pos = self.payload_nominal_points[:, :3].T
+        else:
+            payload_pos = self.payload_disturbed_points[:, :3].T
+        return [np.interp(t, t_interp, dim) for dim in payload_pos]
+
+def measure_computation_time(prediction_time=10):
     predictor = TrailerPredictor(car_trajectory=get_car_trajectory())
+    num_simu = 20
     start_time = time.time()
     # plt.figure()
-    for _ in range(20):
-        payload_traj = predictor.simulate(predictor.init_state, 10)
+    for _ in range(num_simu):
+        payload_traj = predictor.simulate(predictor.init_state, prediction_time)
         # plt.plot(payload_traj[:, 0:2])
-    print((time.time()-start_time)/20)
+    comp_time_ms = (time.time()-start_time) / num_simu / prediction_time * 1000
+    print(f"Car + trailer simulation takes {round(comp_time_ms, 2)} ms for each simulated second.")
     # plt.show()
+
+def test_dummy_predictor():
+    predictor = DummyPredictor(get_car_trajectory())
+    t = np.linspace(0, predictor.prediction_time, 500)
+    pos_nom = np.asarray(predictor.payload_pos(t, disturbed=False)).T
+    pos_dist = np.asarray(predictor.payload_pos(t, disturbed=True)).T
+    plt.figure()
+    plt.plot(pos_nom[:, 0], pos_nom[:, 1])
+    plt.plot(pos_dist[:, 0], pos_dist[:, 1])
+    plt.show()
+
+if __name__ == "__main__":
+    #measure_computation_time()
+    test_dummy_predictor()

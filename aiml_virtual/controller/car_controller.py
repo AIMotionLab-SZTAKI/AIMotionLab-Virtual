@@ -109,7 +109,6 @@ class CarLPVController(ControllerBase):
         e=-z1
         self.q+=e
         self.q=self._clamp(self.q,0.1)
-        self.q=0
 
         # estimate error derivative
         try:

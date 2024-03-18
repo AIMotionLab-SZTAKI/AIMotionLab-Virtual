@@ -41,6 +41,7 @@ class ActiveSimulator(Display):
             fc_target = 1.0 / control_step
             self.control_freq_warning_limit = fc_target - (0.05 * fc_target)
             self.pause_time = 0.0
+            self._past_time = 0.0
 
             self._first_loop = True
 
@@ -48,7 +49,6 @@ class ActiveSimulator(Display):
 
         else:
             self.load_model(xml_file_name)
-            self.start_time = 0.0
 
         self.virt_parsers = virt_parsers
         self.mocap_parsers = mocap_parsers
@@ -154,7 +154,7 @@ class ActiveSimulator(Display):
         if self._with_graphics:
 
             if self._first_loop:
-                self.start_time = time.time()
+                self.start_time = time.time() - self._past_time
                 self.prev_tc = time.time()
                 self.prev_tg = time.time()
                 self._first_loop = False
@@ -181,32 +181,47 @@ class ActiveSimulator(Display):
                 mujoco_helper.update_onboard_cam(v.get_qpos(), self.camOnBoard,\
                                                 self.azim_filter_sin, self.azim_filter_cos,\
                                                 self.elev_filter_sin, self.elev_filter_cos, self.onBoard_elev_offset)
-                
-
             
-            if self.i % self.graphics_control_ratio == 0:
+            if self._is_paused:
 
                 self.frame_counter += 1
                 if self.frame_counter % self.n_graphicstep_sum == 0:
-                    self.actual_graphicstep = self.calc_actual_graphics_step()  
-            
-                fc = 1.0 / self.actual_controlstep
+                    self.actual_graphicstep = self.calc_actual_graphics_step()
                 fg = 1.0 / self.actual_graphicstep
-                
-                if not self._is_paused:
-                    fst = "Control: {:10.3f} Hz\nGraphics: {:10.3f} Hz".format(fc, fg)
-                else:
-                    fst = "Control: ------ Hz\nGraphics: {:10.3f} Hz".format(fg)
+                fst = "Control: ------ Hz\nGraphics: {:10.3f} Hz".format(fg)
 
-                
                 if self._show_overlay:
-                    needs_warning = (fc < self.control_freq_warning_limit and not self._is_paused)
-                    self.render(fst, needs_warning)
+                    self.render(fst, False)
                 else:
                     self.render()
-
-            if not self._is_paused:
                 
+                self.tc = time.time()
+                self.tg = time.time()
+
+
+            else:
+
+                if self.i % self.graphics_control_ratio == 0:
+
+                    self.frame_counter += 1
+                    if self.frame_counter % self.n_graphicstep_sum == 0:
+                        self.actual_graphicstep = self.calc_actual_graphics_step()  
+                
+                    fc = 1.0 / self.actual_controlstep
+                    fg = 1.0 / self.actual_graphicstep
+                    
+                    if not self._is_paused:
+                        fst = "Control: {:10.3f} Hz\nGraphics: {:10.3f} Hz".format(fc, fg)
+                    else:
+                        fst = "Control: ------ Hz\nGraphics: {:10.3f} Hz".format(fg)
+
+                    
+                    if self._show_overlay:
+                        needs_warning = (fc < self.control_freq_warning_limit and not self._is_paused)
+                        self.render(fst, needs_warning)
+                    else:
+                        self.render()
+                    
                 for l in range(len(self.all_moving_objects)):
 
                     self.all_moving_objects[l].update(self.i, self.control_step)
@@ -214,11 +229,7 @@ class ActiveSimulator(Display):
                 if self.i % self.n_controlstep_sum == 0:
                     self.actual_controlstep = self.calc_actual_control_step()   
                 self.i += 1
-            
-            else:
-                self.tc = time.time()
-                self.tg = time.time()
-            
+                
             sync(self.i, self.start_time, self.pause_time, self.control_step)
 
         else:
@@ -300,8 +311,11 @@ class ActiveSimulator(Display):
 
         self.time = time
         self.data.time = time
-        self.start_time -= time
         self.i = int(round(self.time / self.control_step))
+        if self._with_graphics:
+            self._first_loop = True
+            self._past_time = time
+            self.pause_time = 0.0
     
 
     def set_vehicle_names(self):
@@ -331,6 +345,7 @@ class ActiveSimulator(Display):
         mujoco.mj_step(self.model, self.data)
         self.i = 0
         self.pause_time = 0.0
+        self._past_time = 0.0
         self._first_loop = True
         self.frame_counter = 0
 

@@ -14,6 +14,9 @@ from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
 from aiml_virtual.controller.differential_flatness import compute_state_trajectory_from_splines, \
     compute_state_trajectory_casadi
+from quadcopter_hook_twodof.planning.acados.nlopt_acados import NLOptPlanner, get_traj_params_hookup_moving
+from quadcopter_hook_twodof.planning.acados.quad_hook_model import load_pos_model_disc, load_pos_model_disc_lin
+from functools import partial
 
 
 class HookedDroneTrajectory(TrajectoryBase):
@@ -1128,3 +1131,61 @@ class HookedDronePolyTrajectory(TrajectoryBase):
         prob.solve(solver='MOSEK')
 
         return x.value
+    
+
+class HookedDroneNLTrajectory(HookedDronePolyTrajectory):
+    def __init__(self, plot_trajs=False):
+        super().__init__()
+        self.plot_trajs = plot_trajs
+
+    
+    def construct(self, drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos, load_target_yaw,
+                  load_mass, grasp_speed):
+        
+        hook_mass = 0.02
+        params = get_traj_params_hookup_moving(drone_init_pos=drone_init_pos, drone_init_yaw=drone_init_yaw,
+                                               load_init_pos=partial(load_init_pos, t0=0), 
+                                               load_init_yaw=load_init_yaw,#partial(load_init_yaw, t0=0), 
+                                               load_target_pos=load_target_pos, 
+                                               load_target_yaw=load_target_yaw, 
+                                               grasp_speed=grasp_speed, 
+                                               model_type=load_pos_model_disc)
+        
+        planner = NLOptPlanner(params)
+        planner.init_guess_qp(plot_res=self.plot_trajs)
+        #plt.show()
+        #planner.solve_ipopt()
+        planner.solve_acados(generate_and_build=True, solve=False)
+        planner.solve_acados(generate_and_build=False, solve=True, plot_res=self.plot_trajs)
+
+        #plot_3d_trajectory(planner.x_acados[:, 0], planner.x_acados[:, 1], planner.x_acados[:, 2], 
+        #                   np.linalg.norm(planner.x_acados[:, 3:6], axis=1), "", 0)
+        if self.plot_trajs:
+            plt.show()
+        planner.fit_casadi_ppoly(plot_res=False)
+
+        x_f_hook, u_f_hook = compute_state_trajectory_casadi(planner.ref, payload_mass=hook_mass)
+        x_f_load, u_f_load = compute_state_trajectory_casadi(planner.ref, payload_mass=hook_mass+load_mass)
+        
+        def x_f(t_):
+            if isinstance(t_, np.ndarray):
+                t_ = t_.T
+            elif isinstance(t_, float):
+                t_ = [t_]
+            return np.asarray([x_f_load(t__) if planner.ref.segment_times[1] < t__ <= planner.ref.segment_times[3] else x_f_hook(t__) for t__ in t_])[:, :, 0]
+
+        def u_f(t_):
+            if isinstance(t_, np.ndarray):
+                t_ = t_.T
+            elif isinstance(t_, float):
+                t_ = [t_]
+            return np.asarray([u_f_load(t__) if planner.ref.segment_times[1] < t__ <= planner.ref.segment_times[3] else u_f_hook(t__) for t__ in t_])[:, :, 0]
+
+        self.states = x_f
+        self.inputs = u_f
+        self.t = planner.ref.t
+        self.x = planner.ref.x
+        self.y = planner.ref.y
+        self.z = planner.ref.z
+        self.yaw = planner.ref.yaw
+        self.segment_times = planner.ref.segment_times

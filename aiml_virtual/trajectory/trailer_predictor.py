@@ -5,7 +5,6 @@ from aiml_virtual.xml_generator import SceneXmlGenerator
 from aiml_virtual.trajectory import CarTrajectory
 from aiml_virtual.controller import CarLPVController
 from aiml_virtual.util import mujoco_helper, carHeading2quaternion
-from aiml_virtual.object.drone import DRONE_TYPES
 from aiml_virtual.object.payload import PAYLOAD_TYPES, TeardropPayload, BoxPayload
 from aiml_virtual.object.car import Fleet1Tenth
 import numpy as np
@@ -35,11 +34,10 @@ class TrailerPredictor:
     def __init__(self, car_trajectory: CarTrajectory):
         # Initialize simulation
         abs_path = os.path.dirname(os.path.abspath(__file__))
-        xml_path = os.path.join(abs_path, "..", "xml_models")
+        xml_path = os.path.join(abs_path, "..", "..", "xml_models")
         xml_base_filename = "scene_base.xml"
-        save_filename = "built_scene.xml"
+        save_filename = "built_scene_for_predictor.xml"
 
-        # TODO: get these from car_trajectory
         car_pos = np.array([car_trajectory.pos_tck[1][0][0], car_trajectory.pos_tck[1][1][0], 0.052])
         heading_smoothing_index = 5
         car_heading = np.arctan2(car_trajectory.pos_tck[1][1][heading_smoothing_index] - car_trajectory.pos_tck[1][1][0],
@@ -99,10 +97,10 @@ class TrailerPredictor:
                                      np.zeros(6), rod_yaw, 0, 0, 0,
                                      np.nan * payload_pos, np.nan * np.fromstring(payload_quat, sep=" ")))
 
-    def simulate(self, init_state, car_state, prediction_time):
+    def simulate(self, init_state, car_state, cur_time, prediction_time):
         # reset simulation
         self.simulator.reset_data()
-        self.simulator.goto(0)
+        self.simulator.goto(cur_time)
         self.car.set_trajectory(get_car_trajectory())
         self.car.set_controllers([CarLPVController(self.car.mass, self.car.inertia)])
 
@@ -132,7 +130,7 @@ class TrailerPredictor:
         for _ in range(int(prediction_time / self.simulator.control_step)):
             self.simulator.update()
             # get payload state and save
-            payload_trajectory += [np.hstack((self.payload.sensor_posimeter,
+            payload_trajectory += [np.hstack((self.payload.sensor_posimeter + np.array([0, 0, 0.14]),
                                               self.payload.sensor_velocimeter,
                                               self.payload.sensor_orimeter))]
             car_reference += [self.car.trajectory.output["ref_pos"]]

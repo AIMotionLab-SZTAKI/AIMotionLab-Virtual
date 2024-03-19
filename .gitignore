@@ -1,5 +1,6 @@
 video_capture
 xml_models/built_scene.xml
+xml_models/built_scene_for_predictor.xml
 
 __pycache__/
 *.py[cod]

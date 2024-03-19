@@ -25,7 +25,6 @@ radar_scenario = RadarScenario.parse_config_file(filename)
 
 BLUE = "0.2 0.6 0.85 1.0"
 
-abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
 xml_base_file_name = "scene_base_terrain.xml"
 

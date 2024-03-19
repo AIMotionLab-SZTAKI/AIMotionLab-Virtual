@@ -4,7 +4,7 @@ from aiml_virtual.simulator import ActiveSimulator
 
 from aiml_virtual.xml_generator import SceneXmlGenerator
 
-from aiml_virtual.trajectory import CarTrajectory, HookedDronePolyTrajectory
+from aiml_virtual.trajectory import CarTrajectory, CarTrajectorySpatial, HookedDronePolyTrajectory
 from aiml_virtual.controller import CarLPVController
 from aiml_virtual.controller import LtvLqrLoadControl
 from aiml_virtual.util import mujoco_helper, carHeading2quaternion
@@ -50,7 +50,7 @@ virt_parsers = [parseMovingObjects]
 
 
 
-control_step, graphics_step = 0.01, 0.02
+control_step, graphics_step = 0.025, 0.05
 xml_filename = os.path.join(xml_path, save_filename)
 
 # recording interval for automatic video capture
@@ -64,7 +64,7 @@ simulator.onBoard_elev_offset = 20
 # grabbing the drone and the car
 car0 = simulator.get_MovingObject_by_name_in_xml(car0_name)
 
-car0_trajectory=CarTrajectory()
+car0_trajectory=CarTrajectorySpatial()
 
 # define path points and build the path
 path_points = np.array(

@@ -27,6 +27,7 @@ class RadarScenario:
 
     radar_stl_resolution = 50
     radar_stl_rot_resolution = 60
+    radar_donut_color = "0.5 0.5 0.5 0.5"
 
     def __init__(self, sim_volume_size=np.array((0.0, 0.0, 0.0)), mountain_height=0.0, height_map_name="",
                  target_point_list=np.array(((0., 0., 0.), (0., 0., 0.))),
@@ -110,7 +111,7 @@ class RadarScenario:
                 res = RadarScenario.radar_stl_resolution
                 rres = RadarScenario.radar_stl_rot_resolution
 
-                radar_list += [Radar(pos, a, exp, res, rres, height_scale, tilt, display_lobe=True)]
+                radar_list += [Radar(pos, a, exp, res, rres, height_scale, tilt, display_lobe=True, color=RadarScenario.radar_donut_color)]
 
 
         return RadarScenario(volume_size, mountain_height, height_map_filename,

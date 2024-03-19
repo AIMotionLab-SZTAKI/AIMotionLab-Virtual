@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 
 from aiml_virtual.object import parseMovingObjects
 
+from aiml_virtual.trajectory.car_path_point_generator import paperclip
+
 
 RED = "0.85 0.2 0.2 1.0"
 BLUE = "0.2 0.2 0.85 1.0"
@@ -32,7 +34,7 @@ payload_quat = np.array(mujoco_helper.quaternion_from_euler(0, 0, 0))
 # create xml with a car
 scene = SceneXmlGenerator(xml_base_filename)
 car0_name = scene.add_car(pos="0 0 0.052", quat=carHeading2quaternion(0.64424), color=RED, is_virtual=True, has_rod=False, has_trailer=True)
-payload0_name = scene.add_payload("-.4 -.3 .18", "0.05 0.05 0.05", "1", np.array2string(payload_quat)[1:-1], BLACK, PAYLOAD_TYPES.Teardrop)
+# payload0_name = scene.add_payload("-.4 -.3 .18", "0.05 0.05 0.05", "1", np.array2string(payload_quat)[1:-1], BLACK, PAYLOAD_TYPES.Teardrop)
  
 
 # saving the scene as xml so that the simulator can load it
@@ -62,36 +64,9 @@ car0 = simulator.get_MovingObject_by_name_in_xml(car0_name)
 # create a trajectory
 car0_trajectory=CarTrajectory()
 
-# define path points and build the path
-path_points = np.array(
-    [
-        [0, 0],
-        [1, 1],
-        [2, 2],
-        [3, 2],
-        [4, 1],
-        [4.5, 0],
-        [4, -1],
-        [3, -2],
-        [2, -2],
-        [1, -1],
-        [0, 0],
-        [-1, 1],
-        [-2, 2],
-        [-3, 2],
-        [-4, 1],
-        [-4.5, 0],
-        [-4, -2.1],
-        [-3, -2.3],
-        [-2, -2],
-        [-1, -1],
-        [0, 0],
-    ]
-)
+path_points = np.vstack((paperclip(), paperclip()[2:, :], paperclip()[2:, :]))
 
-path_points /= 1.5
-
-car0_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=0.01, path_degree=4, const_speed=1., start_delay=1.0)
+car0_trajectory.build_from_points_smooth_const_speed(path_points=path_points, path_smoothing=0.0001, path_degree=5, virtual_speed=0.7)
 #car0_trajectory.plot_trajectory()
 
 car0_controller = CarLPVController(car0.mass, car0.inertia)
@@ -107,7 +82,7 @@ car0.set_controllers(car0_controllers)
 # start simulation
 x=[]
 y=[]
-simulator.pause()
+car0.joint.qpos[0:2] = path_points[0, :]
 #while simulator.time < 25.:
 while not simulator.should_close(25.):
     simulator.update()

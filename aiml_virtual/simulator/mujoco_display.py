@@ -10,10 +10,11 @@ import threading
 from aiml_virtual.util import mujoco_helper
 import scipy.signal
 from aiml_virtual.util.mujoco_helper import LiveLFilter
-import motioncapture
+#import motioncapture
 if os.name == "posix":
     import cv2
 else:
+    import motioncapture # motioncapture is not available on macos
     import ffmpeg
 if os.name == 'nt':
     import win_precise_time as time

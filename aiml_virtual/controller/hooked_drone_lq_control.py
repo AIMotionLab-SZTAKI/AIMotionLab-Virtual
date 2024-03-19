@@ -124,7 +124,8 @@ class LqrLoadControl(ControllerBase):
 
         A_d = np.eye(16) + self.dt * A
         B_d = self.dt * B
-        self.K_lti, _, _ = control.dlqr(A_d, B_d, self.Q, self.R, method='scipy')
+        S = si.linalg.solve_discrete_are(A_d, B_d, self.Q, self.R)
+        self.K_lti = np.linalg.inv(self.R + B_d.T @ S @ B_d) @ (B_d.T @ S @ A_d)
 
     @staticmethod
     def list_to_casadi_matrix(lst):

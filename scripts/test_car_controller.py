@@ -13,6 +13,10 @@ import matplotlib.pyplot as plt
 
 from aiml_virtual.object import parseMovingObjects
 
+# setting up matplotlib for Qt5 on macos
+if os.name == "posix":
+    import matplotlib
+    matplotlib.use("Qt5Agg")
 
 RED_COLOR = "0.85 0.2 0.2 1.0"
 BLUE_COLOR = "0.2 0.2 0.85 1.0"
@@ -85,8 +89,8 @@ path_points = np.array(
     ]
 )
 
-car0_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=0.01, path_degree=4, const_speed=2.2)
-car0_trajectory.plot_trajectory()
+car0_trajectory.build_from_points_smooth_const_speed(path_points=path_points, path_smoothing=0.01, path_degree=4, virtual_speed=1)
+car0_trajectory.plot_trajectory(block=False)
 
 
 
@@ -117,6 +121,7 @@ while not simulator.glfw_window_should_close():
     
 simulator.close()
 
+plt.figure()
 plt.plot(x,y)
 plt.axis('equal')
 plt.show()

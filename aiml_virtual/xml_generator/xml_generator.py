@@ -593,7 +593,8 @@ class SceneXmlGenerator:
         ET.SubElement(hookbody, "geom", type="capsule", pos="0 0.01299 0.0475", euler="-1.0472 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hookbody, "geom", type="capsule", pos="0 0.02598 0.07", euler="0 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hookbody, "geom", type="capsule", pos="0 0.01299 0.0925", euler="1.0472 0 0", size="0.005 0.018", mass="0.0001")
-        ET.SubElement(hookbody, "geom", type="capsule", pos="0 -0.01299 0.0925", euler="2.0944 0 0", size="0.005 0.018", mass="0.0001")
+        #ET.SubElement(hookbody, "geom", type="capsule", pos="0 -0.01299 0.0925", euler="2.0944 0 0", size="0.005 0.018", mass="0.0001")
+        ET.SubElement(hookbody, "geom", type="capsule", pos="0 -0.018 0.09", euler="2.0944 0 0", size="0.005 0.023", mass="0.0001")
 
     def add_payload(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box):
 

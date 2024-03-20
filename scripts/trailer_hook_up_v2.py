@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from aiml_virtual.object import parseMovingObjects
 from scipy.spatial.transform import Rotation
-from aiml_virtual.trajectory.car_path_point_generator import paperclip
+from aiml_virtual.trajectory.car_path_point_generator import paperclip, dented_paperclip
 from aiml_virtual.trajectory.trailer_predictor import TrailerPredictor
 
 
@@ -29,8 +29,16 @@ save_filename = "built_scene.xml"
 
 car_trajectory = CarTrajectory()
 # define path points and build the path
-# path_points = np.vstack((paperclip(), paperclip()[1:, :], paperclip()[1:, :]))
-path_points = paperclip()
+
+# Scenario #1
+# path_points = paperclip()
+# drone_init_pos = np.array([-1, -1.13, 1.1, 0])  # initial drone position and yaw angle
+# load_target_pos = np.array([-1, -1.13, 0.19])
+
+# Scenario #2
+path_points = dented_paperclip()
+drone_init_pos = np.array([1, 1.13, 1.1, 0])  # initial drone position and yaw angle
+load_target_pos = np.array([1, 1.13, 0.19])
 car_trajectory.build_from_points_smooth_const_speed(path_points=path_points, path_smoothing=1e-4, path_degree=5,
                                                     virtual_speed=0.6)
 
@@ -56,8 +64,6 @@ load_mass = 0.1
 payload_name = scene.add_payload(pos=np.array2string(payload_pos)[1:-1], size="0.05 0.05 0.05", mass=str(load_mass),
                                     quat=payload_quat, color=BLACK, type=PAYLOAD_TYPES.Box)
 
-drone_init_pos = np.array([1.5, -1.13, 1, 0])  # initial drone position and yaw angle
-load_target_pos = np.array([-1, -1.13, 0.19])
 bb_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-2], "1 0 0 0", RED, DRONE_TYPES.BUMBLEBEE_HOOKED, 2)
 
 # saving the scene as xml so that the simulator can load it
@@ -116,6 +122,10 @@ def load_init_pos(t, t0):
     t_interp = predictor.simulator.control_step * np.arange(payload_predicted_points.shape[0])
     return [np.interp(t-t0, t_interp, dim) for dim in payload_predicted_points[:, :3].T]
 
+def load_init_vel(t, t0):
+    t_interp = predictor.simulator.control_step * np.arange(payload_predicted_points.shape[0])
+    return [np.interp(t-t0, t_interp, dim) for dim in payload_predicted_points[:, 3:6].T]
+
 '''plt.figure()
 t_plot = np.linspace(0, 10, 100)
 car_pos_arr = np.asarray([load_init_pos(t_, 0) for t_ in t_plot])
@@ -124,14 +134,25 @@ plt.figure()
 plt.plot(car_pos_arr[:, 0], car_pos_arr[:, 1])
 plt.show()'''
 
-'''def load_init_yaw(t, t0):
+def load_init_yaw(t, t0):
     t_interp = predictor.simulator.control_step * np.arange(payload_predicted_points.shape[0])
-    return np.interp(t-t0, t_interp, payload_predicted_points[:, 5])'''
-load_init_yaw = 0
+    payload_yaw = Rotation.from_quat(payload_predicted_points[:, [7, 8, 9, 6]]).as_euler('xyz')[:, 2]
+    for i in range(1, payload_yaw.shape[0]):
+        if payload_yaw[i] < payload_yaw[i-1] - np.pi:
+            payload_yaw[i:] += 2*np.pi
+        elif payload_yaw[i] > payload_yaw[i-1] + np.pi:
+            payload_yaw[i:] -= 2*np.pi
+    return np.interp(t-t0, t_interp, payload_yaw)
+
+'''plt.figure()
+t_plot = np.linspace(0, 10, 100)
+car_pos_arr = np.asarray([load_init_yaw(t_, 0) for t_ in t_plot])
+plt.plot(t_plot, car_pos_arr)
+plt.show()'''
 
 # Plan trajectory
-bb_trajectory.construct(drone_init_pos[0:3], drone_init_pos[3], load_init_pos, load_init_yaw,
-                         load_target_pos, 0, load_mass, grasp_speed=-1.0)
+bb_trajectory.construct(drone_init_pos[0:3]-np.array([0, 0, 0.4]), drone_init_pos[3], [load_init_pos, load_init_vel], 
+                        load_init_yaw, load_target_pos, 0, load_mass, grasp_speed=-1.0)  # TODO: now grasp_speed is dummmy
 
 # Compute control gains
 bb_controller.setup_hook_up(bb_trajectory, hook_mass=0.001, payload_mass=load_mass)

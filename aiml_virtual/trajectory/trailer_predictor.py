@@ -64,12 +64,12 @@ class TrailerPredictor:
         # create list of parsers
         virt_parsers = [parseMovingObjects]
 
-        control_step, graphics_step = 0.01, 0.02
+        control_step, graphics_step = 0.025, 0.05
         xml_filename = os.path.join(xml_path, save_filename)
 
         # initializing simulator
         self.simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, with_graphics=False)
-        self.simulator.model.opt.timestep = 0.01
+        self.simulator.model.opt.timestep = 0.025
         self.simulator.sim_step = self.simulator.model.opt.timestep
 
         # grabbing the car and the payload
@@ -101,8 +101,6 @@ class TrailerPredictor:
         # reset simulation
         self.simulator.reset_data()
         self.simulator.goto(cur_time)
-        self.car.set_trajectory(get_car_trajectory())
-        self.car.set_controllers([CarLPVController(self.car.mass, self.car.inertia)])
 
         # set initial states
         # state: car position, orientation, velocity, angular velocity; car_to_rod orientation, ang_vel;
@@ -130,7 +128,7 @@ class TrailerPredictor:
         for _ in range(int(prediction_time / self.simulator.control_step)):
             self.simulator.update()
             # get payload state and save
-            payload_trajectory += [np.hstack((self.payload.sensor_posimeter + np.array([0, 0, 0.14]),
+            payload_trajectory += [np.hstack((self.payload.sensor_posimeter + np.array([0, 0, 0.18]),
                                               self.payload.sensor_velocimeter,
                                               self.payload.sensor_orimeter))]
             car_reference += [self.car.trajectory.output["ref_pos"]]

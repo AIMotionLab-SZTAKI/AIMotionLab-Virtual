@@ -1141,11 +1141,13 @@ class HookedDroneNLTrajectory(HookedDronePolyTrajectory):
     
     def construct(self, drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos, load_target_yaw,
                   load_mass, grasp_speed):
-        
+        load_init_vel = load_init_pos[1]
+        load_init_pos = load_init_pos[0]  # For compatibility with HookedDronePolyTrajectory
         hook_mass = 0.02
         params = get_traj_params_hookup_moving(drone_init_pos=drone_init_pos, drone_init_yaw=drone_init_yaw,
-                                               load_init_pos=partial(load_init_pos, t0=0), 
-                                               load_init_yaw=load_init_yaw,#partial(load_init_yaw, t0=0), 
+                                               load_init_pos=partial(load_init_pos, t0=0),
+                                               load_init_vel=partial(load_init_vel, t0=0),
+                                               load_init_yaw=partial(load_init_yaw, t0=0), 
                                                load_target_pos=load_target_pos, 
                                                load_target_yaw=load_target_yaw, 
                                                grasp_speed=grasp_speed, 

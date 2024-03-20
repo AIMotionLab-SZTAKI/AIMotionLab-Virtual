@@ -152,7 +152,7 @@ plt.show()'''
 
 # Plan trajectory
 bb_trajectory.construct(drone_init_pos[0:3]-np.array([0, 0, 0.4]), drone_init_pos[3], [load_init_pos, load_init_vel], 
-                        load_init_yaw, load_target_pos, 0, load_mass, grasp_speed=-1.0)  # TODO: now grasp_speed is dummmy
+                        load_init_yaw, load_target_pos, 0, load_mass, grasp_speed=1.3)  # TODO: now grasp_speed is dummmy
 
 # Compute control gains
 bb_controller.setup_hook_up(bb_trajectory, hook_mass=0.001, payload_mass=load_mass)

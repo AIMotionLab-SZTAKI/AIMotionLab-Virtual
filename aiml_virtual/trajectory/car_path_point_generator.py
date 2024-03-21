@@ -39,6 +39,8 @@ def paperclip():
                    np.linspace(focus_y[1], focus_y[0], num_straight),
                    focus_y[0] + r * np.sin(np.linspace(np.pi, 2*np.pi, num_turn))
                    ))
+    x = np.roll(x, 6)
+    y = np.roll(y, 6)
     points = np.array([[x_, y_] for x_, y_ in zip(x, y)])
     delete_idx = []
     for i, point in enumerate(points):
@@ -71,6 +73,8 @@ def dented_paperclip():
                    np.linspace(focus_y[1], focus_y[0], num_straight),
                    focus_y[0] + r * np.sin(np.linspace(np.pi, 2*np.pi, num_turn))
                    ))
+    x = np.roll(x, -15)
+    y = np.roll(y, -15)
     points = np.array([[x_, y_] for x_, y_ in zip(x, y)])
     delete_idx = []
     for i, point in enumerate(points):

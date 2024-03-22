@@ -2,7 +2,7 @@ import os
 import time
 from aiml_virtual.simulator import ActiveSimulator
 from aiml_virtual.xml_generator import SceneXmlGenerator
-from aiml_virtual.trajectory import CarTrajectory, HookedDroneNLTrajectory, HookedDroneNLAdaptiveTrajectory
+from aiml_virtual.trajectory import CarTrajectory, HookedDroneNLAdaptiveTrajectory
 from aiml_virtual.controller import CarLPVController, LtvLqrLoadControl
 from aiml_virtual.util import mujoco_helper, carHeading2quaternion
 from aiml_virtual.object.drone import DRONE_TYPES
@@ -76,19 +76,17 @@ control_step, graphics_step = 0.025, 0.05
 xml_filename = os.path.join(xml_path, save_filename)
 
 # recording interval for automatic video capture
-#rec_interval=[0,12]
+#rec_interval=[0,11]
 rec_interval = None # no video capture
 
-simulator = ActiveSimulator(xml_filename, rec_interval, control_step, graphics_step, window_size=[3840, 2160])
-#simulator.cam.azimuth = -45
-#simulator.cam.elevation = -25
-#simulator.cam.lookat, simulator.cam.distance = [0, 0, .5], 4
+simulator = ActiveSimulator(xml_filename, rec_interval, control_step, graphics_step, window_size=[3840, 2160], with_graphics=True)
+
 simulator.onBoard_elev_offset = 20
 
 # grabbing the drone and the car
 car = simulator.get_MovingObject_by_name_in_xml(car_name)
 
-car_controller = CarLPVController(car.mass, car.inertia, disturbed=False)
+car_controller = CarLPVController(car.mass, car.inertia, disturbed=True)
 
 car_controllers = [car_controller]
 
@@ -98,13 +96,15 @@ car.set_controllers(car_controllers)
 
 bb = simulator.get_MovingObject_by_name_in_xml(bb_name)
 
-bb_trajectory = HookedDroneNLTrajectory(plot_trajs=False)
+bb_trajectory = HookedDroneNLAdaptiveTrajectory(plot_trajs=False)
 bb_trajectory.set_control_step(control_step)
 bb_trajectory.set_rod_length(bb.rod_length)
 bb_controller = LtvLqrLoadControl(bb.mass, bb.inertia, simulator.gravity)
 
 bb.set_controllers([bb_controller])
 bb.set_trajectory(bb_trajectory)
+
+payload = simulator.get_MovingObject_by_name_in_xml(payload_name)
 
 # Simulate car + trailer to get payload trajectory
 predictor = TrailerPredictor(car.trajectory)
@@ -128,18 +128,46 @@ plt.plot(t_plot, car_pos_arr)
 plt.show()'''
 
 # Plan trajectory
-bb_trajectory.construct(drone_init_pos[0:3]-np.array([0, 0, 0.4]), drone_init_pos[3], [load_init_pos, load_init_vel], 
+bb_trajectory.construct(drone_init_pos[0:3]-np.array([0, 0, bb.rod_length]), drone_init_pos[3], [load_init_pos, load_init_vel], 
                         load_init_yaw, load_target_pos, 0, load_mass, grasp_speed=1.3)  # TODO: now grasp_speed is dummmy
 
 # Compute control gains
 bb_controller.setup_hook_up(bb_trajectory, hook_mass=0.001, payload_mass=load_mass)
 
-
+replan_timestep = int(3 / control_step)
+activate_timestep = replan_timestep
+num_traj_to_compute = 1
 scenario_duration = bb_trajectory.segment_times[-1]
-print(scenario_duration)
-while not simulator.should_close(scenario_duration):
+while not simulator.should_close(scenario_duration-2):
     simulator.update()
-    #if simulator.i == int(5 / control_step):
-    #    simulator.pause()
+    if simulator.i == replan_timestep:
+        simulator.pause()
+        # This part should be executed in parallel
+        # get qpos and qvel of car + trailer
+        car_to_rod = car.data.joint("car_to_rod")  # ball joint
+        rod_yaw = Rotation.from_quat(np.roll(car_to_rod.qpos, -1)).as_euler('xyz')[2]
+        rod_yaw_rate = car_to_rod.qvel[2]
+        front_to_rear = car.data.joint("front_to_rear")  # hinge joint
+        car_trailer_state = np.hstack((car.joint.qpos, car.joint.qvel, rod_yaw, rod_yaw_rate, 
+                                       front_to_rear.qpos, front_to_rear.qvel, payload.sensor_posimeter, payload.sensor_orimeter))
+        # simulate car + trailer
+        load_init_pos, load_init_vel, load_init_yaw = predictor.simulate(car_trailer_state, 
+                                                                         simulator.time, 
+                                                                         scenario_duration - simulator.time)
+        '''plt.figure()
+        t_plot = np.linspace(0, 10, 100)
+        car_pos_arr = np.asarray([load_init_pos(t_, 0) for t_ in t_plot])
+        plt.plot(t_plot, car_pos_arr)
+        plt.figure()
+        plt.plot(car_pos_arr[:, 0], car_pos_arr[:, 1])
+        plt.show()'''
+        bb_trajectory.replan(num_traj_to_compute, load_init_pos, load_init_vel, load_init_yaw)
+        # output: bb_trajectory.replanner.planners[num_traj] is optimized
+        num_traj_to_switch = num_traj_to_compute
+        num_traj_to_compute += 1
+    if simulator.i == activate_timestep:
+        bb_trajectory.switch(num_traj_to_switch)
+        bb_controller.setup_hook_up(bb_trajectory, hook_mass=0.001, payload_mass=load_mass)
+        simulator.unpause()
 
 simulator.close()

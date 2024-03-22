@@ -54,11 +54,13 @@ control_step, graphics_step = 0.025, 0.05
 xml_filename = os.path.join(xml_path, save_filename)
 
 # recording interval for automatic video capture
-#rec_interval=[1,25]
+#rec_interval=[0,22]
 rec_interval = None # no video capture
 
-simulator = ActiveSimulator(xml_filename, rec_interval, control_step, graphics_step)
-
+simulator = ActiveSimulator(xml_filename, rec_interval, control_step, graphics_step, window_size=[3840, 2160])
+simulator.cam.azimuth = 45
+simulator.cam.elevation = -25
+simulator.cam.lookat, simulator.cam.distance = [-.5, -.5, .5], 4
 simulator.onBoard_elev_offset = 20
 
 # grabbing the drone and the car

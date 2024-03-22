@@ -3,7 +3,8 @@ import numpy as np
 from aiml_virtual.controller.controller_base import ControllerBase
 
 class CarLPVController(ControllerBase):
-    def __init__(self, mass: float, inertia: Union[tuple,np.ndarray,list], long_gains: Union[np.ndarray, None] =None, lat_gains: Union[np.ndarray, None] = None, **kwargs):
+    def __init__(self, mass: float, inertia: Union[tuple,np.ndarray,list], long_gains: Union[np.ndarray, None] =None,
+                 lat_gains: Union[np.ndarray, None] = None, disturbed: bool = False, **kwargs):
         """Trajectory tracking LPV feedback controller, based on the decoupled longitudinal and lateral dynamics
 
         Args:
@@ -11,6 +12,7 @@ class CarLPVController(ControllerBase):
             inertia (float | np.ndarray | list): Vehicle inertia
             long_gains (np.ndarray | None, optional): Polynomial coefficients of the longitudinal controller gains. Defaults to None.
             lat_gains (np.ndarray | None, optional): Polynomila coefficients of the lateral controller gains. Defaults to None.
+            disturbed (bool, optional): Apply some kind of disturbance to test adaptive trajectory planner of hooked drone. Defaults to False.
 
             Additionally drivetrain parameters (C_m1, C_m2, C_m3) can be updated through keyword arguments.
         """
@@ -18,6 +20,7 @@ class CarLPVController(ControllerBase):
         # get mass/intertia & additional vehicle params
         self.m=mass
         self.I_z=inertia[2] # only Z-axis inertia is needed
+        self.disturbed = disturbed
 
         # set additional vehicle params or default to predefined values
         try:
@@ -122,6 +125,10 @@ class CarLPVController(ControllerBase):
         delta=-theta_e+self.k_lat1(v_xi)*self.q+self.k_lat2(v_xi)*e+self.k_lat3(v_xi)*self.edot
         d=(self.C_m2*v_ref/p+self.C_m3*np.sign(v_ref))/self.C_m1-self.k_long1(p)*(s-s_ref)-self.k_long2(p)*(v_xi-v_ref/p)
         
+        if self.disturbed: 
+            if 0 < time < 3:
+                d = 0
+
         # clamp control inputs into the feasible range
         d=self._clamp(d,(0,0.25)) # currently only forward motion, TODO: reversing control
         delta=self._clamp(delta, (-.5,.5))

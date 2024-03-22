@@ -15,9 +15,10 @@ from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
 from aiml_virtual.controller.differential_flatness import compute_state_trajectory_from_splines, \
     compute_state_trajectory_casadi
-from quadcopter_hook_twodof.planning.acados.nlopt_acados import NLOptPlanner, get_traj_params_hookup_moving
-from quadcopter_hook_twodof.planning.acados.quad_hook_model import load_pos_model_disc, load_pos_model_disc_lin
-from quadcopter_hook_twodof.planning.acados.nlopt_replanning import NLOptReplanner
+if "quadcopter_hook_twodof" in sys.modules:
+    from quadcopter_hook_twodof.planning.acados.nlopt_acados import NLOptPlanner, get_traj_params_hookup_moving
+    from quadcopter_hook_twodof.planning.acados.quad_hook_model import load_pos_model_disc, load_pos_model_disc_lin
+    from quadcopter_hook_twodof.planning.acados.nlopt_replanning import NLOptReplanner
 
 
 class HookedDroneTrajectory(TrajectoryBase):

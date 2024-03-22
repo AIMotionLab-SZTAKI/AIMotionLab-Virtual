@@ -24,7 +24,7 @@ class ActiveSimulator(Display):
         self.control_step = control_step
 
         if with_graphics:
-            super().__init__(xml_file_name, graphics_step, connect_to_optitrack, window_size)
+            super().__init__(xml_file_name, graphics_step, connect_to_optitrack, window_size, optitrack_ip=optitrack_ip)
             self.video_intervals = ActiveSimulator.__check_video_intervals(video_intervals)
             self.is_recording_automatically = False
             self.frame_counter = 0
@@ -38,6 +38,7 @@ class ActiveSimulator(Display):
 
             self.start_time = 0.0
             self.vid_rec_cntr = 0
+            self.video_speed = 1
             fc_target = 1.0 / control_step
             self.control_freq_warning_limit = fc_target - (0.05 * fc_target)
             self.pause_time = 0.0
@@ -191,9 +192,9 @@ class ActiveSimulator(Display):
                 fst = "Control: ------ Hz\nGraphics: {:10.3f} Hz".format(fg)
 
                 if self._show_overlay:
-                    self.render(fst, False)
+                    self.render((self.i % (self.video_speed * self.graphics_control_ratio) == 0), fst, False)
                 else:
-                    self.render()
+                    self.render((self.i % (self.video_speed * self.graphics_control_ratio) == 0))
                 
                 self.tc = time.time()
                 self.tg = time.time()
@@ -218,9 +219,9 @@ class ActiveSimulator(Display):
                     
                     if self._show_overlay:
                         needs_warning = (fc < self.control_freq_warning_limit and not self._is_paused)
-                        self.render(fst, needs_warning)
+                        self.render((self.i % (self.video_speed * self.graphics_control_ratio) == 0), fst, needs_warning)
                     else:
-                        self.render()
+                        self.render((self.i % (self.video_speed * self.graphics_control_ratio) == 0))
                     
                 for l in range(len(self.all_moving_objects)):
 
@@ -231,12 +232,13 @@ class ActiveSimulator(Display):
                 self.i += 1
                 
             sync(self.i, self.start_time, self.pause_time, self.control_step)
+            
+            self.time = self.data.time
 
         else:
             # no window, no graphics
             self.update_()
         
-        self.time = self.data.time
 
     def update_(self):
         if self.i == 0:
@@ -249,6 +251,7 @@ class ActiveSimulator(Display):
         
         mujoco.mj_step(self.model, self.data, int(self.control_step / self.sim_step))
         self.i += 1
+        self.time = self.data.time
 
     def get_frame(self):
         rgb = np.empty((self.viewport.height, self.viewport.width, 3), dtype=np.uint8)
@@ -335,9 +338,9 @@ class ActiveSimulator(Display):
         """
 
         if self._with_graphics:
-            return self.glfw_window_should_close() or self.time >= end_time
+            return self.glfw_window_should_close() or self.data.time >= end_time
         else:
-            return self.time >= end_time
+            return self.data.time >= end_time
         
     
     def reset_data(self):

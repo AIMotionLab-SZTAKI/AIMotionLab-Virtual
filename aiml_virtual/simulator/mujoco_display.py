@@ -573,7 +573,7 @@ class Display:
             if self.key_down_release_callback:
                 self.key_down_release_callback()
 
-    def render(self, overlay=None, frequency_warning=False):
+    def render(self, append_frame=False, overlay=None, frequency_warning=False):
         
             self.viewport = mujoco.MjrRect(0, 0, 0, 0)
             self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
@@ -586,7 +586,7 @@ class Display:
             if frequency_warning:
                 mujoco.mjr_text(mujoco.mjtFont.mjFONT_NORMAL, "Control frequency below target", self.con, 1.0, .1, 1.0, 0.1, 0.1)
 
-            if self.is_recording:
+            if self.is_recording and append_frame:
                  
                 self.append_frame_to_list()
             

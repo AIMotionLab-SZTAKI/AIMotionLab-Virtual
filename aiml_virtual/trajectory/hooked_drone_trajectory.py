@@ -1,3 +1,4 @@
+from functools import partial
 import mosek
 import numpy as np
 import scipy.interpolate as si
@@ -16,7 +17,7 @@ from aiml_virtual.controller.differential_flatness import compute_state_trajecto
     compute_state_trajectory_casadi
 from quadcopter_hook_twodof.planning.acados.nlopt_acados import NLOptPlanner, get_traj_params_hookup_moving
 from quadcopter_hook_twodof.planning.acados.quad_hook_model import load_pos_model_disc, load_pos_model_disc_lin
-from functools import partial
+from quadcopter_hook_twodof.planning.acados.nlopt_replanning import NLOptReplanner
 
 
 class HookedDroneTrajectory(TrajectoryBase):
@@ -1138,34 +1139,7 @@ class HookedDroneNLTrajectory(HookedDronePolyTrajectory):
         super().__init__()
         self.plot_trajs = plot_trajs
 
-    
-    def construct(self, drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos, load_target_yaw,
-                  load_mass, grasp_speed):
-        load_init_vel = load_init_pos[1]
-        load_init_pos = load_init_pos[0]  # For compatibility with HookedDronePolyTrajectory
-        hook_mass = 0.02
-        params = get_traj_params_hookup_moving(drone_init_pos=drone_init_pos, drone_init_yaw=drone_init_yaw,
-                                               load_init_pos=partial(load_init_pos, t0=0),
-                                               load_init_vel=partial(load_init_vel, t0=0),
-                                               load_init_yaw=partial(load_init_yaw, t0=0), 
-                                               load_target_pos=load_target_pos, 
-                                               load_target_yaw=load_target_yaw, 
-                                               grasp_speed=grasp_speed, 
-                                               model_type=load_pos_model_disc)
-        
-        planner = NLOptPlanner(params)
-        planner.init_guess_qp(plot_res=self.plot_trajs)
-        #plt.show()
-        #planner.solve_ipopt()
-        planner.solve_acados(generate_and_build=True, solve=False)
-        planner.solve_acados(generate_and_build=False, solve=True, plot_res=self.plot_trajs)
-
-        #plot_3d_trajectory(planner.x_acados[:, 0], planner.x_acados[:, 1], planner.x_acados[:, 2], 
-        #                   np.linalg.norm(planner.x_acados[:, 3:6], axis=1), "", 0)
-        if self.plot_trajs:
-            plt.show()
-        planner.fit_casadi_ppoly(plot_res=False)
-
+    def compute_states_and_inputs(self, planner, hook_mass, load_mass):
         x_f_hook, u_f_hook = compute_state_trajectory_casadi(planner.ref, payload_mass=hook_mass)
         x_f_load, u_f_load = compute_state_trajectory_casadi(planner.ref, payload_mass=hook_mass+load_mass)
         
@@ -1191,3 +1165,78 @@ class HookedDroneNLTrajectory(HookedDronePolyTrajectory):
         self.z = planner.ref.z
         self.yaw = planner.ref.yaw
         self.segment_times = planner.ref.segment_times
+    
+    def construct(self, drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos, load_target_yaw,
+                  load_mass, grasp_speed):
+        load_init_vel = load_init_pos[1]
+        load_init_pos = load_init_pos[0]  # For compatibility with HookedDronePolyTrajectory
+        params = get_traj_params_hookup_moving(drone_init_pos=drone_init_pos, drone_init_yaw=drone_init_yaw,
+                                               load_init_pos=partial(load_init_pos, t0=0),
+                                               load_init_vel=partial(load_init_vel, t0=0),
+                                               load_init_yaw=partial(load_init_yaw, t0=0), 
+                                               load_target_pos=load_target_pos, 
+                                               load_target_yaw=load_target_yaw, 
+                                               grasp_speed=grasp_speed, 
+                                               model_type=load_pos_model_disc)
+        
+        planner = NLOptPlanner(params)
+        planner.init_guess_qp(plot_res=self.plot_trajs)
+        #plt.show()
+        #planner.solve_ipopt()
+        planner.solve_acados(generate_and_build=True, solve=False)
+        planner.solve_acados(generate_and_build=False, solve=True, plot_res=self.plot_trajs)
+
+        #plot_3d_trajectory(planner.x_acados[:, 0], planner.x_acados[:, 1], planner.x_acados[:, 2], 
+        #                   np.linalg.norm(planner.x_acados[:, 3:6], axis=1), "", 0)
+        if self.plot_trajs:
+            plt.show()
+        planner.fit_casadi_ppoly(plot_res=False)
+
+        self.compute_states_and_inputs(planner, hook_mass=0.02, load_mass=load_mass)
+
+
+class HookedDroneNLAdaptiveTrajectory(HookedDroneNLTrajectory):
+    def __init__(self, load_prev=False, save_res=False, plot_trajs=False):
+        super().__init__()
+        self.load_prev = load_prev
+        self.save_res = save_res
+        self.plot_trajs = plot_trajs
+
+    def construct(self, drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos, load_target_yaw,
+                  load_mass, grasp_speed):
+        load_init_vel = load_init_pos[1]
+        load_init_pos = load_init_pos[0]  # For compatibility with HookedDronePolyTrajectory
+        init_params = get_traj_params_hookup_moving(drone_init_pos=drone_init_pos, drone_init_yaw=drone_init_yaw,
+                                                    load_init_pos=partial(load_init_pos, t0=0),
+                                                    load_init_vel=partial(load_init_vel, t0=0),
+                                                    load_init_yaw=partial(load_init_yaw, t0=0), 
+                                                    load_target_pos=load_target_pos, 
+                                                    load_target_yaw=load_target_yaw, 
+                                                    grasp_speed=grasp_speed, 
+                                                    model_type=load_pos_model_disc)
+        self.replanner = NLOptReplanner(init_params)
+
+        if self.load_prev:
+            self.replanner.load_planners()
+        else:
+            self.replanner.construct_planners()
+            if self.save_res:
+                self.replanner.save_planners()
+        
+        # construct initial trajectory
+        self.replanner.compute_trajectory(0)
+        self.load_mass = load_mass
+        self.compute_states_and_inputs(self.replanner.planners[0], hook_mass=0.02, load_mass=self.load_mass)
+
+    def replan(self, num_traj, load_init_pos, load_init_vel, load_init_yaw):
+        # Optimize next trajectory segment based on payload prediction
+        path_params = {
+            "pos_wp": partial(load_init_pos, t0=0),
+            "vel_wp": partial(load_init_vel, t0=0),
+            "yaw_wp": partial(load_init_yaw, t0=0)
+        }
+        self.replanner.compute_trajectory(num_traj, path_params)
+
+    def switch(self, num_traj):
+        # Activate next trajectory segment by setting the reference states and inputs
+        self.compute_states_and_inputs(self.replanner.planners[num_traj], hook_mass=0.02, load_mass=self.load_mass)

@@ -97,7 +97,7 @@ class TrailerPredictor:
                                      np.zeros(6), rod_yaw, 0, 0, 0,
                                      np.nan * payload_pos, np.nan * np.fromstring(payload_quat, sep=" ")))
 
-    def simulate(self, init_state, car_state, cur_time, prediction_time):
+    def simulate(self, init_state, cur_time, prediction_time):
         # reset simulation
         self.simulator.reset_data()
         self.simulator.goto(cur_time)
@@ -111,28 +111,48 @@ class TrailerPredictor:
         self.car_to_rod.qvel = np.array([0, 0, init_state[14]])
         self.front_to_rear.qpos = init_state[15]
         self.front_to_rear.qvel = init_state[16]
-
+        
+        self.simulator.update()
         if np.isnan(np.sum(init_state[17:24])):  # Compute payload configuration from trailer configuration
-            self.simulator.update()
             self.payload.qpos[0:2] = self.car.data.site(self.car.name_in_xml + "_trailer_middle").xpos[0:2]
             self.payload.qpos[2] = self.trailer_top_plate_height
             payload_rotm = np.reshape(self.car.data.site(self.car.name_in_xml + "_trailer_middle").xmat, (3, 3))
             payload_quat = Rotation.from_matrix(payload_rotm).as_quat()
             self.payload.qpos[3:7] = np.roll(payload_quat, 1)
         else:
-            self.payload.qpos = init_state[17:24]
-
+            self.payload.data.qpos[-7:] = init_state[17:24]  # TODO
         # start simulation
         payload_trajectory = []  # maybe preallocate numpy array later
-        car_reference = []
         for _ in range(int(prediction_time / self.simulator.control_step)):
             self.simulator.update()
             # get payload state and save
-            payload_trajectory += [np.hstack((self.payload.sensor_posimeter + np.array([0, 0, 0.18]),
+            pos_actual = self.payload.sensor_posimeter + Rotation.from_quat(np.roll(self.payload.sensor_orimeter, -1)).as_matrix() @\
+                 np.array([0.05, 0, 0.14]) # Compensate difference of box and teardrop payload
+            payload_trajectory += [np.hstack((pos_actual,
                                               self.payload.sensor_velocimeter,
                                               self.payload.sensor_orimeter))]
-            car_reference += [self.car.trajectory.output["ref_pos"]]
-        return np.asarray(payload_trajectory)
+
+        payload_predicted_points = np.asarray(payload_trajectory)
+
+        def load_init_pos(t, t0):
+            t_interp = self.simulator.control_step * np.arange(payload_predicted_points.shape[0])
+            return [np.interp(t-t0, t_interp, dim) for dim in payload_predicted_points[:, :3].T]
+
+        def load_init_vel(t, t0):
+            t_interp = self.simulator.control_step * np.arange(payload_predicted_points.shape[0])
+            return [np.interp(t-t0, t_interp, dim) for dim in payload_predicted_points[:, 3:6].T]
+
+        def load_init_yaw(t, t0):
+            t_interp = self.simulator.control_step * np.arange(payload_predicted_points.shape[0])
+            payload_yaw = Rotation.from_quat(payload_predicted_points[:, [7, 8, 9, 6]]).as_euler('xyz')[:, 2]
+            for i in range(1, payload_yaw.shape[0]):
+                if payload_yaw[i] < payload_yaw[i-1] - np.pi:
+                    payload_yaw[i:] += 2*np.pi
+                elif payload_yaw[i] > payload_yaw[i-1] + np.pi:
+                    payload_yaw[i:] -= 2*np.pi
+            return np.interp(t-t0, t_interp, payload_yaw)
+        
+        return load_init_pos, load_init_vel, load_init_yaw
 
 
 class DummyPredictor(TrailerPredictor):

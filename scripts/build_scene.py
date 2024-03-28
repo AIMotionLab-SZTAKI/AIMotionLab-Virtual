@@ -159,6 +159,10 @@ def add_vehicle():
             if input_gui.position != "" and input_gui.quaternion != "":
                 scene.add_car(input_gui.position, input_gui.quaternion, BLUE, False, True, False, "fleet1tenth")
                 save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
+        elif input_gui.vehicle_type == "Mocap F1Tenth with trailer":
+            if input_gui.position != "" and input_gui.quaternion != "":
+                scene.add_car(input_gui.position, input_gui.quaternion, BLUE, False, False, True, "fleet1tenth")
+                save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename))
         
         else:
             #print(input_gui.vehicle_type)
@@ -266,6 +270,11 @@ def build_from_optitrack():
             elif name.startswith("payload"):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
                 scene.add_mocap_payload(position, None, "1 0 0 0", ".1 .1 .1 1.0", PAYLOAD_TYPES.Teardrop, int(name[7:]))
+                vehicle_names_in_motive += [name]
+
+            elif name.startswith("trailer"):
+                position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
+                scene.add_mocap_trailer(position, "1 0 0 0", ".1 .1 .1 1.0")
                 vehicle_names_in_motive += [name]
 
             #elif name == "bu11":

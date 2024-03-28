@@ -11,6 +11,15 @@ class F1T_PROP(Enum):
     WHEEL_WIDTH = ".022225"
     WHEEL_SIZE = WHEEL_RADIUS + " " + WHEEL_WIDTH
 
+class TRAILER_PROP(Enum):
+    DRAWBAR_LENGTH = "0.18"
+    TRACK_DISTANCE = "0.193"
+    AXLE_DISTANCE = "0.225"
+    TOP_TILT = "0.0"
+    FULL_LENGTH = "0.615"
+    TOP_PLATE_LENGTH = "0.5"
+
+
 class CAR_TYPES(Enum):
     Fleet1Tenth = 0
 
@@ -248,4 +257,17 @@ class CarMocap(MocapObject):
         pos[2] = 0.052388
 
         self.data.mocap_pos[self.mocapid] = pos
+        self.data.mocap_quat[self.mocapid] = quat
+
+
+class TrailerMocap(MocapObject):
+
+    def __init__(self, model, data, mocapid, name_in_xml, name_in_motive) -> None:
+        super().__init__(model, data, mocapid, name_in_xml, name_in_motive)
+
+    def update(self, pos, quat):
+
+        p = pos + np.array((0.0, 0.0, -0.08))
+
+        self.data.mocap_pos[self.mocapid] = p
         self.data.mocap_quat[self.mocapid] = quat

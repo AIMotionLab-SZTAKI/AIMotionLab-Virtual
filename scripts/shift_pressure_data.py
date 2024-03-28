@@ -3,6 +3,8 @@ import math
 import numpy as np
 import matplotlib.pylab as plt
 import os
+from aiml_virtual.util import mujoco_helper
+from aiml_virtual.object.drone import BUMBLEBEE_PROP
 
 
 
@@ -74,32 +76,40 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
     return slice_shifted
 
 
-abs_path = os.path.dirname(os.path.abspath(__file__))
-#data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "dynamic_pressure_field_processed_new.csv")
-#tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
-## transform data into 3D array
-#cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
-#data = np.reshape(tmp[:, 4], (cube_size, cube_size, cube_size))
-#print(data.shape)
-#
-#combined_data = np.empty_like(data)
-#
-#offset_y = int(round(float(BUMBLEBEE_PROP.OFFSET_Y.value) * 1000)) # convert to mm
-#offset_x1 = int(round(float(BUMBLEBEE_PROP.OFFSET_X1.value) * 1000))
-#offset_x2 = int(round(float(BUMBLEBEE_PROP.OFFSET_X2.value) * 1000))
-#
-#for i in range(cube_size):
-#    print("computing slice: " + str(i))
-#    slice_shifted = create_shifted_slice(data[:, :, i], offset_x1, offset_x2, offset_y)
-#
-#    combined_data[:, :, i] = slice_shifted
-#combined_1d = combined_data.reshape(-1)
-#np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"), combined_1d)
+USE_EXISTING_DATA = True
 
-tmp = np.loadtxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"))
-cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
-combined_data = np.reshape(tmp, (cube_size, cube_size, cube_size))
-print(combined_data.shape)
+
+abs_path = os.path.dirname(os.path.abspath(__file__))
+
+
+if USE_EXISTING_DATA:
+
+    tmp = np.loadtxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"))
+    cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
+    combined_data = np.reshape(tmp, (cube_size, cube_size, cube_size))
+    print(combined_data.shape)
+
+else:
+    data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "dynamic_pressure_field_processed_new.csv")
+    tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
+    # transform data into 3D array
+    cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
+    data = np.reshape(tmp[:, 4], (cube_size, cube_size, cube_size))
+    print(data.shape)
+    
+    combined_data = np.empty_like(data)
+    
+    offset_y = int(round(float(BUMBLEBEE_PROP.OFFSET_Y.value) * 1000)) # convert to mm
+    offset_x1 = int(round(float(BUMBLEBEE_PROP.OFFSET_X1.value) * 1000))
+    offset_x2 = int(round(float(BUMBLEBEE_PROP.OFFSET_X2.value) * 1000))
+    
+    for i in range(cube_size):
+        print("computing slice: " + str(i))
+        slice_shifted = create_shifted_slice(data[:, :, i], offset_x1, offset_x2, offset_y)
+    
+        combined_data[:, :, i] = slice_shifted
+    combined_1d = combined_data.reshape(-1)
+    np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt"), combined_1d)
 
 #plt.imshow(data[:, :, 0], cmap='jet', interpolation='nearest')
 #im = plt.imshow(np.rot90(combined_data[15, :, :]), cmap='jet', interpolation='nearest')
@@ -111,7 +121,7 @@ fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 
 # plot the pressure heatmap for the z plane on the first subplot
 #z_plane = cube_size - 1
-z_plane = 0
+z_plane = 49
 pressure_map_z = np.copy(combined_data[:, :, z_plane])
 #pressure_map_z[40, 30] = 500
 im1 = axs[0].imshow(pressure_map_z.T, cmap='jet', interpolation='nearest')

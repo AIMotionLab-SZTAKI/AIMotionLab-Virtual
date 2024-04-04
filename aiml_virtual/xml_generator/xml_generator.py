@@ -368,8 +368,9 @@ class SceneXmlGenerator:
         Lz = CRAZYFLIE_PROP.OFFSET_Z.value
         motor_param = CRAZYFLIE_PROP.MOTOR_PARAM.value
         max_thrust = CRAZYFLIE_PROP.MAX_THRUST.value
+        cog = CRAZYFLIE_PROP.COG.value
 
-        drone = self._add_drone_common_parts(name, pos, quat, color, PROP_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "crazyflie", safety_sphere_size)
+        drone = self._add_drone_common_parts(name, pos, quat, color, PROP_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, cog, "crazyflie", safety_sphere_size)
 
         ET.SubElement(drone, "geom", name=name + "_body", type="mesh", mesh="crazyflie_body", rgba=color)
         ET.SubElement(drone, "geom", name=name + "_4_motormounts", type="mesh", mesh="crazyflie_4_motormounts", rgba=color)
@@ -486,9 +487,10 @@ class SceneXmlGenerator:
         Lz = BUMBLEBEE_PROP.OFFSET_Z.value
         motor_param = BUMBLEBEE_PROP.MOTOR_PARAM.value
         max_thrust = BUMBLEBEE_PROP.MAX_THRUST.value
+        cog = BUMBLEBEE_PROP.COG.value
         
 
-        drone = self._add_drone_common_parts(name, pos, quat, color, PROP_LARGE_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, "bumblebee", safety_sphere_size)
+        drone = self._add_drone_common_parts(name, pos, quat, color, PROP_LARGE_COLOR, mass, diaginertia, Lx1, Lx2, Ly, Lz, motor_param, max_thrust, cog, "bumblebee", safety_sphere_size)
 
         # need to rotate the body mesh to match optitrack orientation
         quat_mesh = mh.quaternion_from_euler(0, 0, math.radians(270))

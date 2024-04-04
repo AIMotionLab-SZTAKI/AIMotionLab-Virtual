@@ -18,6 +18,7 @@ class CRAZYFLIE_PROP(Enum):
     MAX_THRUST = "0.16"
     MASS = "0.028"
     DIAGINERTIA = "1.4e-5 1.4e-5 2.17e-5"
+    COG = "0.0 0.0 0.0"
 
 class BUMBLEBEE_PROP(Enum):
     OFFSET_X1 = "0.074"
@@ -29,6 +30,7 @@ class BUMBLEBEE_PROP(Enum):
     ROD_LENGTH = ".4"
     MASS = "0.605"
     DIAGINERTIA = "1.5e-3 1.45e-3 2.66e-3"
+    COG = "0.0085 0.0 0.0"
 
 class DRONE_TYPES(Enum):
     CRAZYFLIE = 0

@@ -379,7 +379,7 @@ class SceneXmlGenerator:
         return drone
 
     def _add_drone_common_parts(self, name, pos, quat, color, propeller_color, mass, diaginertia,
-                                Lx1, Lx2, Ly, Lz, motor_param, max_thrust, mesh_prefix, safety_sphere_size=None):
+                                Lx1, Lx2, Ly, Lz, motor_param, max_thrust, cog, mesh_prefix, safety_sphere_size=None):
 
         rgba = color.split()
 
@@ -392,7 +392,7 @@ class SceneXmlGenerator:
             safety_sphere_body = ET.SubElement(self.worldbody, "body", name=name + "_safety_sphere", pos=pos, mocap="true")
             ET.SubElement(safety_sphere_body, "geom", type="sphere", name=name + "_safety_sphere",
                           size=safety_sphere_size, rgba=ss_color, contype="0", conaffinity="0")
-        ET.SubElement(drone, "inertial", pos="0.0085 0 0", diaginertia=diaginertia, mass=mass)
+        ET.SubElement(drone, "inertial", pos=cog, diaginertia=diaginertia, mass=mass)
         ET.SubElement(drone, "joint", name=name, type="free")
         #drone_body = ET.SubElement(drone, "body", name=name + "_body", pos="0 0 0")
 

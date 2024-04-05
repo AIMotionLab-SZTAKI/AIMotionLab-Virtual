@@ -209,9 +209,9 @@ class Fleet1Tenth(Car):
         self.d = 0.0
         self.v_long = 0.0
 
-        self.C_m1 = 65
-        self.C_m2 = 3.3
-        self.C_m3 = 1.05
+        self.C_m1 =  52.4282
+        self.C_m2 = 5.2465
+        self.C_m3 = 1.119465
     
 
     def update(self, i, control_step):

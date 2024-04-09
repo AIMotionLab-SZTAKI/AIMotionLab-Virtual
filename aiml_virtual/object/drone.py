@@ -28,6 +28,7 @@ class BUMBLEBEE_PROP(Enum):
     MOTOR_PARAM = "0.5954"
     MAX_THRUST = "15"
     ROD_LENGTH = ".4"
+    HOOK_ROTATION_OS = ".01"
     MASS = "0.605"
     DIAGINERTIA = "1.5e-3 1.45e-3 2.66e-3"
     COG = "0.0085 0.0 0.0"

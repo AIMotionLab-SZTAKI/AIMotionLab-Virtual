@@ -19,6 +19,7 @@ PROP_LARGE_COLOR = "0.1 0.02 0.5 1.0"
 SITE_NAME_END = "_cog"
 
 ROD_LENGTH = float(BUMBLEBEE_PROP.ROD_LENGTH.value)
+HOOK_ROTATION_OS = float(BUMBLEBEE_PROP.HOOK_ROTATION_OS.value)
 
 class SceneXmlGenerator:
 
@@ -349,8 +350,10 @@ class SceneXmlGenerator:
                     return
 
             self._add_mocap_bumblebee(name, pos, quat, color)
-            self.add_mocap_hook(pos, name)
+            hook_name = self.add_mocap_hook(pos, quat, name)
             self._mocap_drone_names += [name]
+
+            return name, hook_name
         
         return name
 
@@ -555,7 +558,6 @@ class SceneXmlGenerator:
             print("Too many or not enough degrees of freedom for hook joint. 1 degree of freedom assumed.")
         
         self._add_hook_structure(hook_structure, drone_name)
-            
         
         ET.SubElement(self.sensor, "jointvel", joint=drone_name + "_hook_y", name=drone_name + "_hook_jointvel_y")
         ET.SubElement(self.sensor, "jointpos", joint=drone_name + "_hook_y", name=drone_name + "_hook_jointpos_y")
@@ -565,26 +567,43 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=drone_name + "_hook_quat")
         ET.SubElement(self.sensor, "frameangvel", objtype="site", objname=site_name, name=drone_name + "_hook_angvel")
     
-
-    def add_mocap_hook(self, drone_pos, drone_name):
+    @staticmethod
+    def _calc_pos_after_rotation(drone_pos: str, drone_quat: str, shift: np.array):
+        """rotate an object about a point relative to the object and return the new position of the object"""
 
         splt = drone_pos.split()
+        q_splt = drone_quat.split()
 
+        pos_x = float(splt[0])
+        pos_y = float(splt[1])
         pos_z = float(splt[2])
-        pos_z -= ROD_LENGTH
-        hook_pos = splt[0] + " " + splt[1] + " " + str(pos_z)
+
+        quat = np.array((float(q_splt[0]), float(q_splt[1]), float(q_splt[2]), float(q_splt[3])))
+
+        quat = quat / np.linalg.norm(quat)
+
+        pos = np.array((pos_x, pos_y, pos_z))
+
+
+        return pos + mujoco_helper.qv_mult(quat, shift)
+    
+    def add_mocap_hook(self, drone_pos, drone_quat, drone_name):
+        
+        hook_pos = SceneXmlGenerator._calc_pos_after_rotation(drone_pos, drone_quat, np.array((0.0, 0.0, -(ROD_LENGTH + HOOK_ROTATION_OS))))
+
+        hook_pos = np.array2string(hook_pos)[1:-1]
 
         name_tail = drone_name.split("_")[-1]
         
         name = "HookMocap" + "_" + name_tail
 
-        hook = ET.SubElement(self.worldbody, "body", name=name, pos=hook_pos, mocap="true")
+        hook = ET.SubElement(self.worldbody, "body", name=name, pos=hook_pos, quat=drone_quat, mocap="true")
 
         hook_structure_body = ET.SubElement(hook, "body", pos="0 0 " + str(ROD_LENGTH))
 
         self._add_hook_structure(hook_structure_body, name)
 
-
+        return name
 
 
     def _add_hook_structure(self, hook_structure_body, name_base):
@@ -717,8 +736,9 @@ class SceneXmlGenerator:
         
         elif not is_virtual and type == "fleet1tenth":
             name = "CarMocap_fleet1tenth_" + str(self._realfleet1tenth_cntr)
-            self._add_mocap_fleet1tenth(pos, quat, name, color, has_rod, has_trailer)
+            r = self._add_mocap_fleet1tenth(pos, quat, name, color, has_rod, has_trailer)
             self._realfleet1tenth_cntr += 1
+            return r
         
         else:
             print("[SceneXmlGenerator] Unknown car type")
@@ -816,7 +836,7 @@ class SceneXmlGenerator:
         ET.SubElement(car, "geom", name=name + "_wheelrr", type="cylinder", size=F1T_PROP.WHEEL_SIZE.value, pos="-0.16113 -.122385 0", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
         if has_trailer:
-            self.add_mocap_trailer(pos, quat, color)
+            return name, self.add_mocap_trailer(pos, quat, color)
 
     
     def _add_fleet1tenth_body(self, car, name, color, has_rod):
@@ -914,10 +934,13 @@ class SceneXmlGenerator:
     def add_mocap_trailer(self, car_pos, quat, color):
 
         trailer_offsx = -.21113 - .365
-        trailer_offsz = .0315
-        splt = str.split(car_pos, sep=' ')
+        trailer_offsz = -.02
 
-        pos = str(float(splt[0]) + trailer_offsx) + " 0 " + str(trailer_offsz)
+        shift = np.array((trailer_offsx, 0.0, trailer_offsz))
+
+        pos = SceneXmlGenerator._calc_pos_after_rotation(car_pos, quat, shift)
+
+        pos = str(pos[0]) + " " + str(pos[1]) + " " + str(pos[2])
 
         name = "TrailerMocap_" + str(self._trailer_mocap_cntr)
         
@@ -987,6 +1010,8 @@ class SceneXmlGenerator:
         ET.SubElement(trailer_wheelrr, "geom", type="cylinder", size=".0315 .005", rgba="0.1 0.1 0.1 1.0", euler="1.571 0 0")
 
         self._trailer_mocap_cntr += 1
+
+        return name
 
 
     def add_airplane(self, pos, quat, color):

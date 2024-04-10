@@ -632,10 +632,10 @@ class SceneXmlGenerator:
             name = "TeardropPayload_" + str(self._teardrop_payload_cntr)
             self._teardrop_payload_cntr += 1
             load = ET.SubElement(self.worldbody, "body", name=name, pos=pos, quat=quat)
-            ET.SubElement(load, "geom", name=name, type="mesh", mesh="payload_simplified", pos="0 0 0.0405", mass=mass, rgba=color, euler="1.57 0 0")
+            ET.SubElement(load, "geom", name=name, type="mesh", mesh="payload_simplified", pos="0 0 0.0405", mass="0.0000001", rgba=color, euler="1.57 0 0")
             #ET.SubElement(load, "geom", name=name, type="cylinder", size=".08 .03 .05", pos="0 0 0.05", solref="0.02 5.5", mass=mass, rgba="1.0 0.0 0.0 1.0")
             # to prevent sliding and gliding on the trailer
-            ET.SubElement(load, "geom", name=name + "_bottom", type="box", size=".016 .016 .02", pos="0 0 0.0175", mass="0.0000001", rgba="1.0 1.0 1.0 0.0")
+            ET.SubElement(load, "geom", name=name + "_bottom", type="box", size=".016 .016 .02", pos="0 0 0.0175", mass=mass, rgba="1.0 1.0 1.0 0.0")
             hook_pos = "0 0 0.05"
         
         else:

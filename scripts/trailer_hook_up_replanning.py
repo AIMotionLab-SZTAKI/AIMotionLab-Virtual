@@ -72,7 +72,7 @@ scene.save_xml(os.path.join(xml_path, save_filename))
 # create list of parsers 
 virt_parsers = [parseMovingObjects]
 
-control_step, graphics_step = 0.025, 0.05
+control_step, graphics_step = 0.01, 0.02
 xml_filename = os.path.join(xml_path, save_filename)
 
 # recording interval for automatic video capture
@@ -107,10 +107,10 @@ bb.set_trajectory(bb_trajectory)
 payload = simulator.get_MovingObject_by_name_in_xml(payload_name)
 
 # Simulate car + trailer to get payload trajectory
-predictor = TrailerPredictor(car.trajectory)
+predictor = TrailerPredictor(car.trajectory, payload_type=PAYLOAD_TYPES.Box)
 init_state = np.hstack((car_pos, np.fromstring(car_quat, sep=" "),
                                      np.zeros(6), 0, 0, 0, 0,
-                                     np.nan * payload_pos, np.nan * np.fromstring(payload_quat, sep=" ")))
+                                     payload_pos, np.fromstring(payload_quat, sep=" "), np.zeros(3)))
 load_init_pos, load_init_vel, load_init_yaw = predictor.simulate(init_state, 0, 15)
 
 '''plt.figure()
@@ -138,6 +138,7 @@ replan_timestep = int(3 / control_step)
 activate_timestep = replan_timestep
 num_traj_to_compute = 1
 scenario_duration = bb_trajectory.segment_times[-1]
+payload_pos = []
 while not simulator.should_close(scenario_duration-2):
     simulator.update()
     if simulator.i == replan_timestep:
@@ -148,8 +149,8 @@ while not simulator.should_close(scenario_duration-2):
         rod_yaw = Rotation.from_quat(np.roll(car_to_rod.qpos, -1)).as_euler('xyz')[2]
         rod_yaw_rate = car_to_rod.qvel[2]
         front_to_rear = car.data.joint("front_to_rear")  # hinge joint
-        car_trailer_state = np.hstack((car.joint.qpos, car.joint.qvel, rod_yaw, rod_yaw_rate, 
-                                       front_to_rear.qpos, front_to_rear.qvel, payload.sensor_posimeter, payload.sensor_orimeter))
+        car_trailer_state = np.hstack((car.joint.qpos, car.joint.qvel, rod_yaw, rod_yaw_rate, front_to_rear.qpos, front_to_rear.qvel, 
+                                       payload.sensor_posimeter, payload.sensor_orimeter, payload.sensor_velocimeter))
         # simulate car + trailer
         load_init_pos, load_init_vel, load_init_yaw = predictor.simulate(car_trailer_state, 
                                                                          simulator.time, 
@@ -170,4 +171,16 @@ while not simulator.should_close(scenario_duration-2):
         bb_controller.setup_hook_up(bb_trajectory, hook_mass=0.001, payload_mass=load_mass)
         simulator.unpause()
 
+    payload_pos += [np.copy(simulator.data.qpos[23:26])]
 simulator.close()
+
+"""# Sanity check: predictor and simulator give the same trajectory
+plt.figure()
+t = control_step * np.arange(10 / control_step)
+plt.plot(t, np.asarray(load_init_pos(t, 0)).T)
+t_interp = np.arange(0, scenario_duration-2, control_step)
+load_pos = np.asarray([np.interp(t+3, t_interp, dim) for dim in np.asarray(payload_pos).T]).T
+t2 = control_step * np.arange(len(payload_pos))
+plt.plot(t2[300:]-3, np.array(payload_pos)[300:, :])
+plt.show()
+"""

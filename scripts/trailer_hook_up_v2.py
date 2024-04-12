@@ -72,7 +72,7 @@ scene.save_xml(os.path.join(xml_path, save_filename))
 # create list of parsers 
 virt_parsers = [parseMovingObjects]
 
-control_step, graphics_step = 0.025, 0.05
+control_step, graphics_step = 0.01, 0.02
 xml_filename = os.path.join(xml_path, save_filename)
 
 # recording interval for automatic video capture
@@ -110,7 +110,7 @@ bb.set_trajectory(bb_trajectory)
 predictor = TrailerPredictor(car.trajectory)
 init_state = np.hstack((car_pos, np.fromstring(car_quat, sep=" "),
                                      np.zeros(6), 0, 0, 0, 0,
-                                     np.nan * payload_pos, np.nan * np.fromstring(payload_quat, sep=" ")))
+                                     payload_pos, np.fromstring(payload_quat, sep=" "), np.zeros(3)))
 load_init_pos, load_init_vel, load_init_yaw = predictor.simulate(init_state, 0, 15)
 
 '''plt.figure()

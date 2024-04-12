@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from aiml_virtual.object import parseMovingObjects
 from scipy.spatial.transform import Rotation
 from aiml_virtual.trajectory.car_path_point_generator import paperclip
+from typing import Literal
 
 
 RED = "0.85 0.2 0.2 1.0"
@@ -31,7 +32,8 @@ def get_car_trajectory():
 
 
 class TrailerPredictor:
-    def __init__(self, car_trajectory: CarTrajectory):
+    def __init__(self, car_trajectory: CarTrajectory, 
+                 payload_type: Literal[PAYLOAD_TYPES.Box, PAYLOAD_TYPES.Teardrop] = PAYLOAD_TYPES.Teardrop):
         # Initialize simulation
         abs_path = os.path.dirname(os.path.abspath(__file__))
         xml_path = os.path.join(abs_path, "..", "..", "xml_models")
@@ -55,8 +57,8 @@ class TrailerPredictor:
         car_name = scene.add_car(pos=np.array2string(car_pos)[1:-1], quat=car_quat, color=RED,
                                  is_virtual=True, has_rod=False, has_trailer=True)
         trailer_name = car_name + "_trailer"
-        payload_name = scene.add_payload(pos=np.array2string(payload_pos)[1:-1], size="0.05 0.05 0.05", mass="1",
-                                         quat=payload_quat, color=BLACK, type=PAYLOAD_TYPES.Box)
+        payload_name = scene.add_payload(pos=np.array2string(payload_pos)[1:-1], size="0.05 0.05 0.05", mass="0.01",
+                                         quat=payload_quat, color=BLACK, type=payload_type)
 
         # saving the scene as xml so that the simulator can load it
         scene.save_xml(os.path.join(xml_path, save_filename))
@@ -64,12 +66,12 @@ class TrailerPredictor:
         # create list of parsers
         virt_parsers = [parseMovingObjects]
 
-        control_step, graphics_step = 0.025, 0.05
+        control_step, graphics_step = 0.01, 0.02
         xml_filename = os.path.join(xml_path, save_filename)
 
         # initializing simulator
         self.simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, with_graphics=False)
-        self.simulator.model.opt.timestep = 0.025
+        self.simulator.model.opt.timestep = 0.005
         self.simulator.sim_step = self.simulator.model.opt.timestep
 
         # grabbing the car and the payload
@@ -89,7 +91,7 @@ class TrailerPredictor:
         self.car.set_trajectory(car_trajectory)
         self.car.set_controllers(car_controllers)
 
-        self.trailer_top_plate_height = 0.123
+        self.trailer_top_plate_height = 0.119  # for box payload: 0.119, for teardrop payload: 0.123
         self.rod_pitch = -0.1  # these should be constant in normal operation
         self.rod_to_front.qpos[:] = -self.rod_pitch
         rod_yaw = 0
@@ -97,7 +99,7 @@ class TrailerPredictor:
                                      np.zeros(6), rod_yaw, 0, 0, 0,
                                      np.nan * payload_pos, np.nan * np.fromstring(payload_quat, sep=" ")))
 
-    def simulate(self, init_state, cur_time, prediction_time):
+    def simulate(self, init_state, cur_time, prediction_time, predicted_obj='payload'):
         # reset simulation
         self.simulator.reset_data()
         self.simulator.goto(cur_time)
@@ -121,13 +123,22 @@ class TrailerPredictor:
             self.payload.qpos[3:7] = np.roll(payload_quat, 1)
         else:
             self.payload.data.qpos[-7:] = init_state[17:24]  # TODO
+            self.payload.data.qpos[-5] = self.trailer_top_plate_height
+            self.payload.data.qvel[-6:-3] = init_state[24:27]  # TODO
         # start simulation
         payload_trajectory = []  # maybe preallocate numpy array later
+        #self.simulator.update()
+        #self.simulator.pause()
         for _ in range(int(prediction_time / self.simulator.control_step)):
             self.simulator.update()
-            # get payload state and save
-            pos_actual = self.payload.sensor_posimeter + Rotation.from_quat(np.roll(self.payload.sensor_orimeter, -1)).as_matrix() @\
-                 np.array([0.05, 0, 0.14]) # Compensate difference of box and teardrop payload
+            # get predicted_obj state and save
+            if predicted_obj == 'payload':
+                pos_actual = self.payload.sensor_posimeter + np.array([0, 0, 0.18])# + Rotation.from_quat(np.roll(self.payload.sensor_orimeter, -1)).as_matrix() @\
+                    #np.array([0.05, 0, 0.14]) # Compensate difference of box and teardrop payload
+            elif predicted_obj == 'car':
+                pos_actual = np.copy(self.car.joint.qpos[0:3])
+            else:
+                raise ValueError('Predicted object has to be either payload or car')
             payload_trajectory += [np.hstack((pos_actual,
                                               self.payload.sensor_velocimeter,
                                               self.payload.sensor_orimeter))]

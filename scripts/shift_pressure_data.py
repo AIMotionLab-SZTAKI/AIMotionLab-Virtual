@@ -119,28 +119,28 @@ else:
 # create a figure with two subplots
 fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 
-# plot the pressure heatmap for the z plane on the first subplot
-#z_plane = cube_size - 1
-z_plane = 49
-pressure_map_z = np.copy(combined_data[:, :, z_plane])
+# plot the pressure heatmap for the xy plane on the first subplot
+#z_value = cube_size - 1
+z_value = 0
+pressure_map_z = np.copy(combined_data[:, :, z_value])
 #pressure_map_z[40, 30] = 500
 im1 = axs[0].imshow(pressure_map_z.T, cmap='jet', interpolation='nearest')
 axs[0].set_xlabel('x [cm]')
 axs[0].set_ylabel('y [cm]')
 axs[0].invert_yaxis()
-axs[0].set_title(f'Pressure at z={z_plane} [cm]')
+axs[0].set_title(f'Pressure at z={z_value} [cm]')
 fig.colorbar(im1, ax=axs[0], label='Pressure [Pa]')
 
-# plot the pressure heatmap for the x plane on the second subplot
-x_plane = 15
+# plot the pressure heatmap for the yz plane on the second subplot
+x_value = 15
 
-pressure_map_x = np.copy(combined_data[x_plane, :, :])
+pressure_map_x = np.copy(combined_data[x_value, :, :])
 #pressure_map_x[40, 30] = 500
 im2 = axs[1].imshow(pressure_map_x.T, cmap='jet', interpolation='nearest')
 axs[1].set_xlabel('y [cm]')
 axs[1].set_ylabel('z [cm]')
 axs[1].invert_yaxis()
-axs[1].set_title(f'Pressure at x={x_plane} [cm]')
+axs[1].set_title(f'Pressure at x={x_value} [cm]')
 fig.colorbar(im2, ax=axs[1], label='Pressure [Pa]')
 # set aspect ratio to equal for both subplots
 #axs[0].set_aspect('equal', 'box')

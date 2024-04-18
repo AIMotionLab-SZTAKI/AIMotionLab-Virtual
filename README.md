@@ -3,7 +3,7 @@
 The documentation can be accessed [here](https://github.com/AIMotionLab-SZTAKI/Mujoco-Simulator/wiki).
 
 ## Installation
-1. Create and activate a virtual environment
+1. Create and activate a virtual environment with Python <= 3.9
 
 2. Install libraries with pip
 ```

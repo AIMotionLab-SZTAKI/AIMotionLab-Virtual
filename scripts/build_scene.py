@@ -264,7 +264,7 @@ def build_from_optitrack():
 
             elif name.startswith("hook12"):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_mocap_hook(position, "DroneMocapHooked_bumblebee_2")
+                scene.add_mocap_hook(position, orientation, "DroneMocapHooked_bumblebee_2")
                 vehicle_names_in_motive += [name]
 
             elif name.startswith("payload"):
@@ -274,7 +274,7 @@ def build_from_optitrack():
 
             elif name.startswith("trailer"):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_mocap_trailer(position, "1 0 0 0", ".1 .1 .1 1.0")
+                scene.add_mocap_trailer(position, orientation, ".1 .1 .1 1.0")
                 vehicle_names_in_motive += [name]
 
             #elif name == "bu11":

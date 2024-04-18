@@ -1,3 +1,7 @@
+"""
+This script can load any valid MuJoCo XML model. Press 'l' to show pop-up window for loading models.
+"""
+
 import os
 from aiml_virtual.simulator import ActiveSimulator
 import tkinter

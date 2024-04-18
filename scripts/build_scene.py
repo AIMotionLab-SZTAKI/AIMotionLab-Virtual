@@ -1,3 +1,25 @@
+"""
+Instructions:
+
+* press 'b' to show GUI for adding buildings
+* press 'v' to show GUI for adding vehicles
+* press 't' to show GUI for adding payloads
+* press 'o' to build a scene with mocap objects automatically based on Optitrack data
+  (connecting to Optitrack needs cable connection, lags with wifi)
+* press 'delete' to clear the scene
+
+
+ActiveSimulator universal callbacks:
+
+* press 'n' to show GUI for renaming mocap objects
+* press 'p' to pause simulation
+* press 'c' to connect to Optitrack
+* press 'r' to start or stop video recording
+* press TAB to switch from main camera to on-board camera or vica versa
+  * when in on-board mode, press SPACE to switch among vehicles
+"""
+
+
 import os
 from aiml_virtual.xml_generator import SceneXmlGenerator
 from aiml_virtual.simulator import ActiveSimulator
@@ -7,6 +29,8 @@ from aiml_virtual.gui import PayloadInputGui
 from aiml_virtual.object.payload import PAYLOAD_TYPES
 from aiml_virtual.object.drone import DRONE_TYPES
 
+from aiml_virtual.util import mujoco_helper
+
 
 # open the base on which we'll build
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -14,7 +38,7 @@ xml_path = os.path.join(abs_path, "..", "xml_models")
 xmlBaseFileName = "scene_base.xml"
 save_filename = "built_scene.xml"
 
-build_based_on_optitrack = False
+build_based_on_optitrack = True
 is_scene_cleared = True
 
 scene = SceneXmlGenerator(xmlBaseFileName)
@@ -226,12 +250,13 @@ def clear_scene():
         landing_zone_counter = 0
         is_scene_cleared = True
 
+hook = None
 
 def build_from_optitrack():
     """ Try and build a complete scene based on information from Motive
     
     """
-    global is_scene_cleared
+    global is_scene_cleared, hook
     global scene, simulator
     simulator.pause()
 
@@ -264,7 +289,7 @@ def build_from_optitrack():
 
             elif name.startswith("hook12"):
                 position = str(obj.position[0]) + " " + str(obj.position[1]) + " " + str(obj.position[2])
-                scene.add_mocap_hook(position, orientation, "DroneMocapHooked_bumblebee_2")
+                hook_name = scene.add_mocap_hook(position, orientation, "DroneMocapHooked_bumblebee_2")
                 vehicle_names_in_motive += [name]
 
             elif name.startswith("payload"):
@@ -319,6 +344,7 @@ def build_from_optitrack():
         save_and_reload_model(scene, simulator, os.path.join(xml_path,save_filename), vehicle_names_in_motive)
         is_scene_cleared = False
     simulator.unpause()
+    hook = simulator.get_MocapObject_by_name_in_xml(hook_name)
         #if car_added:
         #    mocapid = simulator.model.body("car0").mocapid[0]
         #    car = CarMocap(simulator.model, simulator.data, mocapid, "car0", "AI_car_01")
@@ -342,6 +368,7 @@ def main():
     while not simulator.glfw_window_should_close():
 
         simulator.update()
+        #print(mujoco_helper.euler_from_quaternion(*hook.get_qpos()[3:]))
         #simulator.cam.azimuth += 0.2
     
     simulator.close()

@@ -78,10 +78,7 @@ def parseMocapObjects(data: mujoco.MjData, model: mujoco.MjModel):
             name_in_motive = "bb" + split_name[-1]
         
         elif "fleet1tenth" in name:
-            if obj_counter_dict["fleet1tenth"] < 10:
-                name_in_motive = "AI_car_0" + str(obj_counter_dict["fleet1tenth"])
-            else:
-                name_in_motive = "AI_car_" + str(obj_counter_dict["fleet1tenth"])
+            name_in_motive = "JoeBush" + str(obj_counter_dict["fleet1tenth"])
 
             obj_counter_dict["fleet1tenth"] += 1
 
@@ -89,6 +86,10 @@ def parseMocapObjects(data: mujoco.MjData, model: mujoco.MjModel):
             #name_in_motive = "payload" + str(obj_counter_dict["payload"])
             #obj_counter_dict["payload"] += 1
             name_in_motive = "payload" + str(split_name[-1])
+
+        elif name.startswith("Trailer"):
+            name_in_motive = "trailer"
+
         
         else:
             name_in_motive = split_name[0]

@@ -17,11 +17,11 @@ $ cd scripts
 
 4. Run one of the scripts like below
 ```
-$ python3.8 simulate_dummies.py
+$ python3 simulate_dummies.py
 or
-$ python3.8 build_scene.py
+$ python3 build_scene.py
 or
-$ python3.8 load_and_display_scene.py
+$ python3 load_and_display_scene.py
 ```
 
 ## Usage of build_scene.py

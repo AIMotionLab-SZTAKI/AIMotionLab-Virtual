@@ -188,9 +188,9 @@ def add_payload():
                         print("Payload size was unspecified...")
                         simulator.unpause()
                         return
-                    scene.add_mocap_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type)
+                    scene.add_mocap_payload(input_gui.position, input_gui.size, input_gui.quaternion, input_gui.color, input_gui.type)
                 elif input_gui.type == PAYLOAD_TYPES.Teardrop:
-                    scene.add_mocap_payload(input_gui.position, input_gui.size, None, input_gui.quaternion, input_gui.color, input_gui.type)
+                    scene.add_mocap_payload(input_gui.position, input_gui.size, input_gui.quaternion, input_gui.color, input_gui.type)
                 else:
                     print("Unknown payload type...")
             else:

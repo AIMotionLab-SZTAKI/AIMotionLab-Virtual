@@ -815,7 +815,8 @@ class SceneXmlGenerator:
         ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=name + "_orimeter")
 
         if has_trailer:
-            self._add_trailer_to_car(car, name, "-.21113 0 0", color)
+            hitch_x = "-" + TRAILER_PROP.CAR_COG_TO_HITCH.value
+            self._add_trailer_to_car(car, name, hitch_x + " 0 0", color)
 
 
     def _add_mocap_fleet1tenth(self, pos, quat, name, color, has_rod, has_trailer):
@@ -933,7 +934,9 @@ class SceneXmlGenerator:
 
     def add_mocap_trailer(self, car_pos, quat, color):
 
-        trailer_offsx = -.21113 - .365
+        hitch_x = -float(TRAILER_PROP.CAR_COG_TO_HITCH.value)
+
+        trailer_offsx = hitch_x - .365
         trailer_offsz = -.02
 
         shift = np.array((trailer_offsx, 0.0, trailer_offsz))

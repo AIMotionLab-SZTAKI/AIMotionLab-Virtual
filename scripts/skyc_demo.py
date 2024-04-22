@@ -1,3 +1,9 @@
+"""
+This script reads 3 crazyflie trajectories from an unzipped skyc file
+using the RemoteDroneTrajectory class and creates a simulation
+that goes through the them with 3 crazyflies.
+"""
+
 from aiml_virtual.trajectory import RemoteDroneTrajectory
 from aiml_virtual.simulator import ActiveSimulator
 from aiml_virtual.object import parseMovingObjects
@@ -20,6 +26,7 @@ traj1 = RemoteDroneTrajectory(directory=demo_path1)
 demo_path2 = os.path.join(abs_path, "..", "Demo", "drones", "drone_2")
 traj2 = RemoteDroneTrajectory(directory=demo_path2)
 
+# get initial positions from trajectories
 pos, vel = traj0.evaluate_trajectory(0)
 drone0_init_pos = np.array(pos)
 pos, vel = traj1.evaluate_trajectory(0)

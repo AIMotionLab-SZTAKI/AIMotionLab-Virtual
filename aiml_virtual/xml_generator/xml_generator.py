@@ -871,11 +871,21 @@ class SceneXmlGenerator:
         armature = "0.00005"
         damping = "0.00001"
         frictionloss = "0.001"
+
+        mass_draw_bar = "0.1"
+        mass_wheel = "0.1"  # x4
+        mass_front_axle = "0.3"
+        mass_rear_axle = "0.3"
+        mass_top_plate = "1.5"
+        mass_bottom_plate = "1.11"
+        mass_screw = "0.005"  # x5
+        mass_rear_holder = "0.005"
+        # sum should be 3.74
         
         trailer = ET.SubElement(car_body, "body", name=car_name + "_trailer", pos=hitch_pos)
-        #ET.SubElement(trailer, "inertial", pos="0 0 0", diaginertia=".03 .03 .05", mass="1.0")
         ET.SubElement(trailer, "joint", type="ball", name="car_to_rod")
-        ET.SubElement(trailer, "geom", type="cylinder", size=".0025 " + str(draw_bar_length / 2), euler="0 1.571 0", pos=str(-draw_bar_length / 2) + " 0 0")
+        ET.SubElement(trailer, "geom", type="cylinder", size=".0025 " + str(draw_bar_length / 2), euler="0 1.571 0", pos=str(-draw_bar_length / 2) + " 0 0",
+                      mass=mass_draw_bar)
 
         front_structure = ET.SubElement(trailer, "body", name=car_name + "_trailer_front_structure", pos=str(-draw_bar_length) + " 0 0")
 
@@ -883,16 +893,16 @@ class SceneXmlGenerator:
 
         ET.SubElement(front_structure, "joint", type="hinge", axis="0 1 0", name="rod_to_front")
         # front axle
-        ET.SubElement(front_structure, "geom", type="box", size="0.0075 " + str(track_distance / 2) + " 0.0075")
+        ET.SubElement(front_structure, "geom", type="box", size="0.0075 " + str(track_distance / 2) + " 0.0075", mass=mass_front_axle)
 
         # front wheels
         trailer_wheelfl = ET.SubElement(front_structure, "body", pos="0 " + str(track_distance / 2) + " 0", name=car_name + "_trailer_wheelfl")
-        ET.SubElement(trailer_wheelfl, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0")
+        ET.SubElement(trailer_wheelfl, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel)
         ET.SubElement(trailer_wheelfl, "joint", type="hinge", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature)
 
         
         trailer_wheelfr = ET.SubElement(front_structure, "body", pos="0 " + str(-track_distance / 2) + " 0", name=car_name + "_trailer_wheelfr")
-        ET.SubElement(trailer_wheelfr, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0")
+        ET.SubElement(trailer_wheelfr, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel)
         ET.SubElement(trailer_wheelfr, "joint", type="hinge", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature)
 
         rear_structure = ET.SubElement(front_structure, "body", name=car_name + "_trailer_rear_structure")
@@ -904,38 +914,40 @@ class SceneXmlGenerator:
         #tilt = "-0.04"
 
         # top plate
-        ET.SubElement(rear_structure, "geom", type="box", size=".25 .1475 .003", pos="-.18 0 .08", rgba="0.7 0.6 0.35 1.0", euler="0 " + tilt + " 0")
+        ET.SubElement(rear_structure, "geom", type="box", size=".25 .1475 .003", pos="-.18 0 .08", rgba="0.7 0.6 0.35 1.0", euler="0 " + tilt + " 0",
+                      mass=mass_top_plate)
         # rear axle
-        ET.SubElement(rear_structure, "geom", type="box", size="0.0075 " + str(track_distance / 2) + " 0.0075", pos=str(-axle_distance) + " 0 0")
+        ET.SubElement(rear_structure, "geom", type="box", size="0.0075 " + str(track_distance / 2) + " 0.0075", pos=str(-axle_distance) + " 0 0",
+                      mass=mass_rear_axle)
         # bottom plate
         ET.SubElement(rear_structure, "geom", type="box",
                       size=str((axle_distance + 0.05) / 2) + " " + str((track_distance - 0.05) / 2) + " 0.0025",
                       pos=str(-axle_distance / 2) + " 0 0.014",
                       rgba="0.9 0.9 0.9 0.2",
-                      euler="0 " + tilt + " 0")
+                      euler="0 " + tilt + " 0", mass=mass_bottom_plate)
         
         # 5 screws
-        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos=".01 0 0.05", euler="0 " + tilt + " 0")
-        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos=".01 -0.03 0.05", euler="0 " + tilt + " 0")
-        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos=".01 0.03 0.05", euler="0 " + tilt + " 0")
+        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos=".01 0 0.05", euler="0 " + tilt + " 0", mass=mass_screw)
+        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos=".01 -0.03 0.05", euler="0 " + tilt + " 0", mass=mass_screw)
+        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos=".01 0.03 0.05", euler="0 " + tilt + " 0", mass=mass_screw)
         
-        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos="-.01 -0.015 0.05", euler="0 " + tilt + " 0")
-        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos="-.01 0.015 0.05", euler="0 " + tilt + " 0")
+        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos="-.01 -0.015 0.05", euler="0 " + tilt + " 0", mass=mass_screw)
+        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.0025 0.035", pos="-.01 0.015 0.05", euler="0 " + tilt + " 0", mass=mass_screw)
 
         # rear holder
-        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.008 0.032", pos=str(-axle_distance + 0.02) + " 0 0.045", rgba="0.1 0.1 0.1 1.0", euler="0 " + tilt + " 0")
+        ET.SubElement(rear_structure, "geom", type="cylinder", size="0.008 0.032", pos=str(-axle_distance + 0.02) + " 0 0.045", rgba="0.1 0.1 0.1 1.0", euler="0 " + tilt + " 0", mass=mass_rear_holder)
 
         # joint for the rear part
         ET.SubElement(rear_structure, "joint", type="hinge", axis="0 0 1", name="front_to_rear")
 
         # rear wheels
         trailer_wheelrl = ET.SubElement(rear_structure, "body", pos=str(-axle_distance) + " " + str(track_distance / 2) + " 0", name=car_name + "_trailer_wheelrl")
-        ET.SubElement(trailer_wheelrl, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0")
+        ET.SubElement(trailer_wheelrl, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel)
         ET.SubElement(trailer_wheelrl, "joint", type="hinge", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature)
 
         
         trailer_wheelrr = ET.SubElement(rear_structure, "body", pos=str(-axle_distance) + " " + str(-track_distance / 2) + " 0", name=car_name + "_trailer_wheelrr")
-        ET.SubElement(trailer_wheelrr, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0")
+        ET.SubElement(trailer_wheelrr, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel)
         ET.SubElement(trailer_wheelrr, "joint", type="hinge", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature)
 
     def add_mocap_trailer(self, car_pos, quat, color):

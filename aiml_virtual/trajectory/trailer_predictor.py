@@ -25,7 +25,7 @@ def get_car_trajectory():
     car_trajectory = CarTrajectory()
     # define path points and build the path
     # path_points = np.vstack((paperclip(), paperclip()[1:, :], paperclip()[1:, :]))
-    path_points = paperclip()
+    path_points = np.roll(paperclip(), shift=13, axis=0)
     car_trajectory.build_from_points_smooth_const_speed(path_points=path_points, path_smoothing=1e-4, path_degree=5,
                                                         virtual_speed=0.6)
     return car_trajectory
@@ -33,7 +33,9 @@ def get_car_trajectory():
 
 class TrailerPredictor:
     def __init__(self, car_trajectory: CarTrajectory, 
-                 payload_type: Literal[PAYLOAD_TYPES.Box, PAYLOAD_TYPES.Teardrop] = PAYLOAD_TYPES.Teardrop):
+                 payload_type: Literal[PAYLOAD_TYPES.Box, PAYLOAD_TYPES.Teardrop] = PAYLOAD_TYPES.Teardrop,
+                 with_graphics=False):
+        self.payload_type = payload_type
         # Initialize simulation
         abs_path = os.path.dirname(os.path.abspath(__file__))
         xml_path = os.path.join(abs_path, "..", "..", "xml_models")
@@ -58,7 +60,7 @@ class TrailerPredictor:
                                  is_virtual=True, has_rod=False, has_trailer=True)
         trailer_name = car_name + "_trailer"
         payload_name = scene.add_payload(pos=np.array2string(payload_pos)[1:-1], size="0.05 0.05 0.05", mass="0.01",
-                                         quat=payload_quat, color=BLACK, type=payload_type)
+                                         quat=payload_quat, color=BLACK, type=self.payload_type)
 
         # saving the scene as xml so that the simulator can load it
         scene.save_xml(os.path.join(xml_path, save_filename))
@@ -70,7 +72,8 @@ class TrailerPredictor:
         xml_filename = os.path.join(xml_path, save_filename)
 
         # initializing simulator
-        self.simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step, with_graphics=False)
+        self.simulator = ActiveSimulator(xml_filename, None, control_step, graphics_step,
+                                         with_graphics=with_graphics)
         self.simulator.model.opt.timestep = 0.005
         self.simulator.sim_step = self.simulator.model.opt.timestep
 
@@ -133,8 +136,11 @@ class TrailerPredictor:
             self.simulator.update()
             # get predicted_obj state and save
             if predicted_obj == 'payload':
-                pos_actual = self.payload.sensor_posimeter + np.array([0, 0, 0.18])# + Rotation.from_quat(np.roll(self.payload.sensor_orimeter, -1)).as_matrix() @\
-                    #np.array([0.05, 0, 0.14]) # Compensate difference of box and teardrop payload
+                if self.payload_type == PAYLOAD_TYPES.Teardrop:
+                    pos_offset = np.array([0, 0, 0.15])
+                else:
+                    pos_offset = np.array([0, 0, 0.23])
+                pos_actual = self.payload.sensor_posimeter + pos_offset
             elif predicted_obj == 'car':
                 pos_actual = np.copy(self.car.joint.qpos[0:3])
             else:
@@ -144,6 +150,17 @@ class TrailerPredictor:
                                               self.payload.sensor_orimeter))]
 
         payload_predicted_points = np.asarray(payload_trajectory)
+
+        trailer_yaw_0 = Rotation.from_matrix(Rotation.from_quat(np.roll(init_state[3:7], -1)).as_matrix() @
+                            Rotation.from_euler('xyz', [0, 0, init_state[13]]).as_matrix() @
+                            Rotation.from_euler('xyz', [0, 0, init_state[15]]).as_matrix()).as_euler(
+                            "xyz")[2]
+        load_yaw_0 = Rotation.from_quat(payload_predicted_points[1, [7, 8, 9, 6]]).as_euler('xyz')[2]
+        load_yaw_rel = load_yaw_0 - trailer_yaw_0
+        while load_yaw_rel > np.pi:
+            load_yaw_rel -= 2 * np.pi
+        while load_yaw_rel < -np.pi:
+            load_yaw_rel += 2 * np.pi  # now its between -pi, pi
 
         def load_init_pos(t, t0):
             t_interp = self.simulator.control_step * np.arange(payload_predicted_points.shape[0])
@@ -159,11 +176,16 @@ class TrailerPredictor:
             for i in range(1, payload_yaw.shape[0]):
                 if payload_yaw[i] < payload_yaw[i-1] - np.pi:
                     payload_yaw[i:] += 2*np.pi
+                    print("Adding to payload yaw")
                 elif payload_yaw[i] > payload_yaw[i-1] + np.pi:
                     payload_yaw[i:] -= 2*np.pi
+                    print("Adjusting payload yaw")
+            if load_yaw_rel > np.pi/2:
+                payload_yaw -= np.pi/4
+            elif load_yaw_rel < -np.pi/2:
+                payload_yaw += np.pi/4
             return np.interp(t-t0, t_interp, payload_yaw)
-        
-        return load_init_pos, load_init_vel, load_init_yaw
+        return load_init_pos, load_init_vel, load_init_yaw, load_yaw_rel
 
 
 class DummyPredictor(TrailerPredictor):
@@ -246,4 +268,4 @@ def test_dummy_predictor():
 
 if __name__ == "__main__":
     predictor = TrailerPredictor(get_car_trajectory())
-    # predictor.simulate(predictor.init_state, 25)  # Car state is required for proper trajectory evaluation
+    predictor.simulate(predictor.init_state, 0, 25)  # Car state is required for proper trajectory evaluation

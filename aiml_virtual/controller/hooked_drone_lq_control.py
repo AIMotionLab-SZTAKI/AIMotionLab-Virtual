@@ -61,22 +61,34 @@ class LqrLoadControl(ControllerBase):
         R_q = (self.list_to_casadi_matrix([[1, 0, 0], [0, C_alpha, S_alpha], [0, -S_alpha, C_alpha]]) @
                self.list_to_casadi_matrix([[C_beta, 0, -S_beta], [0, 1, 0], [S_beta, 0, C_beta]])).T
         q = R_q @ ca.vertcat(0, 0, -1)
-        ang = ca.vertcat(alpha, beta)
-        dang = ca.vertcat(dalpha, dbeta)
-        # ddang = ca.vertcat(ddalpha, ddbeta)
-        dq = ca.jacobian(q, ang) @ dang
-        M1 = ca.jacobian(dq, ang)
-        M2 = ca.jacobian(dq, dang)
+        dq = ca.jacobian(q, ca.vertcat(alpha, beta)) @ ca.vertcat(dalpha, dbeta)
+
+        q_s = ca.MX.sym('q', 3, 1)
+        dq_s = ca.MX.sym('dq', 3, 1)
+        ddq_s = ca.MX.sym('ddq', 3, 1)
+        alpha_q = ca.asin(q_s[1])
+        beta_q = ca.asin(-q_s[0] / ca.cos(alpha_q))
+        ang_q = ca.vertcat(alpha_q, beta_q)
+        dang_q = ca.jacobian(ang_q, q_s) @ dq_s
+        ddang_q = ca.jacobian(dang_q, ca.vertcat(q_s, dq_s)) @ ca.vertcat(dq_s, ddq_s)
+
         # ddq = ca.jacobian(dq, ca.vertcat(ang, dang)) @ ca.vertcat(dang, ddang)
         # ddq = M1 @ dang + M2 @ ddang
-        M2_inv = ca.pinv(M2)
+
+        # print(sp.latex(H_inv))
+        # print(sp.latex(ddq))
+        # print(ddq[1].coeff(ddbeta))
+
         e3 = ca.vertcat(0, 0, 1)
         ddq = (1 / (m * L) * ca.cross(q, ca.cross(q, F * R @ e3)) - (dq.T @ dq) * q)
         # f1 = 1 / (m + mL) * (q.dot(F*R*e3) - m*L*dq.dot(dq))*q - sp.Matrix([0, 0, g])
         f1 = 1 / (m + mL) * F * R @ e3 - g * e3 - 1 / (m + mL) * mL * L * ddq
         f2 = ca.diag(ca.vertcat(1 / Jx, 1 / Jy, 1 / Jz)) @ (ca.vertcat(taux, tauy, tauz) -
              ca.cross(om, ca.vertcat(Jx * omx, Jy * omy, Jz * omz)))
-        f3 = M2_inv @ (1 / (m * L) * ca.cross(q, ca.cross(q, F * R @ e3)) - (dq.T @ dq) * q - M1 @ dang)
+        f3 = ca.substitute([ddang_q], [q_s, dq_s, ddq_s],
+                        [q, dq, 1 / (m * L) * ca.cross(q, ca.cross(q, F * R @ e3)) - (dq.T @ dq) * q])[0]
+        # f3 = M2_inv @ (1 / (m * L) * ca.cross(q, ca.cross(q, F * R @ e3)) - (dq.T @ dq) * q - M1 @ dang)
+
         f = ca.vertcat(drx, dry, drz, f1, ca.inv(W) @ om, f2, dalpha, dbeta, f3)
         x = ca.vertcat(rx, ry, rz, drx, dry, drz, phi, theta, psi, omx, omy, omz, alpha, beta, dalpha, dbeta)
         u = ca.vertcat(F, taux, tauy, tauz)

@@ -1,4 +1,18 @@
-from cProfile import label
+"""
+This script is used to create an air pressure look-up table for all four
+propellers of the bumblebee out of the CFD simulation of only one propeller.
+
+The script can also be used to just plot already saved data.
+
+The results of the CFD simulation are loaded into a 3D numpy array, which is then upscaled
+such that the indices represent positions in space in mm. For example,
+data[10, 156, 117] returns the pressure value at x = 10mm, y = 156mm and z = 117mm
+in the coordinate frame of the look-up table.
+
+In this coordinate frame, the array is shifted four times to the position of the four rotors,
+and the overlaps are added together. The resulting array is saved to hard disk.
+"""
+
 import math
 import numpy as np
 import matplotlib.pylab as plt

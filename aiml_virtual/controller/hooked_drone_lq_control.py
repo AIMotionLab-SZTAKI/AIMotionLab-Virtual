@@ -15,9 +15,9 @@ class LqrLoadControl(ControllerBase):
         self.L = 0.4
 
         # Weight matrices for continuous time LQR
-        self.Q = np.diag(np.hstack((10 * np.ones(2), 100, 1 * np.ones(2), 10, 0.1 * np.ones(2), 1, 0.4 * np.ones(3),
-                                    0.1, 0.1, 0.05 * np.ones(2))))
-        self.R = np.diag([1, 80, 80, 80])
+        self.Q = np.diag(np.hstack((100 * np.ones(2), 100, 1 * np.ones(2), 10, 0.1 * np.ones(3), 1 * np.ones(3),
+                                    0.05 * np.ones(2), 0.05 * np.ones(2))))
+        self.R = np.diag([5, 40, 40, 40])
 
         self.dt = 0.01
 
@@ -183,6 +183,10 @@ class LtvLqrLoadControl(LqrLoadControl):
             cur_eul[2] -= 2 * np.pi
         while cur_eul[2] - target_eul[2] < -np.pi:
             cur_eul[2] += 2 * np.pi
+        cur_pole_eul = si.spatial.transform.Rotation.from_matrix(si.spatial.transform.Rotation.from_euler("xyz", [0, 0, -cur_eul[2]]).as_matrix() @
+                       si.spatial.transform.Rotation.from_euler("xyz", [cur_pole_eul[0], cur_pole_eul[1], 0]).as_matrix()).as_euler("xyz")[0:2]
+        cur_pole_ang_vel = si.spatial.transform.Rotation.from_matrix(si.spatial.transform.Rotation.from_euler("xyz", [0, 0, -cur_eul[2]]).as_matrix() @
+                       si.spatial.transform.Rotation.from_euler("xyz", [cur_pole_ang_vel[0], cur_pole_ang_vel[1], 0]).as_matrix()).as_euler("xyz")[0:2]
         state = np.hstack((cur_pos, cur_vel, cur_eul, cur_ang_vel, cur_pole_eul, cur_pole_ang_vel))
         target = np.hstack((target_pos, target_vel, target_eul, target_ang_vel, target_pole_eul,
                             target_pole_ang_vel))

@@ -611,12 +611,18 @@ class SceneXmlGenerator:
         ET.SubElement(hook_structure_body, "geom", name=name_base + "_rod", type="cylinder", fromto="0 0 0  0 0 -" + str(ROD_LENGTH), size="0.005", mass="0.0")
         hookbody = ET.SubElement(hook_structure_body, "body", name=name_base + "_hook", pos="0 0 -" + str(ROD_LENGTH), euler="0 3.141592 0")
 
+        '''
         ET.SubElement(hookbody, "geom", type="capsule", pos="0 0 0.02", size="0.003 0.02", mass="0.01")
         ET.SubElement(hookbody, "geom", type="capsule", pos="0 0.01299 0.0475", euler="-1.0472 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hookbody, "geom", type="capsule", pos="0 0.02598 0.07", euler="0 0 0", size="0.005 0.018", mass="0.0001")
         ET.SubElement(hookbody, "geom", type="capsule", pos="0 0.01299 0.0925", euler="1.0472 0 0", size="0.005 0.018", mass="0.0001")
         #ET.SubElement(hookbody, "geom", type="capsule", pos="0 -0.01299 0.0925", euler="2.0944 0 0", size="0.005 0.018", mass="0.0001")
-        ET.SubElement(hookbody, "geom", type="capsule", pos="0 -0.018 0.09", euler="2.0944 0 0", size="0.005 0.023", mass="0.0001")
+        ET.SubElement(hookbody, "geom", type="box", pos="0 -0.018 0.085", euler="-1.0472 0 0", size="0.003 0.003 0.026", mass="0.0001")
+        '''
+        ET.SubElement(hookbody, "geom", type="box", pos="0 0 0.02", size="0.003 0.003 0.02", mass="0.01")
+        ET.SubElement(hookbody, "geom", type="box", pos="0 0.019 0.054", euler="-0.92 0 0", size="0.003 0.003 0.026", mass="0.0001")
+        ET.SubElement(hookbody, "geom", type="box", pos="0 0.02 0.0825", euler="0.92 0 0", size="0.003 0.003 0.026", mass="0.0001")
+        ET.SubElement(hookbody, "geom", type="box", pos="0 -0.018 0.085", euler="-1.0472 0 0", size="0.003 0.003 0.026", mass="0.0001")
 
     def add_payload(self, pos, size, mass, quat, color, type=PAYLOAD_TYPES.Box):
 
@@ -723,7 +729,7 @@ class SceneXmlGenerator:
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.02561 0.09061", euler="0.39270 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 0.01061 0.10561", euler="1.17810 0 0", size="0.004 0.01378", mass=hook_mass)
         ET.SubElement(hook, "geom", type="capsule", pos="0 -0.01061 0.10561", euler="1.96350 0 0", size="0.004 0.01378", mass=hook_mass)
-        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.09061", euler="2.74889 0 0", size="0.004 0.01378", mass=hook_mass)
+        ET.SubElement(hook, "geom", type="capsule", pos="0 -0.02561 0.09061", euler="2.74889 0 0", size="0.004 0.008", mass=hook_mass)
 
     def add_car(self, pos, quat, color, is_virtual, has_rod=False, has_trailer=False, type="fleet1tenth"):
 

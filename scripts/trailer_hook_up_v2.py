@@ -52,7 +52,7 @@ car_rot = np.array([[np.cos(car_heading), -np.sin(car_heading), 0],
                     [0, 0, 1]])
 payload_offset = np.array([-0.5, 0, 0.08])
 payload_pos = car_pos + car_rot @ payload_offset
-payload_quat = carHeading2quaternion(car_heading+np.deg2rad(135))
+payload_quat = carHeading2quaternion(car_heading+np.deg2rad(-170))
 
 
 # create xml with car, trailer, payload, and bumblebee
@@ -88,7 +88,7 @@ load_init_pos, load_init_vel, load_init_yaw, load_yaw_rel = predictor.simulate(i
 
 # Plan trajectory
 bb_trajectory.construct(drone_init_pos[0:3]-np.array([0, 0, 0.4]), drone_init_pos[3], [load_init_pos, load_init_vel],
-                        [load_init_yaw, load_yaw_rel], load_target_pos, 0, load_mass, grasp_speed=1.3)
+                        [load_init_yaw, load_yaw_rel], load_target_pos, 0, load_mass, grasp_speed=1.5)
 
 # Compute control gains
 bb_controller.setup_hook_up(bb_trajectory, hook_mass=0.001, payload_mass=load_mass)

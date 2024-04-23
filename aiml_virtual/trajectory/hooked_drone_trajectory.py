@@ -1187,7 +1187,8 @@ class HookedDroneNLTrajectory(HookedDronePolyTrajectory):
         
         planner = NLOptPlanner(params)
         planner.init_guess_qp(plot_res=self.plot_trajs)
-        #plt.show()
+        if self.plot_trajs:
+            plt.show()
         #planner.solve_ipopt()
         planner.solve_acados(generate_and_build=True, solve=False)
         planner.solve_acados(generate_and_build=False, solve=True, plot_res=self.plot_trajs)

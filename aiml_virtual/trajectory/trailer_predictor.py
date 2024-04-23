@@ -176,14 +176,10 @@ class TrailerPredictor:
             for i in range(1, payload_yaw.shape[0]):
                 if payload_yaw[i] < payload_yaw[i-1] - np.pi:
                     payload_yaw[i:] += 2*np.pi
-                    print("Adding to payload yaw")
                 elif payload_yaw[i] > payload_yaw[i-1] + np.pi:
                     payload_yaw[i:] -= 2*np.pi
-                    print("Adjusting payload yaw")
-            if load_yaw_rel > np.pi/2:
-                payload_yaw -= np.pi/4
-            elif load_yaw_rel < -np.pi/2:
-                payload_yaw += np.pi/4
+            if load_yaw_rel < -np.pi/2:
+                payload_yaw += np.pi
             return np.interp(t-t0, t_interp, payload_yaw)
         return load_init_pos, load_init_vel, load_init_yaw, load_yaw_rel
 

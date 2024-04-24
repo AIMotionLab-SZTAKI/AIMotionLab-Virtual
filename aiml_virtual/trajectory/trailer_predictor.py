@@ -57,7 +57,7 @@ class TrailerPredictor:
         # create xml with a car
         scene = SceneXmlGenerator(xml_base_filename)
         car_name = scene.add_car(pos=np.array2string(car_pos)[1:-1], quat=car_quat, color=RED,
-                                 is_virtual=True, has_rod=False, has_trailer=True)
+                                 is_virtual=True, has_rod=False, has_trailer=False)
         trailer_name = car_name + "_trailer"
         payload_name = scene.add_payload(pos=np.array2string(payload_pos)[1:-1], size="0.05 0.05 0.05", mass="0.01",
                                          quat=payload_quat, color=BLACK, type=self.payload_type)
@@ -80,9 +80,9 @@ class TrailerPredictor:
         # grabbing the car and the payload
         self.car: Fleet1Tenth = self.simulator.get_MovingObject_by_name_in_xml(car_name)
         self.payload: TeardropPayload = self.simulator.get_MovingObject_by_name_in_xml(payload_name)
-        self.car_to_rod = self.car.data.joint("car_to_rod")  # ball joint
-        self.rod_to_front = self.car.data.joint("rod_to_front")  # hinge joint
-        self.front_to_rear = self.car.data.joint("front_to_rear")  # hinge joint
+        #self.car_to_rod = self.car.data.joint("car_to_rod")  # ball joint
+        #self.rod_to_front = self.car.data.joint("rod_to_front")  # hinge joint
+        #self.front_to_rear = self.car.data.joint("front_to_rear")  # hinge joint
 
         # car_trajectory.plot_trajectory()
 
@@ -96,7 +96,7 @@ class TrailerPredictor:
 
         self.trailer_top_plate_height = 0.119  # for box payload: 0.119, for teardrop payload: 0.123
         self.rod_pitch = -0.1  # these should be constant in normal operation
-        self.rod_to_front.qpos[:] = -self.rod_pitch
+        #self.rod_to_front.qpos[:] = -self.rod_pitch
         rod_yaw = 0
         self.init_state = np.hstack((car_pos, np.fromstring(car_quat, sep=" "),
                                      np.zeros(6), rod_yaw, 0, 0, 0,
@@ -112,10 +112,10 @@ class TrailerPredictor:
         # front_to_rear orientation, ang_vel; payload position, orientation  --  ndim = 24
         self.car.joint.qpos = init_state[0:7]
         self.car.joint.qvel = init_state[7:13]
-        self.car_to_rod.qpos = np.roll(Rotation.from_euler('xyz', [0, self.rod_pitch, init_state[13]]).as_quat(), 1)
-        self.car_to_rod.qvel = np.array([0, 0, init_state[14]])
-        self.front_to_rear.qpos = init_state[15]
-        self.front_to_rear.qvel = init_state[16]
+        #self.car_to_rod.qpos = np.roll(Rotation.from_euler('xyz', [0, self.rod_pitch, init_state[13]]).as_quat(), 1)
+        #self.car_to_rod.qvel = np.array([0, 0, init_state[14]])
+        #self.front_to_rear.qpos = init_state[15]
+        #self.front_to_rear.qvel = init_state[16]
         
         self.simulator.update()
         if np.isnan(np.sum(init_state[17:24])):  # Compute payload configuration from trailer configuration

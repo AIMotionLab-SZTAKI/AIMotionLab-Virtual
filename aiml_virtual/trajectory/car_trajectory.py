@@ -594,3 +594,10 @@ class CarTrajectory(TrajectoryBase):
         plt.tight_layout()
         plt.show(block=block)
 
+    def get_traj(self):
+        t_eval=np.linspace(0, self.t_end, 100)
+        
+        s=splev(t_eval, self.evol_tck)
+        (x,y)=splev(s, self.pos_tck)
+
+        return x,y

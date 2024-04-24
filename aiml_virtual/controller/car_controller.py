@@ -26,15 +26,15 @@ class CarLPVController(ControllerBase):
         try:
             self.C_m1=kwargs["C_m1"]
         except KeyError:
-            self.C_m1=65
+            self.C_m1=52.4282
         try:
             self.C_m2=kwargs["C_m2"]
         except KeyError:
-            self.C_m2=3.3
+            self.C_m2=5.2465
         try:
             self.C_m3=kwargs["C_m3"]
         except KeyError:
-            self.C_m3=1.05
+            self.C_m3=1.119465
 
         try:
             self.dt=kwargs["control_step"]
@@ -44,6 +44,7 @@ class CarLPVController(ControllerBase):
         if long_gains is not None: # gains are specified
             self.k_long1=np.poly1d(long_gains[0,:])
             self.k_long2=np.poly1d(long_gains[1,:])
+
         else: # no gains specified use the default
             self.k_long1=np.poly1d([0.0010,-0.0132,0.4243])
             self.k_long2=np.poly1d([-0.0044, 0.0563, 0.0959])
@@ -54,8 +55,14 @@ class CarLPVController(ControllerBase):
             self.k_lat3=np.poly1d(lat_gains[2,:])
         else:
             self.k_lat1=np.poly1d([0.00127, -0.00864, 0.0192, 0.0159])
-            self.k_lat2=np.poly1d([0.172, -1.17, 2.59, 2.14])
+            self.k_lat2=np.poly1d([0.172, -1.17, 2.59, 5.14])
             self.k_lat3=np.poly1d([0.00423, 0.0948, 0.463, 0.00936])
+
+        self.C_f =41.7372
+        self.C_r =29.4662
+        self.l_f =0.163
+        self.l_r =0.168
+
 
         # define the initial value of the lateral controller integrator
         self.q=0 # lateral controller integrator 
@@ -122,8 +129,12 @@ class CarLPVController(ControllerBase):
             self.ep=e
 
         # compute control inputss
-        delta=-theta_e+self.k_lat1(v_xi)*self.q+self.k_lat2(v_xi)*e+self.k_lat3(v_xi)*self.edot
-        d=(self.C_m2*v_ref/p+self.C_m3*np.sign(v_ref))/self.C_m1-self.k_long1(p)*(s-s_ref)-self.k_long2(p)*(v_xi-v_ref/p)
+
+        delta=-theta_e+self.k_lat1(v_xi)*self.q+self.k_lat2(v_xi)*e+self.k_lat3(v_xi)*self.edot \
+                - self.m/self.C_f*((self.l_r*self.C_r-self.l_f*self.C_f)/self.m-1)*c
+        
+
+        d=(self.C_m2*v_ref/p+self.C_m3*np.sign(v_ref))/self.C_m1-self.k_long1(p)*(s-s_ref)-self.k_long2(p)*(v_xi-v_ref)
         
         if self.disturbed: 
             if 0 < time < 3:

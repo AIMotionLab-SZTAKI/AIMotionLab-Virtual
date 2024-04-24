@@ -7,7 +7,8 @@ from aiml_virtual.object.moving_object import MocapObject, MovingObject
 from aiml_virtual.object.object_parser import parseMovingObjects, parseMocapObjects
 from aiml_virtual.gui.vehicle_name_gui import VehicleNameGui
 import os
-if os.name == 'nt':
+import platform
+if platform.system() == 'Windows':
     import win_precise_time as time
 else:
     import time

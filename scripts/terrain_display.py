@@ -12,7 +12,8 @@ from aiml_virtual.object import Radar
 
 from aiml_virtual.util.mujoco_helper import radars_see_point, create_3D_bool_array
 
-if os.name == 'nt':
+import platform
+if platform.system() == 'Windows':
     import win_precise_time as time
 else:
     import time

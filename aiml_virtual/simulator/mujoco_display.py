@@ -11,12 +11,13 @@ from aiml_virtual.util import mujoco_helper
 import scipy.signal
 from aiml_virtual.util.mujoco_helper import LiveLFilter
 #import motioncapture
-if os.name == "posix":
+import platform
+if platform.system() == "Darwin":
     import cv2
 else:
     import motioncapture # motioncapture is not available on macos
     import ffmpeg
-if os.name == 'nt':
+if platform.system() == 'Windows':
     import win_precise_time as time
 else:
     import time
@@ -667,7 +668,7 @@ class Display:
 
         #print("fps: " + str(fps))
 
-        if os.name == 'posix':
+        if platform.system() == 'Darwin':
 
             out = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
             for i in range(len(image_list)):

@@ -14,7 +14,8 @@ import matplotlib.pyplot as plt
 from aiml_virtual.object import parseMovingObjects
 
 # setting up matplotlib for Qt5 on macos
-if os.name == "posix":
+import platform
+if platform.system() == 'Darwin':
     import matplotlib
     matplotlib.use("Qt5Agg")
 

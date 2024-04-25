@@ -914,7 +914,7 @@ class SceneXmlGenerator:
         #tilt = "-0.04"
 
         # top plate
-        ET.SubElement(rear_structure, "geom", type="box", size=".25 .1475 .003", pos="-.18 0 .08", rgba="0.7 0.6 0.35 1.0", euler="0 " + tilt + " 0",
+        ET.SubElement(rear_structure, "geom", type="box", size=".25 .1475 .003", pos="-.21 0 .08", rgba="0.7 0.6 0.35 1.0", euler="0 " + tilt + " 0",
                       mass=mass_top_plate)
         # rear axle
         ET.SubElement(rear_structure, "geom", type="box", size="0.0075 " + str(track_distance / 2) + " 0.0075", pos=str(-axle_distance) + " 0 0",

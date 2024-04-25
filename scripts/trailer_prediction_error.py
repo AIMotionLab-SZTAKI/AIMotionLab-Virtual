@@ -31,12 +31,12 @@ def load_meas_data(filename):
 
     # Compute states of car+trailer system
     N = len(data_transposed[0])
-    car_euler = np.hstack((np.zeros((N, 2)), data['heading_angle']))
+    car_euler = np.hstack((np.zeros((N, 2)), data['car_heading']))
     car_quat = np.roll(Rotation.from_euler('xyz', car_euler).as_quat(), shift=1, axis=1)
     car_rotmat = np.asarray([Rotation.from_euler('xyz', rpy).as_matrix() for rpy in car_euler])
-    car_omega = np.hstack((np.zeros((N, 2)), data['omega']))
-    car_qpos = np.hstack((data['position_x'], data['position_y'], 0.052 * np.ones((N, 1)), car_quat))
-    car_qvel = np.hstack((data['velocity_x'], data['velocity_y'], np.zeros((N, 1)), car_omega))
+    car_omega = np.hstack((np.zeros((N, 2)), data['car_ang_vel']))
+    car_qpos = np.hstack((data['car_x'], data['car_y'], 0.052 * np.ones((N, 1)), car_quat))
+    car_qvel = np.hstack((data['car_vx'], data['car_vy'], np.zeros((N, 1)), car_omega))
 
     trailer_pos = np.hstack((data['trailer_x'], data['trailer_y'], np.zeros((N, 1))))
     trailer_euler = np.hstack((np.zeros((N, 2)), data['trailer_heading']))
@@ -60,9 +60,10 @@ def load_meas_data(filename):
     payload_quat = np.roll(Rotation.from_euler('xyz', payload_euler).as_quat(), shift=1, axis=1)
     payload_rotmat = np.asarray([Rotation.from_euler('xyz', rpy).as_matrix() for rpy in payload_euler])
     #payload_pos = payload_pos + payload_rotmat @ np.array([0.05, 0, 0.0])
+    payload_vel = np.hstack((data['payload_vx'], data['payload_vy'], np.zeros((N, 1))))
 
-    car_trailer_states = np.hstack((car_qpos, car_qvel, 0*rod_yaw, rod_yaw_rate, 0*trailer_yaw_rel, 0*trailer_yaw_rel,
-                                   payload_pos, payload_quat, np.zeros((N, 3))))  # TODO: compute payload velocity as well
+    car_trailer_states = np.hstack((car_qpos, car_qvel, rod_yaw, rod_yaw_rate, trailer_yaw_rel, 0*trailer_yaw_rel,
+                                   payload_pos, payload_quat, payload_vel))
     
     timestamp = data["time_stamp_sec"]
     timestamp -= timestamp[0]
@@ -72,7 +73,8 @@ def load_meas_data(filename):
 if __name__ == "__main__":
     trajectory_type = 'paperclip'  # for now either 'paperclip' or 'dented_paperclip'
     predicted_obj = 'car' # either car or payload
-    csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'csv', 'JoeBush1_04_24_2024_11_48_30.csv')
+    #csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'csv', 'JoeBush1_04_24_2024_11_48_30.csv')
+    csv_path = "/home/aimotion-laptop/aimotion_f1tenth_utils/logs/log18.csv"
     meas_state, meas_time, meas_data = load_meas_data(csv_path)
 
     if trajectory_type == 'paperclip':

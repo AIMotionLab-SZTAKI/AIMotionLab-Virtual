@@ -8,10 +8,6 @@ from aiml_virtual.trajectory.trailer_predictor import TrailerPredictor
 from aiml_virtual.trajectory.car_path_point_generator import paperclip, dented_paperclip
 from aiml_virtual.trajectory import CarTrajectory
 
-import matplotlib
-
-matplotlib.use('qt5agg')
-
 def load_meas_data(filename):
     # Open the CSV file
     with open(filename, 'r') as file:
@@ -47,7 +43,7 @@ def load_meas_data(filename):
     trailer_rotmat = np.asarray([Rotation.from_euler('xyz', rpy).as_matrix() for rpy in trailer_euler])
     car_to_rod_len = 0.25
     rod_len = 0.18
-    rod_to_trailer_len = 0.3
+    rod_to_trailer_len = 0.21
     rod_front_pos = car_qpos[:, :3] + car_rotmat @ np.array([-car_to_rod_len, 0, 0])
     rod_rear_pos = trailer_pos + trailer_rotmat @ np.array([rod_to_trailer_len, 0, 0])
     rod_vec = rod_front_pos - rod_rear_pos
@@ -65,7 +61,7 @@ def load_meas_data(filename):
     payload_rotmat = np.asarray([Rotation.from_euler('xyz', rpy).as_matrix() for rpy in payload_euler])
     #payload_pos = payload_pos + payload_rotmat @ np.array([0.05, 0, 0.0])
 
-    car_trailer_states = np.hstack((car_qpos, car_qvel, rod_yaw, rod_yaw_rate, trailer_yaw_rel*0, 0*trailer_yaw_rel, 
+    car_trailer_states = np.hstack((car_qpos, car_qvel, 0*rod_yaw, rod_yaw_rate, 0*trailer_yaw_rel, 0*trailer_yaw_rel,
                                    payload_pos, payload_quat, np.zeros((N, 3))))  # TODO: compute payload velocity as well
     
     timestamp = data["time_stamp_sec"]
@@ -76,12 +72,11 @@ def load_meas_data(filename):
 if __name__ == "__main__":
     trajectory_type = 'paperclip'  # for now either 'paperclip' or 'dented_paperclip'
     predicted_obj = 'car' # either car or payload
-    csv_path = "/Users/floch/code/SZTAKI/AIMotionLab-Virtual/JoeBush1_04_24_2024_11_48_30.csv"
-    #os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'paperclip4.csv')
+    csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'csv', 'JoeBush1_04_24_2024_11_48_30.csv')
     meas_state, meas_time, meas_data = load_meas_data(csv_path)
 
     if trajectory_type == 'paperclip':
-        path_points = np.roll(paperclip(),shift=13, axis=0)# np.vstack((paperclip(), paperclip()[1:, :]))
+        path_points = np.roll(paperclip(), shift=13, axis=0)
     elif trajectory_type == 'dented_paperclip':
         path_points = dented_paperclip()
     else:
@@ -89,10 +84,8 @@ if __name__ == "__main__":
     car_trajectory = CarTrajectory()
     car_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=1e-4, path_degree=5,
                                                         const_speed=0.6)
-    
-    #car_trajectory.plot_trajectory()
-    predictor = TrailerPredictor(car_trajectory, payload_type=PAYLOAD_TYPES.Teardrop, with_graphics=False)
-    load_pos, _, _ ,_ = predictor.simulate(meas_state[0, :], 0, meas_time[-1], predicted_obj)
+    predictor = TrailerPredictor(car_trajectory, payload_type=PAYLOAD_TYPES.Teardrop, with_graphics=True)
+    load_pos, _, _, _ = predictor.simulate(meas_state[0, :], 0, meas_time[-1], predicted_obj)
 
     # plot
     if predicted_obj == 'car':

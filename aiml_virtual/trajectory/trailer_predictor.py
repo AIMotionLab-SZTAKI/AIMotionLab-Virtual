@@ -138,7 +138,7 @@ class TrailerPredictor:
             # get predicted_obj state and save
             if predicted_obj == 'payload':
                 if self.payload_type == PAYLOAD_TYPES.Teardrop:
-                    pos_offset = np.array([0, 0, 0.15])
+                    pos_offset = np.array([0, 0, 0.18])
                 else:
                     pos_offset = np.array([0, 0, 0.23])
                 pos_actual = self.payload.sensor_posimeter + pos_offset

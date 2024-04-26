@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import scipy as si
 import control
 import casadi as ca
@@ -11,7 +12,7 @@ class LqrLoadControl(ControllerBase):
         super().__init__(mass, inertia, gravity)
         self.gravity = np.abs(self.gravity[2])
         self.mass = self.mass[0]
-        self.payload_mass = 0.05
+        self.payload_mass = 0.02
         self.L = 0.4
 
         # Weight matrices for continuous time LQR
@@ -25,6 +26,19 @@ class LqrLoadControl(ControllerBase):
 
         self.K_lti = np.zeros((self.R.shape[0], self.Q.shape[0]))
         self.compute_lti_lqr()
+        """
+        for i in range(self.K_lti.shape[0]):
+            for j in range(self.K_lti.shape[1]):
+                if np.abs(self.K_lti[i, j]) < 1e-8:
+                    self.K_lti[i, j] = 0
+        # print(format_matrix(self.K_lti.T, environment="bmatrix"))
+        file_path = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(file_path,"lqr_params_bb_load_c.txt"), "w") as f:
+            for i in range(self.K_lti.shape[0]):
+                for j in range(self.K_lti.shape[1]):
+                    if np.abs(self.K_lti[i, j]) > 1e-8:
+                        f.write(f'K[{i}][{j}] = {self.K_lti[i, j].round(4)};\n')
+        """
         self.K = None
         self.controller_step = 0
 

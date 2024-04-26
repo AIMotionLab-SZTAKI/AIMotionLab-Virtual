@@ -72,7 +72,7 @@ def load_meas_data(filename):
 
 if __name__ == "__main__":
     trajectory_type = 'paperclip'  # for now either 'paperclip' or 'dented_paperclip'
-    predicted_obj = 'car' # either car or payload
+    predicted_obj = 'payload' # either car or payload
     #csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'csv', 'JoeBush1_04_24_2024_11_48_30.csv')
     csv_path = "/home/aimotion-laptop/aimotion_f1tenth_utils/logs/log18.csv"
     meas_state, meas_time, meas_data = load_meas_data(csv_path)
@@ -87,13 +87,16 @@ if __name__ == "__main__":
     car_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=1e-4, path_degree=5,
                                                         const_speed=0.6)
     predictor = TrailerPredictor(car_trajectory, payload_type=PAYLOAD_TYPES.Teardrop, with_graphics=True)
-    load_pos, _, _, _ = predictor.simulate(meas_state[0, :], 0, meas_time[-1], predicted_obj)
+    simu_start_idx = 0
+    load_pos, _, _, _ = predictor.simulate(meas_state[simu_start_idx, :], meas_time[simu_start_idx, 0], 
+                                           meas_time[-1]-meas_time[simu_start_idx], predicted_obj)
 
     # plot
+    meas_time = meas_time[simu_start_idx:, :] - meas_time[simu_start_idx, :]
     if predicted_obj == 'car':
-        meas_to_plot = meas_state[:, 0:2]
+        meas_to_plot = meas_state[simu_start_idx:, 0:2]
     else:
-        meas_to_plot = meas_state[:, 17:19]
+        meas_to_plot = meas_state[simu_start_idx:, 17:19]
     plt.figure()
     plt.plot(meas_time, meas_to_plot)
     plt.plot(meas_time, np.asarray(load_pos(meas_time, 0))[:2, :, 0].T) # 3 lista

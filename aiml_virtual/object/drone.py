@@ -84,6 +84,11 @@ class Drone(MovingObject):
         self.qfrc_passive = free_joint.qfrc_passive
         self.qfrc_applied = free_joint.qfrc_applied
 
+        self.actr0_force = data.actuator(self.name_in_xml + "_actr1").force
+        self.actr1_force = data.actuator(self.name_in_xml + "_actr2").force
+        self.actr2_force = data.actuator(self.name_in_xml + "_actr3").force
+        self.actr3_force = data.actuator(self.name_in_xml + "_actr4").force
+
         self.sensor_gyro = self.data.sensor(self.name_in_xml + "_gyro").data
         self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data
         self.sensor_accelerometer = self.data.sensor(self.name_in_xml + "_accelerometer").data

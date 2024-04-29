@@ -91,7 +91,7 @@ bb_trajectory.construct(drone_init_pos[0:3]-np.array([0, 0, 0.4]), drone_init_po
                         [load_init_yaw, load_yaw_rel], load_target_pos, 0, load_mass, grasp_speed=1.5)
 
 # Compute control gains
-bb_controller.setup_hook_up(bb_trajectory, hook_mass=0.001, payload_mass=load_mass)
+bb_controller.setup_hook_up(bb_trajectory, hook_mass=0.02, payload_mass=load_mass)
 
 # recording interval for automatic video capture
 #rec_interval=[0,12]

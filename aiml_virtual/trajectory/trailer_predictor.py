@@ -127,7 +127,7 @@ class TrailerPredictor:
         else:
             self.payload.data.qpos[-7:] = init_state[17:24]  # TODO
             self.payload.data.qpos[-5] = self.trailer_top_plate_height
-            self.payload.data.qvel[-6:-3] = init_state[24:27]  # TODO
+            self.payload.data.qvel[-6:] = init_state[7:13] # init_state[24:27]  # TODO
         # start simulation
         payload_trajectory = []  # maybe preallocate numpy array later
         #self.simulator.update()
@@ -151,6 +151,10 @@ class TrailerPredictor:
                                               self.payload.sensor_orimeter))]
 
         payload_predicted_points = np.asarray(payload_trajectory)
+        #payload_predicted_points[:20, 3:6] = payload_predicted_points[20, 3:6]
+        #plt.figure()
+        #plt.plot(payload_predicted_points[:, 3:5])
+        #plt.show()
 
         trailer_yaw_0 = Rotation.from_matrix(Rotation.from_quat(np.roll(init_state[3:7], -1)).as_matrix() @
                             Rotation.from_euler('xyz', [0, 0, init_state[13]]).as_matrix() @

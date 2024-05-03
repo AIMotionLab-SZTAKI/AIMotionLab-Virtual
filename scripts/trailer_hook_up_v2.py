@@ -39,8 +39,8 @@ load_target_pos = np.array([1, 1.13, 0.25])
 # path_points = dented_paperclip()
 # drone_init_pos = np.array([1, 1.13, 1.1, 0])  # initial drone position and yaw angle
 # load_target_pos = np.array([1, 1.13, 0.19])
-car_trajectory.build_from_points_smooth_const_speed(path_points=path_points, path_smoothing=1e-4, path_degree=5,
-                                                    virtual_speed=0.6)
+car_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=1e-4, path_degree=5,
+                                             const_speed=0.6)
 
 car_pos = np.array([car_trajectory.pos_tck[1][0][0], car_trajectory.pos_tck[1][1][0], 0.052])
 heading_smoothing_index = 5
@@ -72,7 +72,7 @@ scene.save_xml(os.path.join(xml_path, save_filename))
 # create list of parsers 
 virt_parsers = [parseMovingObjects]
 
-control_step, graphics_step = 0.01, 0.02
+control_step, graphics_step = 0.025, 0.05
 xml_filename = os.path.join(xml_path, save_filename)
 
 bb_trajectory = HookedDroneNLTrajectory(plot_trajs=False)

@@ -20,7 +20,7 @@ class LqrLoadControl(ControllerBase):
                                     0.05 * np.ones(2), 0.05 * np.ones(2))))
         self.R = np.diag([5, 40, 40, 40])
 
-        self.dt = 0.01
+        self.dt = 0.05
 
         self.f, self.fx, self.fu = self.dyn_model()
 
@@ -231,7 +231,7 @@ class LtvLqrLoadControl(LqrLoadControl):
         x_f_hook, u_f_hook = compute_state_trajectory_casadi(ref, payload_mass=hook_mass)
         x_f_load, u_f_load = compute_state_trajectory_casadi(ref, payload_mass=hook_mass + payload_mass)
 
-        t = np.arange(0.0001, ref.segment_times[-1] + 10, 0.01)
+        t = np.arange(0.0001, ref.segment_times[-1] + 10, self.dt)
 
         def x_f(t_):
             if isinstance(t_, np.ndarray):
@@ -259,11 +259,11 @@ class LtvLqrLoadControl(LqrLoadControl):
         u = u_f(np.expand_dims(t, 0))
         # u[0, :] = 0
 
-        self.compute_ltv_lqr(x[idx_sec_1, :], u[idx_sec_1, :], sum(idx_sec_1) * [hook_mass], 0.01)
+        self.compute_ltv_lqr(x[idx_sec_1, :], u[idx_sec_1, :], sum(idx_sec_1) * [hook_mass], self.dt)
         K_sec_1 = self.K
-        self.compute_ltv_lqr(x[idx_sec_2, :], u[idx_sec_2, :], sum(idx_sec_2) * [hook_mass + payload_mass], 0.01)
+        self.compute_ltv_lqr(x[idx_sec_2, :], u[idx_sec_2, :], sum(idx_sec_2) * [hook_mass + payload_mass], self.dt)
         K_sec_2 = self.K
-        self.compute_ltv_lqr(x[idx_sec_3, :], u[idx_sec_3, :], sum(idx_sec_3) * [hook_mass], 0.01)
+        self.compute_ltv_lqr(x[idx_sec_3, :], u[idx_sec_3, :], sum(idx_sec_3) * [hook_mass], self.dt)
         K_sec_3 = self.K
 
         self.K_lst_1 = u.shape[1] * x.shape[1] * [ref.t]

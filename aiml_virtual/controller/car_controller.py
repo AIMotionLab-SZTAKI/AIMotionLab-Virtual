@@ -133,12 +133,14 @@ class CarLPVController(ControllerBase):
         delta=-theta_e+self.k_lat1(v_xi)*self.q+self.k_lat2(v_xi)*e+self.k_lat3(v_xi)*self.edot \
                 - self.m/self.C_f*((self.l_r*self.C_r-self.l_f*self.C_f)/self.m-1)*c
         
+        if self.disturbed:
+            C_m2 = 2
+            C_m3 = 1
+        else:
+            C_m2 = self.C_m2
+            C_m3 = self.C_m3
 
-        d=(self.C_m2*v_ref/p+self.C_m3*np.sign(v_ref))/self.C_m1-self.k_long1(p)*(s-s_ref)-self.k_long2(p)*(v_xi-v_ref)
-        
-        if self.disturbed: 
-            if 0 < time < 3:
-                d = 0
+        d=(C_m2*v_ref/p+C_m3*np.sign(v_ref))/self.C_m1-self.k_long1(p)*(s-s_ref)-self.k_long2(p)*(v_xi-v_ref)
 
         # clamp control inputs into the feasible range
         d=self._clamp(d,(0,0.25)) # currently only forward motion, TODO: reversing control

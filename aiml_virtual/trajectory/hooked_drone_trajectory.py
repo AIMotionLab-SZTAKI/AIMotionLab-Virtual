@@ -1203,25 +1203,29 @@ class HookedDroneNLTrajectory(HookedDronePolyTrajectory):
 
 
 class HookedDroneNLAdaptiveTrajectory(HookedDroneNLTrajectory):
-    def __init__(self, load_prev=False, save_res=False, plot_trajs=False):
+    def __init__(self, replanning_timestep, load_prev=False, save_res=False, plot_trajs=False):
         super().__init__()
         self.load_prev = load_prev
         self.save_res = save_res
         self.plot_trajs = plot_trajs
+        self.replanning_timestep = replanning_timestep
 
     def construct(self, drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos, load_target_yaw,
                   load_mass, grasp_speed):
         load_init_vel = load_init_pos[1]
-        load_init_pos = load_init_pos[0]  # For compatibility with HookedDronePolyTrajectory
+        load_init_pos = load_init_pos[0]
+        load_yaw_rel = load_init_yaw[1]
+        load_init_yaw = load_init_yaw[0]
         init_params = get_traj_params_hookup_moving(drone_init_pos=drone_init_pos, drone_init_yaw=drone_init_yaw,
                                                     load_init_pos=partial(load_init_pos, t0=0),
                                                     load_init_vel=partial(load_init_vel, t0=0),
                                                     load_init_yaw=partial(load_init_yaw, t0=0), 
+                                                    load_yaw_rel=load_yaw_rel,
                                                     load_target_pos=load_target_pos, 
                                                     load_target_yaw=load_target_yaw, 
                                                     grasp_speed=grasp_speed, 
                                                     model_type=load_pos_model_disc)
-        self.replanner = NLOptReplanner(init_params)
+        self.replanner = NLOptReplanner(init_params, self.replanning_timestep)
 
         if self.load_prev:
             self.replanner.load_planners()
@@ -1240,7 +1244,7 @@ class HookedDroneNLAdaptiveTrajectory(HookedDroneNLTrajectory):
         path_params = {
             "pos_wp": partial(load_init_pos, t0=0),
             "vel_wp": partial(load_init_vel, t0=0),
-            "yaw_wp": partial(load_init_yaw, t0=0)
+            "yaw_wp": partial(load_init_yaw, t0=-1*num_traj)
         }
         self.replanner.compute_trajectory(num_traj, path_params)
 

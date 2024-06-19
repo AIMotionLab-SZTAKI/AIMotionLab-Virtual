@@ -49,7 +49,7 @@ save_filename = "built_scene.xml"
 
 # Set scenario parameters
 drone0_init_pos = np.array([0.0, 0.0, 2, 0])
-load0_mass = 0.25
+load0_mass = 0.2
 load0_size = np.array([.07, .07, .04])
 #load0_mass = 0.14
 #load0_size = np.array([16.2, 11.8, 8.6]) / 100
@@ -84,11 +84,6 @@ drone0_controller = LqrLoadControl(drone0.mass, drone0.inertia, simulator.gravit
 drone0_controllers = [drone0_controller]
 drone0.set_trajectory(drone0_trajectory)
 drone0.set_controllers(drone0_controllers)
-
-#pressure_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_pressure_shifted.txt")
-#velocity_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_velocity_shifted.txt")
-
-#airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, velocity_data_filename)
 
 pressure_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_pressure.txt")
 velocity_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_velocity.txt")

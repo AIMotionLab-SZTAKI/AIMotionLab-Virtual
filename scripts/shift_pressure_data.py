@@ -90,7 +90,7 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
     return slice_shifted
 
 
-USE_EXISTING_DATA = True
+USE_EXISTING_DATA = False
 
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -142,7 +142,7 @@ im1 = axs[0].imshow(pressure_map_z.T, cmap='jet', interpolation='nearest')
 axs[0].set_xlabel('x [cm]')
 axs[0].set_ylabel('y [cm]')
 axs[0].invert_yaxis()
-axs[0].set_title(f'Pressure at z={z_value} [cm]')
+axs[0].set_title(f'Pressure at z={z_plane} [cm]')
 fig.colorbar(im1, ax=axs[0], label='Pressure [Pa]')
 
 # plot the pressure heatmap for the yz plane on the second subplot

@@ -94,17 +94,20 @@ offset_x2 = int(round(float(BUMBLEBEE_PROP.OFFSET_X2.value) * 1000))
 SLICE = 40
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
-data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "velocity_sorted.csv")
+data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "single_rotor_velocity.csv")
 tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
 # transform data into 3D array
 cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
 data = np.reshape(tmp[:, 3], (cube_size, cube_size, cube_size))
 
-velocities_xyz_normalized = np.empty_like(tmp[:, 4:])
+velocities_xyz_normalized = np.empty_like(tmp[:, 3:])
 for i in range(len(velocities_xyz_normalized)):
-    v = tmp[:, 4:][i]
-    l = tmp[:, 3][i]
-    velocities_xyz_normalized[i] = v / l
+    v = tmp[:, 3:][i]
+    #l = tmp[:, 3][i]
+    l = np.sqrt(tmp[:, 3][i]**2 + tmp[:, 4][i]**2 + tmp[:, 5][i]**2)
+    velocities_xyz_normalized[i] = v
+    if np.abs(l) > 1e-3:
+        velocities_xyz_normalized[i] /= l
 
 velocities_xyz_normalized = np.reshape(velocities_xyz_normalized, (cube_size, cube_size, cube_size, 3))
 tail_xyz = np.reshape(tmp[:, :3], (cube_size, cube_size, cube_size, 3)) * 100 # convert to cm
@@ -169,7 +172,7 @@ print(velocities_xyz_normalized.shape)
 #fig = plt.figure()
 #ax = fig.add_subplot(projection='3d')
 #
-velocities_xyz = np.reshape(tmp[:, 4:], (cube_size, cube_size, cube_size, 3))
+velocities_xyz = np.reshape(tmp[:, 3:], (cube_size, cube_size, cube_size, 3))
 #
 #x = tail_xyz[:, :, SLICE, 0]
 #y = tail_xyz[:, :, SLICE, 1]
@@ -267,4 +270,4 @@ for i in range(cube_size):
 slices_shifted_not_normalized = np.array(slices_shifted_not_normalized)
 
 slices_shifted_not_normalized = slices_shifted_not_normalized.reshape((cube_size**3, 3))
-np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "flow_velocity_shifted.txt"), slices_shifted_not_normalized)
+np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_velocity.txt"), slices_shifted_not_normalized)

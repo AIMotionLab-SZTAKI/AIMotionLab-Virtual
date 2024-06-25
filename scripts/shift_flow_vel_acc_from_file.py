@@ -2,11 +2,11 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import sys;
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize
 from aiml_virtual.object.drone import BUMBLEBEE_PROP
-
 from pyparsing import indentedBlock
 from sympy import intervals
 
@@ -14,28 +14,23 @@ from aiml_virtual.util import mujoco_helper
 
 from matplotlib.animation import FuncAnimation 
 
-
-def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
+def create_shifted_slice(slice_, mirrored_slice, offset_x1, offset_x2, offset_y):
     cube_size = slice_.shape[0]
     scale = 10
     slice_upscaled = np.empty((cube_size * scale, cube_size * scale, 3))
+    slice_upscaled_mirrored = np.empty_like(slice_upscaled)
 
     i = 0
     for si in range(cube_size * scale):
         j = 0
         for sj in range(cube_size * scale):
             slice_upscaled[si, sj] = slice_[i, j]
+            slice_upscaled_mirrored[si, sj] = mirrored_slice[i, j]
             if((sj + 1) % scale == 0):
                 j += 1 
         
         if((si + 1) % scale == 0):
             i += 1
-    
-    #slice_upscaled_mirrored = np.flipud(slice_upscaled_mirrored)
-    slice_upscaled_mirrored = np.fliplr(np.copy(slice_upscaled))
-
-    #slice_upscaled_mirrored[:, :, 0] = -slice_upscaled_mirrored[:, :, 0]
-    slice_upscaled_mirrored[:, :, 1] = -slice_upscaled_mirrored[:, :, 1]
 
     slice_upscaled_shifted = np.empty_like(slice_upscaled)
 
@@ -87,6 +82,40 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
     
     return slice_shifted
 
+def get_normalized_velocities(tmp_velocities, cube_size):
+    velocities_xyz_normalized = np.empty_like(tmp_velocities[:, 3:])
+    
+    for i in range(len(velocities_xyz_normalized)):
+        vec = tmp[:, 3:][i]
+        #l = tmp[:, 3][i]
+        length = np.sqrt(tmp_velocities[:, 3][i]**2 + tmp_velocities[:, 4][i]**2 + tmp_velocities[:, 5][i]**2)
+        velocities_xyz_normalized[i] = vec
+        if np.abs(length) > 1e-3:
+            velocities_xyz_normalized[i] /= length
+
+    velocities_xyz_normalized = np.reshape(velocities_xyz_normalized, (cube_size, cube_size, cube_size, 3))
+    tail_xyz = np.reshape(tmp[:, :3], (cube_size, cube_size, cube_size, 3)) * 100 # convert to cm
+    
+    return velocities_xyz_normalized
+
+USE_EXISTING_DATA = False
+
+if USE_EXISTING_DATA:
+    # TODO: FILE PATH HAS TO BE SET
+    abs_path = os.path.dirname(os.path.abspath(__file__))
+    data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "single_rotor_velocity.csv")
+    tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
+
+    cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
+    
+    #velocities_xyz_normalized = get_normalized_velocities(tmp, cube_size)
+    #print(velocities_xyz_normalized.shape)
+
+    slices_shifted_not_normalized = tmp[:, 3:]
+    
+    #np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_velocity.txt"), slices_shifted_not_normalized)
+    sys.exit()
+
 offset_y = int(round(float(BUMBLEBEE_PROP.OFFSET_Y.value) * 1000)) # convert to mm
 offset_x1 = int(round(float(BUMBLEBEE_PROP.OFFSET_X1.value) * 1000))
 offset_x2 = int(round(float(BUMBLEBEE_PROP.OFFSET_X2.value) * 1000))
@@ -97,28 +126,22 @@ abs_path = os.path.dirname(os.path.abspath(__file__))
 data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "single_rotor_velocity.csv")
 tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
 
+# TODO: FILE PATH HAS TO BE SET
+mirrored_data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "single_rotor_velocity.csv")
+mirrored_tmp = np.loadtxt(mujoco_helper.skipper(mirrored_data_file_name), delimiter=',', dtype=np.float64)
 
 # transform data into 3D array
 cube_size = int(math.pow(tmp.shape[0] + 1, 1/3))
 data = np.reshape(tmp[:, 3], (cube_size, cube_size, cube_size))
 
-velocities_xyz_normalized = np.empty_like(tmp[:, 3:])
-for i in range(len(velocities_xyz_normalized)):
-    v = tmp[:, 3:][i]
-    #l = tmp[:, 3][i]
-    l = np.sqrt(tmp[:, 3][i]**2 + tmp[:, 4][i]**2 + tmp[:, 5][i]**2)
-    velocities_xyz_normalized[i] = v
-    if np.abs(l) > 1e-3:
-        velocities_xyz_normalized[i] /= l
-
-velocities_xyz_normalized = np.reshape(velocities_xyz_normalized, (cube_size, cube_size, cube_size, 3))
-tail_xyz = np.reshape(tmp[:, :3], (cube_size, cube_size, cube_size, 3)) * 100 # convert to cm
+velocities_xyz_normalized = get_normalized_velocities(tmp, cube_size)
 print(velocities_xyz_normalized.shape)
 
+velocities_xyz = np.reshape(tmp[:, 3:], (cube_size, cube_size, cube_size, 3))
+mirrored_velocities_xyz = np.reshape(mirrored_tmp[:, 3:], (cube_size, cube_size, cube_size, 3))
 
 #plt.imshow(data[:, :, SLICE], cmap='jet', interpolation='nearest')
 #plt.show()
-
 
 
 # --------------------------------- plot original slice --------------------------------------
@@ -174,7 +197,7 @@ print(velocities_xyz_normalized.shape)
 #fig = plt.figure()
 #ax = fig.add_subplot(projection='3d')
 #
-velocities_xyz = np.reshape(tmp[:, 3:], (cube_size, cube_size, cube_size, 3))
+
 #
 #x = tail_xyz[:, :, SLICE, 0]
 #y = tail_xyz[:, :, SLICE, 1]
@@ -238,7 +261,7 @@ heatmaps = []
 
 for i in range(cube_size):
     print("computing slice " + str(i))
-    slice_shifted = create_shifted_slice(velocities_xyz[:, :, i, :], offset_x1, offset_x2, offset_y)
+    slice_shifted = create_shifted_slice(velocities_xyz[:, :, i, :], mirrored_velocities_xyz[:, :, i, :], offset_x1, offset_x2, offset_y)
     slices_shifted_not_normalized[:, :, i, :] = np.copy(slice_shifted)
     lengths_shifted = np.empty((cube_size * cube_size))
     i = 0

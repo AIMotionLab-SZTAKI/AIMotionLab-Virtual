@@ -40,7 +40,7 @@ def create_shifted_slice(slice_, offset_x1, offset_x2, offset_y):
 
     slice_upscaled_mirrored = np.fliplr(slice_upscaled)
     slice_upscaled_shifted = np.empty_like(slice_upscaled)
-
+    
 
     for si in range(cube_size * scale):
         for sj in range(cube_size * scale):

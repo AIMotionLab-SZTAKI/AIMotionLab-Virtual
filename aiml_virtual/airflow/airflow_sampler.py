@@ -137,6 +137,11 @@ class AirflowSampler:
         force_sum += force
         torque_sum += torque
 
+        pos, pos_in_own_frame, normal, area = payload.get_bottom_rectangle_data()
+        
+        force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area)
+        force_sum += force * 0
+        torque_sum += torque * 0
         
         pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_xz_rectangle_data()
 

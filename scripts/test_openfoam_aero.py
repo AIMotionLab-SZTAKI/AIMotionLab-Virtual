@@ -49,10 +49,10 @@ save_filename = "built_scene.xml"
 
 # Set scenario parameters
 drone0_init_pos = np.array([0.0, 0.0, 2, 0])
+#load0_mass = 0.2
+#load0_size = np.array([.07, .07, .04])
 load0_mass = 0.2
-load0_size = np.array([.07, .07, .04])
-#load0_mass = 0.14
-#load0_size = np.array([16.2, 11.8, 8.6]) / 100
+load0_size = np.array([16.2, 11.8, 8.6]) / 100
 load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_pos[2] - (2 * load0_size[2]) - .595])
 
 
@@ -87,7 +87,7 @@ drone0.set_controllers(drone0_controllers)
 
 pressure_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_pressure.txt")
 velocity_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_velocity.txt")
-airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, velocity_data_filename)
+airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0)
 
 payload0.create_surface_mesh(0.00001)
 payload0.add_airflow_sampler(airflow_sampl0)

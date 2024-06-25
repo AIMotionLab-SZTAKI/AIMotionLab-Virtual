@@ -103,7 +103,7 @@ class BoxPayload(Payload):
         if self.geom.type == mujoco.mjtGeom.mjGEOM_BOX:
 
             self.size = self.geom.size # this is half size on each axis
-            self.top_surface_area = 2 * self.size[0] * 2 * self.size[1]
+            self.top_bottom_surface_area = 2 * self.size[0] * 2 * self.size[1]
             self.side_surface_area_xz = 2 * self.size[0] * 2 * self.size[2]
             self.side_surface_area_yz = 2 * self.size[1] * 2 * self.size[2]
             self.create_surface_mesh(0.0001)
@@ -126,15 +126,15 @@ class BoxPayload(Payload):
         subdiv_y = int(round(self.size[1] / square_side))
         subdiv_z = int(round(self.size[2] / square_side))
 
-        self._set_top_mesh(subdiv_x, subdiv_y)
+        self._set_top_and_bottom_mesh(subdiv_x, subdiv_y)
         self._set_side_mesh(subdiv_x, subdiv_y, subdiv_z)
-    
-    def _set_top_mesh(self, top_subdivision_x, top_subdivision_y):
-        
-        self._top_subdivision_x = top_subdivision_x
-        self._top_subdivision_y = top_subdivision_y
-        self.top_miniractangle_area = self.top_surface_area / (top_subdivision_x * top_subdivision_y)
+
+    def _set_top_and_bottom_mesh(self, top_bottom_subdivision_x, top_bottom_subdivision_y):
+        self._top_bottom_subdivision_x = top_bottom_subdivision_x
+        self._top_bottom_subdivision_y = top_bottom_subdivision_y
+        self.top_bottom_miniractangle_area = self.top_bottom_surface_area / (top_bottom_subdivision_x * top_bottom_subdivision_y)
         self._calc_top_rectangle_positions()
+        self._calc_bottom_rectangle_positions()
 
     def _set_side_mesh(self, subdivision_x, subdivision_y, subdivision_z):
             
@@ -145,8 +145,6 @@ class BoxPayload(Payload):
         self.side_miniractangle_area_yz = self.side_surface_area_yz / (subdivision_y * subdivision_z)
         self._calc_side_rectangle_positions()
     
-    
-
     def _get_top_position_at(self, i, j):
         """ get the center in world coordinates of a small rectangle on the top of the box """
         return self._top_rectangle_positions[i, j]
@@ -174,12 +172,17 @@ class BoxPayload(Payload):
         # add position of the center
         position = self.sensor_posimeter + position_in_own_frame
         normal = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((0, 0, 1)))
-        return position, position_in_own_frame, normal, self.top_miniractangle_area
+        return position, position_in_own_frame, normal, self.top_bottom_miniractangle_area
     
     def get_top_rectangle_data(self):
         pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._top_rectangle_positions_raw)
         normal = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((0, 0, 1)))
-        return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normal, self.top_miniractangle_area
+        return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normal, self.top_bottom_miniractangle_area
+
+    def get_bottom_rectangle_data(self):
+        pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._bottom_rectangle_positions_raw)
+        normal = mujoco_helper.qv_mult(self.sensor_orimeter, np.array((0, 0, -1)))
+        return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normal, self.top_bottom_miniractangle_area
 
     def get_side_xz_rectangle_data(self):
         pos_in_own_frame_negative = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._side_rectangle_positions_xz_neg_raw)
@@ -193,7 +196,6 @@ class BoxPayload(Payload):
         return pos_world_negative, pos_world_positive, pos_in_own_frame_negative, pos_in_own_frame_positive,\
             normal_negative, normal_positive, self.side_miniractangle_area_xz
 
-    
     def get_side_yz_rectangle_data(self):
         pos_in_own_frame_negative = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._side_rectangle_positions_yz_neg_raw)
         pos_in_own_frame_positive = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._side_rectangle_positions_yz_pos_raw)
@@ -205,34 +207,45 @@ class BoxPayload(Payload):
 
         return pos_world_negative, pos_world_positive, pos_in_own_frame_negative, pos_in_own_frame_positive,\
             normal_negative, normal_positive, self.side_miniractangle_area_yz
-    
-       
+        
     def get_top_subdiv(self):
-        return self._top_subdivision_x, self._top_subdivision_y
+        return self._top_bottom_subdivision_x, self._top_bottom_subdivision_y
 
-    
     def _calc_top_rectangle_positions(self):
-        """ 3D vectors pointing from the center of the box, to the center of the small rectangles """
+        """ 3D vectors pointing from the center of the box, to the center of the small top rectangles """
 
-        self._top_rectangle_positions = np.zeros((self._top_subdivision_x, self._top_subdivision_y, 3))
+        self._top_rectangle_positions = np.zeros((self._top_bottom_subdivision_x, self._top_bottom_subdivision_y, 3))
 
 
         pos_z = self.size[2] # no need to divide by 2, because it's half
-        division_size_x = (2 * self.size[0]) / self._top_subdivision_x
-        division_size_y = (2 * self.size[1]) / self._top_subdivision_y
+        division_size_x = (2 * self.size[0]) / self._top_bottom_subdivision_x
+        division_size_y = (2 * self.size[1]) / self._top_bottom_subdivision_y
 
-        self._top_rectangle_positions_raw = np.zeros((self._top_subdivision_x * self._top_subdivision_y, 3))
+        self._top_rectangle_positions_raw = np.zeros((self._top_bottom_subdivision_x * self._top_bottom_subdivision_y, 3))
 
-        for i in range(self._top_subdivision_x):
+        for i in range(self._top_bottom_subdivision_x):
             distance_x = i * division_size_x + (division_size_x / 2.0)
             pos_x = distance_x - self.size[0]
 
-            for j in range(self._top_subdivision_y):
+            for j in range(self._top_bottom_subdivision_y):
                 
                 distance_y = j * division_size_y + (division_size_y / 2.0)
                 pos_y = distance_y - self.size[1]
                 self._top_rectangle_positions[i, j] = np.array((pos_x, pos_y, pos_z))
-                self._top_rectangle_positions_raw[(i * self._top_subdivision_y) + j] = np.array((pos_x, pos_y, pos_z)) # store the same data in a 1D array
+                self._top_rectangle_positions_raw[(i * self._top_bottom_subdivision_y) + j] = np.array((pos_x, pos_y, pos_z)) # store the same data in a 1D array
+
+    def _calc_bottom_rectangle_positions(self):
+        """ 3D vectors pointing from the center of the box, to the center of the small bottom rectangles """
+
+        self._bottom_rectangle_positions = np.zeros((self._top_bottom_subdivision_x, self._top_bottom_subdivision_y, 3))
+        self._bottom_rectangle_positions_raw = np.zeros((self._top_bottom_subdivision_x * self._top_bottom_subdivision_y, 3))
+
+        pos_z_offset = (-1) * self.size[2]
+
+        for i in range(self._top_bottom_subdivision_x):
+            for j in range(self._top_bottom_subdivision_y):
+                self._bottom_rectangle_positions[i, j] = self._top_rectangle_positions[i, j] + pos_z_offset
+                self._bottom_rectangle_positions_raw[(i * self._top_bottom_subdivision_y + j)] = self._top_rectangle_positions_raw[(i * self._top_bottom_subdivision_y) + j] + pos_z_offset
 
     def _calc_side_rectangle_positions(self):
         """ 3D vectors pointing from the center of the box, to the center of the small rectangles on the sides """

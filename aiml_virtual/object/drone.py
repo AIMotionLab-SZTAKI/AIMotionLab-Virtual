@@ -32,6 +32,7 @@ class BUMBLEBEE_PROP(Enum):
     MASS = "0.605"
     DIAGINERTIA = "1.5e-3 1.45e-3 2.66e-3"
     COG = "0.0085 0.0 0.0"
+    THRUST_FORCE_COEFF = "9.3945e-7"
 
 class DRONE_TYPES(Enum):
     CRAZYFLIE = 0
@@ -179,6 +180,13 @@ class Drone(MovingObject):
     
     def get_motor_thrusts(self):
         return np.concatenate((self.ctrl0, self.ctrl1, self.ctrl2, self.ctrl3))
+    
+    def get_estimated_prop_vel(self):
+        thrust = self.get_motor_thrusts()
+        velocity = np.sqrt(thrust / self.thrust_coeff)
+        velocity[1] *= -1
+        velocity[3] *= -1
+        return velocity
     
     def get_ctrl_input(self):
         return self.ctrl_input
@@ -350,6 +358,8 @@ class Bumblebee(Drone):
 
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
+        self.thrust_coeff = float(BUMBLEBEE_PROP.THRUST_FORCE_COEFF.value)
+
     def spin_propellers(self):
         #print("angle step: " + str(angle_step))
 
@@ -502,6 +512,8 @@ class BumblebeeHooked(DroneHooked):
         #print(self.rod_length)
         
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
+
+        self.thrust_coeff = float(BUMBLEBEE_PROP.THRUST_FORCE_COEFF.value)
 
 
 

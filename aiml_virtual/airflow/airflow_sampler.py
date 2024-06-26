@@ -114,10 +114,15 @@ class AirflowSampler:
         """
 
         first_key_in_dict = next(iter(dictionary))
-        dimension = dictionary[first_key_in_dict].shape[1]
+        dimension = self._get_array_dimension(dictionary[first_key_in_dict])
 
         for key in dictionary:
-            dictionary[key] = dictionary[key].reshape(self._cube_size, self._cube_size, self._cube_size, dimension)
+            dictionary[key] = dictionary[key].reshape(dimension)
+
+    def _get_array_dimension(self, array):
+        if (len(array.shape) == 1):
+            return (self._cube_size, self._cube_size, self._cube_size)
+        return (self._cube_size, self._cube_size, self._cube_size, array.shape[1])
 
     def set_payload_offset(self, offset_in_centimeter):
         self._payload_offset_z = offset_in_centimeter

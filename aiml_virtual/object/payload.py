@@ -93,7 +93,6 @@ class Payload(MovingObject):
         self.qfrc_applied[4] = torque[1]
         self.qfrc_applied[5] = torque[2]
 
-
 class BoxPayload(Payload):
 
     def __init__(self, model, data, name_in_xml) -> None:
@@ -110,7 +109,6 @@ class BoxPayload(Payload):
         
         else:
             raise Exception("[BoxPayload __init__] Payload is not box shaped.")
-
 
     def create_surface_mesh(self, surface_division_area: float):
         """
@@ -290,11 +288,78 @@ class BoxPayload(Payload):
                 self._side_rectangle_positions_yz_neg_raw[(i * self._side_subdivision_z) + j] = np.array((-pos_x, pos_y, pos_z))
                 self._side_rectangle_positions_yz_pos_raw[(i * self._side_subdivision_z) + j] = np.array((pos_x, pos_y, pos_z))
 
-
+# TODO: configure and import numpy-stl library
+# TODO: separate Payload subclasses into different files
+# TODO: make better abstractions in the Payload base class
+# TODO: fix typos
 class TeardropPayload(Payload):
 
     def __init__(self, model, data, name_in_xml) -> None:
         super().__init__(model, data, name_in_xml)
 
-    def create_surface_mesh(self, d):
+        #self._loaded_mesh = mesh.Mesh.from_file("./payload_simplified.stl")
+        self._triangle_vertices = None
+        self._center_positions = None
+        self._normals = None
+        self._areas = None
+
+    def create_surface_mesh(self, triangle_area_treshold):
         raise NotImplementedError("[TeardropPayload] this method needs to be implemented")
+
+        self._triangle_vertices = self._get_mesh_triangles(self._loaded_mesh.vectors, triangle_area_treshold)
+        self._center_positions = self._get_center_positions(self._triangle_vertices)
+        self._normals = self._get_outward_pointing_normals(self._triangle_vertices, self._center_positions)
+        self._areas = self._get_triangle_areas(self._triangle_vertices)
+
+    def _get_mesh_triangles(triangles, threshold):
+        triangle_areas = self._get_triangle_areas(triangles)
+        condition = triangle_areas <= threshold
+
+        small_triangles = triangles[condition]
+        large_triangles = triangles[~condition]
+
+        if (len(large_triangles) == 0):
+            return small_triangles
+
+        large_triangle_slices = np.concatenate([
+            self._get_slices_of_triangle(triangle) for triangle in large_triangles
+        ])
+
+        return np.concatenate((small_triangles, self._get_mesh_triangles(large_triangle_slices, threshold)))
+
+    def _get_slices_of_triangle(self, triangle):
+        midpoint1 = self._get_mid_point(triangle[0], triangle[1])
+        midpoint2 = self._get_mid_point(triangle[1], triangle[2])
+        midpoint3 = self._get_mid_point(triangle[2], triangle[0])
+
+        return np.array([
+            [triangle[0], midpoint1,   midpoint3],
+            [midpoint1,   triangle[1], midpoint2],
+            [midpoint2,   triangle[2], midpoint3],
+            [midpoint1,   midpoint2,   midpoint3]
+        ])
+
+    def _get_triangle_normals(self, triangles):
+        return np.cross(triangles[:,1] - triangles[:,0], triangles[:,2] - triangles[:,0], axis=1)
+
+    def _get_triangle_areas(self, triangles):
+        return np.linalg.norm(self._get_triangle_normals(triangles), axis=1) / 2
+
+    def _get_triangle_normal(self, triangle):
+        return np.cross(triangle[1] - triangle[0],  triangle[2] - triangle[0])
+
+    def _get_triangle_area(self, triangle):
+        return np.linalg.norm(self._get_triangle_normal(triangle)) / 2
+
+    def _get_mid_point(self, v1, v2):
+        return (v1 + v2) / 2
+
+    def _get_center_positions(self, triangles):
+        return np.sum(triangles, axis=1) / 3
+
+    def _get_outward_pointing_normals(self, triangles, center_positions):
+        normals = self._get_triangle_normals(triangles)
+        dot_products = np.sum(normals * center_positions, axis=1)
+        condition = dot_products < 0
+        normals[condition] *= (-1)
+        return normals

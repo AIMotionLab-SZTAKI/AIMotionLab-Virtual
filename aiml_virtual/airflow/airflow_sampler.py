@@ -8,7 +8,6 @@ from aiml_virtual.object.drone import Drone
 from aiml_virtual.object.payload import Payload
 import aiml_virtual.util.mujoco_helper as mujoco_helper
 
-
 class AirflowSampler:
 
     def __init__(self,
@@ -224,7 +223,6 @@ class AirflowSampler:
             upper_pressure_values = upper_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
 
             t1, t2 = BoxDictionary.get_interpolation_quotients(abs_average_velocity, lower_bound, upper_bound)
-
             pressure_values = t1 * lower_pressure_values + t2 * upper_pressure_values
 
         else:

@@ -146,7 +146,6 @@ class AirflowSampler:
 
         return position + self.drone.sensor_posimeter, self.drone_orientation
 
-
     def sample_pressure_at_idx(self, i: int, j: int, k: int):
 
         return self.pressure_data[i, j, k]
@@ -192,8 +191,7 @@ class AirflowSampler:
 #                    torque_sum += mujoco_helper.torque_from_force(pos_in_own_frame, force)
 #
 #        return force_sum, torque_sum
-    
-    
+     
     def generate_forces_opt(self, payload : Payload):
         
         abs_average_velocity = None
@@ -259,11 +257,12 @@ class AirflowSampler:
         indices = np.rint(pos_traffed * 100).astype(np.int32)
 
         if USE_PRESSURE_DICTIONARY:
-            lower_pressures, upper_pressures = self._get_lower_upper_arrays_from_dict(abs_average_velocity, self.loaded_pressures)
+            lower_bound, upper_bound = self._get_lower_upper_bounds_from_dict(abs_average_velocity, self.loaded_pressures)
+            lower_pressures, upper_pressures = self.loaded_pressures[lower_bound], self.loaded_pressures[upper_bound]
             lower_pressure_values = lower_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
             upper_pressure_values = upper_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
 
-            t1, t2 = self._get_interpolation_quotients(abs_average_velocity)
+            t1, t2 = self._get_interpolation_quotients(abs_average_velocity, lower_bound, upper_bound)
             pressure_values = t1 * lower_pressure_values + t2 * upper_pressure_values
 
         else:
@@ -273,11 +272,12 @@ class AirflowSampler:
         forces = mujoco_helper.forces_from_pressures(normal, pressure_values, area)
 
         if USE_VELOCITY_DICTIONARY:
-            lower_velocities, upper_velocities = self._get_lower_upper_arrays_from_dict(abs_average_velocity, self.loaded_velocities)
+            lower_bound, upper_bound = self._get_lower_upper_bounds_from_dict(abs_average_velocity, self.loaded_velocities)
+            lower_pressures, upper_pressures = self.loaded_velocities[lower_bound], self.loaded_velocities[upper_bound]
             lower_velocity_values = lower_velocities[indices[:, 0], indices[:, 1], indices[:, 2]]
             upper_velocity_values = upper_velocities[indices[:, 0], indices[:, 1], indices[:, 2]]
 
-            t1, t2 = self._get_interpolation_quotients(abs_average_velocity)
+            t1, t2 = self._get_interpolation_quotients(abs_average_velocity, lower_bound, upper_bound)
             velocity_values = t1 * lower_velocity_values + t2 * upper_velocity_values
 
         elif self.use_velocity:
@@ -299,19 +299,36 @@ class AirflowSampler:
         return force_sum, torque_sum
 
     # TODO: We need to check if the given average_velocity is indeed within the intervals
-    def _get_lower_upper_arrays_from_dict(self, average_velocity, dict):
-        """
-            Given 1452, we return the array of values corresponding to the file names: name_1400.txt, name_1500.txt
-        """
+    def _get_lower_upper_bounds_from_dict(self, average_velocity, dict):
+        keys = list(self._loaded_data.keys())
+        
+        less_than_or_equal = min(keys)
+        greater_than_or_equal = max(keys)
+        
+        for num in keys:
+            if num <= average_velocity:
+                if num > less_than_or_equal and num != average_velocity:
+                    less_than_or_equal = num
+            if num >= average_velocity:
+                if num < greater_than_or_equal and num != average_velocity:
+                    greater_than_or_equal = num
 
-        floor_average = math.floor(average_velocity / 100) * 100
-        ceil_average = math.ceil(average_velocity / 100) * 100
-        return dict[floor_average], dict[ceil_average]
-    
-    def _get_interpolation_quotients(average_velocity):
-        """
-            Given 1452, we get (0.48, 0.52)
-        """
+        return less_than_or_equal, greater_than_or_equal
 
-        alpha = average_velocity % 100
-        return (100 - alpha) / 100, alpha / 100
+    def _get_interpolation_quotients(self, average, lower, upper):
+        distance_lower = abs(average - lower)
+        distance_upper = abs(average - upper)
+
+        if distance_lower == distance_upper:
+            return 0.5, 0.5
+        elif distance_lower == 0:
+            return 1.0, 0.0
+        elif distance_upper == 0:
+            return 0.0, 1.0
+
+        if (distance_lower > distance_upper):
+            alpha = distance_upper / distance_lower
+            return alpha, (1 - alpha)
+        else:
+            alpha = distance_lower / distance_upper
+            return (1 - alpha), alpha

@@ -47,6 +47,7 @@ class AirflowSampler:
             self._load_files_to_dictionary(txt_files, self.loaded_velocities)
 
             if (_calculate_cube_size_from_dictionary(self.loaded_velocities) != self._cube_size):
+            if (self._calculate_cube_size_from_dictionary(self.loaded_velocities) != self._cube_size):
                 raise RuntimeError("size of look-up tables must match")
             
             self._format_arrays_in_pressures_dictionary(self.loaded_velocities)
@@ -196,6 +197,7 @@ class AirflowSampler:
         
         abs_average_velocity = None
         if USE_PRESSURE_DICTIONARY:
+        if self.USE_PRESSURE_DICTIONARY:
             prop_velocities = self.drone.get_estimated_prop_vel()
             abs_average_velocity = np.sum(np.abs(prop_velocities)) / 4
 
@@ -257,6 +259,7 @@ class AirflowSampler:
         indices = np.rint(pos_traffed * 100).astype(np.int32)
 
         if USE_PRESSURE_DICTIONARY:
+        if self.USE_PRESSURE_DICTIONARY:
             lower_bound, upper_bound = self._get_lower_upper_bounds_from_dict(abs_average_velocity, self.loaded_pressures)
             lower_pressures, upper_pressures = self.loaded_pressures[lower_bound], self.loaded_pressures[upper_bound]
             lower_pressure_values = lower_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
@@ -272,8 +275,10 @@ class AirflowSampler:
         forces = mujoco_helper.forces_from_pressures(normal, pressure_values, area)
 
         if USE_VELOCITY_DICTIONARY:
+        if self.USE_VELOCITY_DICTIONARY:
             lower_bound, upper_bound = self._get_lower_upper_bounds_from_dict(abs_average_velocity, self.loaded_velocities)
             lower_pressures, upper_pressures = self.loaded_velocities[lower_bound], self.loaded_velocities[upper_bound]
+            lower_velocities, upper_velocities = self.loaded_velocities[lower_bound], self.loaded_velocities[upper_bound]
             lower_velocity_values = lower_velocities[indices[:, 0], indices[:, 1], indices[:, 2]]
             upper_velocity_values = upper_velocities[indices[:, 0], indices[:, 1], indices[:, 2]]
 
@@ -284,6 +289,7 @@ class AirflowSampler:
             velocity_values = self.velocity_data[indices[:, 0], indices[:, 1], indices[:, 2]]
 
         if USE_VELOCITY_DICTIONARY or sel.use_velocity:
+        if self.USE_VELOCITY_DICTIONARY or self.use_velocity:
             forces_velocity = mujoco_helper.forces_from_velocities(normal, velocity_values, area)
             forces += forces_velocity
 

@@ -218,7 +218,7 @@ class AirflowSampler:
         if self.USE_PRESSURE_DICTIONARY:
             lower_bound, upper_bound = self.loaded_pressures.get_lower_upper_bounds(abs_average_velocity)
             lower_pressures, upper_pressures = self.loaded_pressures.get_lower_upper_bounds_arrays(lower_bound, upper_bound)
-            
+
             lower_pressure_values = lower_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
             upper_pressure_values = upper_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
 
@@ -226,7 +226,6 @@ class AirflowSampler:
 
         else:
             pressure_values = self.pressure_data[indices[:, 0], indices[:, 1], indices[:, 2]]
-            
 
         forces = mujoco_helper.forces_from_pressures(normal, pressure_values, area)
 

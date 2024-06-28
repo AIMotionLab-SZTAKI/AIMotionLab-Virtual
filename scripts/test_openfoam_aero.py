@@ -92,7 +92,7 @@ velocity_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_l
 
 pressure_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_pressure")
 velocity_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_velocity")
-airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, None, True, pressure_folder_path, False)
+airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, None, True, pressure_folder_path)
 
 payload0.create_surface_mesh(0.00001)
 payload0.add_airflow_sampler(airflow_sampl0)

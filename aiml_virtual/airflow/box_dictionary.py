@@ -78,12 +78,13 @@ class BoxDictionary:
 
         return less_than_or_equal, greater_than_or_equal
 
-    def get_lower_upper_bounds_arrays(self, average_velocity):
-        lower_bound, upper_bound = self.get_lower_upper_bounds(average_velocity)
+    def get_lower_upper_bounds_arrays(self, lower_bound, upper_bound):
         return self._loaded_data[lower_bound], self._loaded_data[upper_bound]
 
-    @staticmethod
-    def get_interpolation_quotients(average, lower, upper):
+    def get_interpolated_array(self, average, upper_array, lower_array, upper_bound, lower_bound):    
+        return ((upper_array - lower_array)/(upper_bound - lower_bound)) * (average - lower_bound) + lower_array
+
+        """
         distance_lower = abs(average - lower)
         distance_upper = abs(average - upper)
 
@@ -98,3 +99,4 @@ class BoxDictionary:
         else:
             alpha = distance_lower / distance_upper
             return (1 - alpha), alpha
+        """

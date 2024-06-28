@@ -217,13 +217,12 @@ class AirflowSampler:
 
         if self.USE_PRESSURE_DICTIONARY:
             lower_bound, upper_bound = self.loaded_pressures.get_lower_upper_bounds(abs_average_velocity)
-            lower_pressures, upper_pressures = self.loaded_pressures.get_lower_upper_bounds_arrays(abs_average_velocity)
-
+            lower_pressures, upper_pressures = self.loaded_pressures.get_lower_upper_bounds_arrays(lower_bound, upper_bound)
+            
             lower_pressure_values = lower_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
             upper_pressure_values = upper_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
 
-            t1, t2 = BoxDictionary.get_interpolation_quotients(abs_average_velocity, lower_bound, upper_bound)
-            pressure_values = t1 * lower_pressure_values + t2 * upper_pressure_values
+            pressure_values = self.loaded_pressures.get_interpolated_array(abs_average_velocity, upper_pressure_values, lower_pressure_values, upper_bound, lower_bound)
 
         else:
             pressure_values = self.pressure_data[indices[:, 0], indices[:, 1], indices[:, 2]]
@@ -233,14 +232,13 @@ class AirflowSampler:
 
         if self.USE_VELOCITY_DICTIONARY:
             lower_bound, upper_bound = self.loaded_velocities.get_lower_upper_bounds(abs_average_velocity)
-            lower_velocities, upper_velocities = self.loaded_velocities.get_lower_upper_bounds_arrays(abs_average_velocity)
-            
+            lower_velocities, upper_velocities = self.loaded_velocities.get_lower_upper_bounds_arrays(lower_bound, upper_bound)
+
             lower_velocity_values = lower_velocities[indices[:, 0], indices[:, 1], indices[:, 2]]
             upper_velocity_values = upper_velocities[indices[:, 0], indices[:, 1], indices[:, 2]]
-
-            t1, t2 = BoxDictionary.get_interpolation_quotients(abs_average_velocity, lower_bound, upper_bound)
-            velocity_values = t1 * lower_velocity_values + t2 * upper_velocity_values
-
+            
+            velocity_values = self.loaded_velocities.get_interpolated_array(abs_average_velocity, upper_velocity_values, lower_velocity_values, upper_bound, lower_bound)
+                    
         elif self.use_velocity:
             velocity_values = self.velocity_data[indices[:, 0], indices[:, 1], indices[:, 2]]
 

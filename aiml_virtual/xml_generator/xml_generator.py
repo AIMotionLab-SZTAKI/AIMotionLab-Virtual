@@ -438,11 +438,11 @@ class SceneXmlGenerator:
         ET.SubElement(drone, "site", name=prop_name, pos=pos, size=prop_site_size)
         ET.SubElement(self.actuator, "general", site=prop_name, name=name + "_actr4", gear=" 0 0 1 0 0 -" + motor_param, ctrllimited="true", ctrlrange="0 " + max_thrust)
 
-        ET.SubElement(self.sensor, "gyro", noise="0.0027", site=site_name, name=name + "_gyro")
-        ET.SubElement(self.sensor, "framelinvel", noise="0.00078", objtype="site", objname=site_name, name=name + "_velocimeter")
+        ET.SubElement(self.sensor, "gyro", site=site_name, name=name + "_gyro")
+        ET.SubElement(self.sensor, "framelinvel", objtype="site", objname=site_name, name=name + "_velocimeter")
         ET.SubElement(self.sensor, "accelerometer", site=site_name, name=name + "_accelerometer")
-        ET.SubElement(self.sensor, "framepos", noise="0.00014", objtype="site", objname=site_name, name=name + "_posimeter")
-        ET.SubElement(self.sensor, "framequat", noise="0.00026", objtype="site", objname=site_name, name=name + "_orimeter")
+        ET.SubElement(self.sensor, "framepos", objtype="site", objname=site_name, name=name + "_posimeter")
+        ET.SubElement(self.sensor, "framequat", objtype="site", objname=site_name, name=name + "_orimeter")
         ET.SubElement(self.sensor, "frameangacc ", objtype="site", objname=site_name, name=name + "_ang_accelerometer")
 
         return drone

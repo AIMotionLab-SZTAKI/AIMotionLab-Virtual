@@ -16,9 +16,6 @@
   <compiler angle="radian" meshdir="" />
   <option timestep="0.001"/>
   <!--<option gravity="0 0 0"/>-->
-  <option>
-    <flag sensornoise="enable"/>
-  </option>
   <visual>
     <quality shadowsize="0"/>
     <map znear="0.00025" />

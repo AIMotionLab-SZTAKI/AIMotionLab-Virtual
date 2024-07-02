@@ -872,6 +872,9 @@ class SceneXmlGenerator:
         damping = "0.00001"
         frictionloss = "0.001"
 
+        #damping = "0.015"
+        #frictionloss = "0.01"
+
         mass_draw_bar = "0.1"
         mass_wheel = "0.1"  # x4
         mass_front_axle = "0.3"
@@ -897,12 +900,12 @@ class SceneXmlGenerator:
 
         # front wheels
         trailer_wheelfl = ET.SubElement(front_structure, "body", pos="0 " + str(track_distance / 2) + " 0", name=car_name + "_trailer_wheelfl")
-        ET.SubElement(trailer_wheelfl, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel)
+        ET.SubElement(trailer_wheelfl, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel, name=car_name + "_trailer_wheelfl")
         ET.SubElement(trailer_wheelfl, "joint", type="hinge", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature)
 
         
         trailer_wheelfr = ET.SubElement(front_structure, "body", pos="0 " + str(-track_distance / 2) + " 0", name=car_name + "_trailer_wheelfr")
-        ET.SubElement(trailer_wheelfr, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel)
+        ET.SubElement(trailer_wheelfr, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel, name=car_name + "_trailer_wheelfr")
         ET.SubElement(trailer_wheelfr, "joint", type="hinge", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature)
 
         rear_structure = ET.SubElement(front_structure, "body", name=car_name + "_trailer_rear_structure")
@@ -942,13 +945,19 @@ class SceneXmlGenerator:
 
         # rear wheels
         trailer_wheelrl = ET.SubElement(rear_structure, "body", pos=str(-axle_distance) + " " + str(track_distance / 2) + " 0", name=car_name + "_trailer_wheelrl")
-        ET.SubElement(trailer_wheelrl, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel)
+        ET.SubElement(trailer_wheelrl, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel, name=car_name + "_trailer_wheelrl")
         ET.SubElement(trailer_wheelrl, "joint", type="hinge", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature)
 
         
         trailer_wheelrr = ET.SubElement(rear_structure, "body", pos=str(-axle_distance) + " " + str(-track_distance / 2) + " 0", name=car_name + "_trailer_wheelrr")
-        ET.SubElement(trailer_wheelrr, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel)
+        ET.SubElement(trailer_wheelrr, "geom", type="cylinder", size=".0315 .005", material="material_check", euler="1.571 0 0", mass=mass_wheel, name=car_name + "_trailer_wheelrr")
         ET.SubElement(trailer_wheelrr, "joint", type="hinge", axis="0 1 0", frictionloss=frictionloss, damping=damping, armature=armature)
+        
+        friction = "2.5 2.5 .009 .0001 .0001"
+        ET.SubElement(self.contact, "pair", geom1=car_name + "_trailer_wheelfl", geom2=self.ground_geom_name, condim="6", friction=friction)
+        ET.SubElement(self.contact, "pair", geom1=car_name + "_trailer_wheelfr", geom2=self.ground_geom_name, condim="6", friction=friction)
+        ET.SubElement(self.contact, "pair", geom1=car_name + "_trailer_wheelrl", geom2=self.ground_geom_name, condim="6", friction=friction)
+        ET.SubElement(self.contact, "pair", geom1=car_name + "_trailer_wheelrr", geom2=self.ground_geom_name, condim="6", friction=friction)
 
     def add_mocap_trailer(self, car_pos, quat, color):
 

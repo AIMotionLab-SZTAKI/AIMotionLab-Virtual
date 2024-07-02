@@ -64,18 +64,18 @@ def load_meas_data(filename):
 
     car_trailer_states = np.hstack((car_qpos, car_qvel, rod_yaw, rod_yaw_rate, trailer_yaw_rel, 0*trailer_yaw_rel,
                                    payload_pos, payload_quat, payload_vel))
-    
+    car_inputs = np.hstack((data.get('d'), data.get('delta')))
     timestamp = data["time_stamp_sec"]
     timestamp -= timestamp[0]
         
-    return car_trailer_states, timestamp, data
+    return car_trailer_states, car_inputs, timestamp, data
 
 if __name__ == "__main__":
     trajectory_type = 'paperclip'  # for now either 'paperclip' or 'dented_paperclip'
     predicted_obj = 'payload' # either car or payload
     #csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'csv', 'JoeBush1_04_24_2024_11_48_30.csv')
-    csv_path = "/home/aimotion-laptop/aimotion_f1tenth_utils/logs/log18.csv"
-    meas_state, meas_time, meas_data = load_meas_data(csv_path)
+    csv_path = "/home/aimotion-laptop/AIMotionLab-Virtual/csv/log28.csv"
+    meas_state, _, meas_time, meas_data = load_meas_data(csv_path)
 
     if trajectory_type == 'paperclip':
         path_points = np.roll(paperclip(), shift=13, axis=0)
@@ -86,8 +86,10 @@ if __name__ == "__main__":
     car_trajectory = CarTrajectory()
     car_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=1e-4, path_degree=5,
                                                         const_speed=0.6)
-    predictor = TrailerPredictor(car_trajectory, payload_type=PAYLOAD_TYPES.Teardrop, with_graphics=True)
+    predictor = TrailerPredictor(car_trajectory, payload_type=PAYLOAD_TYPES.Teardrop, with_graphics=False)
     simu_start_idx = 0
+    predictor.car.controllers[0].C_m2 *= 1.117
+    predictor.car.controllers[0].C_m3 *= 0.6466
     load_pos, _, _, _ = predictor.simulate(meas_state[simu_start_idx, :], meas_time[simu_start_idx, 0], 
                                            meas_time[-1]-meas_time[simu_start_idx], predicted_obj)
 

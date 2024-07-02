@@ -59,6 +59,8 @@ class SceneXmlGenerator:
         self.radar_cntr = 0
 
         self.airplane_cntr = 0
+
+        self.terrain_cntr = 0
         
         self.parking_lot = None
         self.airport = None
@@ -1055,6 +1057,14 @@ class SceneXmlGenerator:
 
         ET.SubElement(body, "inertial", pos="0.0 0.0 0.0", diaginertia="0.5 0.5 0.5", mass="1.0")
         ET.SubElement(body, "geom", type="mesh", mesh="airplane_mesh", rgba=color)
+
+        return name
+    
+    def add_moving_terrain(self, pos):
+        name = "Terrain_" + str(self.terrain_cntr)
+        body = ET.SubElement(self.worldbody, "body", name=name, pos=pos, mocap="true")
+        ET.SubElement(body, "geom", type="hfield", hfield=f"terrain{self.terrain_cntr}")
+        self.terrain_cntr += 1
 
         return name
         

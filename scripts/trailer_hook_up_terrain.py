@@ -66,6 +66,11 @@ payload_name = scene.add_payload(pos=np.array2string(payload_pos)[1:-1], size="0
 
 bb_name = scene.add_drone(np.array2string(drone_init_pos[0:3])[1:-2], "1 0 0 0", RED, DRONE_TYPES.BUMBLEBEE_HOOKED, 2)
 
+terrain0 = scene.add_moving_terrain("0 0 0")
+terrain1 = scene.add_moving_terrain("0 0 0")
+terrain2 = scene.add_moving_terrain("0 0 0")
+terrain3 = scene.add_moving_terrain("0 0 0")
+
 # saving the scene as xml so that the simulator can load it
 scene.save_xml(os.path.join(xml_path, save_filename))
 
@@ -125,6 +130,18 @@ scenario_duration = bb_trajectory.segment_times[-1]
 print(scenario_duration)
 while not simulator.should_close(scenario_duration):
     simulator.update()
+    num_ter = 0
+    if simulator.time > 0:
+        num_ter = 1
+    if simulator.time > 2:
+        num_ter = 2
+    if simulator.time > 5:
+        num_ter = 3
+    for i in range(4):
+        if i == num_ter:
+            simulator.data.mocap_pos[i][-1] = 0
+        else:
+            simulator.data.mocap_pos[i][-1] = -1
     #if simulator.i == int(5 / control_step):
     #    simulator.pause()
 

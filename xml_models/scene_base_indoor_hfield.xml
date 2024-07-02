@@ -1,0 +1,47 @@
+<mujoco model="Indoor-Hfield">
+    <include file="common_assets.xml" />
+    <default class="main">
+    </default>
+    
+    <asset>
+        <!-- <texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512"/>
+        <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .2 .3" rgb2=".2 .3 .4"/>
+        <material name="grid" texture="grid" texrepeat="0.1 0.1" texuniform="true" reflectance=".0"/> -->
+        <hfield name="terrain0" file="heightmaps/indoor_hfield.png" size="2.5 2.5 0.15 0.001" />
+    
+        <!-- <texture name="tex_ground" type="2d" file="textures/texture0.png" /> -->
+        <!-- <material name="mat_ground" texture="tex_ground" specular="0.0" shininess="0.0" /> -->
+        
+        <!-- <texture name="tex-roundabout" type="2d" file="textures/roundabout.png"/> -->
+        <!-- <material name="mat-roundabout" reflectance="0.7" texrepeat="0.667 0.667" texture="tex-roundabout" texuniform="true"/> -->
+    </asset>
+  
+    <compiler angle="radian" meshdir="" />
+    <option timestep="0.001"/>
+    <!--<option gravity="0 0 0"/>-->
+    <!-- <option>
+      <flag sensornoise="enable"/>
+    </option> -->
+    <visual>
+      <quality shadowsize="4096"/>
+      <map znear="0.00025" />
+    </visual>
+  
+  
+    <worldbody>
+      <camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958"/>
+  
+      <!--<light dir="0 -0.3 -1" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="1 1 15" cutoff="70"/>
+      <light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70"/>
+      <light dir="-1.0 -1.0 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="10 10 6" directional="true" cutoff="70"/>-->
+      <light dir="-1 -1 -1" diffuse="1.0 1.0 1.0" castshadow="true" specular="0.5 0.5 0.5" directional="true" pos="1000 1000 600" cutoff="100"/>
+      <light dir="1 -1 -1" diffuse=".1 .1 .1" castshadow="true" specular="0.5 0.5 0.5" directional="true" pos="10 10 6" cutoff="100"/>
+      <light dir="-1 1 -1" diffuse=".9 .9 .9" castshadow="true" specular="0.5 0.5 0.5" directional="true" pos="10 10 6" cutoff="100"/>
+      
+      <!-- <geom size="20 20 .05" type="plane" material="grid" condim="3"/> -->
+      <geom name="roundabout" type="hfield" hfield="terrain0"/><!-- material="grid" />-->
+  
+    </worldbody>
+  
+  </mujoco>
+  

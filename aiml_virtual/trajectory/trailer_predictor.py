@@ -34,12 +34,15 @@ def get_car_trajectory():
 class TrailerPredictor:
     def __init__(self, car_trajectory: CarTrajectory, 
                  payload_type: Literal[PAYLOAD_TYPES.Box, PAYLOAD_TYPES.Teardrop] = PAYLOAD_TYPES.Teardrop,
-                 with_graphics=False):
+                 with_terrain=False, with_graphics=False):
         self.payload_type = payload_type
         # Initialize simulation
         abs_path = os.path.dirname(os.path.abspath(__file__))
         xml_path = os.path.join(abs_path, "..", "..", "xml_models")
-        xml_base_filename = "scene_base.xml"
+        if not with_terrain:
+            xml_base_filename = "scene_base.xml"
+        else:
+            xml_base_filename = "scene_base_indoor_hfield.xml"
         save_filename = "built_scene_for_predictor.xml"
 
         car_pos = np.array([car_trajectory.pos_tck[1][0][0], car_trajectory.pos_tck[1][1][0], 0.052])

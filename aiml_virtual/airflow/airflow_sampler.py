@@ -3,10 +3,10 @@ import numpy as np
 import os
 import glob
 
+from aiml_virtual.airflow.box_dictionary import BoxDictionary
 from aiml_virtual.object.drone import Drone
 from aiml_virtual.object.payload import Payload
 import aiml_virtual.util.mujoco_helper as mujoco_helper
-
 
 class AirflowSampler:
 
@@ -24,12 +24,8 @@ class AirflowSampler:
 
         if LOAD_PRESSURE_DICTIONARY:
             self.USE_PRESSURE_DICTIONARY = True
-            self.loaded_pressures = {}
-
-            txt_files = glob.glob(pressure_dictionary_folder_path + '/*.txt')
-            self._load_files_to_dictionary(txt_files, self.loaded_pressures)
-            self._cube_size = self._calculate_cube_size_from_dictionary(self.loaded_pressures)
-            self._format_arrays_in_dictionary(self.loaded_pressures)
+            self.loaded_pressures = BoxDictionary(pressure_dictionary_folder_path)
+            self._cube_size = self.loaded_pressures.get_cube_size()
 
         else:   
             #tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float)
@@ -41,16 +37,10 @@ class AirflowSampler:
         
         if LOAD_VELOCITY_DICTIONARY:
             self.USE_VELOCITY_DICTIONARY = True
-            self.loaded_velocities = {}
-
-            txt_files = glob.glob(velocity_dictionary_folder_path + '/*.txt')
-            self._load_files_to_dictionary(txt_files, self.loaded_velocities)
-
-            if (_calculate_cube_size_from_dictionary(self.loaded_velocities) != self._cube_size):
-            if (self._calculate_cube_size_from_dictionary(self.loaded_velocities) != self._cube_size):
-                raise RuntimeError("size of look-up tables must match")
+            self.loaded_velocities = BoxDictionary(velocity_dictionary_folder_path)
             
-            self._format_arrays_in_pressures_dictionary(self.loaded_velocities)
+            if (self.loaded_velocities.get_cube_size() != self._cube_size):
+                raise RuntimeError("size of look-up tables must match")
             
         else:
             self.use_velocity = False
@@ -92,38 +82,6 @@ class AirflowSampler:
             self.offset_from_drone_center + np.array([cs, cs, cs])
             ]
         )   
-
-    def _load_files_to_dictionary(self, txt_files, dictionary):
-        """
-            Each .txt file contains a 4 digit number, these numbers are the keys in the dictionary.
-            We populate each pair in the dictionary with the given key and the corresponding array of pressure or velocity values.
-            .txt names can look like: name_1500.txt, name_0600.txt, ...
-        """
-
-        for file in txt_files:
-            file_name = os.path.splitext(os.path.basename(file))[0]
-            extracted_number_from_file_name = int(file_name[-4:])
-            dictionary[extracted_number_from_file_name] = np.loadtxt(file)
-
-    def _calculate_cube_size_from_dictionary(self, dictionary):
-        first_key_in_dict = next(iter(dictionary))
-        return int(math.pow(dictionary[first_key_in_dict].shape[0] + 1, 1/3))
-
-    def _format_arrays_in_dictionary(self, dictionary):
-        """
-            Reshaping every array in the dictionary into cubes.
-        """
-
-        first_key_in_dict = next(iter(dictionary))
-        dimension = self._get_array_dimension(dictionary[first_key_in_dict])
-
-        for key in dictionary:
-            dictionary[key] = dictionary[key].reshape(dimension)
-
-    def _get_array_dimension(self, array):
-        if (len(array.shape) == 1):
-            return (self._cube_size, self._cube_size, self._cube_size)
-        return (self._cube_size, self._cube_size, self._cube_size, array.shape[1])
 
     def set_payload_offset(self, offset_in_centimeter):
         self._payload_offset_z = offset_in_centimeter
@@ -196,7 +154,6 @@ class AirflowSampler:
     def generate_forces_opt(self, payload : Payload):
         
         abs_average_velocity = None
-        if USE_PRESSURE_DICTIONARY:
         if self.USE_PRESSURE_DICTIONARY:
             prop_velocities = self.drone.get_estimated_prop_vel()
             abs_average_velocity = np.sum(np.abs(prop_velocities)) / 4
@@ -258,37 +215,32 @@ class AirflowSampler:
         
         indices = np.rint(pos_traffed * 100).astype(np.int32)
 
-        if USE_PRESSURE_DICTIONARY:
         if self.USE_PRESSURE_DICTIONARY:
-            lower_bound, upper_bound = self._get_lower_upper_bounds_from_dict(abs_average_velocity, self.loaded_pressures)
-            lower_pressures, upper_pressures = self.loaded_pressures[lower_bound], self.loaded_pressures[upper_bound]
+            lower_bound, upper_bound = self.loaded_pressures.get_lower_upper_bounds(abs_average_velocity)
+            lower_pressures, upper_pressures = self.loaded_pressures.get_lower_upper_bounds_arrays(lower_bound, upper_bound)
+
             lower_pressure_values = lower_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
             upper_pressure_values = upper_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
 
-            t1, t2 = self._get_interpolation_quotients(abs_average_velocity, lower_bound, upper_bound)
-            pressure_values = t1 * lower_pressure_values + t2 * upper_pressure_values
+            pressure_values = self.loaded_pressures.get_interpolated_array(abs_average_velocity, upper_pressure_values, lower_pressure_values, upper_bound, lower_bound)
 
         else:
             pressure_values = self.pressure_data[indices[:, 0], indices[:, 1], indices[:, 2]]
-            
 
         forces = mujoco_helper.forces_from_pressures(normal, pressure_values, area)
 
-        if USE_VELOCITY_DICTIONARY:
         if self.USE_VELOCITY_DICTIONARY:
-            lower_bound, upper_bound = self._get_lower_upper_bounds_from_dict(abs_average_velocity, self.loaded_velocities)
-            lower_pressures, upper_pressures = self.loaded_velocities[lower_bound], self.loaded_velocities[upper_bound]
-            lower_velocities, upper_velocities = self.loaded_velocities[lower_bound], self.loaded_velocities[upper_bound]
+            lower_bound, upper_bound = self.loaded_velocities.get_lower_upper_bounds(abs_average_velocity)
+            lower_velocities, upper_velocities = self.loaded_velocities.get_lower_upper_bounds_arrays(lower_bound, upper_bound)
+
             lower_velocity_values = lower_velocities[indices[:, 0], indices[:, 1], indices[:, 2]]
             upper_velocity_values = upper_velocities[indices[:, 0], indices[:, 1], indices[:, 2]]
-
-            t1, t2 = self._get_interpolation_quotients(abs_average_velocity, lower_bound, upper_bound)
-            velocity_values = t1 * lower_velocity_values + t2 * upper_velocity_values
-
+            
+            velocity_values = self.loaded_velocities.get_interpolated_array(abs_average_velocity, upper_velocity_values, lower_velocity_values, upper_bound, lower_bound)
+                    
         elif self.use_velocity:
             velocity_values = self.velocity_data[indices[:, 0], indices[:, 1], indices[:, 2]]
 
-        if USE_VELOCITY_DICTIONARY or sel.use_velocity:
         if self.USE_VELOCITY_DICTIONARY or self.use_velocity:
             forces_velocity = mujoco_helper.forces_from_velocities(normal, velocity_values, area)
             forces += forces_velocity
@@ -303,38 +255,3 @@ class AirflowSampler:
         torque_sum = np.sum(torques, axis=0)
 
         return force_sum, torque_sum
-
-    # TODO: We need to check if the given average_velocity is indeed within the intervals
-    def _get_lower_upper_bounds_from_dict(self, average_velocity, dict):
-        keys = list(self._loaded_data.keys())
-        
-        less_than_or_equal = min(keys)
-        greater_than_or_equal = max(keys)
-        
-        for num in keys:
-            if num <= average_velocity:
-                if num > less_than_or_equal and num != average_velocity:
-                    less_than_or_equal = num
-            if num >= average_velocity:
-                if num < greater_than_or_equal and num != average_velocity:
-                    greater_than_or_equal = num
-
-        return less_than_or_equal, greater_than_or_equal
-
-    def _get_interpolation_quotients(self, average, lower, upper):
-        distance_lower = abs(average - lower)
-        distance_upper = abs(average - upper)
-
-        if distance_lower == distance_upper:
-            return 0.5, 0.5
-        elif distance_lower == 0:
-            return 1.0, 0.0
-        elif distance_upper == 0:
-            return 0.0, 1.0
-
-        if (distance_lower > distance_upper):
-            alpha = distance_upper / distance_lower
-            return alpha, (1 - alpha)
-        else:
-            alpha = distance_lower / distance_upper
-            return (1 - alpha), alpha

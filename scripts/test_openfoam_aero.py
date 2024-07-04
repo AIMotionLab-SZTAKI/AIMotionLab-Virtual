@@ -2,7 +2,7 @@ import os
 from aiml_virtual.simulator import ActiveSimulator
 from aiml_virtual.xml_generator import xml_generator
 from aiml_virtual.object.drone import Drone, DRONE_TYPES
-from aiml_virtual.object.payload import Payload
+from aiml_virtual.object.payload import Payload, PAYLOAD_TYPES
 from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
 from aiml_virtual.controller import LqrLoadControl, GeomControl
 import numpy as np
@@ -53,7 +53,7 @@ load0_mass = 0.2
 load0_size = np.array([.07, .07, .04])
 #load0_mass = 0.2
 #load0_size = np.array([16.2, 11.8, 8.6]) / 100
-load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_pos[2] - (2 * load0_size[2]) - .595])
+load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_pos[2] - (2 * load0_size[2]) - .55])
 
 
 # create the model as xml
@@ -61,7 +61,8 @@ scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 
 drone0_name = scene.add_drone(np.array2string(drone0_init_pos[0:3])[1:-1], "1 0 0 0", BLUE_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 2)
 
-payload0_name = scene.add_payload(np.array2string(load0_initpos)[1:-1], np.array2string(load0_size)[1:-1], str(load0_mass), "1 0 0 0", RED_COLOR)
+payload0_name = scene.add_payload(np.array2string(load0_initpos)[1:-1], 0, str(load0_mass), "1 0 0 0", RED_COLOR, PAYLOAD_TYPES.Teardrop)
+#payload0_name = scene.add_payload(np.array2string(load0_initpos)[1:-1], np.array2string(load0_size)[1:-1], str(load0_mass), "1 0 0 0", RED_COLOR)
 
 scene.save_xml(os.path.join(xml_path, save_filename))
 virt_parsers = [parseMovingObjects]
@@ -94,7 +95,7 @@ pressure_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_var
 velocity_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_velocity")
 airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, None, True, pressure_folder_path)
 
-payload0.create_surface_mesh(0.00001)
+payload0.create_surface_mesh(0.005)
 payload0.add_airflow_sampler(airflow_sampl0)
 
 simulator.pause()

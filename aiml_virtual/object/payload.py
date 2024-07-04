@@ -1,6 +1,8 @@
 from aiml_virtual.object.moving_object import MocapObject, MovingObject
 from aiml_virtual.util import mujoco_helper
+import aiml_virtual.object.mesh_utility_functions as mutil
 from enum import Enum
+from stl import mesh
 import numpy as np
 import math
 
@@ -8,6 +10,7 @@ import math
 class PAYLOAD_TYPES(Enum):
     Box = "Box"
     Teardrop = "Teardrop"
+
 
 class PayloadMocap(MocapObject):
 
@@ -59,9 +62,9 @@ class Payload(MovingObject):
         #self._rectangle_normals = np.zeros_like(self._top_rectangle_positions)
         #self._rectangle_areas = np.zeros_like(len(self._top_rectangle_positions))
 
+
     def create_surface_mesh(self, surface_division_area: float):
         raise NotImplementedError("[Payload] Subclasses need to implement this method.")
-
     
     def update(self, i, control_step):
         
@@ -93,6 +96,7 @@ class Payload(MovingObject):
         self.qfrc_applied[4] = torque[1]
         self.qfrc_applied[5] = torque[2]
 
+
 class BoxPayload(Payload):
 
     def __init__(self, model, data, name_in_xml) -> None:
@@ -109,6 +113,7 @@ class BoxPayload(Payload):
         
         else:
             raise Exception("[BoxPayload __init__] Payload is not box shaped.")
+
 
     def create_surface_mesh(self, surface_division_area: float):
         """
@@ -288,78 +293,115 @@ class BoxPayload(Payload):
                 self._side_rectangle_positions_yz_neg_raw[(i * self._side_subdivision_z) + j] = np.array((-pos_x, pos_y, pos_z))
                 self._side_rectangle_positions_yz_pos_raw[(i * self._side_subdivision_z) + j] = np.array((pos_x, pos_y, pos_z))
 
-# TODO: configure and import numpy-stl library
-# TODO: separate Payload subclasses into different files
-# TODO: make better abstractions in the Payload base class
-# TODO: fix typos
-class TeardropPayload(Payload):
 
+
+# TODO: use passed name_in_xml for the .stl path
+def get_transformed_normals(normals, posimeter):
+    new_normals = np.empty_like(normals)
+    for i in range(len(normals)):
+        new_normals[i] = mujoco_helper.qv_mult(posimeter, normals[i])
+    
+class TeardropPayload(Payload):
     def __init__(self, model, data, name_in_xml) -> None:
         super().__init__(model, data, name_in_xml)
-
-        #self._loaded_mesh = mesh.Mesh.from_file("./payload_simplified.stl")
-        self._triangle_vertices = None
+        
+        self._MINIMAL_Z = -0.03753486
+        self._triangles = None
         self._center_positions = None
         self._normals = None
         self._areas = None
 
-    def create_surface_mesh(self, triangle_area_treshold):
-        raise NotImplementedError("[TeardropPayload] this method needs to be implemented")
+        print(name_in_xml)
+        self._init_default_values("./../xml_models/meshes/payload/payload_simplified.stl")
+        self._bottom_triangles, self._bottom_center_positions, self._bottom_normals, self._bottom_areas = self._init_bottom_data()
+        self._top_triangles, self._top_center_positions, self._top_normals, self._top_areas = self._init_top_data()
 
-        self._triangle_vertices = self._get_mesh_triangles(self._loaded_mesh.vectors, triangle_area_treshold)
-        self._center_positions = self._get_center_positions(self._triangle_vertices)
-        self._normals = self._get_outward_pointing_normals(self._triangle_vertices, self._center_positions)
-        self._areas = self._get_triangle_areas(self._triangle_vertices)
 
-    def _get_mesh_triangles(triangles, threshold):
-        triangle_areas = self._get_triangle_areas(triangles)
-        condition = triangle_areas <= threshold
+    def _init_default_values(self, path):
+        meter = 1000.0
+        self._loaded_mesh = mesh.Mesh.from_file(path)
+        self._loaded_mesh.vectors[:, :, [1, 2]] = self._loaded_mesh.vectors[:, :, [2, 1]]
+        self._loaded_mesh.vectors /= meter
 
-        small_triangles = triangles[condition]
-        large_triangles = triangles[~condition]
+        self._triangles = self._loaded_mesh.vectors
+        self._center_positions = mutil.get_center_positions(self._triangles)
+        self._normals = mutil.get_triangle_normals(self._triangles)
+        self._areas = (self._loaded_mesh.areas / (meter ** 2)).flatten()
+        
+        mutil.set_normals_pointing_outward(self._normals, self._center_positions)
 
-        if (len(large_triangles) == 0):
-            return small_triangles
+    def get_data(self):
+        pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._center_positions)
+        normals = mujoco_helper.qv_mult(self.sensor_orimeter, self._normals)
+        return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._areas
 
-        large_triangle_slices = np.concatenate([
-            self._get_slices_of_triangle(triangle) for triangle in large_triangles
-        ])
+    def trans_vec(self, vec):
+        return mujoco_helper.qv_mult(self.sensor_orimeter, vec)
 
-        return np.concatenate((small_triangles, self._get_mesh_triangles(large_triangle_slices, threshold)))
 
-    def _get_slices_of_triangle(self, triangle):
-        midpoint1 = self._get_mid_point(triangle[0], triangle[1])
-        midpoint2 = self._get_mid_point(triangle[1], triangle[2])
-        midpoint3 = self._get_mid_point(triangle[2], triangle[0])
+    def get_bottom_data(self):
+        pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._bottom_center_positions)
+        
+        normals = np.empty_like(self._bottom_normals)
+        for i in range(len(self._bottom_normals)):
+            normals[i] = self.trans_vec(self._bottom_normals[i])
 
-        return np.array([
-            [triangle[0], midpoint1,   midpoint3],
-            [midpoint1,   triangle[1], midpoint2],
-            [midpoint2,   triangle[2], midpoint3],
-            [midpoint1,   midpoint2,   midpoint3]
-        ])
+        return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._bottom_areas
 
-    def _get_triangle_normals(self, triangles):
-        return np.cross(triangles[:,1] - triangles[:,0], triangles[:,2] - triangles[:,0], axis=1)
+    def get_top_data(self):
+        pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._top_center_positions)
+        normals = np.apply_along_axis(self.trans_vec, axis=1, arr=self._top_normals)
+        return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._top_areas
 
-    def _get_triangle_areas(self, triangles):
-        return np.linalg.norm(self._get_triangle_normals(triangles), axis=1) / 2
+    def _init_top_data(self):
+        treshold = 0.0015
+        mask = np.any(abs(self._triangles[:, :, 2] - self._MINIMAL_Z) < treshold, axis=1)
+        return self._triangles[~mask], self._center_positions[~mask], self._normals[~mask], self._areas[~mask]
 
-    def _get_triangle_normal(self, triangle):
-        return np.cross(triangle[1] - triangle[0],  triangle[2] - triangle[0])
+    def _init_bottom_data(self):
+        treshold = 0.0015
+        mask = np.any(abs(self._triangles[:, :, 2] - self._MINIMAL_Z) < treshold, axis=1)
+        return self._triangles[mask], self._center_positions[mask], self._normals[mask], self._areas[mask]
 
-    def _get_triangle_area(self, triangle):
-        return np.linalg.norm(self._get_triangle_normal(triangle)) / 2
+    def create_surface_mesh(self, threshold_in_meters):
+        area_treshold = threshold_in_meters / 1000.0
+        mask = self._areas > area_treshold
 
-    def _get_mid_point(self, v1, v2):
-        return (v1 + v2) / 2
+        triangles_to_divide = self._triangles[mask]
+        normals_to_divide = self._normals[mask]
+        areas_to_divide = self._areas[mask]
 
-    def _get_center_positions(self, triangles):
-        return np.sum(triangles, axis=1) / 3
+        triangles_kept = self._triangles[~mask]
+        normals_kept = self._normals[~mask]
+        areas_kept = self._areas[~mask]    
 
-    def _get_outward_pointing_normals(self, triangles, center_positions):
-        normals = self._get_triangle_normals(triangles)
-        dot_products = np.sum(normals * center_positions, axis=1)
-        condition = dot_products < 0
-        normals[condition] *= (-1)
-        return normals
+        if len(triangles_to_divide) == 0:
+            return
+
+        new_triangles = []
+        midpoints = self._get_mid_points(triangles_to_divide)
+        for i in range(len(triangles_to_divide)):
+            new_triangles.extend(np.array([
+                    [triangles_to_divide[i][0], midpoints[i][0], midpoints[i][2]],
+                    [midpoints[i][0], triangles_to_divide[i][1], midpoints[i][1]],
+                    [midpoints[i][1], triangles_to_divide[i][2], midpoints[i][2]],
+                    [midpoints[i][0], midpoints[i][1], midpoints[i][2]]
+                ])
+            )
+
+        new_normals = np.repeat(normals_to_divide, 4, axis=0)
+        new_areas = np.repeat(areas_to_divide, 4, axis=0) / 4
+        new_triangles = np.array(new_triangles)
+
+        self._triangles = np.concatenate([triangles_kept, np.array(new_triangles)])
+        self._normals = np.concatenate([normals_kept, np.array(new_normals)])
+        self._areas = np.concatenate([areas_kept, np.array(new_areas)])
+        self._center_positions = mutil.get_center_positions(self._triangles)
+
+        self._bottom_triangles, self._bottom_center_positions, self._bottom_normals, self._bottom_areas = self._init_bottom_data()
+        self._top_triangles, self._top_center_positions, self._top_normals, self._top_areas = self._init_top_data()
+
+        self.create_surface_mesh(threshold_in_meters)
+
+    def _get_mid_points(self, triangles):
+        return (triangles[:, [0, 1, 2], :] + triangles[:, [1, 2, 0], :]) / 2

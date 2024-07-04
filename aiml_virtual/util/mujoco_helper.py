@@ -283,7 +283,7 @@ def forces_from_pressures(normal, pressure, area):
     if normal.ndim == 1:
         F = np.outer(pressure, -normal) * area
     else:
-        F = pressure * (-normal) * area
+        F = np.expand_dims(pressure, axis=1) * (-normal) * np.expand_dims(area, axis=1)
     return F
 
 def forces_from_velocities(normal, velocity, area):

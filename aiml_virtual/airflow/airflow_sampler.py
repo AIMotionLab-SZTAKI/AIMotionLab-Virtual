@@ -5,7 +5,7 @@ import glob
 
 from aiml_virtual.airflow.box_dictionary import BoxDictionary
 from aiml_virtual.object.drone import Drone
-from aiml_virtual.object.payload import Payload
+from aiml_virtual.object.payload import Payload, BoxPayload, TeardropPayload
 import aiml_virtual.util.mujoco_helper as mujoco_helper
 
 class AirflowSampler:
@@ -152,45 +152,58 @@ class AirflowSampler:
 #        return force_sum, torque_sum
      
     def generate_forces_opt(self, payload : Payload):
+        force_sum = np.array([0., 0., 0.])
+        torque_sum = np.array([0., 0., 0.])
         
         abs_average_velocity = None
         if self.USE_PRESSURE_DICTIONARY:
             prop_velocities = self.drone.get_estimated_prop_vel()
             abs_average_velocity = np.sum(np.abs(prop_velocities)) / 4
 
-        force_sum = np.array([0., 0., 0.])
-        torque_sum = np.array([0., 0., 0.])
+        if isinstance(payload, BoxPayload):
+            pos, pos_in_own_frame, normal, area = payload.get_top_rectangle_data()
 
-        pos, pos_in_own_frame, normal, area = payload.get_top_rectangle_data()
+            force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
+            force_sum += force
+            torque_sum += torque
 
-        force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
-        force_sum += force
-        torque_sum += torque
+            pos, pos_in_own_frame, normal, area = payload.get_bottom_rectangle_data()
+            
+            force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
+            force_sum += force
+            torque_sum += torque * 0
+            
+            pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_xz_rectangle_data()
 
-        pos, pos_in_own_frame, normal, area = payload.get_bottom_rectangle_data()
-        
-        force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
-        force_sum += force * 0
-        torque_sum += torque * 0
-        
-        pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_xz_rectangle_data()
+            force, torque = self._gen_forces_one_side(pos_n, pos_in_own_frame_n, normal_n, area, abs_average_velocity)
+            force_sum += force
+            torque_sum += torque
+            force, torque = self._gen_forces_one_side(pos_p, pos_in_own_frame_p, normal_p, area, abs_average_velocity)
+            force_sum += force
+            torque_sum += torque
 
-        force, torque = self._gen_forces_one_side(pos_n, pos_in_own_frame_n, normal_n, area, abs_average_velocity)
-        force_sum += force
-        torque_sum += torque
-        force, torque = self._gen_forces_one_side(pos_p, pos_in_own_frame_p, normal_p, area, abs_average_velocity)
-        force_sum += force
-        torque_sum += torque
+            pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_yz_rectangle_data()
 
-        
-        pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_yz_rectangle_data()
+            force, torque = self._gen_forces_one_side(pos_n, pos_in_own_frame_n, normal_n, area, abs_average_velocity)
+            force_sum += force
+            torque_sum += torque
+            force, torque = self._gen_forces_one_side(pos_p, pos_in_own_frame_p, normal_p, area, abs_average_velocity)
+            force_sum += force
+            torque_sum += torque
 
-        force, torque = self._gen_forces_one_side(pos_n, pos_in_own_frame_n, normal_n, area, abs_average_velocity)
-        force_sum += force
-        torque_sum += torque
-        force, torque = self._gen_forces_one_side(pos_p, pos_in_own_frame_p, normal_p, area, abs_average_velocity)
-        force_sum += force
-        torque_sum += torque
+        elif isinstance(payload, TeardropPayload):
+            pos, pos_in_own_frame, normal, area = payload.get_top_data()
+            force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
+            force_sum += force
+            torque_sum += torque
+
+            pos, pos_in_own_frame, normal, area = payload.get_bottom_data()
+            force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
+            force_sum += force
+            torque_sum += torque * 0
+
+        else:
+            raise RuntimeError("payload not implemented!")
 
         return force_sum, torque_sum
 
@@ -201,18 +214,16 @@ class AirflowSampler:
         pos_traffed = pos - selfposition
         pos_traffed = mujoco_helper.quat_vect_array_mult_passive(selforientation, pos_traffed)
 
-        pos_traffed[:, 2] += self._payload_offset_z_meter
-        
+        #pos_traffed[:, 2] += self._payload_offset_z_meter
         #pt = np.copy(pos_traffed)
 
-        pos_in_own_frame = pos_own_frame[(pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & 
-                                         (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) &
-                                         (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit)]
-
-        pos_traffed = pos_traffed[(pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & 
-                                  (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) &
-                                  (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit)]
+        condition = (pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & \
+                    (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) & \
+                    (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit)
         
+        pos_in_own_frame = pos_own_frame[condition]
+        pos_traffed = pos_traffed[condition]
+
         indices = np.rint(pos_traffed * 100).astype(np.int32)
 
         if self.USE_PRESSURE_DICTIONARY:

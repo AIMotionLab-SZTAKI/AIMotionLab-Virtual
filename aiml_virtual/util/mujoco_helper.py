@@ -280,12 +280,18 @@ def forces_from_pressures(normal, pressure, area):
     
     #f = np.array([0., 0., -1.])
     #F = np.dot(-normal, f) * np.outer(pressure, f) * area
-    F = np.outer(pressure, -normal) * area
+    if normal.ndim == 1:
+        F = np.outer(pressure, -normal) * area
+    else:
+        F = pressure * (-normal) * area
     return F
 
 def forces_from_velocities(normal, velocity, area):
-    density = 1.1839 #kg/m^3
-    F = velocity * density * area * np.dot(velocity, -normal).reshape(-1, 1)
+    density = 1.293 #kg/m^3
+    if normal.ndim == 1:
+        F = velocity * density * area * np.dot(velocity, -normal).reshape(-1, 1)
+    else:
+        F = velocity * density * area * np.sum(velocity * (-normal), axis=1).reshape(-1, 1)
     return F
 
 def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None, elev_offs=30):

@@ -293,14 +293,7 @@ class BoxPayload(Payload):
                 self._side_rectangle_positions_yz_neg_raw[(i * self._side_subdivision_z) + j] = np.array((-pos_x, pos_y, pos_z))
                 self._side_rectangle_positions_yz_pos_raw[(i * self._side_subdivision_z) + j] = np.array((pos_x, pos_y, pos_z))
 
-
-
-# TODO: use passed name_in_xml for the .stl path
-def get_transformed_normals(normals, posimeter):
-    new_normals = np.empty_like(normals)
-    for i in range(len(normals)):
-        new_normals[i] = mujoco_helper.qv_mult(posimeter, normals[i])
-    
+# TODO: use passed name_in_xml for the .stl path 
 class TeardropPayload(Payload):
     def __init__(self, model, data, name_in_xml) -> None:
         super().__init__(model, data, name_in_xml)
@@ -315,7 +308,6 @@ class TeardropPayload(Payload):
         self._init_default_values("./../xml_models/meshes/payload/payload_simplified.stl")
         self._bottom_triangles, self._bottom_center_positions, self._bottom_normals, self._bottom_areas = self._init_bottom_data()
         self._top_triangles, self._top_center_positions, self._top_normals, self._top_areas = self._init_top_data()
-
 
     def _init_default_values(self, path):
         meter = 1000.0
@@ -337,7 +329,6 @@ class TeardropPayload(Payload):
 
     def trans_vec(self, vec):
         return mujoco_helper.qv_mult(self.sensor_orimeter, vec)
-
 
     def get_bottom_data(self):
         pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._bottom_center_positions)

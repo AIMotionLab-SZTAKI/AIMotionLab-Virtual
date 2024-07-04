@@ -65,7 +65,8 @@ class AirflowSampler:
 
 
         self._cube_size_meter = self._cube_size / 100.
-        self.set_payload_offset(15)
+        # self.set_payload_offset(15)  # does not need anymore, because the CFD lookup-table is large enough to fit the payload
+        self.set_payload_offset(0)
 
         self.index_upper_limit = (float(self._cube_size) - 0.5) / 100.
         
@@ -170,8 +171,8 @@ class AirflowSampler:
         pos, pos_in_own_frame, normal, area = payload.get_bottom_rectangle_data()
         
         force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
-        force_sum += force * 0
-        torque_sum += torque * 0
+        force_sum += force
+        # torque_sum += torque # does not need to, because it causes unnecessary instability
         
         pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_xz_rectangle_data()
 

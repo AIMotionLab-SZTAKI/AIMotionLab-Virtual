@@ -5,7 +5,7 @@ from enum import Enum
 from stl import mesh
 import numpy as np
 import math
-
+import time
 
 class PAYLOAD_TYPES(Enum):
     Box = "Box"
@@ -324,24 +324,17 @@ class TeardropPayload(Payload):
 
     def get_data(self):
         pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._center_positions)
-        normals = mujoco_helper.qv_mult(self.sensor_orimeter, self._normals)
+        normals = mujoco_helper.qv_mult_opt(self.sensor_orimeter, self._normals)
         return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._areas
-
-    def trans_vec(self, vec):
-        return mujoco_helper.qv_mult(self.sensor_orimeter, vec)
 
     def get_bottom_data(self):
         pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._bottom_center_positions)
-        
-        normals = np.empty_like(self._bottom_normals)
-        for i in range(len(self._bottom_normals)):
-            normals[i] = self.trans_vec(self._bottom_normals[i])
-
+        normals = mujoco_helper.qv_mult_opt(self.sensor_orimeter, self._bottom_normals)
         return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._bottom_areas
 
     def get_top_data(self):
         pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._top_center_positions)
-        normals = np.apply_along_axis(self.trans_vec, axis=1, arr=self._top_normals)
+        normals = mujoco_helper.qv_mult_opt(self.sensor_orimeter, self._top_normals)
         return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._top_areas
 
     def _init_top_data(self):

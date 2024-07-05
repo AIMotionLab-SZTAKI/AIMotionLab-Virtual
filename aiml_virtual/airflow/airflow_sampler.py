@@ -207,7 +207,6 @@ class AirflowSampler:
         return force_sum, torque_sum
 
     def _gen_forces_one_side(self, pos, pos_own_frame, normal, area, abs_average_velocity):
-        
         selfposition, selforientation = self.get_position_orientation()
 
         pos_traffed = pos - selfposition

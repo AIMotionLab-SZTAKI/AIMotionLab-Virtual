@@ -294,7 +294,6 @@ class BoxPayload(Payload):
                 self._side_rectangle_positions_yz_neg_raw[(i * self._side_subdivision_z) + j] = np.array((-pos_x, pos_y, pos_z))
                 self._side_rectangle_positions_yz_pos_raw[(i * self._side_subdivision_z) + j] = np.array((pos_x, pos_y, pos_z))
 
-# TODO: use passed name_in_xml for the .stl path 
 class MeshPart(Enum):
     TOP = 1
     BOTTOM = 2
@@ -302,17 +301,18 @@ class MeshPart(Enum):
 class TeardropPayload(Payload):
     def __init__(self, model, data, name_in_xml) -> None:
         super().__init__(model, data, name_in_xml)
-        
-        self._MINIMAL_Z = -0.03733486
+
         self._triangles = None
         self._center_positions = None
         self._normals = None
         self._areas = None
-        self.min = 3
-        self.max = -3
+
+        self._MIN_Z = None
+        self._MAX_Z = None
+        self._TOP_BOTTOM_RATIO = 0.1
 
         abs_path = os.path.dirname(os.path.abspath(__file__))
-        payload_stl_path = os.path.join(abs_path, "..", "..", "xml_models", "meshes", "payload", "payload_simplified.stl")
+        payload_stl_path = os.path.join(abs_path, "..", "..", "xml_models", "meshes", "payload", "dropbox_base_v0_external.stl")
         self._init_default_values(payload_stl_path)
         self._bottom_triangles, self._bottom_center_positions, self._bottom_normals, self._bottom_areas = self._init_bottom_data()
         self._top_triangles, self._top_center_positions, self._top_normals, self._top_areas = self._init_top_data()
@@ -327,6 +327,8 @@ class TeardropPayload(Payload):
         self._center_positions = mutil.get_center_positions(self._triangles)
         self._normals = mutil.get_triangle_normals(self._triangles)
         self._areas = (self._loaded_mesh.areas / (meter ** 2)).flatten()
+        self._MIN_Z = np.min(self._triangles[:, :, 2])
+        self._MAX_Z = np.max(self._triangles[:, :, 2])
         
         mutil.set_normals_pointing_outward(self._normals, self._center_positions)
 
@@ -346,11 +348,13 @@ class TeardropPayload(Payload):
         return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._top_areas
 
     def _init_top_data(self):
-        mask = np.any(self._triangles[:, :, 2] > self._MINIMAL_Z, axis=1)
+        mesh_height = self._MAX_Z - self._MIN_Z
+        mask = np.any(self._triangles[:, :, 2] > self._MIN_Z + (mesh_height) * self._TOP_BOTTOM_RATIO, axis=1)
         return self._triangles[mask], self._center_positions[mask], self._normals[mask], self._areas[mask]
 
     def _init_bottom_data(self):
-        mask = np.any(self._triangles[:, :, 2] > self._MINIMAL_Z, axis=1)
+        mesh_height = self._MAX_Z - self._MIN_Z
+        mask = np.any(self._triangles[:, :, 2] > (self._MIN_Z + (mesh_height) * self._TOP_BOTTOM_RATIO), axis=1)
         return self._triangles[~mask], self._center_positions[~mask], self._normals[~mask], self._areas[~mask]
 
     def create_surface_mesh(self, which_part, threshold_in_meters):
@@ -365,6 +369,7 @@ class TeardropPayload(Payload):
             normals = self._bottom_normals
             areas = self._bottom_areas
             center_positions = self._bottom_center_positions
+
         else:
             raise ValueError("Invalid value for 'which_set'. Use 'top' or 'bottom'.")
 

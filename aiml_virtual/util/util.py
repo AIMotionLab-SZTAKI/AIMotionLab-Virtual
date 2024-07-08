@@ -151,8 +151,7 @@ def plot_payload_and_airflow_volume_box_payload(payload, airflow_sampler, payloa
     plt.show()
 
 def plot_payload_and_airflow_volume_teardrop_payload(payload, airflow_sampler, payload_color: str = "tab:blue"):
-    p, pos, n, a = payload.get_data()
-    
+    p, pos, n, a = payload.get_top_data()
     payload_offset = airflow_sampler.get_payload_offset_z_meter()
     p[:, 2] += payload_offset
 
@@ -161,6 +160,7 @@ def plot_payload_and_airflow_volume_teardrop_payload(payload, airflow_sampler, p
 
     fig = plt.figure(payload.name_in_xml)
     ax = fig.add_subplot(projection='3d')
+    
     ax.scatter(p[:, 0], p[:, 1], p[:, 2], color=col, alpha=alp)
 
     faces = []
@@ -185,18 +185,21 @@ def plot_payload_and_airflow_volume_teardrop_payload(payload, airflow_sampler, p
 
     ax.add_collection3d(Poly3DCollection(faces, facecolors='cyan', linewidths=1, edgecolors='k', alpha=.25))
 
-    all_points = np.vstack([p, vs])
-    x_limits = [np.min(all_points[:, 0]), np.max(all_points[:, 0])]
-    y_limits = [np.min(all_points[:, 1]), np.max(all_points[:, 1])]
-    z_limits = [np.min(all_points[:, 2]), np.max(all_points[:, 2])]
+    zoom_enabled = True
 
-    zoom_in_factor = 1.1
+    if zoom_enabled:
+        all_points = np.vstack([p, vs])
+        x_limits = [np.min(all_points[:, 0]), np.max(all_points[:, 0])]
+        y_limits = [np.min(all_points[:, 1]), np.max(all_points[:, 1])]
+        z_limits = [np.min(all_points[:, 2]), np.max(all_points[:, 2])]
 
-    ax.set_xlim([x_limits[0] - (x_limits[1] - x_limits[0]) * (1 - zoom_in_factor),
-                 x_limits[1] + (x_limits[1] - x_limits[0]) * (1 - zoom_in_factor)])
-    ax.set_ylim([y_limits[0] - (y_limits[1] - y_limits[0]) * (1 - zoom_in_factor),
-                 y_limits[1] + (y_limits[1] - y_limits[0]) * (1 - zoom_in_factor)])
-    ax.set_zlim([z_limits[0] - (z_limits[1] - z_limits[0]) * (1 - zoom_in_factor),
-                 z_limits[1] + (z_limits[1] - z_limits[0]) * (1 - zoom_in_factor)])
+        zoom_in_factor = 1.1
+
+        ax.set_xlim([x_limits[0] - (x_limits[1] - x_limits[0]) * (1 - zoom_in_factor),
+                    x_limits[1] + (x_limits[1] - x_limits[0]) * (1 - zoom_in_factor)])
+        ax.set_ylim([y_limits[0] - (y_limits[1] - y_limits[0]) * (1 - zoom_in_factor),
+                    y_limits[1] + (y_limits[1] - y_limits[0]) * (1 - zoom_in_factor)])
+        ax.set_zlim([z_limits[0] - (z_limits[1] - z_limits[0]) * (1 - zoom_in_factor),
+                    z_limits[1] + (z_limits[1] - z_limits[0]) * (1 - zoom_in_factor)])
 
     plt.show()

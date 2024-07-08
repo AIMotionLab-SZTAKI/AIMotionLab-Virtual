@@ -2,7 +2,7 @@ import os
 from aiml_virtual.simulator import ActiveSimulator
 from aiml_virtual.xml_generator import xml_generator
 from aiml_virtual.object.drone import Drone, DRONE_TYPES
-from aiml_virtual.object.payload import Payload, PAYLOAD_TYPES
+from aiml_virtual.object.payload import Payload, PAYLOAD_TYPES, MeshPart
 from aiml_virtual.trajectory.trajectory_base import TrajectoryBase
 from aiml_virtual.controller import LqrLoadControl, GeomControl
 import numpy as np
@@ -96,7 +96,8 @@ pressure_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_var
 velocity_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_velocity")
 airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, None, True, pressure_folder_path, True, velocity_folder_path)
 
-payload0.create_surface_mesh(0.005)
+payload0.create_surface_mesh(MeshPart.TOP, 0.005)
+payload0.create_surface_mesh(MeshPart.BOTTOM, 0.005)
 payload0.add_airflow_sampler(airflow_sampl0)
 
 simulator.pause()

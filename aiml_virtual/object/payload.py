@@ -295,11 +295,15 @@ class BoxPayload(Payload):
                 self._side_rectangle_positions_yz_pos_raw[(i * self._side_subdivision_z) + j] = np.array((pos_x, pos_y, pos_z))
 
 # TODO: use passed name_in_xml for the .stl path 
+class MeshPart(Enum):
+    TOP = 1
+    BOTTOM = 2
+
 class TeardropPayload(Payload):
     def __init__(self, model, data, name_in_xml) -> None:
         super().__init__(model, data, name_in_xml)
         
-        self._MINIMAL_Z = -0.03753486
+        self._MINIMAL_Z = -0.03733486
         self._triangles = None
         self._center_positions = None
         self._normals = None
@@ -328,7 +332,7 @@ class TeardropPayload(Payload):
 
     def get_data(self):
         pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._center_positions)
-        normals = mujoco_helper.qv_mult_opt(self.sensor_orimeter, self._normals)
+        normals = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._normals)
         return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._areas
 
     def get_bottom_data(self):
@@ -342,26 +346,38 @@ class TeardropPayload(Payload):
         return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._top_areas
 
     def _init_top_data(self):
-        treshold = 0.0015
-        mask = np.any(abs(self._triangles[:, :, 2] - self._MINIMAL_Z) < treshold, axis=1)
-        return self._triangles[~mask], self._center_positions[~mask], self._normals[~mask], self._areas[~mask]
-
-    def _init_bottom_data(self):
-        treshold = 0.0015
-        mask = np.any(abs(self._triangles[:, :, 2] - self._MINIMAL_Z) < treshold, axis=1)
+        mask = np.any(self._triangles[:, :, 2] > self._MINIMAL_Z, axis=1)
         return self._triangles[mask], self._center_positions[mask], self._normals[mask], self._areas[mask]
 
-    def create_surface_mesh(self, threshold_in_meters):
-        area_treshold = threshold_in_meters / 1000.0
-        mask = self._areas > area_treshold
+    def _init_bottom_data(self):
+        mask = np.any(self._triangles[:, :, 2] > self._MINIMAL_Z, axis=1)
+        return self._triangles[~mask], self._center_positions[~mask], self._normals[~mask], self._areas[~mask]
 
-        triangles_to_divide = self._triangles[mask]
-        normals_to_divide = self._normals[mask]
-        areas_to_divide = self._areas[mask]
+    def create_surface_mesh(self, which_part, threshold_in_meters):
+        if which_part == MeshPart.TOP:
+            triangles = self._top_triangles
+            normals = self._top_normals
+            areas = self._top_areas
+            center_positions = self._top_center_positions
 
-        triangles_kept = self._triangles[~mask]
-        normals_kept = self._normals[~mask]
-        areas_kept = self._areas[~mask]    
+        elif which_part == MeshPart.BOTTOM:
+            triangles = self._bottom_triangles
+            normals = self._bottom_normals
+            areas = self._bottom_areas
+            center_positions = self._bottom_center_positions
+        else:
+            raise ValueError("Invalid value for 'which_set'. Use 'top' or 'bottom'.")
+
+        area_threshold = threshold_in_meters / 1000.0
+        mask = areas > area_threshold
+
+        triangles_to_divide = triangles[mask]
+        normals_to_divide = normals[mask]
+        areas_to_divide = areas[mask]
+
+        triangles_kept = triangles[~mask]
+        normals_kept = normals[~mask]
+        areas_kept = areas[~mask]
 
         if len(triangles_to_divide) == 0:
             return
@@ -380,16 +396,26 @@ class TeardropPayload(Payload):
         new_normals = np.repeat(normals_to_divide, 4, axis=0)
         new_areas = np.repeat(areas_to_divide, 4, axis=0) / 4
         new_triangles = np.array(new_triangles)
+        
+        if which_part == MeshPart.TOP:
+            self._top_triangles = np.concatenate([triangles_kept, new_triangles])
+            self._top_normals = np.concatenate([normals_kept, new_normals])
+            self._top_areas = np.concatenate([areas_kept, new_areas])
+            self._top_center_positions = mutil.get_center_positions(self._top_triangles)
 
-        self._triangles = np.concatenate([triangles_kept, np.array(new_triangles)])
-        self._normals = np.concatenate([normals_kept, np.array(new_normals)])
-        self._areas = np.concatenate([areas_kept, np.array(new_areas)])
-        self._center_positions = mutil.get_center_positions(self._triangles)
+        elif which_part == MeshPart.BOTTOM:
+            self._bottom_triangles = np.concatenate([triangles_kept, new_triangles])
+            self._bottom_normals = np.concatenate([normals_kept, new_normals])
+            self._bottom_areas = np.concatenate([areas_kept, new_areas])
+            self._bottom_center_positions = mutil.get_center_positions(self._bottom_triangles)
 
-        self._bottom_triangles, self._bottom_center_positions, self._bottom_normals, self._bottom_areas = self._init_bottom_data()
-        self._top_triangles, self._top_center_positions, self._top_normals, self._top_areas = self._init_top_data()
+        self.create_surface_mesh(which_part, threshold_in_meters)
+        
+        self._triangles = np.concatenate([self._bottom_triangles, self._top_triangles])
+        self._center_positions = np.concatenate([self._bottom_center_positions, self._top_center_positions])
+        self._normals = np.concatenate([self._bottom_normals, self._top_normals])
+        self._areas = np.concatenate([self._bottom_areas, self._top_areas])
 
-        self.create_surface_mesh(threshold_in_meters)
 
     def _get_mid_points(self, triangles):
         return (triangles[:, [0, 1, 2], :] + triangles[:, [1, 2, 0], :]) / 2

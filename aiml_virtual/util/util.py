@@ -151,7 +151,7 @@ def plot_payload_and_airflow_volume_box_payload(payload, airflow_sampler, payloa
     plt.show()
 
 def plot_payload_and_airflow_volume_teardrop_payload(payload, airflow_sampler, payload_color: str = "tab:blue"):
-    p, pos, n, a = payload.get_top_data()
+    p, pos, n, a = payload.get_data()
     
     payload_offset = airflow_sampler.get_payload_offset_z_meter()
     p[:, 2] += payload_offset
@@ -190,7 +190,7 @@ def plot_payload_and_airflow_volume_teardrop_payload(payload, airflow_sampler, p
     y_limits = [np.min(all_points[:, 1]), np.max(all_points[:, 1])]
     z_limits = [np.min(all_points[:, 2]), np.max(all_points[:, 2])]
 
-    zoom_in_factor = 1
+    zoom_in_factor = 1.1
 
     ax.set_xlim([x_limits[0] - (x_limits[1] - x_limits[0]) * (1 - zoom_in_factor),
                  x_limits[1] + (x_limits[1] - x_limits[0]) * (1 - zoom_in_factor)])
@@ -198,5 +198,5 @@ def plot_payload_and_airflow_volume_teardrop_payload(payload, airflow_sampler, p
                  y_limits[1] + (y_limits[1] - y_limits[0]) * (1 - zoom_in_factor)])
     ax.set_zlim([z_limits[0] - (z_limits[1] - z_limits[0]) * (1 - zoom_in_factor),
                  z_limits[1] + (z_limits[1] - z_limits[0]) * (1 - zoom_in_factor)])
-    
+
     plt.show()

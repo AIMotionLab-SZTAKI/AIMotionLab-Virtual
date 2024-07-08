@@ -220,8 +220,11 @@ class AirflowSampler:
         pos_in_own_frame = pos_own_frame[condition]
         pos_traffed = pos_traffed[condition]
 
+        if normal.ndim > 1:
+            normal = normal[condition]
+            area = area[condition]
+        
         indices = np.rint(pos_traffed * 100).astype(np.int32)
-        #slow
 
         if self.USE_PRESSURE_DICTIONARY:
             lower_bound, upper_bound = self.loaded_pressures.get_lower_upper_bounds(abs_average_velocity)
@@ -235,7 +238,6 @@ class AirflowSampler:
         else:
             pressure_values = self.pressure_data[indices[:, 0], indices[:, 1], indices[:, 2]]
 
-        #slow
         forces = mujoco_helper.forces_from_pressures(normal, pressure_values, area)
 
         if self.USE_VELOCITY_DICTIONARY:

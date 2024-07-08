@@ -303,8 +303,9 @@ class TeardropPayload(Payload):
         self._center_positions = None
         self._normals = None
         self._areas = None
+        self.min = 3
+        self.max = -3
 
-        print(name_in_xml)
         self._init_default_values("./../xml_models/meshes/payload/payload_simplified.stl")
         self._bottom_triangles, self._bottom_center_positions, self._bottom_normals, self._bottom_areas = self._init_bottom_data()
         self._top_triangles, self._top_center_positions, self._top_normals, self._top_areas = self._init_top_data()
@@ -329,12 +330,12 @@ class TeardropPayload(Payload):
 
     def get_bottom_data(self):
         pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._bottom_center_positions)
-        normals = mujoco_helper.qv_mult_opt(self.sensor_orimeter, self._bottom_normals)
+        normals = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._bottom_normals)
         return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._bottom_areas
 
     def get_top_data(self):
         pos_in_own_frame = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._top_center_positions)
-        normals = mujoco_helper.qv_mult_opt(self.sensor_orimeter, self._top_normals)
+        normals = mujoco_helper.quat_vect_array_mult(self.sensor_orimeter, self._top_normals)
         return pos_in_own_frame + self.sensor_posimeter, pos_in_own_frame, normals, self._top_areas
 
     def _init_top_data(self):

@@ -7,6 +7,7 @@ from aiml_virtual.airflow.box_dictionary import BoxDictionary
 from aiml_virtual.object.drone import Drone
 from aiml_virtual.object.payload import Payload, BoxPayload, TeardropPayload
 import aiml_virtual.util.mujoco_helper as mujoco_helper
+import time
 
 class AirflowSampler:
 
@@ -163,13 +164,11 @@ class AirflowSampler:
 
         if isinstance(payload, BoxPayload):
             pos, pos_in_own_frame, normal, area = payload.get_top_rectangle_data()
-
             force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
             force_sum += force
             torque_sum += torque
 
             pos, pos_in_own_frame, normal, area = payload.get_bottom_rectangle_data()
-            
             force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
             force_sum += force
             #torque_sum += torque
@@ -200,21 +199,20 @@ class AirflowSampler:
             force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
             force_sum += force
             torque_sum += torque * 0
-            
+
         else:
             raise RuntimeError("payload not implemented!")
-
+        
         return force_sum, torque_sum
 
     def _gen_forces_one_side(self, pos, pos_own_frame, normal, area, abs_average_velocity):
         selfposition, selforientation = self.get_position_orientation()
-
         pos_traffed = pos - selfposition
         pos_traffed = mujoco_helper.quat_vect_array_mult_passive(selforientation, pos_traffed)
-
+        
         #pos_traffed[:, 2] += self._payload_offset_z_meter
         #pt = np.copy(pos_traffed)
-
+        
         condition = (pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & \
                     (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) & \
                     (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit)
@@ -223,6 +221,7 @@ class AirflowSampler:
         pos_traffed = pos_traffed[condition]
 
         indices = np.rint(pos_traffed * 100).astype(np.int32)
+        #slow
 
         if self.USE_PRESSURE_DICTIONARY:
             lower_bound, upper_bound = self.loaded_pressures.get_lower_upper_bounds(abs_average_velocity)
@@ -236,6 +235,7 @@ class AirflowSampler:
         else:
             pressure_values = self.pressure_data[indices[:, 0], indices[:, 1], indices[:, 2]]
 
+        #slow
         forces = mujoco_helper.forces_from_pressures(normal, pressure_values, area)
 
         if self.USE_VELOCITY_DICTIONARY:
@@ -246,7 +246,7 @@ class AirflowSampler:
             upper_velocity_values = upper_velocities[indices[:, 0], indices[:, 1], indices[:, 2]]
             
             velocity_values = self.loaded_velocities.get_interpolated_array(abs_average_velocity, upper_velocity_values, lower_velocity_values, upper_bound, lower_bound)
-                    
+
         elif self.use_velocity:
             velocity_values = self.velocity_data[indices[:, 0], indices[:, 1], indices[:, 2]]
 
@@ -262,5 +262,4 @@ class AirflowSampler:
 
         force_sum = np.sum(forces, axis=0)
         torque_sum = np.sum(torques, axis=0)
-
         return force_sum, torque_sum

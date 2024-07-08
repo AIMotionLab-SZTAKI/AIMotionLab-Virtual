@@ -10,7 +10,6 @@ from collections import deque
 from sympy import diff, sin, acos, lambdify
 from sympy.abc import x as sympyx
 from PIL import Image
-from numba import njit
 
 class LiveFilter:
     """Base class for live filters.
@@ -207,20 +206,6 @@ def qv_mult(q1, v1):
     q2 = np.append(0.0, v1)
     return quaternion_multiply(q_conjugate(q1), quaternion_multiply(q2, q1))[1:]
 
-@njit
-def q_conjugate_opt(q):
-    return np.array([q[0], -q[1], -q[2], -q[3]])
-
-def quaternion_multiply_opt(q0, q1):
-    w0, x0, y0, z0 = np.split(q0, 4, axis=-1)
-    w1, x1, y1, z1 = np.split(q1, 4, axis=-1)
-    return np.concatenate([-x1*x0 - y1*y0 - z1*z0 + w1*w0, x1*w0 + y1*z0 - z1*y0 + w1*x0, -x1*z0 + y1*w0 + z1*x0 + w1*y0, x1*y0 - y1*x0 + z1*w0 + w1*z0], axis=-1)
-
-def qv_mult_opt(q, v):
-    q2 = np.concatenate([np.zeros((v.shape[0], 1)), v], axis=-1)
-    res = quaternion_multiply_opt(q_conjugate_opt(q), quaternion_multiply_opt(q2, q))[:, 1:]
-    return res
-
 def qv_mult_passive(q1, v1):
     q2 = np.append(0.0, v1)
     return quaternion_multiply(quaternion_multiply(q1, q2), q_conjugate(q1))[1:]
@@ -251,7 +236,6 @@ def quat_quat_array_multiply(quat, quat_array):
 
 
 def quat_array_quat_array_multiply(quat_array0, quat_array1):
-
     w0, x0, y0, z0 = quat_array0[:, 0], quat_array0[:, 1], quat_array0[:, 2], quat_array0[:, 3]
     w1, x1, y1, z1 = quat_array1[:, 0], quat_array1[:, 1], quat_array1[:, 2], quat_array1[:, 3]
     return np.stack((-x1*x0 - y1*y0 - z1*z0 + w1*w0,

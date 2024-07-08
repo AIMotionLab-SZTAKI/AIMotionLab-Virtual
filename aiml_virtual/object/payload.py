@@ -6,6 +6,7 @@ from stl import mesh
 import numpy as np
 import math
 import time
+import os
 
 class PAYLOAD_TYPES(Enum):
     Box = "Box"
@@ -306,7 +307,9 @@ class TeardropPayload(Payload):
         self.min = 3
         self.max = -3
 
-        self._init_default_values("./../xml_models/meshes/payload/payload_simplified.stl")
+        abs_path = os.path.dirname(os.path.abspath(__file__))
+        payload_stl_path = os.path.join(abs_path, "..", "..", "xml_models", "meshes", "payload", "payload_simplified.stl")
+        self._init_default_values(payload_stl_path)
         self._bottom_triangles, self._bottom_center_positions, self._bottom_normals, self._bottom_areas = self._init_bottom_data()
         self._top_triangles, self._top_center_positions, self._top_normals, self._top_areas = self._init_top_data()
 

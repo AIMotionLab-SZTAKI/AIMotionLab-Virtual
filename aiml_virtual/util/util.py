@@ -151,7 +151,7 @@ def plot_payload_and_airflow_volume_box_payload(payload, airflow_sampler, payloa
     plt.show()
 
 def plot_payload_and_airflow_volume_teardrop_payload(payload, airflow_sampler, payload_color: str = "tab:blue"):
-    p, pos, n, a = payload.get_top_data()
+    p, pos, n, a = payload.get_bottom_data()
     payload_offset = airflow_sampler.get_payload_offset_z_meter()
     p[:, 2] += payload_offset
 
@@ -185,7 +185,7 @@ def plot_payload_and_airflow_volume_teardrop_payload(payload, airflow_sampler, p
 
     ax.add_collection3d(Poly3DCollection(faces, facecolors='cyan', linewidths=1, edgecolors='k', alpha=.25))
 
-    zoom_enabled = True
+    zoom_enabled = False
 
     if zoom_enabled:
         all_points = np.vstack([p, vs])

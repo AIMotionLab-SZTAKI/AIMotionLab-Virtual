@@ -309,7 +309,7 @@ class TeardropPayload(Payload):
 
         self._MIN_Z = None
         self._MAX_Z = None
-        self._TOP_BOTTOM_RATIO = 0.1
+        self._TOP_BOTTOM_RATIO = 0.005
 
         abs_path = os.path.dirname(os.path.abspath(__file__))
         payload_stl_path = os.path.join(abs_path, "..", "..", "xml_models", "meshes", "payload", "dropbox_base_v0_external.stl")

@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 import numpy as np
+import time
 
 
 class DummyHoverTraj(TrajectoryBase):
@@ -93,7 +94,7 @@ velocity_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_l
 
 pressure_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_pressure")
 velocity_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_velocity")
-airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, None, True, pressure_folder_path)
+airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, None, True, pressure_folder_path, True, velocity_folder_path)
 
 payload0.create_surface_mesh(0.005)
 payload0.add_airflow_sampler(airflow_sampl0)
@@ -101,7 +102,6 @@ payload0.add_airflow_sampler(airflow_sampl0)
 simulator.pause()
 while not simulator.glfw_window_should_close():
     simulator.update()
-
+    
 simulator.close()
-
 plot_payload_and_airflow_volume(payload0, airflow_sampl0, "black")

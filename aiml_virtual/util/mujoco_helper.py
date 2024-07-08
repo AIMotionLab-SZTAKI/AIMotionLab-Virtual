@@ -285,7 +285,7 @@ def forces_from_velocities(normal, velocity, area):
     if normal.ndim == 1:
         F = velocity * density * area * np.dot(velocity, -normal).reshape(-1, 1)
     else:
-        F = velocity * density * area * np.sum(velocity * (-normal), axis=1).reshape(-1, 1)
+        F = velocity * density * np.expand_dims(area, axis=1) * np.sum(velocity * (-normal), axis=1).reshape(-1, 1)
     return F
 
 def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None, elev_offs=30):

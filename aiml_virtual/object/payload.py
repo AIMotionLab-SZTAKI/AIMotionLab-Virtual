@@ -421,6 +421,5 @@ class TeardropPayload(Payload):
         self._normals = np.concatenate([self._bottom_normals, self._top_normals])
         self._areas = np.concatenate([self._bottom_areas, self._top_areas])
 
-
     def _get_mid_points(self, triangles):
         return (triangles[:, [0, 1, 2], :] + triangles[:, [1, 2, 0], :]) / 2

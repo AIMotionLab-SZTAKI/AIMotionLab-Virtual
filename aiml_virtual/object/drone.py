@@ -5,6 +5,7 @@ from enum import Enum
 from aiml_virtual.object.moving_object import MovingObject, MocapObject
 from aiml_virtual.util import mujoco_helper
 from scipy.spatial.transform import Rotation
+from aiml_virtual.airflow import WindSampler
 
 class SPIN_DIR(Enum):
     CLOCKWISE = 1
@@ -117,8 +118,8 @@ class Drone(MovingObject):
         }
         
         self.ctrl_input = np.zeros(4)
-        
-    
+        self._wind_samplers = []
+
     def _create_input_matrix(self, Lx1, Lx2, Ly, motor_param):
 
         self.input_mtx = np.array([[1/4, -1/(4*Ly), -1/(4*Lx2),  1 / (4*motor_param)],
@@ -126,7 +127,6 @@ class Drone(MovingObject):
                                   [1/4,  1/(4*Ly),   1/(4*Lx1),  1 / (4*motor_param)],
                                   [1/4,  1/(4*Ly),  -1/(4*Lx2), -1 / (4*motor_param)]])
 
-    
     def get_state(self):
 
         return self.state
@@ -142,11 +142,19 @@ class Drone(MovingObject):
         }
         return state
 
-    
     def update(self, i, control_step):
 
         self.spin_propellers()
 
+        """
+        # wind force logic
+        if len(self._wind_samplers) > 0:
+            force = np.array([0.0, 0.0, 0.0])
+            for wind_sampler in self._wind_samplers:
+                f = wind_sampler.generate_forces(self)
+                force += f
+            self.set_force(force)
+        """
 
         if self.trajectory is not None:
 
@@ -165,6 +173,16 @@ class Drone(MovingObject):
             #else:
             #    print("[Drone] Error: ctrl was None")
     
+    def set_force(self, force):
+        self.qfrc_applied[0] = force[0]
+        self.qfrc_applied[1] = force[1]
+        self.qfrc_applied[2] = force[2]
+
+    def add_wind_sampler(self, wind_sampler):
+        if isinstance(wind_sampler, WindSampler):
+            self._wind_samplers.append(wind_sampler)
+        else:
+            raise Exception("[Drone] The received object is not of type WindSampler.")
     
     def get_mass(self):
         return self.mass

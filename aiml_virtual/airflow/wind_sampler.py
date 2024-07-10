@@ -1,7 +1,5 @@
 import math
 import numpy as np
-import os
-import glob
 
 class WindSampler:
     def __init__(self, wind_data_filename):
@@ -15,14 +13,13 @@ class WindSampler:
 
     def generate_forces(self, drone):
         drone_speed = drone.get_qvel()
-        drone_position = drone.get_qpos()
-        wind_speed = self._get_wind_speed(drone_position)
+        wind_speed = self._get_wind_speed(drone_speed)
         x = wind_speed - drone_speed
         alpha = np.power(10, -2) * np.array([3.3, 2.7, 2.2])
         phi = np.diag(x)
         return np.dot(phi, alpha)
 
-    def _get_wind_speed(self, drone_position):
+    def _get_wind_speed(self, drone_speed):
         """
             we return the corresponding wind_speed from the self._loaded_wind_velocities data
         """

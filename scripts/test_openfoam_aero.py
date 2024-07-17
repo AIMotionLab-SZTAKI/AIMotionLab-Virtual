@@ -8,6 +8,7 @@ from aiml_virtual.controller import LqrLoadControl, GeomControl
 import numpy as np
 import matplotlib.pyplot as plt
 from aiml_virtual.airflow import AirflowSampler
+from aiml_virtual.wind_flow.wind_sampler import WindSampler
 from aiml_virtual.object import parseMovingObjects
 from aiml_virtual.util import plot_payload_and_airflow_volume
 
@@ -89,16 +90,19 @@ drone0.set_controllers(drone0_controllers)
 
 pressure_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_pressure.txt")
 velocity_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_velocity.txt")
-
 #airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0)
 
 pressure_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_pressure")
 velocity_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_velocity")
 airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, None, True, pressure_folder_path, True, velocity_folder_path)
 
+wind_velocity_filename = os.path.join(abs_path, "..", "airflow_data", "wind_data", "wind_1ms_0deg.csv")
+wind_sampler = WindSampler(wind_velocity_filename)
+
 payload0.create_surface_mesh(MeshPart.TOP, 0.005)
 payload0.create_surface_mesh(MeshPart.BOTTOM, 0.001)
 payload0.add_airflow_sampler(airflow_sampl0)
+drone0.add_wind_sampler(wind_sampler)
 
 simulator.pause()
 while not simulator.glfw_window_should_close():

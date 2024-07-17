@@ -1,7 +1,5 @@
 import numpy as np
 
-# TODO: in the get_corresponding_velocity functions division in the return statement
-# should be removed later
 class CuboidArray:
     def __init__(self, wind_data_filepath):
         self._RESOLUTION = np.array([56, 125, 91])
@@ -38,7 +36,7 @@ class CuboidArray:
         translation = new_bottom_left_corner - self._bottom_left
         translated_position = drone_position + translation
         length_vector = np.array([self._x_length, self._y_length, self._z_length])
-        return np.round((translated_position * self._RESOLUTION) / length_vector).astype(int)
+        return np.floor((translated_position * self._RESOLUTION) / length_vector).astype(int)
 
     def get_corresponding_vector(self, drone_position):
         indices = self.get_indices_from_position(drone_position)
@@ -51,4 +49,4 @@ class CuboidArray:
             raise ValueError("Drone out of simulation space!")
 
         indices = self.get_indices_from_position(drone_position)
-        return self._velocities[indices[2], indices[1], indices[0]] / 10000
+        return self._velocities[indices[2], indices[1], indices[0]]

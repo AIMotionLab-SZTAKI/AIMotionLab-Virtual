@@ -44,9 +44,9 @@ class CuboidArray:
 
     def get_corresponding_velocity(self, drone_position):
         if (drone_position[0] < self._bottom_left[0] or drone_position[1] < self._bottom_left[1] or drone_position[2] < self._bottom_left[2]):
-            raise ValueError("Drone out of simulation space!")
+            raise ValueError("Drone exceeded wind simulation space!")
         if (drone_position[0] > self._top_right[0] or drone_position[1] > self._top_right[1] or drone_position[2] > self._top_right[2]):
-            raise ValueError("Drone out of simulation space!")
+            raise ValueError("Drone exceeded wind simulation space!")
 
         indices = self.get_indices_from_position(drone_position)
         return self._velocities[indices[2], indices[1], indices[0]]

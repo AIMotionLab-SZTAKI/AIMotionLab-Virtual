@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from aiml_virtual.airflow import AirflowSampler
 from aiml_virtual.wind_flow.wind_sampler import WindSampler
 from aiml_virtual.object import parseMovingObjects
-
+import glob
 
 class DummyHoverTraj(TrajectoryBase):
 
@@ -67,8 +67,9 @@ drone0 = simulator.get_MovingObject_by_name_in_xml(drone0_name)
 
 drone0_trajectory = DummyHoverTraj(0.0, drone_init_pos[0:3])
 
-wind_velocity_filename = os.path.join(abs_path, "..", "airflow_data", "wind_data", "wind_1ms_0deg.csv")
-wind_sampler = WindSampler(wind_velocity_filename)
+wind_velocity_folder = os.path.join(abs_path, "..", "airflow_data", "wind_data")
+wind_velocity_filenames = glob.glob(os.path.join(wind_velocity_folder, '*'))
+wind_sampler = WindSampler(wind_velocity_filenames)
 drone0.add_wind_sampler(wind_sampler)
 
 

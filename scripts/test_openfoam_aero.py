@@ -18,6 +18,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 import numpy as np
 import time
+import glob
 
 
 class DummyHoverTraj(TrajectoryBase):
@@ -96,8 +97,10 @@ pressure_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_var
 velocity_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_velocity")
 airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, None, True, pressure_folder_path, True, velocity_folder_path)
 
-wind_velocity_filename = os.path.join(abs_path, "..", "airflow_data", "wind_data", "wind_1ms_0deg.csv")
-wind_sampler = WindSampler(wind_velocity_filename)
+wind_velocity_folder = os.path.join(abs_path, "..", "airflow_data", "wind_data")
+wind_velocity_filenames = glob.glob(os.path.join(wind_velocity_folder, '*'))
+wind_sampler = WindSampler(wind_velocity_filenames)
+drone0.add_wind_sampler(wind_sampler)
 
 payload0.create_surface_mesh(MeshPart.TOP, 0.005)
 payload0.create_surface_mesh(MeshPart.BOTTOM, 0.001)

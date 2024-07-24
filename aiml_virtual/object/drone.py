@@ -145,12 +145,7 @@ class Drone(MovingObject):
     def update(self, i, control_step):
         self.spin_propellers()
 
-        if len(self._wind_samplers) > 0:
-            force = np.array([0.0, 0.0, 0.0])
-            for wind_sampler in self._wind_samplers:
-                f = wind_sampler.generate_forces(self)
-                force += f
-            self.set_force(force)
+        self._update_wind_forces()
 
         if self.trajectory is not None:
 
@@ -169,6 +164,14 @@ class Drone(MovingObject):
             #else:
             #    print("[Drone] Error: ctrl was None")
     
+    def _update_wind_forces(self):
+        if len(self._wind_samplers) > 0:
+            force = np.array([0.0, 0.0, 0.0])
+            for wind_sampler in self._wind_samplers:
+                f = wind_sampler.generate_forces(self)
+                force += f
+            self.set_force(force)
+
     def set_force(self, force):
         self.qfrc_applied[0] = force[0]
         self.qfrc_applied[1] = force[1]
@@ -451,12 +454,7 @@ class DroneHooked(Drone):
     def update(self, i, control_step):
         self.spin_propellers()
 
-        if len(self._wind_samplers) > 0:
-            force = np.array([0.0, 0.0, 0.0])
-            for wind_sampler in self._wind_samplers:
-                f = wind_sampler.generate_forces(self)
-                force += f
-            self.set_force(force)
+        self._update_wind_forces()
 
         if self.trajectory is not None:
 

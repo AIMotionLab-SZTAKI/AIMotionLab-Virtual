@@ -14,6 +14,7 @@ class CuboidArray:
         self._load_wind_data(wind_data_filepath)
 
     def _load_wind_data(self, wind_data_filepath):
+
         data = np.genfromtxt(wind_data_filepath, delimiter=',')
         self._vectors = data[1:, 0:3]
         self._velocities = data[1:, 3:6]
@@ -27,9 +28,9 @@ class CuboidArray:
         self._y_length = abs(self._bottom_left[1]) + abs(self._top_right[1])
         self._z_length = abs(self._bottom_left[2]) + abs(self._top_right[2])
     
-        new_dimension = (self._RESOLUTION[2], self._RESOLUTION[1], self._RESOLUTION[0], 3)
-        self._vectors = self._vectors.reshape(new_dimension)
-        self._velocities = self._velocities.reshape(new_dimension)
+        cuboid_dimensions = (self._RESOLUTION[2], self._RESOLUTION[1], self._RESOLUTION[0], 3)
+        self._vectors = self._vectors.reshape(cuboid_dimensions)
+        self._velocities = self._velocities.reshape(cuboid_dimensions)
 
     def get_indices_from_position(self, drone_position):
         new_bottom_left_corner = np.array([0., 0., 0.])

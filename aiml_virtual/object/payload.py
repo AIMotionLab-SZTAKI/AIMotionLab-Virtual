@@ -312,7 +312,7 @@ class TeardropPayload(Payload):
         self._TOP_BOTTOM_RATIO = 0.005
 
         abs_path = os.path.dirname(os.path.abspath(__file__))
-        payload_stl_path = os.path.join(abs_path, "..", "..", "xml_models", "meshes", "payload", "dropbox_base_v0_external.stl")
+        payload_stl_path = os.path.join(abs_path, "..", "..", "xml_models", "meshes", "payload", name_in_xml + ".stl")
         self._init_default_values(payload_stl_path)
         self._bottom_triangles, self._bottom_center_positions, self._bottom_normals, self._bottom_areas = self._init_bottom_data()
         self._top_triangles, self._top_center_positions, self._top_normals, self._top_areas = self._init_top_data()

@@ -36,10 +36,11 @@ class TrailerPredictor:
                  payload_type: Literal[PAYLOAD_TYPES.Box, PAYLOAD_TYPES.Teardrop] = PAYLOAD_TYPES.Teardrop,
                  with_terrain=False, with_graphics=False):
         self.payload_type = payload_type
+        self.with_terrain = with_terrain
         # Initialize simulation
         abs_path = os.path.dirname(os.path.abspath(__file__))
         xml_path = os.path.join(abs_path, "..", "..", "xml_models")
-        if not with_terrain:
+        if not self.with_terrain:
             xml_base_filename = "scene_base.xml"
         else:
             xml_base_filename = "scene_base_indoor_hfield.xml"
@@ -62,8 +63,13 @@ class TrailerPredictor:
         car_name = scene.add_car(pos=np.array2string(car_pos)[1:-1], quat=car_quat, color=RED,
                                  is_virtual=True, has_rod=False, has_trailer=True)
         trailer_name = car_name + "_trailer"
-        payload_name = scene.add_payload(pos=np.array2string(payload_pos)[1:-1], size="0.05 0.05 0.05", mass="0.01",
+        payload_name = scene.add_payload(pos=np.array2string(payload_pos)[1:-1], size="0.05 0.05 0.05", mass="0.1",
                                          quat=payload_quat, color=BLACK, type=self.payload_type)
+
+        if self.with_terrain:
+            self.terrain = []
+            for _ in range(6):
+                self.terrain.append(scene.add_moving_terrain("0 0 0"))
 
         # saving the scene as xml so that the simulator can load it
         scene.save_xml(os.path.join(xml_path, save_filename))
@@ -71,7 +77,7 @@ class TrailerPredictor:
         # create list of parsers
         virt_parsers = [parseMovingObjects]
 
-        control_step, graphics_step = 0.01, 0.02
+        control_step, graphics_step = 0.025, 0.05
         xml_filename = os.path.join(xml_path, save_filename)
 
         # initializing simulator
@@ -104,7 +110,7 @@ class TrailerPredictor:
                                      np.zeros(6), rod_yaw, 0, 0, 0,
                                      np.nan * payload_pos, np.nan * np.fromstring(payload_quat, sep=" ")))
 
-    def simulate(self, init_state, cur_time, prediction_time, predicted_obj='payload'):
+    def simulate(self, init_state, cur_time, prediction_time, predicted_obj='payload', num_ter=None):
         # reset simulation
         self.simulator.reset_data()
         self.simulator.goto(cur_time)
@@ -137,6 +143,12 @@ class TrailerPredictor:
         #self.simulator.pause()
         for _ in range(int(prediction_time / self.simulator.control_step)):
             self.simulator.update()
+            if num_ter is not None:
+                for i in range(len(self.terrain)):
+                    if i == num_ter:
+                        self.simulator.data.mocap_pos[i][-1] = 0
+                    else:
+                        self.simulator.data.mocap_pos[i][-1] = -10
             # self.simulator.pause()
             # get predicted_obj state and save
             if predicted_obj == 'payload':
@@ -154,9 +166,14 @@ class TrailerPredictor:
                                               self.payload.sensor_orimeter))]
 
         payload_predicted_points = np.asarray(payload_trajectory)
+        for j in range(10):
+            payload_vel_noisy = payload_predicted_points[:, 3:6]
+            for i in range(1, payload_predicted_points.shape[0]-1):
+                payload_predicted_points[i, 3:6] = 0.3 * payload_vel_noisy[i-1] + 0.3 * payload_vel_noisy[i+1] + 0.4 * payload_vel_noisy[i]
+        
         #payload_predicted_points[:20, 3:6] = payload_predicted_points[20, 3:6]
         #plt.figure()
-        #plt.plot(payload_predicted_points[:, 3:5])
+        #plt.plot(payload_predicted_points[:, 3:6])
         #plt.show()
 
         trailer_yaw_0 = Rotation.from_matrix(Rotation.from_quat(np.roll(init_state[3:7], -1)).as_matrix() @

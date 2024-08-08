@@ -24,10 +24,10 @@ class CuboidArray:
         self._velocities = self._velocities[sorted_indices]
         self._bottom_left = self._vectors[0]
         self._top_right = self._vectors[-1]
-        self._x_length = abs(self._bottom_left[0]) + abs(self._top_right[0])
-        self._y_length = abs(self._bottom_left[1]) + abs(self._top_right[1])
-        self._z_length = abs(self._bottom_left[2]) + abs(self._top_right[2])
-    
+        self._x_length = abs(self._bottom_left[0] - self._top_right[0])
+        self._y_length = abs(self._bottom_left[1] - self._top_right[1])
+        self._z_length = abs(self._bottom_left[2] - self._top_right[2])
+
         cuboid_dimensions = (self._RESOLUTION[2], self._RESOLUTION[1], self._RESOLUTION[0], 3)
         self._vectors = self._vectors.reshape(cuboid_dimensions)
         self._velocities = self._velocities.reshape(cuboid_dimensions)

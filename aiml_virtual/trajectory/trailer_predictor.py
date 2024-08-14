@@ -32,7 +32,7 @@ def get_car_trajectory():
 
 
 class TrailerPredictor:
-    def __init__(self, car_trajectory: CarTrajectory, 
+    def __init__(self, car_trajectory: CarTrajectory,
                  payload_type: Literal[PAYLOAD_TYPES.Box, PAYLOAD_TYPES.Teardrop] = PAYLOAD_TYPES.Teardrop,
                  with_terrain=False, with_graphics=False):
         self.payload_type = payload_type
@@ -110,7 +110,7 @@ class TrailerPredictor:
                                      np.zeros(6), rod_yaw, 0, 0, 0,
                                      np.nan * payload_pos, np.nan * np.fromstring(payload_quat, sep=" ")))
 
-    def simulate(self, init_state, cur_time, prediction_time, predicted_obj='payload', num_ter=None):
+    def simulate(self, init_state, cur_time, prediction_time, mujoco_state=None, predicted_obj='payload', num_ter=None):
         # reset simulation
         self.simulator.reset_data()
         self.simulator.goto(cur_time)
@@ -118,29 +118,44 @@ class TrailerPredictor:
         # set initial states
         # state: car position, orientation, velocity, angular velocity; car_to_rod orientation, ang_vel;
         # front_to_rear orientation, ang_vel; payload position, orientation  --  ndim = 24
-        self.car.joint.qpos = init_state[0:7]
-        self.car.joint.qvel = init_state[7:13]
-        self.car_to_rod.qpos = np.roll(Rotation.from_euler('xyz', [0, self.rod_pitch, init_state[13]]).as_quat(), 1)
-        self.car_to_rod.qvel = np.array([0, 0, init_state[14]])
-        self.rod_to_front.qpos = -self.rod_pitch
-        self.front_to_rear.qpos = init_state[15]
-        self.front_to_rear.qvel = init_state[16]
+        if mujoco_state is None:
+            self.car.joint.qpos = init_state[0:7]
+            self.car.joint.qvel = init_state[7:13]
+            self.car_to_rod.qpos = np.roll(Rotation.from_euler('xyz', [0, self.rod_pitch, init_state[13]]).as_quat(), 1)
+            self.car_to_rod.qvel = np.array([0, 0, init_state[14]])
+            self.rod_to_front.qpos = -self.rod_pitch
+            self.front_to_rear.qpos = init_state[15]
+            self.front_to_rear.qvel = init_state[16]
+        else:
+            self.simulator.data.qpos[:30] = mujoco_state[:30]
+            self.simulator.data.qvel[:27] = mujoco_state[30:]
 
         self.simulator.update()
-        if np.isnan(np.sum(init_state[17:24])):  # Compute payload configuration from trailer configuration
-            self.payload.qpos[0:2] = self.car.data.site(self.car.name_in_xml + "_trailer_middle").xpos[0:2]
-            self.payload.qpos[2] = self.trailer_top_plate_height
-            payload_rotm = np.reshape(self.car.data.site(self.car.name_in_xml + "_trailer_middle").xmat, (3, 3))
-            payload_quat = Rotation.from_matrix(payload_rotm).as_quat()
-            self.payload.qpos[3:7] = np.roll(payload_quat, 1)
-        else:
-            self.payload.data.qpos[-7:] = init_state[17:24]  # TODO
-            self.payload.data.qpos[-5] = self.trailer_top_plate_height
-            self.payload.data.qvel[-6:] = init_state[7:13] # init_state[24:27]  # TODO
+        if mujoco_state is None:
+            if np.isnan(np.sum(init_state[17:24])):  # Compute payload configuration from trailer configuration
+                self.payload.qpos[0:2] = self.car.data.site(self.car.name_in_xml + "_trailer_middle").xpos[0:2]
+                self.payload.qpos[2] = self.trailer_top_plate_height
+                payload_rotm = np.reshape(self.car.data.site(self.car.name_in_xml + "_trailer_middle").xmat, (3, 3))
+                payload_quat = Rotation.from_matrix(payload_rotm).as_quat()
+                self.payload.qpos[3:7] = np.roll(payload_quat, 1)
+            else:
+                self.payload.data.qpos[-7:] = init_state[17:24]  # TODO
+                self.payload.data.qpos[-5] = self.trailer_top_plate_height
+                self.payload.data.qvel[-6:] = init_state[7:13] # init_state[24:27]  # TODO
         # start simulation
         payload_trajectory = []  # maybe preallocate numpy array later
         #self.simulator.update()
         #self.simulator.pause()
+
+        if mujoco_state is not None:
+            car_to_rod = self.car.data.joint("car_to_rod")  # ball joint
+            rod_yaw = Rotation.from_quat(np.roll(car_to_rod.qpos, -1)).as_euler('xyz')[2]
+            front_to_rear = self.car.data.joint("front_to_rear").qpos  # hinge joint
+            trailer_yaw_0 = Rotation.from_matrix(Rotation.from_quat(np.roll(mujoco_state[3:7], -1)).as_matrix() @
+                                Rotation.from_euler('xyz', [0, 0, rod_yaw]).as_matrix() @
+                                Rotation.from_euler('xyz', [0, 0, front_to_rear]).as_matrix()).as_euler(
+                                "xyz")[2]
+
         for _ in range(int(prediction_time / self.simulator.control_step)):
             self.simulator.update()
             if num_ter is not None:
@@ -176,10 +191,11 @@ class TrailerPredictor:
         #plt.plot(payload_predicted_points[:, 3:6])
         #plt.show()
 
-        trailer_yaw_0 = Rotation.from_matrix(Rotation.from_quat(np.roll(init_state[3:7], -1)).as_matrix() @
-                            Rotation.from_euler('xyz', [0, 0, init_state[13]]).as_matrix() @
-                            Rotation.from_euler('xyz', [0, 0, init_state[15]]).as_matrix()).as_euler(
-                            "xyz")[2]
+        if mujoco_state is None:
+            trailer_yaw_0 = Rotation.from_matrix(Rotation.from_quat(np.roll(init_state[3:7], -1)).as_matrix() @
+                                Rotation.from_euler('xyz', [0, 0, init_state[13]]).as_matrix() @
+                                Rotation.from_euler('xyz', [0, 0, init_state[15]]).as_matrix()).as_euler(
+                                "xyz")[2]
         load_yaw_0 = Rotation.from_quat(payload_predicted_points[1, [7, 8, 9, 6]]).as_euler('xyz')[2]
         load_yaw_rel = load_yaw_0 - trailer_yaw_0
         while load_yaw_rel > np.pi:
@@ -216,7 +232,7 @@ class DummyPredictor(TrailerPredictor):
         self.payload_nominal_points = self.simulate(self.init_state, self.prediction_time)
         self.payload_disturbed_points = self.simulate(self.init_state, self.prediction_time,
                                                       np.array([0.05, 0.05, 0]))
-    
+
     def simulate(self, init_state, prediction_time, payload_pos_error=np.zeros(3)):
         # reset simulation
         self.simulator.goto(0)
@@ -253,7 +269,7 @@ class DummyPredictor(TrailerPredictor):
                                               self.payload.sensor_velocimeter,
                                               self.payload.sensor_orimeter))]
         return np.asarray(payload_trajectory)
-    
+
     def payload_pos(self, t, disturbed):
         t_interp = np.linspace(0, self.prediction_time, self.payload_nominal_points.shape[0])
         if not disturbed:

@@ -32,7 +32,15 @@ car_trajectory = CarTrajectory()
 
 # Scenario #1
 path_points = np.roll(paperclip(), shift=13, axis=0)
-drone_init_pos = np.array([0*-1, 0*-1.13, 1.1, 0])  # initial drone position and yaw angle
+
+scenarios = [
+    [np.array([1, 1, 1.1, 0]), 0.6, 135, 8.2],
+    [np.array([1, 0, 1.1, 0]), 0.8, 45, 8.2],
+    [np.array([-0.5, -1.5, 1.1, 0]), 0.8, 0, 8.2],
+    [np.array([-1, 0.5, 1.1, 0]), 1.0, 0, 8.]
+]
+num_scen = 2
+drone_init_pos = scenarios[num_scen][0]  # initial drone position and yaw angle
 load_target_pos = np.array([1, 1.13, 0.25])
 
 # Scenario #2
@@ -40,7 +48,7 @@ load_target_pos = np.array([1, 1.13, 0.25])
 # drone_init_pos = np.array([1, 1.13, 1.1, 0])  # initial drone position and yaw angle
 # load_target_pos = np.array([1, 1.13, 0.19])
 car_trajectory.build_from_points_const_speed(path_points=path_points, path_smoothing=1e-4, path_degree=5,
-                                             const_speed=0.6)
+                                             const_speed=scenarios[num_scen][1])
 
 car_pos = np.array([car_trajectory.pos_tck[1][0][0], car_trajectory.pos_tck[1][1][0], 0.052])
 heading_smoothing_index = 5
@@ -52,7 +60,7 @@ car_rot = np.array([[np.cos(car_heading), -np.sin(car_heading), 0],
                     [0, 0, 1]])
 payload_offset = np.array([-0.5, 0, 0.08])
 payload_pos = car_pos + car_rot @ payload_offset
-payload_quat = carHeading2quaternion(car_heading+np.deg2rad(-170))
+payload_quat = carHeading2quaternion(car_heading+np.deg2rad(scenarios[num_scen][2]))
 
 
 # create xml with car, trailer, payload, and bumblebee
@@ -88,7 +96,7 @@ load_init_pos, load_init_vel, load_init_yaw, load_yaw_rel = predictor.simulate(i
 
 # Plan trajectory
 bb_trajectory.construct(drone_init_pos[0:3]-np.array([0, 0, 0.4]), drone_init_pos[3], [load_init_pos, load_init_vel],
-                        [load_init_yaw, load_yaw_rel], load_target_pos, 0, load_mass, grasp_speed=1.5)
+                        [load_init_yaw, load_yaw_rel], load_target_pos, 0, load_mass, grasp_speed=1.3)
 
 # Compute control gains
 bb_controller.setup_hook_up(bb_trajectory, hook_mass=0.02, payload_mass=load_mass)

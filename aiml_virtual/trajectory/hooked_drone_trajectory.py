@@ -1161,12 +1161,21 @@ class HookedDroneNLTrajectory(HookedDronePolyTrajectory):
 
         self.states = x_f
         self.inputs = u_f
+        # t = np.linspace(0, 15, 200)
+        # plt.figure()
+        # plt.plot(self.states(t)[:, 0:3])
+        # plt.show()
         self.t = planner.ref.t
         self.x = planner.ref.x
         self.y = planner.ref.y
         self.z = planner.ref.z
         self.yaw = planner.ref.yaw
         self.segment_times = planner.ref.segment_times
+        # save trajectories until grasping
+        """all_files = os.listdir()
+        num_saved = len([item for item in all_files if "hookup_ref_states" in item])
+        with open(f"hookup_ref_states_{num_saved}.pickle", "wb") as f:
+            pickle.dump([x_f_hook, u_f_hook, self.segment_times[1]], f)"""
     
     def construct(self, drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos, load_target_yaw,
                   load_mass, grasp_speed):
@@ -1203,12 +1212,12 @@ class HookedDroneNLTrajectory(HookedDronePolyTrajectory):
 
 
 class HookedDroneNLAdaptiveTrajectory(HookedDroneNLTrajectory):
-    def __init__(self, replanning_timestep, load_prev=False, save_res=False, plot_trajs=False):
+    def __init__(self, replanning_timesteps, load_prev=False, save_res=False, plot_trajs=False):
         super().__init__()
         self.load_prev = load_prev
         self.save_res = save_res
         self.plot_trajs = plot_trajs
-        self.replanning_timestep = replanning_timestep
+        self.replanning_timesteps = replanning_timesteps
 
     def construct(self, drone_init_pos, drone_init_yaw, load_init_pos, load_init_yaw, load_target_pos, load_target_yaw,
                   load_mass, grasp_speed):
@@ -1225,7 +1234,7 @@ class HookedDroneNLAdaptiveTrajectory(HookedDroneNLTrajectory):
                                                     load_target_yaw=load_target_yaw, 
                                                     grasp_speed=grasp_speed, 
                                                     model_type=load_pos_model_disc)
-        self.replanner = NLOptReplanner(init_params, self.replanning_timestep)
+        self.replanner = NLOptReplanner(init_params, self.replanning_timesteps)
 
         if self.load_prev:
             self.replanner.load_planners()
@@ -1242,9 +1251,9 @@ class HookedDroneNLAdaptiveTrajectory(HookedDroneNLTrajectory):
     def replan(self, num_traj, load_init_pos, load_init_vel, load_init_yaw):
         # Optimize next trajectory segment based on payload prediction
         path_params = {
-            "pos_wp": partial(load_init_pos, t0=0),
-            "vel_wp": partial(load_init_vel, t0=0),
-            "yaw_wp": partial(load_init_yaw, t0=-1*num_traj)
+            "pos_wp": partial(load_init_pos, t0=-0*self.replanning_timesteps[num_traj-1]),
+            "vel_wp": partial(load_init_vel, t0=-0*self.replanning_timesteps[num_traj-1]),
+            "yaw_wp": partial(load_init_yaw, t0=-0*self.replanning_timesteps[num_traj-1])
         }
         self.replanner.compute_trajectory(num_traj, path_params)
 

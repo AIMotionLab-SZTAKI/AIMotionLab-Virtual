@@ -15,14 +15,6 @@ def get_triangle_normals(triangles):
     return normals
 
 
-def get_triangle_area(triangle):
-    return np.linalg.norm(get_triangle_normal(triangle)) / 2
-
-
-def get_triangle_areas(triangles):
-    return np.linalg.norm(get_triangle_normals(triangles), axis=1) / 2
-
-
 def get_mid_point(v1, v2):
     return (v1 + v2) / 2
 

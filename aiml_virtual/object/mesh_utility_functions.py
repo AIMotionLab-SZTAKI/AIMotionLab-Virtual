@@ -15,10 +15,6 @@ def get_triangle_normals(triangles):
     return normals
 
 
-def get_mid_point(v1, v2):
-    return (v1 + v2) / 2
-
-
 def get_center_positions(triangles):
     return np.sum(triangles, axis=1) / 3
 

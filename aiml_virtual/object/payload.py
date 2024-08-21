@@ -388,7 +388,7 @@ class TeardropPayload(Payload):
             return
 
         new_triangles = []
-        midpoints = self._get_mid_points(triangles_to_divide)
+        midpoints = self._get_midpoints(triangles_to_divide)
         for i in range(len(triangles_to_divide)):
             new_triangles.extend(np.array([
                     [triangles_to_divide[i][0], midpoints[i][0], midpoints[i][2]],
@@ -421,5 +421,5 @@ class TeardropPayload(Payload):
         self._normals = np.concatenate([self._bottom_normals, self._top_normals])
         self._areas = np.concatenate([self._bottom_areas, self._top_areas])
 
-    def _get_mid_points(self, triangles):
+    def _get_midpoints(self, triangles):
         return (triangles[:, [0, 1, 2], :] + triangles[:, [1, 2, 0], :]) / 2

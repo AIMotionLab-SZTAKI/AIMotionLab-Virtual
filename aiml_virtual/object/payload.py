@@ -385,6 +385,10 @@ class TeardropPayload(Payload):
         areas_kept = areas[~mask]
 
         if len(triangles_to_divide) == 0:
+            self._triangles = np.concatenate([self._bottom_triangles, self._top_triangles])
+            self._center_positions = np.concatenate([self._bottom_center_positions, self._top_center_positions])
+            self._normals = np.concatenate([self._bottom_normals, self._top_normals])
+            self._areas = np.concatenate([self._bottom_areas, self._top_areas])
             return
 
         new_triangles = []
@@ -415,11 +419,6 @@ class TeardropPayload(Payload):
             self._bottom_center_positions = mutil.get_center_positions(self._bottom_triangles)
 
         self.create_surface_mesh(which_part, threshold_in_meters)
-        
-        self._triangles = np.concatenate([self._bottom_triangles, self._top_triangles])
-        self._center_positions = np.concatenate([self._bottom_center_positions, self._top_center_positions])
-        self._normals = np.concatenate([self._bottom_normals, self._top_normals])
-        self._areas = np.concatenate([self._bottom_areas, self._top_areas])
 
     def _get_midpoints(self, triangles):
         return (triangles[:, [0, 1, 2], :] + triangles[:, [1, 2, 0], :]) / 2

@@ -9,9 +9,6 @@ from aiml_virtual.trajectory import trajectory
 
 
 class MovingObject(simulated_object.SimulatedObject):
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-
     def __init__(self):
         super().__init__()
         self.controllers: list[controller.Controller] = []  # storage for containers to switch between

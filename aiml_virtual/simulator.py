@@ -19,31 +19,52 @@ SimulatedObject = simulated_object.SimulatedObject
 
 
 class PausableTime:
-    # like time.time(), but doesn't tick when paused
+    """
+    Class that mimics the behaviour of time.time(), but shows the time since it was last reset (or initialized), and
+    it can be paused and resumed like a stopwatch.
+    """
     def __init__(self):
-        self.abs_start: float = time.time()
-        self.abs_last_stopped: float = self.abs_start
-        self.paused_time: float = 0
-        self.ticking: bool = True
+        self.last_started: float = time.time()  #: when resume was last called
+        self.sum_time: float = 0.0  #: the amount of time the clock ran the last time it was paused
+        self.ticking: bool = True  #: whether the clock is ticking
 
-    def pause(self):
+    def pause(self) -> None:
+        """
+        Pauses the timer, which freezes the time it displays to its current state.
+        """
         if self.ticking:
+            self.sum_time += time.time() - self.last_started
             self.ticking = False
-            self.abs_last_stopped = time.time()
 
-    def resume(self):
+    def resume(self) -> None:
+        """
+        Resumes time measurement, which starts updating the displayed time again.
+        """
         if not self.ticking:
-            self.paused_time += time.time() - self.abs_last_stopped
+            self.last_started = time.time()
             self.ticking = True
 
-    def __call__(self, *args, **kwargs):
-        return time.time() - self.abs_start - self.paused_time
+    def __call__(self, *args, **kwargs) -> float:
+        """
+        Shows the cummulated time the clock was running since it was last reset.
 
-    def reset(self):
-        # this is the same as __init__, but in theory it's not good practice to call __init__ by hand
-        self.abs_start: float = time.time()
-        self.abs_last_stopped: float = self.abs_start
-        self.paused_time: float = 0
+        Returns:
+            float: The cummulated measured time.
+        """
+        if self.ticking:
+            return self.sum_time + (time.time() - self.last_started)
+        else:
+            return self.sum_time
+
+    def reset(self) -> None:
+        """
+        Resets the measured time to 0, and starts the clock ticking if it was paused.
+
+        .. note::
+            This is the same as __init__, but in theory it's not good practice to call __init__ by hand.
+        """
+        self.last_started: float = time.time()
+        self.sum_time = 0.0
         self.ticking: bool = True
 
 
@@ -116,11 +137,11 @@ class Simulator:
         # argument nstep. This nstep may be the interval of the fastest process.
         # For example, if the physics is 1000Hz, the control is 100Hz, and the display is 50Hz, then we can call the
         # physics engine for 10 steps at every loop, call the control every loop and the display every other loop
-        sim_time = self.mj_step_count * self.physics_step
         # TODO: think through whether this needs to be reconciled with data.time and whether it needs to be moved inside
         #  the if condition under here
-        if self.time() < sim_time:  # if the simulation needs to wait in order to not run ahead
-             time.sleep(sim_time - self.time())
+        dt = self.data.time - self.time()
+        if dt > 0:  # if the simulation needs to wait in order to not run ahead
+             time.sleep(dt)
         if not self.paused:
             mujoco.mj_step(self.model, self.data)
             self.mj_step_count += 1

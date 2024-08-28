@@ -1,5 +1,9 @@
 """
+This module contains the base class for SimulatedObjects that don't have a controller. Instead they receive their pose
+data from a motion capture system (in our case, most likely Optitrack).
 
+Classes:
+    MocapObject
 """
 
 import xml.etree.ElementTree as ET
@@ -11,8 +15,6 @@ from aiml_virtual.simulated_object import simulated_object
 
 
 class MocapObject(simulated_object.SimulatedObject):
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
 
     def __init__(self):
         super().__init__()

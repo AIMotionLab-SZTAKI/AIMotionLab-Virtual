@@ -38,6 +38,8 @@ setup(name='aiml_virtual',
         'numpy-stl==3.1.1',
         'casadi==3.6.4',
         'cvxpy==1.4.2',
-        'spatial-casadi==1.1.0'
+        'spatial-casadi==1.1.0',
+        'sphinx',
+        'furo'
         ]
       )

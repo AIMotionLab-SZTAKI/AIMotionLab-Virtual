@@ -3,7 +3,7 @@
 
     <worldbody>
 
-        <body name="Bicycle_0" pos="0 0 0.06">
+        <body name="Bicycle_0" pos="0 0.2 0.06">
 
             <inertial pos="0 0 0" diaginertia=".01 .01 .01" mass="1.0" />
             <joint type="free" name="Bicycle_0" />

@@ -1,1 +1,0 @@
-from aiml_virtual.xml_generator.xml_generator import SceneXmlGenerator

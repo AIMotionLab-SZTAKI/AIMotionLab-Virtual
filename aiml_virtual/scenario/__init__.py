@@ -1,1 +1,0 @@
-from aiml_virtual.scenario.radar_scenario import RadarScenario

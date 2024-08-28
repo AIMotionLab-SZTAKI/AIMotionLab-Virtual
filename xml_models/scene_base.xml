@@ -62,8 +62,8 @@
     <texture name="tex-parking_lot" type="2d" file="textures/parking_lot.png"/>
     <texture name="tex-sztaki" type="2d" file="textures/sztaki.png"/>
     <material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".05"/>
-    <material name="mat-carpet" shininess="0.1" texrepeat="0.1308 0.1308" texture="tex-carpet" texuniform="true"/>
-    <material name="mat-roundabout" reflectance="0.7" texrepeat="0.667 0.667" texture="tex-roundabout" texuniform="true"/>
+    <material name="mat-carpet" shininess="0.1" texture="tex-carpet" texuniform="false"/>
+    <material name="mat-roundabout" reflectance="0.7" texture="tex-roundabout" texuniform="false"/>
     <material name="mat-hospital" reflectance="0.7" texrepeat="7.843 7.692" texture="tex-hospital" texuniform="true"/>
     <material name="mat-post_office" reflectance="0.7" texrepeat="7.843 7.843" texture="tex-post_office" texuniform="true"/>
     <material name="mat-airport" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-airport" texuniform="true"/>

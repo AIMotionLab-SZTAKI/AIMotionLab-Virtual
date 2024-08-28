@@ -1,0 +1,59 @@
+/* Ensure all code blocks have a consistent dark background */
+@media (prefers-color-scheme: dark) {
+    pre, code, .highlight pre, .highlight code {
+        background-color: #2d2d2d !important; /* Force dark background */
+        color: #eaeaea !important; /* Force light text color */
+        border: 1px solid #444 !important; /* Border for better contrast */
+        padding: 10px !important; /* Padding for readability */
+    }
+
+    /* Customize specific elements in the code for better visibility */
+    .highlight .k, .highlight .o, .highlight .cm, .highlight .cp {
+        color: #c792ea !important; /* Example: Python keywords */
+    }
+
+    .highlight .n {
+        color: #82aaff !important; /* Example: Python names */
+    }
+
+    .highlight .s {
+        color: #ecc48d !important; /* Example: Strings */
+    }
+
+    .highlight .p {
+        color: #ffcb6b !important; /* Example: Punctuation */
+    }
+
+    .highlight .c {
+        color: #6a9955 !important; /* Example: Comments */
+    }
+
+    .highlight .m {
+        color: #d19a66 !important; /* Example: Numbers */
+    }
+
+    /* Style inline code blocks */
+    code {
+        background-color: #2d2d2d !important;
+        color: #eaeaea !important;
+        padding: 2px 4px !important;
+        border-radius: 4px !important;
+    }
+
+    /* Ensure consistency in background and text color for all code blocks */
+    .literal-block {
+        background-color: #2d2d2d !important;
+        color: #eaeaea !important;
+    }
+
+    /* Optional: Style the text around the code blocks */
+    body {
+        background-color: #2d2d2d;
+        color: #eaeaea;
+    }
+
+    /* Adjust links to be visible against the dark background */
+    a {
+        color: #8ab4f8 !important;
+    }
+}

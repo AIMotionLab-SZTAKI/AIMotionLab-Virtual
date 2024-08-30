@@ -111,11 +111,17 @@ class Simulator:
                 self.viewer = None
 
     def bind_scene(self) -> None:
+        """
+        Similar to Scene.bind_to_model, except this binds the **data**, not the model. The distinction is that the data
+        describes a particular run of the simulation for a given model, at a given time.
+        """
         for obj in self.simulated_objects:
             obj.bind_to_data(self.data)
 
     def add_process(self, method: Callable, frequency: float) -> None:
-        """Register a process to be run at a specified frequency.
+        """
+        Register a process to be run at a specified frequency. The function will be ran after a given number of
+        physics steps to match the frequency, rounded down.
 
         Args:
             method (function): The method of the Simulator class to run.
@@ -128,6 +134,13 @@ class Simulator:
         self.processes.append((method, interval))
 
     def step(self) -> None:
+        """
+        This is the function that wraps mj_step and does the housekeeping relating to it; namely:
+
+        - Calling processes in self.processes if necessary.
+        - Syncing to the wall clock.
+
+        """
         # this is the function that steps the mujoco simulator, and calls all the other processes
         for method, interval in self.processes:  # each process must be registered
             if self.mj_step_count % interval == 0:
@@ -147,13 +160,24 @@ class Simulator:
             self.mj_step_count += 1
 
     def update_objects(self) -> None:
+        """
+        Each simulated object may have housekeeping to do: this process is their opportunity.
+        """
         for obj in self.simulated_objects:
             obj.update(self.mj_step_count, self.physics_step)
 
     def sync(self) -> None:
+        """
+        Syncs the viewer to the underlying data (renders it).
+        """
         # print(f"time: {self.data.time}")
         self.viewer.sync()
 
     def handle_keypress(self, keycode) -> None:
-        self.callback_dictionary[keycode]()
+        """
+        This method is passed to the viewer's initialization function to get called when a key is pressed. What should
+        happen upon that specific keypress is then looked up in the callback dictionary.
+        """
+        if keycode in self.callback_dictionary:
+            self.callback_dictionary[keycode]()
 

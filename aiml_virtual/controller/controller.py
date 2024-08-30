@@ -1,8 +1,5 @@
 """
 This module houses the Controller class, which serves as a base for all controller types.
-
-Classes:
-    Controller
 """
 
 from abc import ABC, abstractmethod

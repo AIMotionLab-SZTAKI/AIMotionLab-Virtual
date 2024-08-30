@@ -1,3 +1,7 @@
+"""
+This module contains utility functions and classes for the aimotion_virtual paclage.
+"""
+
 import numpy as np
 import platform
 if platform.system() == 'Windows':
@@ -6,7 +10,7 @@ else:
     import time
 
 
-def quaternion_from_euler(roll, pitch, yaw):
+def quaternion_from_euler(roll: float, pitch: float, yaw: float) -> list[float]:
     """
     Convert an Euler angle to a quaternion.
 
@@ -29,31 +33,51 @@ def quaternion_from_euler(roll, pitch, yaw):
 
     return [qw, qx, qy, qz]
 
-class Timer:
-    # mimics the behavior of a stopwatch:
-    # If you started it, and check its time (using measured_time or __call__), it returns the time since it
-    # was started. If you stop it, it returns the time between the start and the stop.
-    def __init__(self, initial_time = 0):
-        self.time_started: float = initial_time
-        self.time_stopped: float = initial_time
-        self.running: bool = False
+class PausableTime:
+    """
+    Class that mimics the behaviour of time.time(), but shows the time since it was last reset (or initialized), and
+    it can be paused and resumed like a stopwatch.
+    """
+    def __init__(self):
+        self.last_started: float = time.time()  #: When resume was last called.
+        self.sum_time: float = 0.0  #: The amount of time the clock ran the last time it was paused.
+        self.ticking: bool = True  #: Whether the clock is ticking.
 
-    def start(self) -> None:
-        if not self.running:
-            self.running = True
-            self.time_started = time.time()
+    def pause(self) -> None:
+        """
+        Pauses the timer, which freezes the time it displays to its current state.
+        """
+        if self.ticking:
+            self.sum_time += time.time() - self.last_started
+            self.ticking = False
 
-    def stop(self) -> None:
-        if self.running:
-            self.running = False
-            self.time_stopped = time.time()
+    def resume(self) -> None:
+        """
+        Resumes time measurement, which starts updating the displayed time again.
+        """
+        if not self.ticking:
+            self.last_started = time.time()
+            self.ticking = True
 
-    @property
-    def measured_time(self) -> float:
-        if self.running:
-            return time.time() - self.time_started
+    def __call__(self, *args, **kwargs) -> float:
+        """
+        Shows the cummulated time the clock was running since it was last reset.
+
+        Returns:
+            float: The cummulated measured time.
+        """
+        if self.ticking:
+            return self.sum_time + (time.time() - self.last_started)
         else:
-            return self.time_stopped - self.time_started
+            return self.sum_time
 
-    def __call__(self, *args, **kwargs):
-        return self.measured_time
+    def reset(self) -> None:
+        """
+        Resets the measured time to 0, and starts the clock ticking if it was paused.
+
+        .. note::
+            This is the same as __init__, but in theory it's not good practice to call __init__ by hand.
+        """
+        self.last_started: float = time.time()
+        self.sum_time = 0.0
+        self.ticking: bool = True

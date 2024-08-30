@@ -1,9 +1,10 @@
 simulated object subpackage
 ============================
-
+-------------------
+Subpackages
+-------------------
 .. toctree::
    :maxdepth: 1
-   :caption: Subpackages
 
    mocap_object/mocap_object
    moving_object/moving_object

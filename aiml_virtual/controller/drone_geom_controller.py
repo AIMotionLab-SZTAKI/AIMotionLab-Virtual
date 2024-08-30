@@ -1,8 +1,5 @@
 """
 This module implements the geometric control for drones, as designed by Dr. PhD Antal Péter.
-
-Classes:
-    GeomControl
 """
 import numpy as np
 from scipy.spatial.transform import Rotation

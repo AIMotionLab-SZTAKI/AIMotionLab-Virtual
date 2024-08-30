@@ -1,9 +1,11 @@
 AIMotionlab-Virtual code reference
 ==================================
 
+-------------------
+Subpackages
+-------------------
 .. toctree::
    :maxdepth: 1
-   :caption: Subpackages
 
    controller/controller
    trajectory/trajectory

@@ -1,3 +1,7 @@
+"""
+This module contains the class Scene.
+"""
+
 import os.path
 import sys
 import xml.etree.ElementTree as ET
@@ -18,23 +22,52 @@ SimulatedObject = simulated_object.SimulatedObject
 XML_FOLDER = os.path.join(pathlib.Path(__file__).parents[1].resolve().as_posix(), "xml_models")
 EMTPY_SCENE = os.path.join(pathlib.Path(__file__).parents[1].resolve().as_posix(), "xml_models", "empty_scene.xml")
 
-# TODO: make singleton?
-class Scene:
-    # Scene contains all the data relating to the mjModel, in a way where it can be exposed to Python
-    # It has an ElementTree for the XML representation for the model, for saving later
-    # It has a reference to the mjModel itself
-    # It has a list of all the model elements that have a python object representing them (SimulatedObjects)
-    # It is the responsibility of this class to keep these representations consistent with one another
-    def __init__(self, base_scene_filename: str = EMTPY_SCENE, save_filename: str = os.path.join(XML_FOLDER, "Scene.xml")):
-        self.model: mujoco.MjModel = mujoco.MjModel.from_xml_path(base_scene_filename)
-        self.simulated_objects: list[SimulatedObject] = Scene.parse_simulated_objects(self.model)
-        self.bind_to_model()
-        self.xml_root = ET.parse(base_scene_filename).getroot()
-        self.xml_name = save_filename
 
-    def reload_model(self):
-        # Sync the mujoco model to the xml. No need to have a separate save_xml function since this saves it as well.
-        # Note that
+class Scene:
+    """
+    This class contains all the data relating to the mjModel, in a way where it can be exposed to Python. Its
+    responsibility is keeping all the following representations of a scene consistent:
+
+    - ElementTree for the XML representation of the model (also called MJCF)
+    - The mjModel as loaded by mujoco.MjModel.from_xml_path
+    - A list of all the SimulatedObjects in the scene
+
+    .. note::
+        The list of simulated objects must be handled with care: the Scene is not the only entity that may have a
+        reference to them. A simple example for this:
+
+        .. code-block:: python
+
+            scene = Scene()
+            cf = Crazyflie()
+            cf.do_something()  # set some variable or call a method to modify the crazyflie
+            scene.add_object(cf)
+            scene.do_something_that_requires_reloading_the_xml
+
+        After this code segment, if we re-generated the objects when reloading the model, the outer script's reference
+        "cf" would be lost. To this end, SimulatedObjects may exist without a model or data. However, they must be bound
+        to the model and the data before running a simulation.
+    """
+    def __init__(self, base_scene_filename: str = EMTPY_SCENE, save_filename: str = os.path.join(XML_FOLDER, "Scene.xml")):
+        self.model: mujoco.MjModel = mujoco.MjModel.from_xml_path(base_scene_filename)  #: the mjModel with C bindings
+        self.simulated_objects: list[SimulatedObject] = Scene.parse_simulated_objects(self.model)  #: the objects with python interface
+        self.xml_root: ET.Element = ET.parse(base_scene_filename).getroot()  #: root of the XML tree
+        self.xml_name: str = save_filename  #: the name under which we will save the new XML
+
+        self.bind_to_model()
+
+    def reload_model(self) -> None:
+        """
+        Syncs the mujoco model to the xml. Must be called when objects are added or removed to any of the
+        representations. Also saves the XML file.
+
+        .. note::
+            Whenever we reload the model, the references stored in self.simulated_objects become obsolete. We have to
+            re-assign them using bind_to_model.
+
+        .. todo::
+            Reconcile this with parse_simulated_objects for a more intuitive symbiosis.
+        """
         tree = ET.ElementTree(self.xml_root)
         if sys.version_info.major >= 3 and sys.version_info.minor >= 9:
             ET.indent(tree, space="\t", level=0)
@@ -45,17 +78,33 @@ class Scene:
         # instead of the bind being part of the constructor
         self.bind_to_model()
 
-    def bind_to_model(self):
-        # in order to preserve references, whenever the model is reloaded, the simulated objects aren't re-initialized,
-        # instead, their only their reference to the model is reset whenever the model is reset
+    def bind_to_model(self) -> None:
+        """
+        Re-binds all the objects to the model. In order to preserve references in the script using the Scene, whenever
+        the model is reloaded, the simulated objects aren't re-initialized, instead, only their reference to the
+        model is reset.
+        """
+
         for obj in self.simulated_objects:
             obj.bind_to_model(self.model)
 
     @staticmethod
     def parse_simulated_objects(model: mujoco.MjModel) -> list[SimulatedObject]:
-        # this function is to be used when first loading a model, and we have no idea how many simulated objects are in
-        # it, as opposed to reloading a model, when we know how many objects there are, and we're just updating the
-        # MjModel instance
+        """
+        This function is to be used when first loading a model, and we have no idea how many simulated objects are in
+        it, as opposed to reloading a model, when we know how many objects there are, and we're just updating the
+        MjModel instance. It checks all the top-level bodies in the model, and if their name attribute matches
+        an alias in the xml_dictionary of SimulatedObject, initializes a python object corresponding to that alias.
+
+        Args:
+            model (mujoco.MjModel): The model to parse for objects requiring a python interface.
+
+        Returns:
+            list[SimulatedObject]: The list of initialized objects.
+
+        .. todo::
+            Reconcile this with reload_model for a more intuitive symbiosis.
+        """
         simulated_objects: list[SimulatedObject] = []  # here is where we store the future returns
         for i in range(model.nbody):  # let's check all the bodies in the model
             body = model.body(i)
@@ -68,25 +117,17 @@ class Scene:
                     simulated_objects.append(cls())
         return simulated_objects
 
-    def print_elements(self):
-        """
-        TODO
-        """
-        for elem in self.xml_root.iter():
-            print(f"tag: {elem.tag}, attrib: {elem.attrib}")
 
-    def add_object(self, obj: SimulatedObject, pos: str, quat: str, color: str) -> None:
+    def add_object(self, obj: SimulatedObject, pos: str = "0 0 0", quat: str = "1 0 0 0", color: str = "0.5 0.5 0.5 1") \
+            -> None:
         """
-        TODO
+        Adds an object to the Scene, with the specified position, orientation and base color.
 
-        It makes sense that adding an object to the scene is done via a method of scene itself. However, for each
-        object, this may look different. Most notably, their xml model is obviously different. Therefore, making the
-        xml model should be the method of the object. This presents a bit of a pickle: each object must make an xml
-        model which shall be appended to worldbody, however, they may also want any number of actuators/sensors, in
-        other words, we may want to add to any of our grouping elements. Adding to these is the purview of the scene,
-        but the object should decide where to add: this is a conflict of responsibilities
-
-        currently this is resolved as below, but subject to change
+        Args:
+            obj (SimulatedObject): The object to add. As it's a SimulatedObject, it handles its own xml representation.
+            pos (str): The position of the object, as a string where x y and z are separated by spaces.
+            quat (str): The orientation quaternion of the object, as a space-separated string in "w x y z" order.
+            color (str): The base color of the object, as a space separated string in "r g b a" order.
         """
         # update XML representation
         xml_dict = obj.create_xml_element(pos, quat, color)

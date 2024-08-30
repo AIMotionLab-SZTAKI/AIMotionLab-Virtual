@@ -1,9 +1,11 @@
 moving object subpackage
 ========================
 
+-------------------
+Subpackages
+-------------------
 .. toctree::
    :maxdepth: 1
-   :caption: Subpackages
 
    drone/drone
 

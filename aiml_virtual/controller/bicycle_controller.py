@@ -1,8 +1,5 @@
 """
 This module houses the BicycleController, which is a dummy controller for testing.
-
-Classes:
-    BicycleController
 """
 
 from aiml_virtual.controller import controller

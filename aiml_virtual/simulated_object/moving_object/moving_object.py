@@ -1,3 +1,7 @@
+"""
+This module contains the base class for controlled SimulatedObjects.
+"""
+
 import xml.etree.ElementTree as ET
 from abc import abstractmethod
 import mujoco
@@ -9,6 +13,10 @@ from aiml_virtual.trajectory import trajectory
 
 
 class MovingObject(simulated_object.SimulatedObject):
+    """
+    Base class for objects i the simulation that have a controller implemented in python, and therefore need a python
+    representation (to interact with the controller).
+    """
     def __init__(self):
         super().__init__()
         self.controllers: list[controller.Controller] = []  # storage for containers to switch between
@@ -17,18 +25,11 @@ class MovingObject(simulated_object.SimulatedObject):
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        # returning None opts out of XML parsing
+        """
+        Overrides method in SimulatedObject to specify whether to check for aliases when parsing an XML.
+
+        Returns:
+            Optional[list[str]]: None, to opt out of parsing.
+        """
         return None
-
-    @abstractmethod
-    def bind_to_data(self, data: mujoco.MjData):
-        pass
-
-    @abstractmethod
-    def update(self, mj_step_count: int, step: float) -> None:
-        pass
-
-    @abstractmethod
-    def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
-        pass
 

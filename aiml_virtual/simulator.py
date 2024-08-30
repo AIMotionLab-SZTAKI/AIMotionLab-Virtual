@@ -1,3 +1,7 @@
+"""
+Module that contains the class handling simulation.
+"""
+
 import math
 import mujoco
 import mujoco.viewer
@@ -13,84 +17,68 @@ else:
 
 from aiml_virtual import scene
 from aiml_virtual.simulated_object import simulated_object
+from aiml_virtual import utils
 
 Scene = scene.Scene
 SimulatedObject = simulated_object.SimulatedObject
 
-
-class PausableTime:
-    """
-    Class that mimics the behaviour of time.time(), but shows the time since it was last reset (or initialized), and
-    it can be paused and resumed like a stopwatch.
-    """
-    def __init__(self):
-        self.last_started: float = time.time()  #: when resume was last called
-        self.sum_time: float = 0.0  #: the amount of time the clock ran the last time it was paused
-        self.ticking: bool = True  #: whether the clock is ticking
-
-    def pause(self) -> None:
-        """
-        Pauses the timer, which freezes the time it displays to its current state.
-        """
-        if self.ticking:
-            self.sum_time += time.time() - self.last_started
-            self.ticking = False
-
-    def resume(self) -> None:
-        """
-        Resumes time measurement, which starts updating the displayed time again.
-        """
-        if not self.ticking:
-            self.last_started = time.time()
-            self.ticking = True
-
-    def __call__(self, *args, **kwargs) -> float:
-        """
-        Shows the cummulated time the clock was running since it was last reset.
-
-        Returns:
-            float: The cummulated measured time.
-        """
-        if self.ticking:
-            return self.sum_time + (time.time() - self.last_started)
-        else:
-            return self.sum_time
-
-    def reset(self) -> None:
-        """
-        Resets the measured time to 0, and starts the clock ticking if it was paused.
-
-        .. note::
-            This is the same as __init__, but in theory it's not good practice to call __init__ by hand.
-        """
-        self.last_started: float = time.time()
-        self.sum_time = 0.0
-        self.ticking: bool = True
-
-
 class Simulator:
+    """
+    Class that uses the scene and the mujoco package to run the mujoco simulation and display the results.
+    """
     def __init__(self, scene: Scene, control_freq: float = 100, target_fps: int = 50):
-        self.scene: Scene = scene
-        self.model: mujoco.MjModel = scene.model
-        self.data: mujoco.MjData = mujoco.MjData(self.model)
-        self.simulated_objects: list[SimulatedObject] = self.scene.simulated_objects
-        self.viewer: Optional[mujoco.viewer.Handle] = None
-        self.opt: mujoco.MjOption = self.model.opt
-        self.mj_step_count: int = 0  #
-        self.physics_step: float = self.opt.timestep
-        self.processes: list[tuple[Callable, float]] = []
-        self.time = PausableTime()
-        self.add_process(self.update_objects, control_freq)
-        self.add_process(self.sync, target_fps)
+        self.scene: Scene = scene  #: The scene corresponding to the mujoco model.
+        self.data: mujoco.MjData = mujoco.MjData(self.model)  #: The data corresponding to the model.
+        self.viewer: Optional[mujoco.viewer.Handle] = None  #: The handler to be used for the passive viewer.
+        self.mj_step_count: int = 0  #: The numer of times the physics loop (mj_step) was called.
+        self.processes: list[tuple[Callable, int]] = []  #: The list of what function to call after however many physics steps.
+        self.time = utils.PausableTime()  #: The inner timer of the simulation.
         self.callback_dictionary: dict[int, callable] = {
             glfw.KEY_SPACE: self.toggle_pause
-        }
+        }  #: A dictionary of what function to call when receiving a given keypress.
+
+        self.add_process(self.update_objects, control_freq)
+        self.add_process(self.sync, target_fps)
 
     @property
-    def paused(self):
+    def physics_step(self) -> float:
+        """
+        Property to grab the timestep of a physics iteration from the model.
+        """
+        return self.opt.timestep
+
+    @property
+    def opt(self) -> mujoco.MjOption:
+        """
+        Property to grab the options from the model.
+        """
+        return self.model.opt
+
+    @property
+    def simulated_objects(self):
+        """
+        Property to grab the list of objects in the scene.
+        """
+        return self.scene.simulated_objects
+
+    @property
+    def model(self) -> mujoco.MjModel:
+        """
+        Property to grab the mujoco model from the scene.
+        """
+        return self.scene.model
+
+    @property
+    def paused(self) -> bool:
+        """
+        Property to grab whether the simulation is currently running.
+        """
         return not self.time.ticking
 
-    def toggle_pause(self):
+    def toggle_pause(self) -> None:
+        """
+        Pauses the simulation if it's running; resumes it if it's paused.
+        """
         if self.paused:
             self.time.resume()
         else:
@@ -98,6 +86,18 @@ class Simulator:
 
     @contextmanager
     def launch_viewer(self) -> 'Simulator':
+        """
+        Wraps the mujoco.viewer.launch_passive function so that it handlers the simulator's initialization. As this
+        is a context handler, it should be used like so:
+
+        .. code-block:: python
+
+            sim = simulator.Simulator(scene, control_freq=500, target_fps=100)
+            with sim.launch_viewer():
+                while sim.viewer.is_running():
+                    sim.step()
+
+        """
         self.bind_scene()
         try:
             mujoco.mj_step(self.model, self.data)  # TODO: look up: I think we need a 0th step?

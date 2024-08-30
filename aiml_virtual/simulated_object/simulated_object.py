@@ -1,8 +1,5 @@
 """
 This module implements the base class for objects in the simulation that we also want to manipluate in python.
-
-Classes:
-    SimulatedObject
 """
 
 import xml.etree.ElementTree as ET
@@ -33,9 +30,16 @@ class SimulatedObject(ABC):
     instance count to 0. If a class wants to be a candidate for parsing in an xml file, it shall implement all the
     abstract methods defined in SimulatedObject and in get_identifiers return a list of valid string identifiers.
     If a class need not be target for parsing, it may return None in get_identifiers.
+
+    .. note::
+        In order to make it possible for the python objects and the Data/Model to exist separately, references to the
+        data and the model aren't saved when the object is initialized. This way, we can initialize a simulated object,
+        set whatever properties we want for it, and *then* use the bind_to_model/data functions to bind it. This also
+        means that when we reload, and the model/data are lost, the object may persist.
     """
-    xml_registry: dict[str, Type['SimulatedObject']] = {}  #: The registry of xml names associated with each class.
-    instance_count: dict[Type['SimulatedObject'], int] = {}  #: The registry tallying the number of instances per class.
+
+    xml_registry: dict[str, Type['SimulatedObject']] = {}  #: **classvar** | The registry of xml names associated with each class.
+    instance_count: dict[Type['SimulatedObject'], int] = {}  #: **classvar** | The registry tallying the number of instances per class.
 
     @classmethod
     @abstractmethod
@@ -88,7 +92,7 @@ class SimulatedObject(ABC):
     @abstractmethod
     def bind_to_data(self, data: mujoco.MjData) -> None:
         """
-        Method for concrete subclasses to save all their controller-actuator-etc. references.
+        Method for concrete subclasses to save all their references to controller-actuator-etc.
 
         Args:
             data (mujoco.MjData): The data of the simulation (as opposed to the *model*).

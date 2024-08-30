@@ -1,8 +1,5 @@
 """
 This module contains a dummy trajectory class that one can use to model more complex trajectories after.
-
-Classes:
-    DummyDroneTrajectory
 """
 
 import numpy as np

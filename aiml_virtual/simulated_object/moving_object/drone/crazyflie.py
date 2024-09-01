@@ -79,6 +79,9 @@ class Crazyflie(drone.Drone):
             "0.00001", which is what is used to set the mass of the propellers, instead of CRAZYFLIE_PROP.MASS.value.
             Here the distinction is more clear: mass only ever refers to the drone, prop_mass only ever refers to the
             propeller.
+
+        .. todo::
+            Find where the weird sphere comes from.
         """
         name = self.name
         mass = Crazyflie.MASS

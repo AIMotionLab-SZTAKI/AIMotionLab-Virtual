@@ -43,7 +43,7 @@
 				<geom name="Bicycle_2_wheelr" type="cylinder" size="0.04 0.015" pos="-0.1 0 0" euler="1.571 0 0" material="material_check" />
 			</body>
 		</body>
-		<body name="Crazyflie_0" pos="1 0 1.5" quat="1 0 0 0">
+		<body name="Crazyflie_0" pos="0 0 0" quat="1 0 0 0">
 			<geom name="Crazyflie_0_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0.5 0.5 1" />
 			<geom name="Crazyflie_0_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0.5 0.5 1" />
 			<geom name="Crazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.5 0.5 1" />

@@ -20,7 +20,7 @@ class Propeller:
     DIR_NEGATIVE: float = -1.0  #: **classvar** | Clockwise (left-hand) spin direction.
     DIR_POSITIVE: float = 1.0  #: **classvar** | Counter-clockwise (right-hand) spin direction.
 
-    def __init__(self, direction: float, spin_speed: float = 100):
+    def __init__(self, direction: float, spin_speed: float = 0.08):
         self.ctrl: np.ndarray = np.zeros(1)  #: The allocated control input (target thrust, N) for the motor.
         self.qpos: np.ndarray = np.zeros(1)  #: Propeller joint coordinate (generalised position).
         self.angle: float = 0  #: Actual physical propeller angle.
@@ -52,10 +52,21 @@ class Propeller:
     def spin(self) -> None:
         """
         Spins the propellers in the mujoco display (but has no physical effect).
-        """
-        self.angle += self.dir_float * self.ctrl[0] * self.spin_speed
-        self.qpos[0] = self.angle
 
+        .. note::
+            Here used to be a code segment that spun the propeller proportionally to the actuator output, but personally
+            I think it looked a bit weird.
+
+            .. code-block:: python
+
+                self.angle += self.dir_float * self.ctrl[0] * self.spin_speed
+                self.qpos[0] = self.angle
+
+            I think it looks more natural if the propellers simply spin at an even rate, when looked at via the naked
+            eye we can't tell whether the spin rate is proportional to the thrust anyway.
+        """
+        self.angle += self.spin_speed
+        self.qpos[0] = self.angle
 
 class Drone(moving_object.MovingObject):
     """

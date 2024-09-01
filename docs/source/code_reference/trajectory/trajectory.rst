@@ -14,3 +14,6 @@ dummy_drone_trajectory.py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: aiml_virtual.trajectory.dummy_drone_trajectory
 
+skyc_trajectory.py
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. automodule:: aiml_virtual.trajectory.skyc_trajectory

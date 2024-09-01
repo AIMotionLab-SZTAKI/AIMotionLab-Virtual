@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aiml_virtual"
+version = "1.0.0"
+description = "TODO"
+dependencies = [
+    "matplotlib==3.6.0",
+    "mujoco>=3.1.4",
+    "numpy==1.23.3",
+    "scipy==1.10.1",
+    "sphinx==8.0.2",
+    "furo==2024.8.6",
+    "win-precise-time==1.4.2",
+    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git"
+]
+readme = "readme.md"
+
+[tool.setuptools]
+py-modules = []

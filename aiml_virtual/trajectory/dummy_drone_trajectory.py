@@ -30,8 +30,8 @@ class DummyDroneTrajectory(trajectory.Trajectory):
         """
         output = {"load_mass": 0.0,
                   "target_pos": self.target_pos,  # hold this position, no matter the time
-                  "target_rpy": np.zeros(3),  # hold level, face the X axis
                   "target_vel": np.zeros(3),  # maintain 0 speed
                   "target_acc": np.zeros(3),  # maintain 0 acceleration
+                  "target_rpy": np.zeros(3),  # hold level, face the X axis
                   "target_ang_vel": np.zeros(3)}  # have no angular velocity
         return output

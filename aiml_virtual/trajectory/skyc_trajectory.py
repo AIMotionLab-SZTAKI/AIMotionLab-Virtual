@@ -95,6 +95,13 @@ class SkycTrajectory(trajectory.Trajectory):
     This means that if "points" is of length N, there will be only N-1 segments in the trajectory. To this end, the 0th
     segment is special (it has to be, since it has no previous segment to describe its starting time/point): it shall
     have no extra control points.
+
+    .. note::
+        The fact that functions such as select_curve and evaluate and the helper class BezierCurve have to be written
+        is testiment to the fact that the skyc_utils package leaves a lot to be desired. It should be reworked
+
+    .. todo::
+        Rework the skyc_utils package to be more streamlined with this.
     """
     def __init__(self, skyc_file: str, traj_id: int = 0):
         super().__init__()

@@ -25,6 +25,9 @@ SimulatedObject = simulated_object.SimulatedObject
 class Simulator:
     """
     Class that uses the scene and the mujoco package to run the mujoco simulation and display the results.
+
+    .. todo::
+        Find a way to disable the default keybinds.
     """
     def __init__(self, scene: Scene, control_freq: float = 100, target_fps: int = 50):
         self.scene: Scene = scene  #: The scene corresponding to the mujoco model.
@@ -34,7 +37,8 @@ class Simulator:
         self.processes: list[tuple[Callable, int]] = []  #: The list of what function to call after however many physics steps.
         self.time = utils.PausableTime()  #: The inner timer of the simulation.
         self.callback_dictionary: dict[int, callable] = {
-            glfw.KEY_SPACE: self.toggle_pause
+            glfw.KEY_SPACE: self.toggle_pause,
+            glfw.KEY_F: lambda: print("F key callback")
         }  #: A dictionary of what function to call when receiving a given keypress.
 
         self.add_process(self.update_objects, control_freq)
@@ -96,7 +100,6 @@ class Simulator:
             with sim.launch_viewer():
                 while sim.viewer.is_running():
                     sim.step()
-
         """
         self.bind_scene()
         try:

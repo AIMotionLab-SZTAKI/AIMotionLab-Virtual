@@ -11,7 +11,6 @@ from sympy import diff, sin, acos, lambdify
 from sympy.abc import x as sympyx
 from PIL import Image
 
-
 class LiveFilter:
     """Base class for live filters.
        from https://www.samproell.io/posts/yarppg/yarppg-live-digital-filter/
@@ -191,7 +190,6 @@ def q_conjugate(q):
     w, x, y, z = q
     return [w, -x, -y, -z]
 
-
 def quaternion_multiply(quaternion0, quaternion1):
     """Return multiplication of two quaternions.
     """
@@ -203,7 +201,6 @@ def quaternion_multiply(quaternion0, quaternion1):
                     -x1*z0 + y1*w0 + z1*x0 + w1*y0,
                     x1*y0 - y1*x0 + z1*w0 + w1*z0), dtype=np.float64)
 
-
 def qv_mult(q1, v1):
     """For active rotation. If passive rotation is needed, use q1 * q2 * q1^(-1)"""
     q2 = np.append(0.0, v1)
@@ -212,8 +209,6 @@ def qv_mult(q1, v1):
 def qv_mult_passive(q1, v1):
     q2 = np.append(0.0, v1)
     return quaternion_multiply(quaternion_multiply(q1, q2), q_conjugate(q1))[1:]
-
-
 
 def quat_array_conjugate(quat_array):
     quat_array[:, 1] *= -1
@@ -241,7 +236,6 @@ def quat_quat_array_multiply(quat, quat_array):
 
 
 def quat_array_quat_array_multiply(quat_array0, quat_array1):
-
     w0, x0, y0, z0 = quat_array0[:, 0], quat_array0[:, 1], quat_array0[:, 2], quat_array0[:, 3]
     w1, x1, y1, z1 = quat_array1[:, 0], quat_array1[:, 1], quat_array1[:, 2], quat_array1[:, 3]
     return np.stack((-x1*x0 - y1*y0 - z1*z0 + w1*w0,
@@ -280,12 +274,18 @@ def forces_from_pressures(normal, pressure, area):
     
     #f = np.array([0., 0., -1.])
     #F = np.dot(-normal, f) * np.outer(pressure, f) * area
-    F = np.outer(pressure, -normal) * area
+    if normal.ndim == 1:
+        F = np.outer(pressure, -normal) * area
+    else:
+        F = np.expand_dims(pressure, axis=1) * (-normal) * np.expand_dims(area, axis=1)
     return F
 
 def forces_from_velocities(normal, velocity, area):
-    density = 1.1839 #kg/m^3
-    F = velocity * density * area * np.dot(velocity, -normal).reshape(-1, 1)
+    density = 1.293 #kg/m^3
+    if normal.ndim == 1:
+        F = velocity * density * area * np.dot(velocity, -normal).reshape(-1, 1)
+    else:
+        F = velocity * density * np.expand_dims(area, axis=1) * np.sum(velocity * (-normal), axis=1).reshape(-1, 1)
     return F
 
 def update_onboard_cam(qpos, cam, azim_filter_sin=None, azim_filter_cos=None, elev_filter_sin=None, elev_filter_cos=None, elev_offs=30):

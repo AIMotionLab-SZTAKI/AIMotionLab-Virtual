@@ -5,6 +5,7 @@ from enum import Enum
 from aiml_virtual.object.moving_object import MovingObject, MocapObject
 from aiml_virtual.util import mujoco_helper
 from scipy.spatial.transform import Rotation
+from aiml_virtual.wind_flow.wind_sampler import WindSampler
 
 class SPIN_DIR(Enum):
     CLOCKWISE = 1
@@ -32,6 +33,7 @@ class BUMBLEBEE_PROP(Enum):
     MASS = "0.605"
     DIAGINERTIA = "1.5e-3 1.45e-3 2.66e-3"
     COG = "0.0085 0.0 0.0"
+    THRUST_FORCE_COEFF = "9.3945e-7"
 
 class DRONE_TYPES(Enum):
     CRAZYFLIE = 0
@@ -116,8 +118,8 @@ class Drone(MovingObject):
         }
         
         self.ctrl_input = np.zeros(4)
-        
-    
+        self._wind_samplers = []
+
     def _create_input_matrix(self, Lx1, Lx2, Ly, motor_param):
 
         self.input_mtx = np.array([[1/4, -1/(4*Ly), -1/(4*Lx2),  1 / (4*motor_param)],
@@ -125,7 +127,6 @@ class Drone(MovingObject):
                                   [1/4,  1/(4*Ly),   1/(4*Lx1),  1 / (4*motor_param)],
                                   [1/4,  1/(4*Ly),  -1/(4*Lx2), -1 / (4*motor_param)]])
 
-    
     def get_state(self):
 
         return self.state
@@ -141,11 +142,10 @@ class Drone(MovingObject):
         }
         return state
 
-    
     def update(self, i, control_step):
-
         self.spin_propellers()
 
+        self._update_wind_forces()
 
         if self.trajectory is not None:
 
@@ -164,6 +164,24 @@ class Drone(MovingObject):
             #else:
             #    print("[Drone] Error: ctrl was None")
     
+    def _update_wind_forces(self):
+        if len(self._wind_samplers) > 0:
+            force = np.array([0.0, 0.0, 0.0])
+            for wind_sampler in self._wind_samplers:
+                f = wind_sampler.generate_forces(self)
+                force += f
+            self.set_force(force)
+
+    def set_force(self, force):
+        self.qfrc_applied[0] = force[0]
+        self.qfrc_applied[1] = force[1]
+        self.qfrc_applied[2] = force[2]
+
+    def add_wind_sampler(self, wind_sampler):
+        if isinstance(wind_sampler, WindSampler):
+            self._wind_samplers.append(wind_sampler)
+        else:
+            raise Exception("[Drone] The received object is not of type WindSampler.")
     
     def get_mass(self):
         return self.mass
@@ -179,6 +197,13 @@ class Drone(MovingObject):
     
     def get_motor_thrusts(self):
         return np.concatenate((self.ctrl0, self.ctrl1, self.ctrl2, self.ctrl3))
+    
+    def get_estimated_prop_vel(self):
+        thrust = self.get_motor_thrusts()
+        velocity = np.sqrt(thrust / self.thrust_coeff)
+        velocity[1] *= -1
+        velocity[3] *= -1
+        return velocity
     
     def get_ctrl_input(self):
         return self.ctrl_input
@@ -350,6 +375,8 @@ class Bumblebee(Drone):
 
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
 
+        self.thrust_coeff = float(BUMBLEBEE_PROP.THRUST_FORCE_COEFF.value)
+
     def spin_propellers(self):
         #print("angle step: " + str(angle_step))
 
@@ -427,6 +454,8 @@ class DroneHooked(Drone):
     def update(self, i, control_step):
         self.spin_propellers()
 
+        self._update_wind_forces()
+
         if self.trajectory is not None:
 
             state = self.get_state()
@@ -502,6 +531,8 @@ class BumblebeeHooked(DroneHooked):
         #print(self.rod_length)
         
         self._create_input_matrix(self.Lx1, self.Lx2, self.Ly, self.motor_param)
+
+        self.thrust_coeff = float(BUMBLEBEE_PROP.THRUST_FORCE_COEFF.value)
 
 
 

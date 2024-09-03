@@ -196,7 +196,8 @@ class Simulator:
             the next option modification. There should be a way to disable or at least modify the keybinds, or even
             UI elements from python (like disabling the rendering section). By this, I mean completely disabling their
             functionality, not just hiding it (like hiding the left-right UI).
-            Additionally, we should be able to get other info above the keypress: was it modified by alt-shit-etc.
+            Additionally, we should be able to get other info above the keypress: was it modified by alt-shit-etc? Was
+            it a keypress or a key release?
             Currently, we have a hacky way to determine whether shift was pressed. The dictionary storing callbacks
             can decide whether shift is needed to call the function.
         """

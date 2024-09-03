@@ -36,10 +36,10 @@ class Simulator:
         self.mj_step_count: int = 0  #: The numer of times the physics loop (mj_step) was called.
         self.processes: list[tuple[Callable, int]] = []  #: The list of what function to call after however many physics steps.
         self.time = utils.PausableTime()  #: The inner timer of the simulation.
-        self.callback_dictionary: dict[int, callable] = {
-            glfw.KEY_SPACE: self.toggle_pause,
-            glfw.KEY_F: lambda: print("F key callback")
-        }  #: A dictionary of what function to call when receiving a given keypress.
+        self.callback_dictionary: dict[int, tuple[callable, bool]] = {
+            glfw.KEY_SPACE: (self.toggle_pause, False),
+            glfw.KEY_F: (lambda: print("F key callback"), True)
+        }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
 
         self.add_process(self.update_objects, control_freq)
         self.add_process(self.sync, target_fps)
@@ -143,6 +143,9 @@ class Simulator:
         - Calling processes in self.processes if necessary.
         - Syncing to the wall clock.
 
+        .. todo::
+            Maybe leave an option open to processes to get executed even when physics is suspended.
+
         """
         # this is the function that steps the mujoco simulator, and calls all the other processes
         for method, interval in self.processes:  # each process must be registered
@@ -176,49 +179,43 @@ class Simulator:
         # print(f"time: {self.data.time}")
         self.viewer.sync()
 
-    RESERVED_SHORTCUTS: dict[int, str] = {
-        glfw.KEY_GRAVE_ACCENT: "Toggle body tree rendering.",  # 0 on HUN keyboard
-        glfw.KEY_0: "Toggle geom group 0.",  # Ö on HUN keyboard
-        glfw.KEY_1: "Toggle geom group 1.",
-        glfw.KEY_2: "Toggle geom group 2.",
-        glfw.KEY_3: "Toggle geom group 3.",
-        glfw.KEY_4: "Toggle geom group 4.",
-        glfw.KEY_5: "Toggle geom group 5.",
-        glfw.KEY_W: "Toggle wireframe rendering.",
-        glfw.KEY_S: "Toggle shadow rendeing.",
-        glfw.KEY_R: "Toggle reflection rendering.",
-
-    }
-
     def handle_keypress(self, keycode: int) -> None:
         """
         This method is passed to the viewer's initialization function to get called when a key is pressed. What should
         happen upon that specific keypress is then looked up in the callback dictionary.
+
+        .. note::
+            There are **tons** of default keybinds in the mujoco passive viewer that are (so far as I can tell) separate
+            from this mechanism. As best I could determine, they each update something in the model/scene/data, most
+            commonly flags, such as viewer.user_scn.flags[mujoco.mjtRndFlag.mjRND_SHADOW] or
+            mujoco.mjtVisFlag.mjVIS_LIGHT, and then (and this caused me some headache) run the equivalent of sync();
+            i.e. they also render the scene. This is an issue: almost all binds are taken by these features, and I
+            cannot unbind them to redirect the keybind to our function, because their mechanism is separate. I tried
+            to disable some of them by inverting the flag they change back to its original value in my callback, but
+            this was unreliable: often my flag flips would get caught in some sort of buffer and only take effect upon
+            the next option modification. There should be a way to disable or at least modify the keybinds, or even
+            UI elements from python (like disabling the rendering section). By this, I mean completely disabling their
+            functionality, not just hiding it (like hiding the left-right UI).
+            Additionally, we should be able to get other info above the keypress: was it modified by alt-shit-etc.
+            Currently, we have a hacky way to determine whether shift was pressed. The dictionary storing callbacks
+            can decide whether shift is needed to call the function.
         """
+        if keycode in self.callback_dictionary.keys():  # only care about keys in the dictionary
+            if not self.callback_dictionary[keycode][1]:  # if shift is not needed, we may proceed to the call
+                self.callback_dictionary[keycode][0]()
+            else:  # else we have to check whether shift is pressed
+                with self.viewer.lock():
+                    window = glfw.get_current_context()
+                    if window is not None:
+                        shift_pressed = glfw.get_key(window, glfw.KEY_LEFT_SHIFT) or glfw.get_key(window,
+                                                                                                  glfw.KEY_RIGHT_SHIFT)
+                if shift_pressed:
+                    self.callback_dictionary[keycode][0]()
 
-        # if keycode == glfw.KEY_S:
-        #     with self.viewer.lock():
-        #         print(f"Shadow flag: {self.viewer.user_scn.flags[mujoco.mjtRndFlag.mjRND_SHADOW]}")
-        #         self.viewer.user_scn.flags[mujoco.mjtRndFlag.mjRND_SHADOW] = 0
-        #     self.sync()
 
-        with self.viewer.lock():
-            window = glfw.get_current_context()
-            if window is not None:
-                shift_pressed = glfw.get_key(window, glfw.KEY_LEFT_SHIFT) or glfw.get_key(window, glfw.KEY_RIGHT_SHIFT)
-                if shift_pressed and keycode != glfw.KEY_LEFT_SHIFT and keycode != glfw.KEY_RIGHT_SHIFT:
-                    print(f"Pressed shift+{keycode}")
-                else:
-                    print(f"Pressed {keycode}")
-        if keycode in self.callback_dictionary:
-            self.callback_dictionary[keycode]()
 
-        # else:
-        #
-        #     scn = copy.deepcopy(self.viewer.user_scn)
-        #     self.sync()  # modifies in C bindings
-        #     self.viewer.user_scn.flags = scn.flags
-        #     self.sync()
+
+
 
 
 

@@ -1,8 +1,5 @@
-ahhoz, hogy kipróbálhassunk értelmes dolgokat, kellenének értelmes trajektóriák
-kézenfekvő egy skyc trajektória szerűség
-ehhez valahonnan szerezni kell skyc trajektóriákat
-szép elegáns lenne, ha ez a skyc makerrel történne
-
-Skyc fájlból kellene kiolvasnia logikusan, de abban több trajektória is lehet: hozzá kell rendelni a megfelelő drónhoz -> itt kb valahogy le kell majd követni, mi
-történik a skyc_viewerben
-A skyc fájlt meg köll ám csinálni
+- nagyon sok beépített keybind van
+	* van, ami király
+	* van, ami értelmetlen
+	* amik értelmetlenek, elveszik tőlünk a helyet
+	

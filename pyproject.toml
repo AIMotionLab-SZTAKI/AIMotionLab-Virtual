@@ -13,7 +13,7 @@ dependencies = [
     "scipy==1.10.1",
     "sphinx==8.0.2",
     "furo==2024.8.6",
-    "win-precise-time==1.4.2",
+    "win-precise-time==1.4.2; sys_platform=='win32'",
     "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git"
 ]
 readme = "readme.md"

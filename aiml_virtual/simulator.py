@@ -1,7 +1,7 @@
 """
 Module that contains the class handling simulation.
 """
-
+import copy
 import math
 import mujoco
 import mujoco.viewer
@@ -176,11 +176,51 @@ class Simulator:
         # print(f"time: {self.data.time}")
         self.viewer.sync()
 
-    def handle_keypress(self, keycode) -> None:
+    RESERVED_SHORTCUTS: dict[int, str] = {
+        glfw.KEY_GRAVE_ACCENT: "Toggle body tree rendering.",  # 0 on HUN keyboard
+        glfw.KEY_0: "Toggle geom group 0.",  # Ö on HUN keyboard
+        glfw.KEY_1: "Toggle geom group 1.",
+        glfw.KEY_2: "Toggle geom group 2.",
+        glfw.KEY_3: "Toggle geom group 3.",
+        glfw.KEY_4: "Toggle geom group 4.",
+        glfw.KEY_5: "Toggle geom group 5.",
+        glfw.KEY_W: "Toggle wireframe rendering.",
+        glfw.KEY_S: "Toggle shadow rendeing.",
+        glfw.KEY_R: "Toggle reflection rendering.",
+
+    }
+
+    def handle_keypress(self, keycode: int) -> None:
         """
         This method is passed to the viewer's initialization function to get called when a key is pressed. What should
         happen upon that specific keypress is then looked up in the callback dictionary.
         """
+
+        # if keycode == glfw.KEY_S:
+        #     with self.viewer.lock():
+        #         print(f"Shadow flag: {self.viewer.user_scn.flags[mujoco.mjtRndFlag.mjRND_SHADOW]}")
+        #         self.viewer.user_scn.flags[mujoco.mjtRndFlag.mjRND_SHADOW] = 0
+        #     self.sync()
+
+        with self.viewer.lock():
+            window = glfw.get_current_context()
+            if window is not None:
+                shift_pressed = glfw.get_key(window, glfw.KEY_LEFT_SHIFT) or glfw.get_key(window, glfw.KEY_RIGHT_SHIFT)
+                if shift_pressed and keycode != glfw.KEY_LEFT_SHIFT and keycode != glfw.KEY_RIGHT_SHIFT:
+                    print(f"Pressed shift+{keycode}")
+                else:
+                    print(f"Pressed {keycode}")
         if keycode in self.callback_dictionary:
             self.callback_dictionary[keycode]()
+
+        # else:
+        #
+        #     scn = copy.deepcopy(self.viewer.user_scn)
+        #     self.sync()  # modifies in C bindings
+        #     self.viewer.user_scn.flags = scn.flags
+        #     self.sync()
+
+
+
+
 

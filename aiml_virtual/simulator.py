@@ -37,7 +37,8 @@ class Simulator:
         self.viewer: Optional[mujoco.viewer.Handle] = None  #: The handler to be used for the passive viewer.
         self.tick_count: int = 0  #: The number of times self.tick was called. Still ticks when sim is stopped.
         self.processes: list[tuple[Callable, int, bool]] = []  #: The list of what function to call, their tick and whether to call them when sim is stopped.
-        self.time = utils.PausableTime()  #: The inner timer of the simulation.
+        self.start_time: float = time.time()  #: The time when the simulation starts.
+        self.paused: bool = True  #: Whether the physics simulation is running.
         self.callback_dictionary: dict[tuple[int, bool], callable] = {
             (glfw.KEY_SPACE, False): self.toggle_pause,
             (glfw.KEY_F, True): lambda: print("F key callback")
@@ -45,13 +46,20 @@ class Simulator:
 
         self.add_process(self.update_objects, control_freq, False)
         self.add_process(self.sync, target_fps, True)
-        self.add_process(self.mj_step, int(1/self.physics_step), False)
-        self.add_process(self.debug_print, 2, True)
+        self.add_process(self.mj_step, int(1 / self.timestep), False)
 
     @property
-    def physics_step(self) -> float:
+    def time(self) -> float:
         """
-        Property to grab the timestep of a physics iteration from the model.
+        Property to grab the time since the simulation started (time.time() with an offset).
+        """
+        return time.time() - self.start_time
+
+    @property
+    def timestep(self) -> float:
+        """
+        Property to grab the timestep of a physics iteration from the model, which is currently the same as the internal
+        tick. This supposes that the physics loop is the most often called process.
         """
         return self.opt.timestep
 
@@ -76,22 +84,12 @@ class Simulator:
         """
         return self.scene.model
 
-    @property
-    def paused(self) -> bool:
-        """
-        Property to grab whether the simulation is currently running.
-        """
-        return not self.time.ticking
-
     def toggle_pause(self) -> None:
         """
         Pauses the simulation if it's running; resumes it if it's paused.
         """
-        if self.paused:
-            self.time.resume()
-        else:
-            self.time.pause()
 
+        self.paused = not self.paused
     @contextmanager
     def launch_viewer(self) -> 'Simulator':
         """
@@ -108,7 +106,8 @@ class Simulator:
         self.bind_scene()
         try:
             # may need a 0th step here (mujoco.mj_forward)
-            self.time.reset()
+            self.start_time = time.time()
+            self.paused = False
             self.viewer = mujoco.viewer.launch_passive(self.model, self.data, show_left_ui=False, show_right_ui=False,
                                                        key_callback=self.handle_keypress)
             yield self
@@ -125,7 +124,7 @@ class Simulator:
         for obj in self.simulated_objects:
             obj.bind_to_data(self.data)
 
-    def add_process(self, method: Callable, frequency: float, run_when_stopped: bool = True) -> None:
+    def add_process(self, method: Callable, frequency: float, run_when_physics_stopped: bool = True) -> None:
         """
         Register a process to be run at a specified frequency. The function will be ran after a given number of
         physics steps to match the frequency, rounded down.
@@ -133,12 +132,13 @@ class Simulator:
         Args:
             method (function): The method of the Simulator class to run.
             frequency (float): The frequency (in Hz) at which to run the method.
+            run_when_physics_stopped (bool): Whether this process should run even when the physics isn't being updated.
         """
         # the method we're registering shall be called after interval number of physics loops, for example, if
         # the physics step is 1ms, and the control frequency is 100Hz, then the method calculating control inputs
         # must be called every 10th physics loop
-        interval = max(1, math.ceil((1 / frequency) / self.physics_step))
-        self.processes.append((method, interval, run_when_stopped))
+        interval = max(1, math.ceil((1 / frequency) / self.timestep))
+        self.processes.append((method, interval, run_when_physics_stopped))
 
 
     def tick(self) -> None:
@@ -157,13 +157,10 @@ class Simulator:
         # argument nstep. This nstep may be the interval of the fastest process.
         # For example, if the physics is 1000Hz, the control is 100Hz, and the display is 50Hz, then we can call the
         # physics engine for 10 steps at every loop, call the control every loop and the display every other loop
-        dt = self.data.time - self.time()  # TODO: this is wrong currently, runs w/o rate limit when stopped
-        if dt > 0:  # if the simulation needs to wait in order to not run ahead
-             time.sleep(dt)
+        dt = self.timestep * self.tick_count - self.time  # this puts a rate limit on the loop
+        if dt > 0:
+            time.sleep(dt)
         self.tick_count += 1
-
-    def debug_print(self):
-        print(f"Hello there! Time is {time.time():.2f}")
 
     def mj_step(self):
         """

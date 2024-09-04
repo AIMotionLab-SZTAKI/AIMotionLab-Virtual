@@ -33,9 +33,12 @@ class Bicycle(moving_object.MovingObject):
         """
         return ["Bicycle", "bicycle"]
 
-    def update(self, mj_step_count: int, step: float) -> None:
+    def update(self, time: float) -> None:
         """
         Overrides method in SimulatedObject. Sets the control input (the torque of the actuated wheel).
+
+        Args:
+            time (float): The elapsed time in the simulation.
         """
         if self.controller:
             self.ctrl[0] = self.controller.compute_control()

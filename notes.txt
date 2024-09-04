@@ -3,3 +3,5 @@
 	* van, ami értelmetlen
 	* amik értelmetlenek, elveszik tőlünk a helyet
 	
+A beépített keybindok elérésére be van adva a github issue, addig is maradunk a shiftes megoldásnál
+Hogy lenne a leg intuitívabb?

@@ -35,5 +35,5 @@ if __name__ == "__main__":
     sim = simulator.Simulator(scene, control_freq=500, target_fps=100)
     with sim.launch_viewer():
         while sim.viewer.is_running():
-            sim.step()
+            sim.tick()
 

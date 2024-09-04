@@ -99,16 +99,14 @@ class SimulatedObject(ABC):
         """
         pass
 
-    # TODO: this probably won't be control step: rename i and control step to something more representative
     @abstractmethod
-    def update(self, mj_step_count: int, step: float) -> None:
+    def update(self, time: float) -> None:
         """
         The simulator will call this function once every control loop: if the object needs to update control inputs,
         or change its appearance (such as rotating its propellers), it shall be done in this function.
 
         Args:
-            mj_step_count (int): The **physics** step count.
-            step (float): The length (in seconds, when using SI base units) of a **physics** step.
+            time (float): The elapsed time in the simulation.
         """
         pass
 

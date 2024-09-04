@@ -9,6 +9,8 @@ from typing import Optional, Callable
 from contextlib import contextmanager
 import platform
 import glfw
+from scipy.fftpack import shift
+
 if platform.system() == 'Windows':
     import win_precise_time as time
 else:
@@ -33,16 +35,18 @@ class Simulator:
         self.scene: Scene = scene  #: The scene corresponding to the mujoco model.
         self.data: mujoco.MjData = mujoco.MjData(self.model)  #: The data corresponding to the model.
         self.viewer: Optional[mujoco.viewer.Handle] = None  #: The handler to be used for the passive viewer.
-        self.mj_step_count: int = 0  #: The numer of times the physics loop (mj_step) was called.
-        self.processes: list[tuple[Callable, int]] = []  #: The list of what function to call after however many physics steps.
+        self.tick_count: int = 0  #: The number of times self.tick was called. Still ticks when sim is stopped.
+        self.processes: list[tuple[Callable, int, bool]] = []  #: The list of what function to call, their tick and whether to call them when sim is stopped.
         self.time = utils.PausableTime()  #: The inner timer of the simulation.
-        self.callback_dictionary: dict[int, tuple[callable, bool]] = {
-            glfw.KEY_SPACE: (self.toggle_pause, False),
-            glfw.KEY_F: (lambda: print("F key callback"), True)
+        self.callback_dictionary: dict[tuple[int, bool], callable] = {
+            (glfw.KEY_SPACE, False): self.toggle_pause,
+            (glfw.KEY_F, True): lambda: print("F key callback")
         }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
 
-        self.add_process(self.update_objects, control_freq)
-        self.add_process(self.sync, target_fps)
+        self.add_process(self.update_objects, control_freq, False)
+        self.add_process(self.sync, target_fps, True)
+        self.add_process(self.mj_step, int(1/self.physics_step), False)
+        self.add_process(self.debug_print, 2, True)
 
     @property
     def physics_step(self) -> float:
@@ -103,7 +107,7 @@ class Simulator:
         """
         self.bind_scene()
         try:
-            mujoco.mj_step(self.model, self.data)  # TODO: look up: I think we need a 0th step?
+            # may need a 0th step here (mujoco.mj_forward)
             self.time.reset()
             self.viewer = mujoco.viewer.launch_passive(self.model, self.data, show_left_ui=False, show_right_ui=False,
                                                        key_callback=self.handle_keypress)
@@ -121,7 +125,7 @@ class Simulator:
         for obj in self.simulated_objects:
             obj.bind_to_data(self.data)
 
-    def add_process(self, method: Callable, frequency: float) -> None:
+    def add_process(self, method: Callable, frequency: float, run_when_stopped: bool = True) -> None:
         """
         Register a process to be run at a specified frequency. The function will be ran after a given number of
         physics steps to match the frequency, rounded down.
@@ -134,49 +138,51 @@ class Simulator:
         # the physics step is 1ms, and the control frequency is 100Hz, then the method calculating control inputs
         # must be called every 10th physics loop
         interval = max(1, math.ceil((1 / frequency) / self.physics_step))
-        self.processes.append((method, interval))
+        self.processes.append((method, interval, run_when_stopped))
 
-    def step(self) -> None:
+
+    def tick(self) -> None:
         """
         This is the function that wraps mj_step and does the housekeeping relating to it; namely:
 
         - Calling processes in self.processes if necessary.
         - Syncing to the wall clock.
-
-        .. todo::
-            Maybe leave an option open to processes to get executed even when physics is suspended.
-
         """
-        # this is the function that steps the mujoco simulator, and calls all the other processes
-        for method, interval in self.processes:  # each process must be registered
-            if self.mj_step_count % interval == 0:
-                method()  # maybe arguments? we'll see
+        for method, interval, run_when_stopped in self.processes:
+            if run_when_stopped or not self.paused:
+                if self.tick_count % interval == 0:
+                    method()
         # We may wish to do some optimization here: if each process step time (interval) is an integer multiple of
         # the process that's closest to it in frequency, then we can save some time by calling mj_step with an extra
         # argument nstep. This nstep may be the interval of the fastest process.
         # For example, if the physics is 1000Hz, the control is 100Hz, and the display is 50Hz, then we can call the
         # physics engine for 10 steps at every loop, call the control every loop and the display every other loop
-        # TODO: think through whether this needs to be reconciled with data.time and whether it needs to be moved inside
-        #  the if condition under here
-        dt = self.data.time - self.time()
+        dt = self.data.time - self.time()  # TODO: this is wrong currently, runs w/o rate limit when stopped
         if dt > 0:  # if the simulation needs to wait in order to not run ahead
              time.sleep(dt)
-        if not self.paused:
-            mujoco.mj_step(self.model, self.data)
-            self.mj_step_count += 1
+        self.tick_count += 1
+
+    def debug_print(self):
+        print(f"Hello there! Time is {time.time():.2f}")
+
+    def mj_step(self):
+        """
+        Process that steps the internal simulator physics.
+        """
+        mujoco.mj_step(self.model, self.data)
 
     def update_objects(self) -> None:
         """
         Each simulated object may have housekeeping to do: this process is their opportunity.
         """
         for obj in self.simulated_objects:
-            obj.update(self.mj_step_count, self.physics_step)
+            obj.update(self.data.time)
 
     def sync(self) -> None:
         """
-        Syncs the viewer to the underlying data (renders it).
+        Syncs the viewer to the underlying data, which also refreshes the image. This means that the frame rate of
+        the resulting animation will be the rate of this process.
         """
-        # print(f"time: {self.data.time}")
         self.viewer.sync()
 
     def handle_keypress(self, keycode: int) -> None:
@@ -201,17 +207,15 @@ class Simulator:
             Currently, we have a hacky way to determine whether shift was pressed. The dictionary storing callbacks
             can decide whether shift is needed to call the function.
         """
-        if keycode in self.callback_dictionary.keys():  # only care about keys in the dictionary
-            if not self.callback_dictionary[keycode][1]:  # if shift is not needed, we may proceed to the call
-                self.callback_dictionary[keycode][0]()
-            else:  # else we have to check whether shift is pressed
-                with self.viewer.lock():
-                    window = glfw.get_current_context()
-                    if window is not None:
-                        shift_pressed = glfw.get_key(window, glfw.KEY_LEFT_SHIFT) or glfw.get_key(window,
-                                                                                                  glfw.KEY_RIGHT_SHIFT)
-                if shift_pressed:
-                    self.callback_dictionary[keycode][0]()
+        with self.viewer.lock(): # I'm not actually sure if this needs a lock
+            window = glfw.get_current_context()
+            if window is not None:
+                shift_pressed = glfw.get_key(window, glfw.KEY_LEFT_SHIFT) and keycode != glfw.KEY_LEFT_SHIFT
+            else:
+                shift_pressed = False
+            key = (keycode, shift_pressed)
+            if key in self.callback_dictionary:
+                self.callback_dictionary[key]()
 
 
 

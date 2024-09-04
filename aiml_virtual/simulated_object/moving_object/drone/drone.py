@@ -134,13 +134,13 @@ class Drone(moving_object.MovingObject):
             for propeller in self.propellers:
                 propeller.spin()
 
-    def update(self, mj_step_count: int, step: float) -> None:
+    def update(self, time: float) -> None:
         """
         Overwrites SimulatedObject.update. Updates the position of the propellers to make it look like they are
         spinning, and runs the controller.
+
         Args:
-            mj_step_count (int): The **physics** step count.
-            step (float): The length (in seconds, when using SI base units) of a **physics** step.
+            time (float): The elapsed time in the simulation.
         """
         # todo: check this as compared to the original when cleaning up
         self.spin_propellers()  # update how the propellers look

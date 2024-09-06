@@ -79,9 +79,6 @@ class Crazyflie(drone.Drone):
             "0.00001", which is what is used to set the mass of the propellers, instead of CRAZYFLIE_PROP.MASS.value.
             Here the distinction is more clear: mass only ever refers to the drone, prop_mass only ever refers to the
             propeller.
-
-        .. todo::
-            Find where the weird sphere comes from.
         """
         name = self.name
         mass = Crazyflie.MASS
@@ -104,14 +101,13 @@ class Crazyflie(drone.Drone):
         ret = {"worldbody": [drone],
                "actuator": [],
                "sensor": []}
-        # TODO: safety sphere?
         # ET.SubElement(drone, "geom", type="sphere", name=name + "_sphere", size="1.0", rgba=color, contype="0",
         #               conaffinity="0")
         # we give the inertia by hand instead of it auto-computing based on geoms
         ET.SubElement(drone, "inertial", pos=cog, diaginertia=diaginertia, mass=mass)
         ET.SubElement(drone, "joint", name=name, type="free")  # the free joint that allows this to move freely
         site_name = name + "_cog"
-        ET.SubElement(drone, "site", name=site_name, pos="0 0 0", size="0.005")  # center of gravity
+        ET.SubElement(drone, "site", name=site_name, pos="0 0 0", size="0.005", rgba="0.5 0.5 0.5 0.0")  # center of gravity, opacity is 0 (invisible)
         prop_site_size = "0.0001"
         prop_mass = "0.00001"  # mass of the propeller is approximately zero it seems
         prop_pos = [f"{Lx2} -{Ly} {Lz}",

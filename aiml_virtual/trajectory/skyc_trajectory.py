@@ -98,7 +98,7 @@ class SkycTrajectory(trajectory.Trajectory):
 
     .. note::
         The fact that functions such as select_curve and evaluate and the helper class BezierCurve have to be written
-        is testiment to the fact that the skyc_utils package leaves a lot to be desired. It should be reworked
+        is testament to the fact that the skyc_utils package leaves a lot to be desired. It should be reworked.
 
     .. todo::
         Rework the skyc_utils package to be more streamlined with this.

@@ -1,7 +1,15 @@
-- nagyon sok beépített keybind van
-	* van, ami király
-	* van, ami értelmetlen
-	* amik értelmetlenek, elveszik tőlünk a helyet
-	
-A beépített keybindok elérésére be van adva a github issue, addig is maradunk a shiftes megoldásnál
-Hogy lenne a leg intuitívabb?
+cél:
+-megtervezzük a máté pályáját 4 drónnal
+	-lementődik 2 skyc fájlba
+-lesz 2 drón aki mocap drón
+-lesz 2 drón aki szimulált drón
+-lesznek tereptárgyak, optitrackből (mocap lehet, de lehet mentett)
+-a mocap drónok mocap adatot kapnak
+-a valódi drónok csak repkednek
+
+ehhez:
+-le kell porolni máté cuccát
+-működnie számolni és lehetőleg repülni X drónnal
+-mocap objectek
+-statikus objectek
+-skyc fájlból olvasás (ez kész is tulajdonképpen)

@@ -11,10 +11,6 @@ class GeomControl(controller.Controller):
     """
     Geometric control for drones. Its output is corresponding to ControlModeForceTorque in the crazyflie firmware.
 
-    .. todo::
-        Might want to reevaluate what gets passed in the initializer: may want to save a reference to the controlled
-        object (a SimulatedObject).
-
     .. note::
        The commenting and docstrings in this controller are somewhat sparse.
     """

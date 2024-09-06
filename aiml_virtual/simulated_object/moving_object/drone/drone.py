@@ -142,7 +142,7 @@ class Drone(moving_object.MovingObject):
         Args:
             time (float): The elapsed time in the simulation.
         """
-        # todo: check this as compared to the original when cleaning up
+        # : check this as compared to the original when cleaning up
         self.spin_propellers()  # update how the propellers look
         if self.trajectory:  # if we don't have a trajectory, we don't have a reference for the controller: skip
             setpoint = self.trajectory.evaluate(self.data.time)

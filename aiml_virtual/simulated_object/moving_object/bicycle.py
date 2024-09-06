@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 import mujoco
 from typing import Any, Optional
 
+import numpy as np
+
 from aiml_virtual.simulated_object.moving_object import moving_object
 from aiml_virtual.controller import bicycle_controller
 
@@ -19,9 +21,8 @@ class Bicycle(moving_object.MovingObject):
     def __init__(self):
         super().__init__()
         self.controller: BicycleController = BicycleController()
-        self.actr: Any = None  # TODO: type
-        self.ctrl: Any = None  # TODO: type
-        self.sensor: Any = None  # TODO: type
+        self.ctrl: Optional[np.ndarray] = None
+        self.sensor: Optional[np.ndarray] = None
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
@@ -88,7 +89,6 @@ class Bicycle(moving_object.MovingObject):
 
     def bind_to_data(self, data: mujoco.MjData):
         self.data = data
-        self.actr = data.actuator(self.name + "_actr")
-        self.ctrl = self.actr.ctrl
+        self.ctrl = data.actuator(self.name + "_actr").ctrl
         self.sensor = data.sensor(self.name + "_velocimeter").data
 

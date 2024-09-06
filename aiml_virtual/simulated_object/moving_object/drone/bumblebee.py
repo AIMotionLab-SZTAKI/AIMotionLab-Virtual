@@ -97,7 +97,6 @@ class Bumblebee(drone.Drone):
         ret = {"worldbody": [drone],
                "actuator": [],
                "sensor": []}
-        # TODO: safety sphere?
         # we give the inertia by hand instead of it auto-computing based on geoms
         ET.SubElement(drone, "inertial", pos=cog, diaginertia=diaginertia, mass=mass)
         ET.SubElement(drone, "joint", name=name, type="free")  # the free joint that allows this to move freely

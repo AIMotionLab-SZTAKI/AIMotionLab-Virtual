@@ -50,10 +50,19 @@ class Scene:
     """
     def __init__(self, base_scene_filename: str = EMTPY_SCENE, save_filename: str = os.path.join(XML_FOLDER, "Scene.xml")):
         self.model: mujoco.MjModel = mujoco.MjModel.from_xml_path(base_scene_filename)  #: the mjModel with C bindings
-        self.simulated_objects: list[SimulatedObject] = Scene.parse_simulated_objects(self.model)  #: the objects with python interface
         self.xml_root: ET.Element = ET.parse(base_scene_filename).getroot()  #: root of the XML tree
         self.xml_name: str = save_filename  #: the name under which we will save the new XML
 
+        self.simulated_objects: list[SimulatedObject] = []  #: the objects with python interface
+        for i in range(self.model.nbody):  # let's check all the bodies in the model
+            body = self.model.body(i)
+            for sim_name in SimulatedObject.xml_registry.keys():
+                # a body is candidate to be a SimulatedObject, if its parent is the worldbody (meaning that its parent
+                # id is 0), and its name contains one of the keys which identify Simulated Objects
+                if body.parentid[0] == 0 and sim_name in body.name:
+                    # this is the class to be instantiated, identified by the registry of the SimulatedObject class
+                    cls: Type[SimulatedObject] = SimulatedObject.xml_registry[sim_name]
+                    self.simulated_objects.append(cls())
         self.bind_to_model()
 
     def reload_model(self) -> None:
@@ -64,9 +73,6 @@ class Scene:
         .. note::
             Whenever we reload the model, the references stored in self.simulated_objects become obsolete. We have to
             re-assign them using bind_to_model.
-
-        .. todo::
-            Reconcile this with parse_simulated_objects for a more intuitive symbiosis.
         """
         tree = ET.ElementTree(self.xml_root)
         if sys.version_info.major >= 3 and sys.version_info.minor >= 9:
@@ -87,35 +93,6 @@ class Scene:
 
         for obj in self.simulated_objects:
             obj.bind_to_model(self.model)
-
-    @staticmethod
-    def parse_simulated_objects(model: mujoco.MjModel) -> list[SimulatedObject]:
-        """
-        This function is to be used when first loading a model, and we have no idea how many simulated objects are in
-        it, as opposed to reloading a model, when we know how many objects there are, and we're just updating the
-        MjModel instance. It checks all the top-level bodies in the model, and if their name attribute matches
-        an alias in the xml_dictionary of SimulatedObject, initializes a python object corresponding to that alias.
-
-        Args:
-            model (mujoco.MjModel): The model to parse for objects requiring a python interface.
-
-        Returns:
-            list[SimulatedObject]: The list of initialized objects.
-
-        .. todo::
-            Reconcile this with reload_model for a more intuitive symbiosis.
-        """
-        simulated_objects: list[SimulatedObject] = []  # here is where we store the future returns
-        for i in range(model.nbody):  # let's check all the bodies in the model
-            body = model.body(i)
-            for sim_name in SimulatedObject.xml_registry.keys():
-                # a body is candidate to be a SimulatedObject, if its parent is the worldbody (meaning that its parent
-                # id is 0), and its name contains one of the keys which identify Simulated Objects
-                if body.parentid[0] == 0 and sim_name in body.name:
-                    # this is the class to be instantiated, identified by the registry of the SimulatedObject class
-                    cls: Type[SimulatedObject] = SimulatedObject.xml_registry[sim_name]
-                    simulated_objects.append(cls())
-        return simulated_objects
 
 
     def add_object(self, obj: SimulatedObject, pos: str = "0 0 0", quat: str = "1 0 0 0", color: str = "0.5 0.5 0.5 1") \

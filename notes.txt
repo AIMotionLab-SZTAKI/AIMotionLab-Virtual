@@ -13,3 +13,9 @@ ehhez:
 -mocap objectek
 -statikus objectek
 -skyc fájlból olvasás (ez kész is tulajdonképpen)
+
+ELŐSZÖR:
+-maradék agy zavaró todo
+-az összes drón működjön
+-máté demója működjön
+-utána mehetnek a módosítások

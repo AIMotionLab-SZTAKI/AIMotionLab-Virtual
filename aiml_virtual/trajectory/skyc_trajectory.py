@@ -12,70 +12,8 @@ from skyc_utils import skyc_inspector
 
 from aiml_virtual.trajectory import trajectory
 
-class BezierCurve:
-    """
-    Convenience class to encapsulate a single bezier curve (as opposed to a series of bezier curves like in a skyc file).
-    """
-    def __init__(self, points: list[float], start_time: float, end_time: float):
-        self.points: list[float] = points  #: The control points of the curve (the coefficients).
-        self.start_time: float = start_time  #: The start of the curve.
-        self.end_time: float = end_time  #: The end of the curve.
-        coeffs: list[tuple[float, ...]] = list(zip(*points))  #: This is equivalent to transposing the matrix formed by the points.
-        self.BPolys: list[BPoly] = [BPoly(np.array(coeffs).reshape(len(coeffs), 1), np.array([start_time, end_time]))
-                                    for coeffs in coeffs]  #: The interpolate.BPoly objects formed from the points.
-
-    def x(self, time: float, nu: int = 0) -> np.ndarray:
-        """
-        Wrapper around the __call__ function of the appropriate BPoly object; it evaluates the x Bezier Polynomial.
-
-        Args:
-            time (float): The timestamp at which to evaluate.
-            nu (int): The number of derivative to evaluate.
-
-        Returns:
-            np.ndarray: The "nu"th derivative at "time" time.
-        """
-        return self.BPolys[0](time, nu)
-
-    def y(self, time: float, nu: int = 0) -> np.ndarray:
-        """
-        Wrapper around the __call__ function of the appropriate BPoly object; it evaluates the y Bezier Polynomial.
-
-        Args:
-            time (float): The timestamp at which to evaluate.
-            nu (int): The number of derivative to evaluate.
-
-        Returns:
-            np.ndarray: The "nu"th derivative at "time" time.
-        """
-        return self.BPolys[1](time, nu)
-
-    def z(self, time: float, nu: int = 0) -> np.ndarray:
-        """
-        Wrapper around the __call__ function of the appropriate BPoly object; it evaluates the z Bezier Polynomial.
-
-        Args:
-            time (float): The timestamp at which to evaluate.
-            nu (int): The number of derivative to evaluate.
-
-        Returns:
-            np.ndarray: The "nu"th derivative at "time" time.
-        """
-        return self.BPolys[2](time, nu)
-
-    def yaw(self, time: float, nu: int = 0) -> np.ndarray:
-        """
-        Wrapper around the __call__ function of the appropriate BPoly object; it evaluates the yaw Bezier Polynomial.
-
-        Args:
-            time (float): The timestamp at which to evaluate.
-            nu (int): The number of derivative to evaluate.
-
-        Returns:
-            np.ndarray: The "nu"th derivative at "time" time.
-        """
-        return self.BPolys[3](time, nu)
-
+BezierCurve = skyc_inspector.BezierCurve
+TrajEvaluator = skyc_inspector.TrajEvaluator
 
 class SkycTrajectory(trajectory.Trajectory):
     """
@@ -99,48 +37,12 @@ class SkycTrajectory(trajectory.Trajectory):
     .. note::
         The fact that functions such as select_curve and evaluate and the helper class BezierCurve have to be written
         is testament to the fact that the skyc_utils package leaves a lot to be desired. It should be reworked.
-
-    .. todo::
-        Rework the skyc_utils package to be more streamlined with this.
     """
     def __init__(self, skyc_file: str, traj_id: int = 0):
         super().__init__()
         traj_data: list[dict] = skyc_inspector.get_traj_data(skyc_file)
         self.traj_data = traj_data[traj_id]  #: The dictionary that can be read from trajectory.json.
-        self.bezier_curves: list[BezierCurve] = []  #: The list of individual segments.
-        segments = self.traj_data.get("points")
-        assert segments is not None
-        for i in range(1, len(segments)):
-            prev_segment = segments[i - 1]
-            start_point = prev_segment[1]  # The current segment's start pose is the end pose of the previous one.
-            start_time = prev_segment[0]  # The current segment starts when the previous ends.
-            segment = segments[i]
-            end_point = segment[1]
-            end_time = segment[0]
-            ctrl_points = segment[2]  # The "extra" control points, which aren't physically on the curve.
-            # points will contain all points of the bezier curve, including the start and end, unlike in trajectory.json
-            points = [start_point, *ctrl_points, end_point] if ctrl_points else [start_point, end_point]
-            self.bezier_curves.append(BezierCurve(points, start_time, end_time))
-
-
-    def select_curve(self, time: float) -> BezierCurve:
-        """
-        Calculates which Bezier segment the timestamp falls under.
-
-        Args:
-            time (float): The time at which we're investigating the trajectory.
-
-        Returns:
-            BezierCurve: The segment which will be traversed at the given timestamp.
-        """
-        if time < self.traj_data["takeoffTime"]:  # this should never happen, but in case it does we return the 0th
-            return self.bezier_curves[0]
-        # This loop breaks if we find a match, meaning that it relies on the segments being sorted in increasing
-        # timestamp order.
-        for bezier_curve in self.bezier_curves:
-            if bezier_curve.start_time <= time <= bezier_curve.end_time:
-                return bezier_curve
-        return self.bezier_curves[-1]
+        self.evaluator = TrajEvaluator(self.traj_data)
 
     def evaluate(self, time: float) -> dict[str, Any]:
         """
@@ -154,7 +56,7 @@ class SkycTrajectory(trajectory.Trajectory):
         Returns:
             dict[str, Any]: The desired setpoint at the provided timestamp.
         """
-        curve = self.select_curve(time)
+        curve = self.evaluator.select_curve(time)
         t_land = self.traj_data["landingTime"]
         if time <= t_land:  # If the trajectory isn't supposed to be over yet.
             retval = {

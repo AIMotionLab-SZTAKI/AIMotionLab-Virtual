@@ -49,7 +49,7 @@
 			<geom name="Crazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.5 0.5 1" />
 			<inertial pos="0.0 0.0 0.0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028" />
 			<joint name="Crazyflie_0" type="free" />
-			<site name="Crazyflie_0_cog" pos="0 0 0" size="0.005" />
+			<site name="Crazyflie_0_cog" pos="0 0 0" size="0.005" rgba="0.5 0.5 0.5 0.0" />
 			<body name="Crazyflie_0_prop0">
 				<joint name="Crazyflie_0_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
 				<geom name="Crazyflie_0_prop0" type="mesh" mesh="crazyflie_ccw_prop" mass="0.00001" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />

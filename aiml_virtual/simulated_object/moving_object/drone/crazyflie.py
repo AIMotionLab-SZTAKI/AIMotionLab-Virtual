@@ -50,7 +50,7 @@ class Crazyflie(drone.Drone):
         Returns:
             Optional[list[str]]: The list of aliases for objects belonging to this class.
         """
-        return ["Crazyflie", "cf", "crazyflie"]
+        return ["Crazyflie", "crazyflie"]
 
     def set_default_controller(self) -> None:
         """

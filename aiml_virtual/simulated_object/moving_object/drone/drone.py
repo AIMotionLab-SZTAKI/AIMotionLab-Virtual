@@ -13,9 +13,6 @@ from aiml_virtual.simulated_object.moving_object import moving_object
 class Propeller:
     """
     Class that encapsulates most of the data relating to a Propeller in mujoco.
-
-    .. todo::
-        Several elements in create_xml_element in crazyflie and bumblebee may be moved here.
     """
     DIR_NEGATIVE: float = -1.0  #: **classvar** | Clockwise (left-hand) spin direction.
     DIR_POSITIVE: float = 1.0  #: **classvar** | Counter-clockwise (right-hand) spin direction.
@@ -71,6 +68,9 @@ class Propeller:
 class Drone(moving_object.MovingObject):
     """
     Class encapsulating behaviour common to all drones (which are MovingObjects).
+
+    .. todo::
+        Several elements in create_xml_element in crazyflie and bumblebee may be moved here.
     """
     def __init__(self):
         super().__init__()

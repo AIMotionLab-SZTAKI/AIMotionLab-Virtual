@@ -1,8 +1,13 @@
 import motioncapture
+import threading
+import time
 
-if __name__ == "__main__":
-    mocap = motioncapture.MotionCaptureOptitrack("192.168.2.141")
+from mpmath.rational import mpq_1
+
+
+def printmocap_data(mocap: motioncapture.MotionCaptureOptitrack):
     while True:
+        loop_start = time.time()
         mocap.waitForNextFrame()
         print("_________________________________________________________________")
         for name, obj in mocap.rigidBodies.items():
@@ -11,3 +16,12 @@ if __name__ == "__main__":
             print(f"Name: {name}\n"
                   f"Position: {obj.position}\n"
                   f"Orientation: x: {obj.rotation.x}, y: {obj.rotation.y}, z: {obj.rotation.z}, w: {obj.rotation.w}")
+        time.sleep(loop_start + 1 - time.time())
+
+if __name__ == "__main__":
+    mocap = motioncapture.MotionCaptureOptitrack("192.168.2.141")
+    mocap_thread = threading.Thread(target=printmocap_data, args=(mocap,))
+    mocap_thread.start()
+    while True:
+        print(f"Main thread doing something...")
+        time.sleep(1)

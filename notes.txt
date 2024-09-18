@@ -8,14 +8,26 @@ cél:
 -a valódi drónok csak repkednek
 
 ehhez:
--le kell porolni máté cuccát
--működnie számolni és lehetőleg repülni X drónnal
 -mocap objectek
 -statikus objectek
 -skyc fájlból olvasás (ez kész is tulajdonképpen)
 
-ELŐSZÖR:
--maradék agy zavaró todo
--az összes drón működjön
--máté demója működjön
--utána mehetnek a módosítások
+MOCAP OBJECTEK UPDATE-JE:
+Máté féle cuccban egyszerűen data.mocap_pos[mocapid] = pos, quat-ra ugyanez
+Biztos hogy el lehet érni name-el is, de a named access kipróbáláshoz kell egy xml objektum
+ahhoz hogy legyen egy objektum, meg kell csinálni az add_object kód útvonalat:
+-add_to_xml
+-bind data és model
+-mindennek konkrétnak kell lennie, erről szól a fordító
+HOppá, lehet mégsincs named access:
+
+HUGE TODO:
+ne lehessen ugyanazt az objectet kétszer hozzáadni!
+
+Mostmár készen állunk az update megírására kb:
+-kell egy dummy motion capture
+-kell egy threading dolog
+
+THREADING:
+Lennie kell a szimulációban hely több mocap source-nak, amik a saját dolgaikat updatelik, KÜLÖN SZÁLBAN
+A simulatedobject-ek update-je annyit kell csináljon hogy ránéz erre és kimásolja ami benne van

@@ -2,8 +2,6 @@ import motioncapture
 import threading
 import time
 
-from mpmath.rational import mpq_1
-
 
 def printmocap_data(mocap: motioncapture.MotionCaptureOptitrack):
     while True:

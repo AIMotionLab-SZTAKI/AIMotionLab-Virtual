@@ -97,6 +97,48 @@
 			</body>
 			<site name="Bumblebee_0_prop3" pos="0.091 0.087 0.036" size="0.0001" />
 		</body>
+		<body name="MocapCrazyflie_0" pos="1 0 0" quat="1 0 0 0" mocap="true">
+			<geom name="MocapCrazyflie_0_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0.0 0.0 1" />
+			<geom name="MocapCrazyflie_0_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0.0 0.0 1" />
+			<geom name="MocapCrazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.0 0.0 1" />
+			<body name="MocapCrazyflie_0_prop0">
+				<joint name="MocapCrazyflie_0_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_0_prop0" type="mesh" mesh="crazyflie_ccw_prop" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_0_prop1">
+				<joint name="MocapCrazyflie_0_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_0_prop1" type="mesh" mesh="crazyflie_cw_prop" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_0_prop2">
+				<joint name="MocapCrazyflie_0_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_0_prop2" type="mesh" mesh="crazyflie_ccw_prop" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_0_prop3">
+				<joint name="MocapCrazyflie_0_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_0_prop3" type="mesh" mesh="crazyflie_cw_prop" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+		</body>
+		<body name="MocapCrazyflie_1" pos="-1 0 0" quat="1 0 0 0" mocap="true">
+			<geom name="MocapCrazyflie_1_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0.0 0.0 1" />
+			<geom name="MocapCrazyflie_1_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0.0 0.0 1" />
+			<geom name="MocapCrazyflie_1_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.0 0.0 1" />
+			<body name="MocapCrazyflie_1_prop0">
+				<joint name="MocapCrazyflie_1_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_1_prop0" type="mesh" mesh="crazyflie_ccw_prop" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_1_prop1">
+				<joint name="MocapCrazyflie_1_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_1_prop1" type="mesh" mesh="crazyflie_cw_prop" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_1_prop2">
+				<joint name="MocapCrazyflie_1_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_1_prop2" type="mesh" mesh="crazyflie_ccw_prop" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_1_prop3">
+				<joint name="MocapCrazyflie_1_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_1_prop3" type="mesh" mesh="crazyflie_cw_prop" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+		</body>
 	</worldbody>
 	<actuator>
 		<motor name="Bicycle_0_actr" joint="Bicycle_0_wheelr" />

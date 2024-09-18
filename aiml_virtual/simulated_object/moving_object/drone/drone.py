@@ -3,9 +3,9 @@ This module contains classes relating to the general drone model.
 """
 
 import mujoco
-from typing import Optional, Any, Union
+from typing import Optional
 import numpy as np
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from aiml_virtual.simulated_object.moving_object import moving_object
 
@@ -88,26 +88,6 @@ class Drone(moving_object.MovingObject):
         outputs (thrust-toruqeX-torqueY-torqueZ) and the individual motor thrusts.
         """
         pass
-
-    @property
-    def mass(self) -> Union[None, float, np.array]:
-        """
-        Property to look up the mass of the drone in the mjModel.
-        """
-        if self.model:
-            return self.model.body(self.name).mass
-        else:
-            return None
-
-    @property
-    def inertia(self) -> Union[None, np.ndarray]:
-        """
-        Property to look up the diagonal inertia of the drone in the mjModel.
-        """
-        if self.model:
-            return self.model.body(self.name).inertia
-        else:
-            return None
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:

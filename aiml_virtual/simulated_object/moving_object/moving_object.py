@@ -2,10 +2,8 @@
 This module contains the base class for controlled SimulatedObjects.
 """
 
-import xml.etree.ElementTree as ET
-from abc import abstractmethod
-import mujoco
-from typing import Optional
+from typing import Optional, Union
+import numpy as np
 
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.controller import controller
@@ -22,6 +20,26 @@ class MovingObject(simulated_object.SimulatedObject):
         self.controllers: list[controller.Controller] = []  # storage for containers to switch between
         self.controller: Optional[controller.Controller] = None
         self.trajectory: Optional[trajectory.Trajectory] = None
+
+    @property
+    def mass(self) -> Union[None, float, np.array]:
+        """
+        Property to look up the mass of the drone in the mjModel.
+        """
+        if self.model:
+            return self.model.body(self.name).mass
+        else:
+            return None
+
+    @property
+    def inertia(self) -> Union[None, np.ndarray]:
+        """
+        Property to look up the diagonal inertia of the drone in the mjModel.
+        """
+        if self.model:
+            return self.model.body(self.name).inertia
+        else:
+            return None
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:

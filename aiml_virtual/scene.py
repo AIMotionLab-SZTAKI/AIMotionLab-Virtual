@@ -94,6 +94,8 @@ class Scene:
         for obj in self.simulated_objects:
             obj.bind_to_model(self.model)
 
+    def __contains__(self, obj: SimulatedObject):
+        return obj in self.simulated_objects
 
     def add_object(self, obj: SimulatedObject, pos: str = "0 0 0", quat: str = "1 0 0 0", color: str = "0.5 0.5 0.5 1") \
             -> None:
@@ -106,18 +108,22 @@ class Scene:
             quat (str): The orientation quaternion of the object, as a space-separated string in "w x y z" order.
             color (str): The base color of the object, as a space separated string in "r g b a" order.
         """
+        #TODO: make it impossible to add objects twice
         # update XML representation
-        xml_dict = obj.create_xml_element(pos, quat, color)
-        for child in self.xml_root:
-            if child.tag in xml_dict.keys():
-                for e in xml_dict[child.tag]:
-                    child.append(e)
+        if obj in self:
+            print(f"Simulated Object is already in the scene!")
+        else:
+            xml_dict = obj.create_xml_element(pos, quat, color)
+            for child in self.xml_root:
+                if child.tag in xml_dict.keys():
+                    for e in xml_dict[child.tag]:
+                        child.append(e)
 
-        # update simulated objects
-        self.simulated_objects.append(obj)
+            # update simulated objects
+            self.simulated_objects.append(obj)
 
-        # update model
-        self.reload_model()
+            # update model
+            self.reload_model()
         
 
 

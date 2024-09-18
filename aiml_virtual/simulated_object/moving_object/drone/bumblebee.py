@@ -10,7 +10,7 @@ import numpy as np
 
 from aiml_virtual.simulated_object.moving_object.drone import drone
 from aiml_virtual.controller import drone_geom_controller
-from aiml_virtual import utils
+from aiml_virtual.utils import utils_general
 
 
 class Bumblebee(drone.Drone):
@@ -90,7 +90,7 @@ class Bumblebee(drone.Drone):
         cog = Bumblebee.COG
         drone = ET.Element("body", name=name, pos=pos, quat=quat)  # the top level body
         # need to rotate the body mesh to match optitrack orientation
-        quat_mesh = utils.quaternion_from_euler(0, 0, math.radians(270))
+        quat_mesh = utils_general.quaternion_from_euler(0, 0, math.radians(270))
         quat_mesh_str = str(quat_mesh[0]) + " " + str(quat_mesh[1]) + " " + str(quat_mesh[2]) + " " + str(quat_mesh[3])
         ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", quat=quat_mesh_str,
                       mesh="bumblebee_body", rgba=color)  # this is the main body of the crazyflie (from mesh):

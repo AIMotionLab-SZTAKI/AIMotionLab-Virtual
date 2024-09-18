@@ -9,7 +9,6 @@ from typing import Optional, Callable
 from contextlib import contextmanager
 import platform
 import glfw
-from scipy.fftpack import shift
 
 if platform.system() == 'Windows':
     import win_precise_time as time
@@ -19,7 +18,7 @@ else:
 
 from aiml_virtual import scene
 from aiml_virtual.simulated_object import simulated_object
-from aiml_virtual import utils
+from aiml_virtual.simulated_object.mocap_object.mocap_source import mocap_source
 
 Scene = scene.Scene
 SimulatedObject = simulated_object.SimulatedObject
@@ -47,6 +46,9 @@ class Simulator:
         self.add_process(self.update_objects, control_freq, False)
         self.add_process(self.sync, target_fps, True)
         self.add_process(self.mj_step, int(1 / self.timestep), False)
+
+        self.mocap_sources: list[mocap_source.MocapSource] = []
+
 
     @property
     def time(self) -> float:

@@ -16,8 +16,7 @@ import aiml_virtual.simulated_object.moving_object.drone.crazyflie as cf
 import aiml_virtual.simulated_object.moving_object.drone.bumblebee as bb
 import aiml_virtual.simulated_object.mocap_object.drone.mocapCrazyflie as mcf
 from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
-from aiml_virtual.simulated_object.mocap_object.mocap_source import dummy_mocap_source
-from aiml_virtual.utils.dummy_mocap_server import DummyRigidBody
+from aiml_virtual.mocap import dummy_mocap_source
 
 if __name__ == "__main__":
     project_root = pathlib.Path(__file__).parents[1].resolve().as_posix()
@@ -35,15 +34,27 @@ if __name__ == "__main__":
     bb0.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 0, 1]))
     scene.add_object(bb0, "-1 0 0.5", "1 0 0 0", "0.5 0.5 0.5 1")
 
-    scene.add_object(bb0, "-1 0 0.5", "1 0 0 0", "0.5 0.5 0.5 1")
-
-    mocap = dummy_mocap_source.DummyMocapSource("localhost", 9999, 50)
-    mcf0 = mcf.MocapCrazyflie(mocap)
+    mocap1 = dummy_mocap_source.DummyMocapSource()
+    mocap1.set_data({
+        "cf0": (np.array([1, -1, 1]), np.array([0, 0, 0, 1])),
+        "cf1": (np.array([1, 1, 1]), np.array([0, 0, 0, 1])),
+        "cf2": (np.array([-1, 1, 1]), np.array([0, 0, 0, 1])),
+        "cf3": (np.array([-1, -1, 1]), np.array([0, 0, 0, 1]))
+    })
+    mocap2 = dummy_mocap_source.DummyMocapSource()
+    mcf0 = mcf.MocapCrazyflie(mocap1, "cf0")
     scene.add_object(mcf0, "1 0 0", "1 0 0 0", "0.5 0.0 0.0 1")
-    mcf1 = mcf.MocapCrazyflie(mocap)
+    mcf1 = mcf.MocapCrazyflie(mocap1, "cf1")
     scene.add_object(mcf1, "-1 0 0", "1 0 0 0", "0.5 0.0 0.0 1")
 
+    scene.add_mocap_objects(mocap1, color="0 0 0.5 1")
+    scene.remove_object(scene.simulated_objects[-1])
 
+    mocap2.set_data({
+        "cf0": (np.array([0, 0, 0.5]), np.array([0, 0, 0, 1])),
+    })
+    mcf2 = mcf.MocapCrazyflie(mocap2, "cf0")
+    scene.add_object(mcf2, color="0.5 0 0 1")
 
     sim = simulator.Simulator(scene, control_freq=500, target_fps=100)
     with sim.launch_viewer():

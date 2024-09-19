@@ -1,3 +1,5 @@
+# TODO: DOCSTRINGS AND COMMENTS
+
 """
 This module implements the base class for objects in the simulation that we also want to manipluate in python.
 """
@@ -7,6 +9,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Type  # todo: can we use type (lowercase t)
 
 import mujoco
+import numpy as np
 
 
 class SimulatedObject(ABC):
@@ -127,5 +130,32 @@ class SimulatedObject(ABC):
         """
         pass
 
+    @property
+    def id(self) -> Optional[int]:
+        """
+        Property to look up the ID of the body associated with the python object in the mujoco model.
+        """
+        if self.model is not None:
+            return mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, self.name)
+        else:
+            return None
 
+    @property
+    def xpos(self) -> Optional[np.ndarray]:
+        """
+        Property to look up the global position of the body associated with the python object in the mujoco data.
+        """
+        if self.data is not None:
+            return self.data.body(self.name).xpos
+        else:
+            return None
 
+    @property
+    def xquat(self) -> Optional[np.ndarray]:
+        """
+        Property to look up the orientation of the body associated with the python object in the mujoco data.
+        """
+        if self.data is not None:
+            return self.data.body(self.name).xquat
+        else:
+            return None

@@ -81,3 +81,15 @@ class PausableTime:
         self.last_started: float = time.time()
         self.sum_time = 0.0
         self.ticking: bool = True
+
+def warning(text: str) -> None:
+    """
+    Print in scary red letters.
+
+    Args:
+        text (str): The text of the warning.
+    """
+    red = "\033[91m"
+    reset = "\033[0m"
+    formatted_text = f"WARNING: {text}"
+    print(red + formatted_text + reset)

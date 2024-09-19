@@ -1,3 +1,5 @@
+# TODO: DOCSTRINGS AND COMMENTS
+
 """
 This module contains the class Scene.
 """
@@ -5,19 +7,23 @@ This module contains the class Scene.
 import os.path
 import sys
 import xml.etree.ElementTree as ET
-from typing import Type
+from typing import Type, cast, Union
 import mujoco
 import pathlib
 
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.simulated_object.mocap_object import mocap_object
 from aiml_virtual.simulated_object.moving_object import moving_object
+from aiml_virtual.mocap import mocap_source
+from aiml_virtual.utils import utils_general
 
 # importing whole modules is supposed to be good practice to avoid circular imports, but I want easier access, so here
 # are some aliases to avoid having to type out module.symbol
 MocapObject = mocap_object.MocapObject
 MovingObject = moving_object.MovingObject
 SimulatedObject = simulated_object.SimulatedObject
+MocapSource = mocap_source.MocapSource
+warning = utils_general.warning
 
 XML_FOLDER = os.path.join(pathlib.Path(__file__).parents[1].resolve().as_posix(), "xml_models")
 EMTPY_SCENE = os.path.join(pathlib.Path(__file__).parents[1].resolve().as_posix(), "xml_models", "empty_scene.xml")
@@ -94,9 +100,6 @@ class Scene:
         for obj in self.simulated_objects:
             obj.bind_to_model(self.model)
 
-    def __contains__(self, obj: SimulatedObject):
-        return obj in self.simulated_objects
-
     def add_object(self, obj: SimulatedObject, pos: str = "0 0 0", quat: str = "1 0 0 0", color: str = "0.5 0.5 0.5 1") \
             -> None:
         """
@@ -108,10 +111,11 @@ class Scene:
             quat (str): The orientation quaternion of the object, as a space-separated string in "w x y z" order.
             color (str): The base color of the object, as a space separated string in "r g b a" order.
         """
-        #TODO: make it impossible to add objects twice
+        #TODO: make it impossible to add objects twice, and enforce lack of name clash!
+
         # update XML representation
-        if obj in self:
-            print(f"Simulated Object is already in the scene!")
+        if obj in self.simulated_objects or obj.name in [o.name for o in self.simulated_objects]:
+            warning(f"Simulated Object {obj.name} is already in the scene!")
         else:
             xml_dict = obj.create_xml_element(pos, quat, color)
             for child in self.xml_root:
@@ -124,6 +128,40 @@ class Scene:
 
             # update model
             self.reload_model()
-        
+
+    def remove_object(self, obj: Union[str, SimulatedObject]):
+        if obj not in self.simulated_objects:
+            return
+        if isinstance(obj, MocapObject):
+            obj_to_remove = obj
+            obj_name = obj.name
+        else:
+            obj_to_remove = [o for o in self.simulated_objects if o.name == obj][0]
+            obj_name = obj
+        self.simulated_objects.remove(obj_to_remove)  # python object needs to be removed
+        SimulatedObject.instance_count[type(obj_to_remove)] -= 1  # counter needs to be decremented
+        # xml element needs to be removed
+        worldbody: ET.Element = self.xml_root.findall(".//worldbody")[0]
+        for body in worldbody:
+            if body.attrib.get('name') == obj_name:
+                worldbody.remove(body)
+        self.reload_model()  # update model
+
+    def add_mocap_objects(self, mocap: MocapSource, color: str = "0.5 0.5 0.5 1"):
+        # TODO: Solve the fact that the user may add a mocap object to this mocap after this function as well? If this is even an issue
+        # note: isinstance checks for subclasses as well
+        objects_to_remove = [o for o in self.simulated_objects if isinstance(o, MocapObject) and o.source == mocap]
+        for object_to_remove in objects_to_remove:
+            self.remove_object(object_to_remove)
+        frame = mocap.data
+        for name, (pos, quat) in frame.items():
+            pos_str = ' '.join(map(str, pos))
+            quat_str = ' '.join(map(str, quat))
+            for sim_name in SimulatedObject.xml_registry.keys():
+                if sim_name in name:
+                    cls: Type[MocapObject] = cast(Type[MocapObject], SimulatedObject.xml_registry[sim_name])
+                    obj: MocapObject = cls(source=mocap, mocap_name=name)
+                    self.add_object(obj, pos_str, quat_str, color)
+
 
 

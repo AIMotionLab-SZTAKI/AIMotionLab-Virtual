@@ -1,7 +1,6 @@
 """
 Module that contains the class handling simulation.
 """
-import copy
 import math
 import mujoco
 import mujoco.viewer
@@ -18,7 +17,6 @@ else:
 
 from aiml_virtual import scene
 from aiml_virtual.simulated_object import simulated_object
-from aiml_virtual.simulated_object.mocap_object.mocap_source import mocap_source
 
 Scene = scene.Scene
 SimulatedObject = simulated_object.SimulatedObject
@@ -46,9 +44,6 @@ class Simulator:
         self.add_process(self.update_objects, control_freq, False)
         self.add_process(self.sync, target_fps, True)
         self.add_process(self.mj_step, int(1 / self.timestep), False)
-
-        self.mocap_sources: list[mocap_source.MocapSource] = []
-
 
     @property
     def time(self) -> float:

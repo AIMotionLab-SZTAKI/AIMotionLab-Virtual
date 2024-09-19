@@ -56,7 +56,7 @@ class Bumblebee(drone.Drone):
         Returns:
             Optional[list[str]]: The list of aliases for objects belonging to this class.
         """
-        return ["Bumblebee", "bb", "bumblebee"]
+        return ["Bumblebee", "bumblebee"]
 
     def set_default_controller(self) -> None:
         """

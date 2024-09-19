@@ -12,22 +12,9 @@ ehhez:
 -statikus objectek
 -skyc fájlból olvasás (ez kész is tulajdonképpen)
 
-MOCAP OBJECTEK UPDATE-JE:
-Máté féle cuccban egyszerűen data.mocap_pos[mocapid] = pos, quat-ra ugyanez
-Biztos hogy el lehet érni name-el is, de a named access kipróbáláshoz kell egy xml objektum
-ahhoz hogy legyen egy objektum, meg kell csinálni az add_object kód útvonalat:
--add_to_xml
--bind data és model
--mindennek konkrétnak kell lennie, erről szól a fordító
-HOppá, lehet mégsincs named access:
-
-HUGE TODO:
-ne lehessen ugyanazt az objectet kétszer hozzáadni!
-
-Mostmár készen állunk az update megírására kb:
--kell egy dummy motion capture
--kell egy threading dolog
-
-THREADING:
-Lennie kell a szimulációban hely több mocap source-nak, amik a saját dolgaikat updatelik, KÜLÖN SZÁLBAN
-A simulatedobject-ek update-je annyit kell csináljon hogy ránéz erre és kimásolja ami benne van
+Elvárás:
+Lehessen egy scene-t betölteni és hozzáadni a mocap objektumokat
+Ehhez valami olyasmi kéne, hogy scene.import_mocap_objects
+TFH berakunk egy mocap objektumot, majd ugyanannak a mocapnak importáljuk az összes elemét:
+    ilyenkor lehet olyan use case hogy meg akarjuk tartani a kézzel csináltat? Szerintem nem
+    tehát meg kell csinálni a remove_object-et :)

@@ -50,7 +50,7 @@ class Crazyflie(drone.Drone):
         Returns:
             Optional[list[str]]: The list of aliases for objects belonging to this class.
         """
-        return ["Crazyflie", "crazyflie"]
+        return ["Crazyflie", "crazyflie"]  # note: the "cf" id belongs to *mocap* crazyflies!
 
     def set_default_controller(self) -> None:
         """
@@ -60,7 +60,7 @@ class Crazyflie(drone.Drone):
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         """
-        Overrides method in SimulatedObject. Generates all the necessary XML elements for the model of a Bicycle.
+        Overrides method in SimulatedObject. Generates all the necessary XML elements for the model.
 
         Args:
             pos (str): The position of the object in the scene, x-y-z separated by spaces. E.g.: "0 1 -1"

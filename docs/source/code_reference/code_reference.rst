@@ -10,14 +10,12 @@ Subpackages
    controller/controller
    trajectory/trajectory
    simulated_object/simulated_object
+   utils/utils
+   mocap/mocap
 
 ---------------------------
 Modules
 ---------------------------
-
-utils.py
-^^^^^^^^^^^^^^^^
-.. automodule:: aiml_virtual.utils
 
 scene.py
 ^^^^^^^^^^^^^^^^

@@ -15,7 +15,7 @@ import aiml_virtual.simulated_object.moving_object.bicycle as bicycle
 import aiml_virtual.simulator as simulator
 import aiml_virtual.simulated_object.moving_object.drone.crazyflie as cf
 import aiml_virtual.simulated_object.moving_object.drone.bumblebee as bb
-import aiml_virtual.simulated_object.mocap_object.drone.mocapCrazyflie as mcf
+import aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_crazyflie as mcf
 from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
 from aiml_virtual.mocap import dummy_mocap_source
 from aiml_virtual.mocap import optitrack_mocap_source
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     bike2 = bicycle.Bicycle()
     scene.add_object(bike2, "0 -1 0", "1 0 0 0", "0.5 0.5 0.5 1")
     cf0 = cf.Crazyflie()
-    traj = skyc_trajectory.SkycTrajectory("skyc_example.skyc")
+    traj = skyc_trajectory.SkycTrajectory("skyc/skyc_example.skyc")
     cf0.trajectory = traj
     scene.add_object(cf0, "0 0 0", "1 0 0 0", "0.5 0.5 0.5 1")
     bb0 = bb.Bumblebee()

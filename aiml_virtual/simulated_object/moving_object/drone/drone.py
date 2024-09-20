@@ -116,7 +116,7 @@ class Drone(moving_object.MovingObject):
 
     def update(self, time: float) -> None:
         """
-        Overwrites SimulatedObject.update. Updates the position of the propellers to make it look like they are
+        Overrides SimulatedObject.update. Updates the position of the propellers to make it look like they are
         spinning, and runs the controller.
 
         Args:
@@ -133,7 +133,7 @@ class Drone(moving_object.MovingObject):
 
     def bind_to_data(self, data: mujoco.MjData) -> None:
         """
-        Overwrites SimulatedObstacle.bind_to_data. Saves the references of the sensors and propellers from the data.
+        Overrides SimulatedObstacle.bind_to_data. Saves the references of the sensors and propellers from the data.
         Also sets a default controller if one has not been set yet.
 
         Args:

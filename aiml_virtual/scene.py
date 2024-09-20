@@ -1,5 +1,3 @@
-# TODO: DOCSTRINGS AND COMMENTS
-
 """
 This module contains the class Scene.
 """
@@ -111,8 +109,6 @@ class Scene:
             quat (str): The orientation quaternion of the object, as a space-separated string in "w x y z" order.
             color (str): The base color of the object, as a space separated string in "r g b a" order.
         """
-        #TODO: make it impossible to add objects twice, and enforce lack of name clash!
-
         # update XML representation
         if obj in self.simulated_objects or obj.name in [o.name for o in self.simulated_objects]:
             warning(f"Simulated Object {obj.name} is already in the scene!")
@@ -129,7 +125,15 @@ class Scene:
             # update model
             self.reload_model()
 
-    def remove_object(self, obj: Union[str, SimulatedObject]):
+    def remove_object(self, obj: Union[str, SimulatedObject]) -> None:
+        """
+        Analogous to add_object, except it removes a specified object from the scene.
+
+        Args:
+            obj (Union[str, SimulatedObject]): The object to remove, either by reference or by name.
+        """
+        # Do nothing if the object is not in the scene. Note that this works regardless of whether obj was a string
+        # (the name of the target object), or a reference to the object itself.
         if obj not in self.simulated_objects:
             return
         if isinstance(obj, MocapObject):
@@ -145,23 +149,43 @@ class Scene:
         for body in worldbody:
             if body.attrib.get('name') == obj_name:
                 worldbody.remove(body)
-        self.reload_model()  # update model
+        self.reload_model()  # update model to match XML
 
-    def add_mocap_objects(self, mocap: MocapSource, color: str = "0.5 0.5 0.5 1"):
-        # TODO: Solve the fact that the user may add a mocap object to this mocap after this function as well? If this is even an issue
-        # note: isinstance checks for subclasses as well
+    def add_mocap_objects(self, mocap: MocapSource, color: str = "0.5 0.5 0.5 1") -> list[MocapObject]:
+        """
+        Adds every mocap object found in a motion capture source to the model. As opposed to add_object, this method
+        actually creates new object instances.
+
+        .. note::
+            A mocap object can be added one of two ways: either directly by using add_object, or using this method. A
+            mocap object must always have exactly one mocap source associated with it. This means that when this method
+            ges called, it's possible that there already are mocap objects in the scene that are using this mocap
+            source. These mocap objecs will be removed from the scene.
+
+        Args:
+            mocap (MocapSource): The motion capture source to parse for objects.
+            color (str): The base color to use for adding the objects.
+
+        Returns:
+            list[MocapObject]: A list of references to the newly created objects.
+        """
+        # Identify objects already associated with this mocap source. Note: isinstance checks for subclasses as well.
         objects_to_remove = [o for o in self.simulated_objects if isinstance(o, MocapObject) and o.source == mocap]
         for object_to_remove in objects_to_remove:
             self.remove_object(object_to_remove)
-        frame = mocap.data
+        frame = mocap.data  # a dictionary where each items corresponds to one eventual mocap object
+        ret: list[MocapObject] = []
         for name, (pos, quat) in frame.items():
-            pos_str = ' '.join(map(str, pos))
-            quat_str = ' '.join(map(str, quat))
-            for sim_name in SimulatedObject.xml_registry.keys():
-                if sim_name in name:
+            pos_str = ' '.join(map(str, pos))  # np.ndarray([x, y, z]) -> "x y z"
+            quat_str = ' '.join(map(str, quat))  # np.ndarray([x, y, z, w]) -> "x y z w"
+            for sim_name in SimulatedObject.xml_registry.keys():  # iterates over Crazyflie, MocapCrazyflie, Bicycle, etc.
+                if sim_name in name:  # sim_name will be something akin to Crazyflie_0, or MocapCrazyflie_5
+                    # determine type to instantiate
                     cls: Type[MocapObject] = cast(Type[MocapObject], SimulatedObject.xml_registry[sim_name])
                     obj: MocapObject = cls(source=mocap, mocap_name=name)
                     self.add_object(obj, pos_str, quat_str, color)
+                    ret.append(obj)
+        return ret
 
 
 

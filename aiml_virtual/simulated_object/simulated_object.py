@@ -1,5 +1,3 @@
-# TODO: DOCSTRINGS AND COMMENTS
-
 """
 This module implements the base class for objects in the simulation that we also want to manipluate in python.
 """

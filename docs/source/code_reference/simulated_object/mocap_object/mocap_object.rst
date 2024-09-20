@@ -1,6 +1,13 @@
 mocap object subpackage
 ========================
 
+-------------------
+Subpackages
+-------------------
+.. toctree::
+   :maxdepth: 1
+
+   mocap_drone/mocap_drone
 
 -------------------
 Modules

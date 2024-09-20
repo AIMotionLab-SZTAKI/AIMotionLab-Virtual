@@ -1,10 +1,14 @@
+"""
+This module contains the class encapsulating mocap crazyflie drones.
+"""
+
 from typing import Optional
 import xml.etree.ElementTree as ET
 
-from aiml_virtual.simulated_object.mocap_object.drone import mocapDrone
+from aiml_virtual.simulated_object.mocap_object.mocap_drone import mocap_drone
 
 
-class MocapCrazyflie(mocapDrone.MocapDrone):
+class MocapCrazyflie(mocap_drone.MocapDrone):
     # static variables that are the same for every crazyflie
     OFFSET: str = "0.03275"  #: **classvar** | Distance of the motor axies from the center of mass in each dimension.
     OFFSET_Z: str = "0.0223"  #: **classvar** | Height of the propellers.
@@ -21,7 +25,7 @@ class MocapCrazyflie(mocapDrone.MocapDrone):
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         """
-        Overrides method in SimulatedObject. Generates all the necessary XML elements for the model of a Bicycle.
+        Overrides method in SimulatedObject. Generates all the necessary XML elements for the model.
 
         Args:
             pos (str): The position of the object in the scene, x-y-z separated by spaces. E.g.: "0 1 -1"
@@ -32,14 +36,9 @@ class MocapCrazyflie(mocapDrone.MocapDrone):
             dict[str, list[ET.Element]]: A dictionary where the keys are tags of XML elements in the MJCF file, and the
             values are lists of XML elements to be appended as children to those XML elements.
 
-        .. note::
-            In the original version, the mass of the drone and the mass of the prop are getting confused and
-            weirdly overwritten. The add_drone_common_parts function wants a 'mass' parameter, and uses this mass
-            parameter to set the inertial element of the XML, which makes sense. HOWEVER, the actual value passed to
-            this mass parameter is CRAZYFLIE_PROP.MASS.value, which doesn't make sense. It is then overwritten to be
-            "0.00001", which is what is used to set the mass of the propellers, instead of CRAZYFLIE_PROP.MASS.value.
-            Here the distinction is more clear: mass only ever refers to the drone, prop_mass only ever refers to the
-            propeller.
+        .. todo::
+            Determine whether a mocap object needs inertial and mass parameters. They are omitted in the old
+            aiml-virtual.
         """
         name = self.name
         Lx1 = MocapCrazyflie.OFFSET

@@ -4,7 +4,7 @@ This module implements the base class for objects in the simulation that we also
 
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
-from typing import Optional, Type  # todo: can we use type (lowercase t)
+from typing import Optional, Type
 
 import mujoco
 import numpy as np

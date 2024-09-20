@@ -9,6 +9,9 @@ from aiml_virtual.simulated_object.mocap_object.mocap_drone import mocap_drone
 
 
 class MocapCrazyflie(mocap_drone.MocapDrone):
+    """
+    Class that specializes the MocapDrone superclass for a crazyflie.
+    """
     # static variables that are the same for every crazyflie
     OFFSET: str = "0.03275"  #: **classvar** | Distance of the motor axies from the center of mass in each dimension.
     OFFSET_Z: str = "0.0223"  #: **classvar** | Height of the propellers.
@@ -21,6 +24,12 @@ class MocapCrazyflie(mocap_drone.MocapDrone):
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
+        """
+        Overrides method in MovingObject to specify whether to check for aliases when parsing an XML.
+
+        Returns:
+            Optional[list[str]]: The list of aliases for objects belonging to this class.
+        """
         return ["mocapCrazyflie", "MocapCrazyflie", "mocapcrazyflie", "cf"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
@@ -38,7 +47,7 @@ class MocapCrazyflie(mocap_drone.MocapDrone):
 
         .. todo::
             Determine whether a mocap object needs inertial and mass parameters. They are omitted in the old
-            aiml-virtual.
+            aiml-virtual. Also, pos and quat may not be neccessary?
         """
         name = self.name
         Lx1 = MocapCrazyflie.OFFSET

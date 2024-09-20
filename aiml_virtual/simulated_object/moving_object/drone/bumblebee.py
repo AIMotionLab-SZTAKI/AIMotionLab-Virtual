@@ -5,7 +5,7 @@ This module contains the class encapsulating the bumblebee drone.
 
 import math
 import xml.etree.ElementTree as ET
-from typing import Optional, Any
+from typing import Optional
 import numpy as np
 
 from aiml_virtual.simulated_object.moving_object.drone import drone
@@ -92,8 +92,9 @@ class Bumblebee(drone.Drone):
         # need to rotate the body mesh to match optitrack orientation
         quat_mesh = utils_general.quaternion_from_euler(0, 0, math.radians(270))
         quat_mesh_str = str(quat_mesh[0]) + " " + str(quat_mesh[1]) + " " + str(quat_mesh[2]) + " " + str(quat_mesh[3])
+        # this is the main body of the crazyflie (from mesh):
         ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", quat=quat_mesh_str,
-                      mesh="bumblebee_body", rgba=color)  # this is the main body of the crazyflie (from mesh):
+                      mesh="bumblebee_body", rgba=color)
         ret = {"worldbody": [drone],
                "actuator": [],
                "sensor": []}

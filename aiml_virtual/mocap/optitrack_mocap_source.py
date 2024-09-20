@@ -5,6 +5,7 @@ This module contains a motion capture class to encapsulate the optitrack system.
 import copy
 import sys
 if sys.platform != "linux":
+    # for some reason, on windows, motioncapture can't be imported, even though it gets installed
     class motioncapture:
         MotionCaptureOptitrack = None
 else:

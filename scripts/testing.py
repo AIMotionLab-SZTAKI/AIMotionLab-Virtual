@@ -61,7 +61,7 @@ if __name__ == "__main__":
     mcf2 = mcf.MocapCrazyflie(mocap2, "cf9")
     scene.add_object(mcf2, color="0.5 0 0 1")
 
-    sim = simulator.Simulator(scene, control_freq=500, target_fps=100)
+    sim = simulator.Simulator(scene, update_freq=500, target_fps=100)
     with sim.launch_viewer():
         while sim.viewer.is_running():
             sim.tick()

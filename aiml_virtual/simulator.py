@@ -28,7 +28,7 @@ class Simulator:
     .. todo::
         Find a way to disable the default keybinds.
     """
-    def __init__(self, scene: Scene, control_freq: float = 100, target_fps: int = 50):
+    def __init__(self, scene: Scene, update_freq: float = 100, target_fps: int = 50):
         self.scene: Scene = scene  #: The scene corresponding to the mujoco model.
         self.data: mujoco.MjData = mujoco.MjData(self.model)  #: The data corresponding to the model.
         self.viewer: Optional[mujoco.viewer.Handle] = None  #: The handler to be used for the passive viewer.
@@ -41,7 +41,7 @@ class Simulator:
             (glfw.KEY_F, True): lambda: print("F key callback")
         }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
 
-        self.add_process(self.update_objects, control_freq, False)
+        self.add_process(self.update_objects, update_freq, False)
         self.add_process(self.sync, target_fps, True)
         self.add_process(self.mj_step, int(1 / self.timestep), False)
 

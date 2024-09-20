@@ -3,7 +3,12 @@ This module contains a motion capture class to encapsulate the optitrack system.
 """
 
 import copy
-import motioncapture
+import sys
+if sys.platform != "linux":
+    class motioncapture:
+        MotionCaptureOptitrack = None
+else:
+    import motioncapture
 import numpy as np
 
 from aiml_virtual.mocap import mocap_source

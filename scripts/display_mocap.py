@@ -43,15 +43,15 @@ from aiml_virtual.mocap import dummy_mocap_source
 if __name__ == "__main__":
     project_root = pathlib.Path(__file__).parents[1].resolve().as_posix()
     xml_directory = os.path.join(project_root, "xml_models")
-    scene = scene.Scene(os.path.join(xml_directory, "scene_base.xml"))
+    scene = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"))
     dummy_mocap_start_poses = {
-        "cf0": (np.array([1, -1, 1]), np.array([0, 0, 0, 1]))
+        "cf0": (np.array([0, 0, 0.5]), np.array([0, 0, 0, 1]))
     }
     frame_generator = partial(dummy_mocap_source.generate_circular_paths, start_poses=dummy_mocap_start_poses, T=5)
     mocap = dummy_mocap_source.DummyMocapSource(frame_generator=frame_generator, fps=120)
     cf = mcf.MocapCrazyflie(mocap, "cf0")
     scene.add_object(cf)
-    sim = simulator.Simulator(scene)
+    sim = simulator.Simulator(scene, target_fps=100)
     with sim.launch_viewer():
         while sim.viewer.is_running():
             sim.tick()

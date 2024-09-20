@@ -1,79 +1,106 @@
-<mujoco model="Lagyi">
-	<include file="common_assets.xml" />
-	<default class="main">
-		<default class="lagyi">
-			<geom quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1" />
-		</default>
-		<default class="pole">
-			<geom rgba="0.1 0.1 0.1 1" />
-			<default class="pole_top">
-				<geom type="cylinder" size="0.022 0.5" pos="0 0 0.5" />
-			</default>
-			<default class="pole_bottom1">
-				<geom type="box" size="0.02 0.205 0.02" quat="0.7071 0 0 0.7071" pos="0 0 0.02" />
-				<default class="pole_bottom2">
-					<geom quat="1 0 0 0" />
-				</default>
-			</default>
-		</default>
-		<default class="landing_zone">
-			<geom type="box" pos="0 0 0.01" size="0.1175 0.0975 0.01" rgba="0.8 0.8 0.8 1.0" />
-		</default>
-	</default>
-	<compiler angle="radian" meshdir="" />
-	<option timestep="0.001" integrator="implicitfast" />
-	<visual>
-		<quality shadowsize="4096" />
-	</visual>
-	<asset>
-		<mesh file="meshes/crazyflie/cf2_assembly.stl" name="crazyflie" smoothnormal="true" scale="1.5 1.5 1.5" />
-		<mesh file="meshes/building/lagyi_cockpit.stl" name="cockpit" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
-		<mesh file="meshes/building/lagyi_fal1.stl" name="fal1" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
-		<mesh file="meshes/building/lagyi_fal2.stl" name="fal2" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
-		<mesh file="meshes/building/lagyi_oszlop1.stl" name="oszlop1" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
-		<mesh file="meshes/building/lagyi_oszlop2.stl" name="oszlop2" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
-		<mesh file="meshes/building/lagyi_oszlop3.stl" name="oszlop3" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
-		<mesh file="meshes/building/lagyi_oszlop4.stl" name="oszlop4" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
-		<mesh file="meshes/bucket/Bucket3.obj" name="bucket" smoothnormal="false" scale="0.035 0.035 0.035" />
-		<texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512" />
-		<texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .1 .1" rgb2=".2 .2 .2" />
-		<texture name="tex-carpet" type="2d" file="textures/carpet_lagyi4.png" />
-		<texture name="tex-roundabout" type="2d" file="textures/roundabout.png" />
-		<texture name="tex-hospital" type="2d" file="textures/hospital.png" />
-		<texture name="tex-post_office" type="2d" file="textures/post_office.png" />
-		<texture name="tex-airport" type="2d" file="textures/airport.png" />
-		<texture name="tex-parking_lot" type="2d" file="textures/parking_lot.png" />
-		<texture name="tex-sztaki" type="2d" file="textures/sztaki.png" />
-		<material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".05" />
-		<material name="mat-carpet" shininess="0.1" texture="tex-carpet" texuniform="false" />
-		<material name="mat-roundabout" reflectance="0.7" texture="tex-roundabout" texuniform="false" />
-		<material name="mat-hospital" reflectance="0.7" texrepeat="7.843 7.692" texture="tex-hospital" texuniform="true" />
-		<material name="mat-post_office" reflectance="0.7" texrepeat="7.843 7.843" texture="tex-post_office" texuniform="true" />
-		<material name="mat-airport" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-airport" texuniform="true" />
-		<material name="mat-parking_lot" reflectance="0.7" texrepeat="9.524 8.696" texture="tex-parking_lot" texuniform="true" />
-		<material name="mat-sztaki" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-sztaki" texuniform="true" />
-	</asset>
+<mujoco>
+	<include file="scene_base.xml" />
 	<worldbody>
-		<camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958" />
-		<geom size="20 20 .05" type="plane" material="grid" condim="3" />
-		<light dir="0 -0.3 -1" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="1 1 15" cutoff="70" />
-		<light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70" />
-		<light dir="-1.0 -1.0 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="10 10 6" directional="true" cutoff="70" />
-		<geom name="roundabout" size="1.5 1.5 .05" quat="1 0 0 0" pos="0 0 0.001" type="plane" material="mat-roundabout" condim="3" />
-		<geom name="carpet" size="7.644 7.644 .001" pos="3.16 1.115 0.0005" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet" />
-		<body name="lagyi" pos="1.45 -2.8 0" childclass="lagyi">
-			<geom name="cockpit" type="mesh" mesh="cockpit" />
-			<geom name="fal1" type="mesh" mesh="fal1" />
-			<geom name="fal2" type="mesh" mesh="fal2" />
-			<geom name="oszlop1" type="mesh" mesh="oszlop1" rgba="0.3 0.3 0.3 1" />
-			<geom name="oszlop2" type="mesh" mesh="oszlop2" rgba="0.3 0.3 0.3 1" />
-			<geom name="oszlop3" type="mesh" mesh="oszlop3" rgba="0.3 0.3 0.3 1" />
-			<geom name="oszlop4" type="mesh" mesh="oszlop4" rgba="0.3 0.3 0.3 1" />
+		<body name="Bicycle_0" pos="0 0.2 0.06">
+			<inertial pos="0 0 0" diaginertia=".01 .01 .01" mass="1.0" />
+			<joint type="free" name="Bicycle_0" />
+			<site name="Bicycle_0_cog" pos="0 0 0" />
+			<geom name="Bicycle_0_crossbar" type="box" size="0.06 0.02 0.02" pos="0. 0. 0." rgba="0.2 0.2 0.8 1.0" />
+			<body name="Bicycle_0_wheelf">
+				<joint name="Bicycle_0_wheelf" type="hinge" pos="0.1 0 0" axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.01" />
+				<geom name="Bicycle_0_wheelf" type="cylinder" size="0.04 0.015" pos="0.1 0 0" euler="1.571 0 0" material="material_check" />
+			</body>
+			<body name="Bicycle_0_wheelr">
+				<joint name="Bicycle_0_wheelr" type="hinge" pos="-0.1 0 0" axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.01" />
+				<geom name="Bicycle_0_wheelr" type="cylinder" size="0.04 0.015" pos="-0.1 0 0" euler="1.571 0 0" material="material_check" />
+			</body>
 		</body>
-		<body name="MocapCrazyflie_0" pos="0 0 0" quat="1 0 0 0" mocap="true">
-			<geom name="MocapCrazyflie_0_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0.5 0.5 1" />
-			<geom name="MocapCrazyflie_0_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0.5 0.5 1" />
-			<geom name="MocapCrazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.5 0.5 1" />
+		<body name="Bicycle_1" pos="0 1 0" quat="1 0 0 0">
+			<inertial pos="0 0 0" diaginertia=".01 .01 .01" mass="1.0" />
+			<joint name="Bicycle_1" type="free" />
+			<site name="Bicycle_1_cog" pos="0 0 0" />
+			<geom name="Bicycle_1_crossbar" type="box" size=".06 .015 .02" pos="0 0 0" rgba="0.5 0.5 0.5 1" />
+			<body name="Bicycle_1_wheelf">
+				<joint name="Bicycle_1_wheelf" type="hinge" pos="0.1 0 0" axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.01" />
+				<geom name="Bicycle_1_wheelf" type="cylinder" size="0.04 0.015" pos="0.1 0 0" euler="1.571 0 0" material="material_check" />
+			</body>
+			<body name="Bicycle_1_wheelr">
+				<joint name="Bicycle_1_wheelr" type="hinge" pos="-0.1 0 0" axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.01" />
+				<geom name="Bicycle_1_wheelr" type="cylinder" size="0.04 0.015" pos="-0.1 0 0" euler="1.571 0 0" material="material_check" />
+			</body>
+		</body>
+		<body name="Bicycle_2" pos="0 -1 0" quat="1 0 0 0">
+			<inertial pos="0 0 0" diaginertia=".01 .01 .01" mass="1.0" />
+			<joint name="Bicycle_2" type="free" />
+			<site name="Bicycle_2_cog" pos="0 0 0" />
+			<geom name="Bicycle_2_crossbar" type="box" size=".06 .015 .02" pos="0 0 0" rgba="0.5 0.5 0.5 1" />
+			<body name="Bicycle_2_wheelf">
+				<joint name="Bicycle_2_wheelf" type="hinge" pos="0.1 0 0" axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.01" />
+				<geom name="Bicycle_2_wheelf" type="cylinder" size="0.04 0.015" pos="0.1 0 0" euler="1.571 0 0" material="material_check" />
+			</body>
+			<body name="Bicycle_2_wheelr">
+				<joint name="Bicycle_2_wheelr" type="hinge" pos="-0.1 0 0" axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.01" />
+				<geom name="Bicycle_2_wheelr" type="cylinder" size="0.04 0.015" pos="-0.1 0 0" euler="1.571 0 0" material="material_check" />
+			</body>
+		</body>
+		<body name="Crazyflie_0" pos="0 0 0" quat="1 0 0 0">
+			<geom name="Crazyflie_0_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0.5 0.5 1" />
+			<geom name="Crazyflie_0_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0.5 0.5 1" />
+			<geom name="Crazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.5 0.5 1" />
+			<inertial pos="0.0 0.0 0.0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028" />
+			<joint name="Crazyflie_0" type="free" />
+			<site name="Crazyflie_0_cog" pos="0 0 0" size="0.005" rgba="0.5 0.5 0.5 0.0" />
+			<body name="Crazyflie_0_prop0">
+				<joint name="Crazyflie_0_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
+				<geom name="Crazyflie_0_prop0" type="mesh" mesh="crazyflie_ccw_prop" mass="0.00001" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="Crazyflie_0_prop0" pos="0.03275 -0.03275 0.0223" size="0.0001" />
+			<body name="Crazyflie_0_prop1">
+				<joint name="Crazyflie_0_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
+				<geom name="Crazyflie_0_prop1" type="mesh" mesh="crazyflie_cw_prop" mass="0.00001" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="Crazyflie_0_prop1" pos="-0.03275 -0.03275 0.0223" size="0.0001" />
+			<body name="Crazyflie_0_prop2">
+				<joint name="Crazyflie_0_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
+				<geom name="Crazyflie_0_prop2" type="mesh" mesh="crazyflie_ccw_prop" mass="0.00001" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="Crazyflie_0_prop2" pos="-0.03275 0.03275 0.0223" size="0.0001" />
+			<body name="Crazyflie_0_prop3">
+				<joint name="Crazyflie_0_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
+				<geom name="Crazyflie_0_prop3" type="mesh" mesh="crazyflie_cw_prop" mass="0.00001" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="Crazyflie_0_prop3" pos="0.03275 0.03275 0.0223" size="0.0001" />
+		</body>
+		<body name="Bumblebee_0" pos="-1 0 0.5" quat="1 0 0 0">
+			<geom name="Bumblebee_0_body" pos="0.0132 0 0" type="mesh" quat="-0.7071067811865475 -0.0 0.0 0.7071067811865476" mesh="bumblebee_body" rgba="0.5 0.5 0.5 1" />
+			<inertial pos="0.0085 0.0 0.0" diaginertia="1.5e-3 1.45e-3 2.66e-3" mass="0.605" />
+			<joint name="Bumblebee_0" type="free" />
+			<site name="Bumblebee_0_cog" pos="0 0 0" size="0.005" />
+			<body name="Bumblebee_0_prop0">
+				<joint name="Bumblebee_0_prop0" axis="0 0 1" pos="0.091 -0.087 0.036" />
+				<geom name="Bumblebee_0_prop0" type="mesh" mesh="bumblebee_ccw_prop" mass="0.00001" pos="0.091 -0.087 0.036" rgba="0.1 0.02 0.5 1.0" />
+			</body>
+			<site name="Bumblebee_0_prop0" pos="0.091 -0.087 0.036" size="0.0001" />
+			<body name="Bumblebee_0_prop1">
+				<joint name="Bumblebee_0_prop1" axis="0 0 1" pos="-0.074 -0.087 0.036" />
+				<geom name="Bumblebee_0_prop1" type="mesh" mesh="bumblebee_cw_prop" mass="0.00001" pos="-0.074 -0.087 0.036" rgba="0.1 0.02 0.5 1.0" />
+			</body>
+			<site name="Bumblebee_0_prop1" pos="-0.074 -0.087 0.036" size="0.0001" />
+			<body name="Bumblebee_0_prop2">
+				<joint name="Bumblebee_0_prop2" axis="0 0 1" pos="-0.074 0.087 0.036" />
+				<geom name="Bumblebee_0_prop2" type="mesh" mesh="bumblebee_ccw_prop" mass="0.00001" pos="-0.074 0.087 0.036" rgba="0.1 0.02 0.5 1.0" />
+			</body>
+			<site name="Bumblebee_0_prop2" pos="-0.074 0.087 0.036" size="0.0001" />
+			<body name="Bumblebee_0_prop3">
+				<joint name="Bumblebee_0_prop3" axis="0 0 1" pos="0.091 0.087 0.036" />
+				<geom name="Bumblebee_0_prop3" type="mesh" mesh="bumblebee_cw_prop" mass="0.00001" pos="0.091 0.087 0.036" rgba="0.1 0.02 0.5 1.0" />
+			</body>
+			<site name="Bumblebee_0_prop3" pos="0.091 0.087 0.036" size="0.0001" />
+		</body>
+		<body name="MocapCrazyflie_0" pos="0.016123210914774755 -0.821174919552836 1.0" quat="0 0 0 1" mocap="true">
+			<geom name="MocapCrazyflie_0_body" type="mesh" mesh="crazyflie_body" rgba="0 0 0.5 1" />
+			<geom name="MocapCrazyflie_0_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0 0 0.5 1" />
+			<geom name="MocapCrazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0 0 0.5 1" />
 			<body name="MocapCrazyflie_0_prop0">
 				<joint name="MocapCrazyflie_0_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
 				<geom name="MocapCrazyflie_0_prop0" type="mesh" mesh="crazyflie_ccw_prop" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
@@ -91,5 +118,98 @@
 				<geom name="MocapCrazyflie_0_prop3" type="mesh" mesh="crazyflie_cw_prop" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
 			</body>
 		</body>
+		<body name="MocapCrazyflie_1" pos="0.016123210914774755 1.178825080447164 1.0" quat="0 0 0 1" mocap="true">
+			<geom name="MocapCrazyflie_1_body" type="mesh" mesh="crazyflie_body" rgba="0 0 0.5 1" />
+			<geom name="MocapCrazyflie_1_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0 0 0.5 1" />
+			<geom name="MocapCrazyflie_1_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0 0 0.5 1" />
+			<body name="MocapCrazyflie_1_prop0">
+				<joint name="MocapCrazyflie_1_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_1_prop0" type="mesh" mesh="crazyflie_ccw_prop" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_1_prop1">
+				<joint name="MocapCrazyflie_1_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_1_prop1" type="mesh" mesh="crazyflie_cw_prop" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_1_prop2">
+				<joint name="MocapCrazyflie_1_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_1_prop2" type="mesh" mesh="crazyflie_ccw_prop" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_1_prop3">
+				<joint name="MocapCrazyflie_1_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_1_prop3" type="mesh" mesh="crazyflie_cw_prop" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+		</body>
+		<body name="MocapCrazyflie_2" pos="-1.9838767890852251 1.178825080447164 1.0" quat="0 0 0 1" mocap="true">
+			<geom name="MocapCrazyflie_2_body" type="mesh" mesh="crazyflie_body" rgba="0 0 0.5 1" />
+			<geom name="MocapCrazyflie_2_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0 0 0.5 1" />
+			<geom name="MocapCrazyflie_2_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0 0 0.5 1" />
+			<body name="MocapCrazyflie_2_prop0">
+				<joint name="MocapCrazyflie_2_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_2_prop0" type="mesh" mesh="crazyflie_ccw_prop" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_2_prop1">
+				<joint name="MocapCrazyflie_2_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_2_prop1" type="mesh" mesh="crazyflie_cw_prop" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_2_prop2">
+				<joint name="MocapCrazyflie_2_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_2_prop2" type="mesh" mesh="crazyflie_ccw_prop" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_2_prop3">
+				<joint name="MocapCrazyflie_2_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_2_prop3" type="mesh" mesh="crazyflie_cw_prop" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+		</body>
+		<body name="MocapCrazyflie_3" pos="0 0 0" quat="1 0 0 0" mocap="true">
+			<geom name="MocapCrazyflie_3_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0 0 1" />
+			<geom name="MocapCrazyflie_3_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0 0 1" />
+			<geom name="MocapCrazyflie_3_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0 0 1" />
+			<body name="MocapCrazyflie_3_prop0">
+				<joint name="MocapCrazyflie_3_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_3_prop0" type="mesh" mesh="crazyflie_ccw_prop" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_3_prop1">
+				<joint name="MocapCrazyflie_3_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_3_prop1" type="mesh" mesh="crazyflie_cw_prop" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_3_prop2">
+				<joint name="MocapCrazyflie_3_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_3_prop2" type="mesh" mesh="crazyflie_ccw_prop" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_3_prop3">
+				<joint name="MocapCrazyflie_3_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_3_prop3" type="mesh" mesh="crazyflie_cw_prop" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+		</body>
 	</worldbody>
+	<actuator>
+		<motor name="Bicycle_0_actr" joint="Bicycle_0_wheelr" />
+		<motor name="Bicycle_1_actr" joint="Bicycle_1_wheelr" />
+		<motor name="Bicycle_2_actr" joint="Bicycle_2_wheelr" />
+		<general site="Crazyflie_0_prop0" name="Crazyflie_0_actr0" gear="0 0 1 0 0 0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="Crazyflie_0_prop1" name="Crazyflie_0_actr1" gear="0 0 1 0 0 -0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="Crazyflie_0_prop2" name="Crazyflie_0_actr2" gear="0 0 1 0 0 0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="Crazyflie_0_prop3" name="Crazyflie_0_actr3" gear="0 0 1 0 0 -0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="Bumblebee_0_prop0" name="Bumblebee_0_actr0" gear="0 0 1 0 0 0.5954" ctrllimited="true" ctrlrange="0 15" />
+		<general site="Bumblebee_0_prop1" name="Bumblebee_0_actr1" gear="0 0 1 0 0 -0.5954" ctrllimited="true" ctrlrange="0 15" />
+		<general site="Bumblebee_0_prop2" name="Bumblebee_0_actr2" gear="0 0 1 0 0 0.5954" ctrllimited="true" ctrlrange="0 15" />
+		<general site="Bumblebee_0_prop3" name="Bumblebee_0_actr3" gear="0 0 1 0 0 -0.5954" ctrllimited="true" ctrlrange="0 15" />
+	</actuator>
+	<sensor>
+		<velocimeter site="Bicycle_0_cog" name="Bicycle_0_velocimeter" />
+		<velocimeter site="Bicycle_1_cog" name="Bicycle_1_velocimeter" />
+		<velocimeter site="Bicycle_2_cog" name="Bicycle_2_velocimeter" />
+		<gyro site="Crazyflie_0_cog" name="Crazyflie_0_gyro" />
+		<framelinvel objtype="site" objname="Crazyflie_0_cog" name="Crazyflie_0_velocimeter" />
+		<accelerometer site="Crazyflie_0_cog" name="Crazyflie_0_accelerometer" />
+		<framepos objtype="site" objname="Crazyflie_0_cog" name="Crazyflie_0_posimeter" />
+		<framequat objtype="site" objname="Crazyflie_0_cog" name="Crazyflie_0_orimeter" />
+		<frameangacc objtype="site" objname="Crazyflie_0_cog" name="Crazyflie_0_ang_accelerometer" />
+		<gyro site="Bumblebee_0_cog" name="Bumblebee_0_gyro" />
+		<framelinvel objtype="site" objname="Bumblebee_0_cog" name="Bumblebee_0_velocimeter" />
+		<accelerometer site="Bumblebee_0_cog" name="Bumblebee_0_accelerometer" />
+		<framepos objtype="site" objname="Bumblebee_0_cog" name="Bumblebee_0_posimeter" />
+		<framequat objtype="site" objname="Bumblebee_0_cog" name="Bumblebee_0_orimeter" />
+		<frameangacc objtype="site" objname="Bumblebee_0_cog" name="Bumblebee_0_ang_accelerometer" />
+	</sensor>
 </mujoco>

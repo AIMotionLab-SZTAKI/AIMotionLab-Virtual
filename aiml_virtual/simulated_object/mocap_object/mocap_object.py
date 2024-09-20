@@ -55,7 +55,7 @@ class MocapObject(simulated_object.SimulatedObject):
         if self.mocap_name in mocap_frame:
             self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid] = mocap_frame[self.mocap_name]
         else:
-            pass
+            return
             warning(f"Obj {self.name} not in mocap")
 
     def bind_to_data(self, data: mujoco.MjData) -> None:

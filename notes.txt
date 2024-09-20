@@ -19,4 +19,4 @@ TFH berakunk egy mocap objektumot, majd ugyanannak a mocapnak importáljuk az ö
     ilyenkor lehet olyan use case hogy meg akarjuk tartani a kézzel csináltat? Szerintem nem
     tehát meg kell csinálni a remove_object-et :)
 
-TODO: függőségeket végignézni
+TODO: bumblebee

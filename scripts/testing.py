@@ -6,6 +6,7 @@ Docstring needs to be written!
 """
 
 import os
+import sys
 import pathlib
 import numpy as np
 from functools import partial

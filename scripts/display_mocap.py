@@ -25,9 +25,14 @@ Video capture isn't implemented yet but you can do that using regular PC screen 
 Haven fun!
 """
 import os
+import sys
 import pathlib
 import numpy as np
 from functools import partial
+# make sure imports work by adding the aiml_virtual directory to path:
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+sys.path.append(os.path.join(file_dir, '..'))
 
 import aiml_virtual.scene as scene
 import aiml_virtual.simulator as simulator

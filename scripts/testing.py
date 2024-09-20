@@ -8,6 +8,7 @@ Docstring needs to be written!
 import os
 import pathlib
 import numpy as np
+from functools import partial
 
 import aiml_virtual.scene as scene
 import aiml_virtual.simulated_object.moving_object.bicycle as bicycle
@@ -17,6 +18,7 @@ import aiml_virtual.simulated_object.moving_object.drone.bumblebee as bb
 import aiml_virtual.simulated_object.mocap_object.drone.mocapCrazyflie as mcf
 from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
 from aiml_virtual.mocap import dummy_mocap_source
+from aiml_virtual.mocap import optitrack_mocap_source
 
 if __name__ == "__main__":
     project_root = pathlib.Path(__file__).parents[1].resolve().as_posix()
@@ -34,26 +36,23 @@ if __name__ == "__main__":
     bb0.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 0, 1]))
     scene.add_object(bb0, "-1 0 0.5", "1 0 0 0", "0.5 0.5 0.5 1")
 
-    mocap1 = dummy_mocap_source.DummyMocapSource()
-    mocap1.set_data({
+    dummy_mocap_start_poses = {
         "cf0": (np.array([1, -1, 1]), np.array([0, 0, 0, 1])),
         "cf1": (np.array([1, 1, 1]), np.array([0, 0, 0, 1])),
         "cf2": (np.array([-1, 1, 1]), np.array([0, 0, 0, 1])),
         "cf3": (np.array([-1, -1, 1]), np.array([0, 0, 0, 1]))
-    })
-    mocap2 = dummy_mocap_source.DummyMocapSource()
+    }
+    mocap1_framegen = partial(dummy_mocap_source.generate_circular_paths, start_poses=dummy_mocap_start_poses, T=5)
+    mocap1 = dummy_mocap_source.DummyMocapSource(frame_generator=mocap1_framegen, fps=120)
     mcf0 = mcf.MocapCrazyflie(mocap1, "cf0")
     scene.add_object(mcf0, "1 0 0", "1 0 0 0", "0.5 0.0 0.0 1")
     mcf1 = mcf.MocapCrazyflie(mocap1, "cf1")
     scene.add_object(mcf1, "-1 0 0", "1 0 0 0", "0.5 0.0 0.0 1")
-
     scene.add_mocap_objects(mocap1, color="0 0 0.5 1")
     scene.remove_object(scene.simulated_objects[-1])
 
-    mocap2.set_data({
-        "cf0": (np.array([0, 0, 0.5]), np.array([0, 0, 0, 1])),
-    })
-    mcf2 = mcf.MocapCrazyflie(mocap2, "cf0")
+    mocap2 = optitrack_mocap_source.OptitrackMocapSource(ip="192.168.2.141")
+    mcf2 = mcf.MocapCrazyflie(mocap2, "cf9")
     scene.add_object(mcf2, color="0.5 0 0 1")
 
     sim = simulator.Simulator(scene, control_freq=500, target_fps=100)

@@ -97,7 +97,7 @@
 			</body>
 			<site name="Bumblebee_0_prop3" pos="0.091 0.087 0.036" size="0.0001" />
 		</body>
-		<body name="MocapCrazyflie_0" pos="0.6905431541131137 -0.049088283334213556 1.0" quat="0 0 0 1" mocap="true">
+		<body name="MocapCrazyflie_0" pos="1.8131731957770225 -0.4179708516554894 1.0" quat="0 0 0 1" mocap="true">
 			<geom name="MocapCrazyflie_0_body" type="mesh" mesh="crazyflie_body" rgba="0 0 0.5 1" />
 			<geom name="MocapCrazyflie_0_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0 0 0.5 1" />
 			<geom name="MocapCrazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0 0 0.5 1" />
@@ -118,7 +118,7 @@
 				<geom name="MocapCrazyflie_0_prop3" type="mesh" mesh="crazyflie_cw_prop" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
 			</body>
 		</body>
-		<body name="MocapCrazyflie_1" pos="0.6905431541131137 1.9509117166657863 1.0" quat="0 0 0 1" mocap="true">
+		<body name="MocapCrazyflie_1" pos="1.8131731957770225 1.5820291483445106 1.0" quat="0 0 0 1" mocap="true">
 			<geom name="MocapCrazyflie_1_body" type="mesh" mesh="crazyflie_body" rgba="0 0 0.5 1" />
 			<geom name="MocapCrazyflie_1_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0 0 0.5 1" />
 			<geom name="MocapCrazyflie_1_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0 0 0.5 1" />
@@ -139,7 +139,7 @@
 				<geom name="MocapCrazyflie_1_prop3" type="mesh" mesh="crazyflie_cw_prop" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
 			</body>
 		</body>
-		<body name="MocapCrazyflie_2" pos="-1.3094568458868863 1.9509117166657863 1.0" quat="0 0 0 1" mocap="true">
+		<body name="MocapCrazyflie_2" pos="-0.1868268042229776 1.5820291483445106 1.0" quat="0 0 0 1" mocap="true">
 			<geom name="MocapCrazyflie_2_body" type="mesh" mesh="crazyflie_body" rgba="0 0 0.5 1" />
 			<geom name="MocapCrazyflie_2_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0 0 0.5 1" />
 			<geom name="MocapCrazyflie_2_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0 0 0.5 1" />

@@ -22,3 +22,8 @@ class MocapSource(ABC):
     @abstractmethod
     def mocap(self) -> None:
         pass
+
+    def start_mocap_thread(self):
+        mocap_thread: threading.Thread = threading.Thread(target=self.mocap)
+        mocap_thread.daemon = True
+        mocap_thread.start()

@@ -85,12 +85,19 @@ class Simulator:
         self.start_time: float = time.time()  #: The time when the simulation starts.
         self.callback_dictionary: dict[tuple[int, bool], callable] = {
             (glfw.KEY_SPACE, False): self.pause_physics,
-            (glfw.KEY_F, True): lambda: print("F key callback")
+            (glfw.KEY_F, True): lambda: print("F key callback"),
+            (glfw.KEY_R, True): lambda: self.processes["render"].toggle()
         }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
 
         self.add_process("update", self.update_objects, update_freq)
-        self.add_process("render", self.sync, target_fps)
+        self.add_process("sync", self.sync, target_fps)
         self.add_process("physics", self.mj_step, 1/self.timestep)
+
+        self.renderer = mujoco.Renderer(self.scene.model)
+        self.add_process("render", self.render, 1)
+        self.processes["render"].pause()
+        self.frames = []
+
 
     @property
     def time(self) -> float:
@@ -182,7 +189,10 @@ class Simulator:
         # the method we're registering shall be called after interval number of physics loops, for example, if
         # the physics step is 1ms, and the control frequency is 100Hz, then the method calculating control inputs
         # must be called every 10th physics loop
-        self.processes[name] = Simulator.Process(func, frequency)
+        if name in self.processes.keys():
+            warning(f"Process {name} already present.")
+        else:
+            self.processes[name] = Simulator.Process(func, frequency)
 
     def tick(self) -> None:
         """
@@ -257,6 +267,12 @@ class Simulator:
             key = (keycode, shift_pressed)
             if key in self.callback_dictionary:
                 self.callback_dictionary[key]()
+
+    def render(self):
+        if self.viewer is not None and self.data is not None:
+            self.renderer.update_scene(self.data, self.viewer.cam)
+            self.frames.append(self.renderer.render())
+            print(f"Rendered a frame (currently there are {len(self.frames)} frames).")
 
 
 

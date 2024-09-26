@@ -9,6 +9,8 @@ from contextlib import contextmanager
 import platform
 import glfw
 
+from aiml_virtual.scene import warning
+
 if platform.system() == 'Windows':
     import win_precise_time as time
 else:
@@ -27,23 +29,68 @@ class Simulator:
 
     .. todo::
         Find a way to disable the default keybinds.
+        Relevant reading material:
+
+        - https://github.com/google-deepmind/mujoco/discussions/780
+        - https://github.com/google-deepmind/mujoco/issues/766
+        - https://github.com/google-deepmind/mujoco/issues/1151
+        - https://github.com/google-deepmind/mujoco/issues/2038
     """
+
+    class Process:
+        """
+        Class for containing all the data for a process that is tied to the Simulator. I.E. a process that may only
+        run when the simulator ticks.
+        """
+        def __init__(self, func: Callable[[], None], frequency:float):
+            self.func: Callable[[], None] = func  #: The function that gets called when the process gets its turn.
+            self.frequency: float = frequency  #: The real-life frequency of the process if it's not stopped
+            self.paused: bool = False  #: Whether the process should run when it gets the next chance.
+
+        def pause(self) -> None:
+            """
+            Pauses the process so that when it gets the chance to run next (based on its frequency and the Simulator
+            tick), it will skip.
+            """
+            self.paused = True
+
+        def resume(self) -> None:
+            """
+            Resumes the process so that when it gets the chance to run next (based on its frequency and the Simulator
+            tick), it will run.
+            """
+            self.paused = False
+
+        def toggle(self) -> None:
+            """
+            Starts the process if it was stopped, pauses it if it was running.
+            """
+            self.paused = not self.paused
+
+        def __call__(self) -> None:
+            """
+            Calls the underyling function, or raises a warning if the process was called despite being paused.
+            """
+            if not self.paused:
+                self.func()
+            else:
+                warning("Calling paused process.")
+
     def __init__(self, scene: Scene, update_freq: float = 100, target_fps: int = 50):
         self.scene: Scene = scene  #: The scene corresponding to the mujoco model.
         self.data: mujoco.MjData = mujoco.MjData(self.model)  #: The data corresponding to the model.
         self.viewer: Optional[mujoco.viewer.Handle] = None  #: The handler to be used for the passive viewer.
         self.tick_count: int = 0  #: The number of times self.tick was called. Still ticks when sim is stopped.
-        self.processes: list[tuple[Callable, int, bool]] = []  #: The list of what function to call, their tick and whether to call them when sim is stopped.
+        self.processes: dict[str, Simulator.Process] = {}  #: The dictionary of simulator processes and their names
         self.start_time: float = time.time()  #: The time when the simulation starts.
-        self.paused: bool = True  #: Whether the physics simulation is running.
         self.callback_dictionary: dict[tuple[int, bool], callable] = {
-            (glfw.KEY_SPACE, False): self.toggle_pause,
+            (glfw.KEY_SPACE, False): self.pause_physics,
             (glfw.KEY_F, True): lambda: print("F key callback")
         }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
 
-        self.add_process(self.update_objects, update_freq, False)
-        self.add_process(self.sync, target_fps, True)
-        self.add_process(self.mj_step, int(1 / self.timestep), False)
+        self.add_process("update", self.update_objects, update_freq)
+        self.add_process("render", self.sync, target_fps)
+        self.add_process("physics", self.mj_step, 1/self.timestep)
 
     @property
     def time(self) -> float:
@@ -81,12 +128,14 @@ class Simulator:
         """
         return self.scene.model
 
-    def toggle_pause(self) -> None:
+    def pause_physics(self) -> None:
         """
-        Pauses the simulation if it's running; resumes it if it's paused.
+        Pauses the physics loop if it's running; resumes it if it's paused. If a process must be paused whenever the
+        simulation is paused, this is where that can be done.
         """
+        self.processes["physics"].toggle()
+        self.processes["update"].toggle()
 
-        self.paused = not self.paused
     @contextmanager
     def launch_viewer(self) -> 'Simulator':
         """
@@ -104,7 +153,6 @@ class Simulator:
         try:
             # may need a 0th step here (mujoco.mj_forward)
             self.start_time = time.time()
-            self.paused = False
             self.viewer = mujoco.viewer.launch_passive(self.model, self.data, show_left_ui=False, show_right_ui=False,
                                                        key_callback=self.handle_keypress)
             yield self
@@ -121,22 +169,20 @@ class Simulator:
         for obj in self.simulated_objects:
             obj.bind_to_data(self.data)
 
-    def add_process(self, method: Callable, frequency: float, run_when_physics_stopped: bool = True) -> None:
+    def add_process(self, name: str, func: Callable[[], None], frequency: float) -> None:
         """
         Register a process to be run at a specified frequency. The function will be ran after a given number of
         physics steps to match the frequency, rounded down.
 
         Args:
-            method (function): The method of the Simulator class to run.
+            name (str): The name of the process in the dictionary, to allow named access later.
+            func (func: Callable[[], None]): The function that will run when the process gets its turn.
             frequency (float): The frequency (in Hz) at which to run the method.
-            run_when_physics_stopped (bool): Whether this process should run even when the physics isn't being updated.
         """
         # the method we're registering shall be called after interval number of physics loops, for example, if
         # the physics step is 1ms, and the control frequency is 100Hz, then the method calculating control inputs
         # must be called every 10th physics loop
-        interval = max(1, math.ceil((1 / frequency) / self.timestep))
-        self.processes.append((method, interval, run_when_physics_stopped))
-
+        self.processes[name] = Simulator.Process(func, frequency)
 
     def tick(self) -> None:
         """
@@ -145,10 +191,11 @@ class Simulator:
         - Calling processes in self.processes if necessary.
         - Syncing to the wall clock.
         """
-        for method, interval, run_when_stopped in self.processes:
-            if run_when_stopped or not self.paused:
-                if self.tick_count % interval == 0:
-                    method()
+        for process in self.processes.values():
+            interval = max(1, math.ceil((1 / process.frequency) / self.timestep))
+            if not process.paused and self.tick_count % interval == 0:
+                process()
+
         # We may wish to do some optimization here: if each process step time (interval) is an integer multiple of
         # the process that's closest to it in frequency, then we can save some time by calling mj_step with an extra
         # argument nstep. This nstep may be the interval of the fastest process.
@@ -210,7 +257,6 @@ class Simulator:
             key = (keycode, shift_pressed)
             if key in self.callback_dictionary:
                 self.callback_dictionary[key]()
-
 
 
 

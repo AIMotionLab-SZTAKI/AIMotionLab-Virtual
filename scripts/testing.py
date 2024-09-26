@@ -42,24 +42,24 @@ if __name__ == "__main__":
     bb0.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 0, 1]))
     scene.add_object(bb0, "-1 0 0.5", "1 0 0 0", "0.5 0.5 0.5 1")
 
-    dummy_mocap_start_poses = {
-        "cf0": (np.array([1, -1, 1]), np.array([0, 0, 0, 1])),
-        "cf1": (np.array([1, 1, 1]), np.array([0, 0, 0, 1])),
-        "bb0": (np.array([-1, 1, 1]), np.array([0, 0, 0, 1])),
-        "bb1": (np.array([-1, -1, 1]), np.array([0, 0, 0, 1]))
-    }
-    mocap1_framegen = partial(dummy_mocap_source.generate_circular_paths, start_poses=dummy_mocap_start_poses, T=5)
-    mocap1 = dummy_mocap_source.DummyMocapSource(frame_generator=mocap1_framegen, fps=120)
-    mcf0 = mcf.MocapCrazyflie(mocap1, "cf0")
-    scene.add_object(mcf0, "1 0 0", "1 0 0 0", "0.5 0.0 0.0 1")
-    mbb0 = mbb.MocapBumblebee(mocap1, "bb0")
-    scene.add_object(mbb0, "-1 0 0", "1 0 0 0", "0.5 0.0 0.0 1")
-    scene.add_mocap_objects(mocap1, color="0 0.5 0 1")
-    scene.remove_object(scene.simulated_objects[-1])
-
-    mocap2 = optitrack_mocap_source.OptitrackMocapSource(ip="192.168.2.141")
-    mcf2 = mcf.MocapCrazyflie(mocap2, "cf9")
-    scene.add_object(mcf2, color="0.5 0 0 1")
+    # dummy_mocap_start_poses = {
+    #     "cf0": (np.array([1, -1, 1]), np.array([0, 0, 0, 1])),
+    #     "cf1": (np.array([1, 1, 1]), np.array([0, 0, 0, 1])),
+    #     "bb0": (np.array([-1, 1, 1]), np.array([0, 0, 0, 1])),
+    #     "bb1": (np.array([-1, -1, 1]), np.array([0, 0, 0, 1]))
+    # }
+    # mocap1_framegen = partial(dummy_mocap_source.generate_circular_paths, start_poses=dummy_mocap_start_poses, T=5)
+    # mocap1 = dummy_mocap_source.DummyMocapSource(frame_generator=mocap1_framegen, fps=120)
+    # mcf0 = mcf.MocapCrazyflie(mocap1, "cf0")
+    # scene.add_object(mcf0, "1 0 0", "1 0 0 0", "0.5 0.0 0.0 1")
+    # mbb0 = mbb.MocapBumblebee(mocap1, "bb0")
+    # scene.add_object(mbb0, "-1 0 0", "1 0 0 0", "0.5 0.0 0.0 1")
+    # scene.add_mocap_objects(mocap1, color="0 0.5 0 1")
+    # scene.remove_object(scene.simulated_objects[-1])
+    #
+    # mocap2 = optitrack_mocap_source.OptitrackMocapSource(ip="192.168.2.141")
+    # mcf2 = mcf.MocapCrazyflie(mocap2, "cf9")
+    # scene.add_object(mcf2, color="0.5 0 0 1")
 
     sim = simulator.Simulator(scene, update_freq=500, target_fps=100)
     with sim.launch_viewer():

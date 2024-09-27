@@ -19,9 +19,9 @@ class Renderer:
         self.mujocoRenderer: mujoco.Renderer = mujoco.Renderer(model, height, width)  #: Internal framre renderer.
         self.frames: list[np.ndarray] = []  #: The frames that will make up the video eventually.
         self.fps: float = fps  #: The frame rate of the eventual video.
-        self.codec_format: str = codec_format  #: The video codec, e.g.: mp4v for mp4
+        self.codec_format: str = codec_format  #: The video codec, e.g.: mp4v for mp4.
         self.height: int = height  #: The vertical resolution.
-        self.width: int = width  #: The horizontal resolution
+        self.width: int = width  #: The horizontal resolution.
 
     def render_frame(self, data: Optional[mujoco.MjData], cam: Optional[mujoco.MjvCamera],
                      opt: Optional[mujoco.MjvOption]) -> None:

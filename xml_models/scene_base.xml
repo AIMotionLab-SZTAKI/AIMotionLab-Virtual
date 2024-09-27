@@ -37,6 +37,7 @@
   <!--<option gravity="0 0 0"/>-->  
   <visual>
     <quality shadowsize="4096"/>
+    <global offwidth = "1920" offheight = "1200"/>
   </visual>
 
   <asset>

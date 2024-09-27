@@ -15,7 +15,8 @@ dependencies = [
     "sphinx",
     "furo==2024.8.6",
     "win-precise-time==1.4.2; sys_platform=='win32'",
-    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git"
+    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git",
+    "opencv-python"
 ]
 readme = "readme.md"
 

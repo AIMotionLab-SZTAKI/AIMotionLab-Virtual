@@ -24,3 +24,7 @@ scene.py
 simulator.py
 ^^^^^^^^^^^^^^^^
 .. automodule:: aiml_virtual.simulator
+
+renderer.py
+^^^^^^^^^^^^^^^^^^^
+.. automodule:: aiml_virtual.renderer

@@ -8,17 +8,18 @@ from typing import Optional, Callable
 from contextlib import contextmanager
 import platform
 import glfw
-
-from aiml_virtual.scene import warning
-
+import cv2
+import numpy as np
+from functools import partial
 if platform.system() == 'Windows':
     import win_precise_time as time
 else:
     import time
 
-
+from aiml_virtual.scene import warning
 from aiml_virtual import scene
 from aiml_virtual.simulated_object import simulated_object
+from aiml_virtual import renderer
 
 Scene = scene.Scene
 SimulatedObject = simulated_object.SimulatedObject
@@ -26,6 +27,14 @@ SimulatedObject = simulated_object.SimulatedObject
 class Simulator:
     """
     Class that uses the scene and the mujoco package to run the mujoco simulation and display the results.
+    The way the user can drive the Simulator is by ticking it (calling tick()). When ticking, the simulator checks
+    its processes, and decides which ones need to be called depending on their frequency and whether they are stoppod.
+    The user can add any number of processes, but these ones are provided by default:
+
+        - "physics": steps the physics loop
+        - "sync": syncs changes to the internal MjvScene and displays the simulation to the monitor
+        - "update": lets the objects in the scene update themselves (e.g. update control inputs)
+        - "render": saves a frame for later video creation
 
     .. todo::
         Find a way to disable the default keybinds.
@@ -42,8 +51,8 @@ class Simulator:
         Class for containing all the data for a process that is tied to the Simulator. I.E. a process that may only
         run when the simulator ticks.
         """
-        def __init__(self, func: Callable[[], None], frequency:float):
-            self.func: Callable[[], None] = func  #: The function that gets called when the process gets its turn.
+        def __init__(self, func: Callable, frequency:float, **kwargs):
+            self.func: Callable[[], None] = partial(func, **kwargs)  #: The function that gets called when the process gets its turn.
             self.frequency: float = frequency  #: The real-life frequency of the process if it's not stopped
             self.paused: bool = False  #: Whether the process should run when it gets the next chance.
 
@@ -61,11 +70,15 @@ class Simulator:
             """
             self.paused = False
 
-        def toggle(self) -> None:
+        def toggle(self) -> bool:
             """
             Starts the process if it was stopped, pauses it if it was running.
+
+            Returns:
+                bool: Whether the process is on, *after* this operation.
             """
             self.paused = not self.paused
+            return not self.paused
 
         def __call__(self) -> None:
             """
@@ -85,19 +98,15 @@ class Simulator:
         self.start_time: float = time.time()  #: The time when the simulation starts.
         self.callback_dictionary: dict[tuple[int, bool], callable] = {
             (glfw.KEY_SPACE, False): self.pause_physics,
-            (glfw.KEY_F, True): lambda: print("F key callback"),
-            (glfw.KEY_R, True): lambda: self.processes["render"].toggle()
+            (glfw.KEY_F, True): lambda: print("shift+F key callback"),
+            (glfw.KEY_R, True): self.toggle_render
         }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
-
+        self.renderer: renderer.Renderer = renderer.Renderer(self.model, target_fps, 1080, 1920, "mp4v")  #: Renderer for video production
         self.add_process("update", self.update_objects, update_freq)
         self.add_process("sync", self.sync, target_fps)
         self.add_process("physics", self.mj_step, 1/self.timestep)
-
-        self.renderer = mujoco.Renderer(self.scene.model)
-        self.add_process("render", self.render, 1)
-        self.processes["render"].pause()
-        self.frames = []
-
+        self.add_process("render", self.render_viewer_data, target_fps)
+        self.processes["render"].pause()  # when the render process is on, frames get saved: start with it OFF
 
     @property
     def time(self) -> float:
@@ -164,6 +173,7 @@ class Simulator:
                                                        key_callback=self.handle_keypress)
             yield self
         finally:
+            self.renderer.write("simulator.mp4")
             if self.viewer:
                 self.viewer.close()
                 self.viewer = None
@@ -176,14 +186,17 @@ class Simulator:
         for obj in self.simulated_objects:
             obj.bind_to_data(self.data)
 
-    def add_process(self, name: str, func: Callable[[], None], frequency: float) -> None:
+    def add_process(self, name: str, func: Callable, frequency: float, *args, **kwargs) -> None:
         """
         Register a process to be run at a specified frequency. The function will be ran after a given number of
-        physics steps to match the frequency, rounded down.
+        physics steps to match the frequency, rounded down. If additional keyword arguments are passed to this method,
+        they will be used as keyword arguments for the function of the process. This may be used if the process is
+        something that requires arguments. If no additional keyword arguments are used, then func must take no
+        arguments (and not return anything either).
 
         Args:
             name (str): The name of the process in the dictionary, to allow named access later.
-            func (func: Callable[[], None]): The function that will run when the process gets its turn.
+            func (func: Callable): The function that will run when the process gets its turn.
             frequency (float): The frequency (in Hz) at which to run the method.
         """
         # the method we're registering shall be called after interval number of physics loops, for example, if
@@ -192,7 +205,7 @@ class Simulator:
         if name in self.processes.keys():
             warning(f"Process {name} already present.")
         else:
-            self.processes[name] = Simulator.Process(func, frequency)
+            self.processes[name] = Simulator.Process(func, frequency, **kwargs)
 
     def tick(self) -> None:
         """
@@ -258,7 +271,7 @@ class Simulator:
             Currently, we have a hacky way to determine whether shift was pressed. The dictionary storing callbacks
             can decide whether shift is needed to call the function.
         """
-        with self.viewer.lock(): # I'm not actually sure if this needs a lock
+        with self.viewer.lock(): # This needs a lock, because they callack may change the scene.
             window = glfw.get_current_context()
             if window is not None:
                 shift_pressed = glfw.get_key(window, glfw.KEY_LEFT_SHIFT) and keycode != glfw.KEY_LEFT_SHIFT
@@ -268,12 +281,19 @@ class Simulator:
             if key in self.callback_dictionary:
                 self.callback_dictionary[key]()
 
-    def render(self):
-        if self.viewer is not None and self.data is not None:
-            self.renderer.update_scene(self.data, self.viewer.cam)
-            self.frames.append(self.renderer.render())
-            print(f"Rendered a frame (currently there are {len(self.frames)} frames).")
+    def toggle_render(self) -> None:
+        """
+        Toggles hwether the rendering process saves frames.
+        """
+        on = self.processes["render"].toggle()
+        print(f"Rendering toggled {'ON' if on else 'OFF' }")
 
+    def render_viewer_data(self) -> None:
+        """
+        Instructs the rendeer to save the data in the passive viewer to a frame.
+        """
+        if self.data is not None and self.viewer is not None:
+            self.renderer.render_frame(self.data, self.viewer.cam, self.viewer.opt)
 
 
 

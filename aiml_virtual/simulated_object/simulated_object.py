@@ -5,7 +5,6 @@ This module implements the base class for objects in the simulation that we also
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from typing import Optional, Type
-
 import mujoco
 import numpy as np
 
@@ -31,6 +30,16 @@ class SimulatedObject(ABC):
     instance count to 0. If a class wants to be a candidate for parsing in an xml file, it shall implement all the
     abstract methods defined in SimulatedObject and in get_identifiers return a list of valid string identifiers.
     If a class need not be target for parsing, it may return None in get_identifiers.
+
+    .. note::
+        Only classes which get initialized with __init_subclass__ are candidates for parsing. If the script the user
+        is running doesn't import a given class, and neither of its imports result in the given class being imported
+        either, the class cannot be parsed into an object. Typical use case for this is reading objects straight
+        from an xml (mjcf) or straight from a mocap stream (as opposed to adding them via Scene.add_object). If the
+        mocap stream (or the mjcf file) contains a MocapBumblebee, but the script doesn't import the file defining
+        MocapBumblebee, then __init_subclass__(MocapBumblebee) doesn't get invoked, and the entry will be skipped
+        when parsing. We can avoid this by calling utils_general.import_submodules(__name__) in __init__.py. This
+        utility function will recursively import all subpackages under the package which it defines.
 
     .. note::
         In order to make it possible for the python objects and the Data/Model to exist separately, references to the

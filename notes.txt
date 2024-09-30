@@ -1,8 +1,22 @@
 Todo:
+-épületek (static? sima mocapobject? use case!)  *
 -quadcopter osztály, ami őse a drone-nak meg a mocapdrone-nak
--épületek (static? sima mocapobject? use case!)
 -hooked drone (valódi és mocap)
 -kocsi
 -kontrollerek
 -szerverrel szinkronizacio
 -példa scriptek!
+-szétcsatolni a kinézet változtatását és az update-elést
+-kellenek olyan objektumok amik nem MocapObject-ek de nincsenek aktuálva
+
+épület use case:
+1.: sima mocap object optitrakcből -> ehhez kell egy sima Building/Obstacle mocap object
+2.: beolvassuk az object-et otitrackből, aztán nem engedjük módosulni -> ehhez egy dummymocap kell, de a kezdő
+    pozícióját be kell tudni állítani optitrackből
+    -> ehhez valami olyasmi kellene ami egy létező mocapből kiszedi a dolgokat, és egy olyan dummy mocapet csinál
+    ami egy helyben tartja
+    ennek mi lenne a logikus szintaktikája?
+    mocap_stat =  DummyMocapSource.freeze(DummyMocapSource)
+
+TESZT ÉS PÉLDA SCRIPTEK:
+végiggondolni!

@@ -4,11 +4,37 @@ This module contains utility functions and classes for the aimotion_virtual pacl
 
 import numpy as np
 import platform
+import importlib
+import pkgutil
+import pathlib
 if platform.system() == 'Windows':
     import win_precise_time as time
 else:
     import time
 
+def import_submodules(package_name: str) -> None:
+    """
+    Recursively imports all submodules under the given package.
+
+    Args:
+        package_name (str): The root package to scan for submodules.
+    """
+    # Get the package object
+    package = importlib.import_module(package_name)
+
+    # Get the package path as a Path object
+    package_path = pathlib.Path(package.__file__).parent
+
+    # Iterate through the package's submodules
+    for (module_finder, name, ispkg) in pkgutil.walk_packages([str(package_path)]):
+        full_module_name = f"{package_name}.{name}"
+
+        if ispkg:
+            # If it’s a package, recursively import its submodules
+            import_submodules(full_module_name)
+        else:
+            # Import the module
+            importlib.import_module(full_module_name)
 
 def quaternion_from_euler(roll: float, pitch: float, yaw: float) -> list[float]:
     """

@@ -5,6 +5,7 @@ data from a motion capture system (in our case, most likely Optitrack).
 
 import mujoco
 from typing import Optional
+from xml.etree import ElementTree as ET
 
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.mocap import mocap_source
@@ -19,6 +20,10 @@ class MocapObject(simulated_object.SimulatedObject):
     The corresponding mujoco documentation can be found here: https://mujoco.readthedocs.io/en/stable/modeling.html#cmocap
     Each MocapObject has to have exactly one Mocap Source associated with it: this is where the object will get its pose
     info.
+    MocapObject is a concrete class: instances of it can be created. If the user creates  an instance of MocapObject
+    directly (as opposed to a MocapDrone for example), then that object will have no  actuators/controllers/moving
+    parts. It will be a passive mocap object. For example, one may use this class to keep track of buildings/obstacles
+    in optitrack, but not mocap drones, as those have moving propellers.
     """
     def __init__(self, source: mocap_source.MocapSource, mocap_name: Optional[str]=None):
         super().__init__()
@@ -78,8 +83,88 @@ class MocapObject(simulated_object.SimulatedObject):
         """
         Overrides method in SimulatedObject to specify whether to check for aliases when parsing an XML.
 
+        .. todo::
+            Will need to reconcile identifiers in passive mocap objects vs passive moving objects.
+
         Returns:
             Optional[list[str]]: None, to opt out of parsing.
         """
-        return None
+        return ["bu", "building", "Building", "obst", "obstacle", "Obstacle", "pole", "Pole", "parking_lot",
+                "landing_zone", "airport", "Airport", "hospital", "Hospital", "post_office", "sztaki", "Sztaki",
+                "payload", "Payload"]
 
+    def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
+        """
+        Overrides method in SimulatedObject. Generates all the necessary XML elements for the model. Generates a
+        different XML based on the mocap name. E.g.: if the mocap name is "hospital" it will generate a hospital
+        building, but if the mocap name is "bu1", it will generate a pole.
+
+        Args:
+            pos (str): The position of the object in the scene, x-y-z separated by spaces. E.g.: "0 1 -1"
+            quat (str): The quaternion orientation of the object in the scene, w-x-y-z separated by spaces.
+            color (str): The base color of the object in th scene, r-g-b-opacity separated by spaces, scaled 0.0  to 1.0
+
+        Returns:
+            dict[str, list[ET.Element]]: A dictionary where the keys are tags of XML elements in the MJCF file, and the
+            values are lists of XML elements to be appended as children to those XML elements.
+        """
+        # note: need separate bodies and geoms, because the mocap parameter can only be given to a body, but
+        # only a geom may be defined as a "plane". So there are a few single-geom bodies here.
+        if "airport" in self.mocap_name.lower():
+            body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
+            ET.SubElement(body, "geom", name=self.name, type="plane", pos="0 0 .05",
+                          size="0.105 0.105 .05", material="mat-airport")
+            return {"worldbody": [body]}
+        if "parking_lot" in self.mocap_name.lower():
+            body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
+            ET.SubElement(body, "geom", name=self.name, type="plane", pos="0 0 .05",
+                          size="0.105 0.105 .05", material="mat-parking_lot")
+            return {"worldbody": [body]}
+        if "landing_zone" in self.mocap_name.lower():
+            body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
+            ET.SubElement(body, "geom", {"class" : "landing_zone"})
+            return {"worldbody": [body]}
+        if "pole" in self.mocap_name.lower() or "obst" in self.mocap_name.lower():
+            body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
+            # note: cannot do ET.SubElement(body, "geom", class="pole_top"), because class is a keyword!
+            ET.SubElement(body, "geom", {"class": "pole_top"})
+            ET.SubElement(body, "geom", {"class": "pole_bottom1"})
+            ET.SubElement(body, "geom", {"class": "pole_bottom2"})
+            return {"worldbody": [body]}
+        if "hospital" in self.mocap_name.lower() or "bu1" in self.mocap_name.lower():
+            body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
+            ET.SubElement(body, "geom", name=self.name, type="box", pos="0 0 0.445", size="0.1275 0.13 0.445",
+                          material="mat-hospital")
+            return {"worldbody": [body]}
+        if "post_office" in self.mocap_name.lower() or "bu2" in self.mocap_name.lower():
+            body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
+            ET.SubElement(body, "geom", name=self.name, type="box", pos="0 0 0.205", size="0.1275 0.1275 0.205",
+                          material="mat-post_office")
+            return {"worldbody": [body]}
+        if "sztaki" in self.mocap_name.lower() or "bu3" in self.mocap_name.lower():
+            body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
+            ET.SubElement(body, "geom", name=self.name, type="box", pos="0 0 0.0925", size="0.105 0.105 0.0925",
+                          rgba="0.8 0.8 0.8 1.0", material="mat-sztaki")
+            return {"worldbody": [body]}
+        if "payload" in self.mocap_name.lower():
+            body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
+            ET.SubElement(body, "geom", name=self.name, type="mesh", mesh="payload_simplified", pos="0 0 0.0405",
+                          rgba="0 0 0 1", euler="1.57 0 0")
+            ET.SubElement(body, "geom", type="capsule", pos="0 0 0.075", size="0.004 0.027", rgba="0 0 0 1")
+            ET.SubElement(body, "geom", type="capsule", pos="0 0.01173 0.10565", euler="-1.12200 0 0",
+                          size="0.004 0.01562", rgba="0 0 0 1")
+            ET.SubElement(body, "geom", type="capsule", pos="0 0.01061 0.10439", euler="-1.17810 0 0",
+                          size="0.004 0.01378", rgba="0 0 0 1")
+            ET.SubElement(body, "geom", type="capsule", pos="0 0.02561 0.11939", euler="-0.39270 0 0",
+                          size="0.004 0.01378", rgba="0 0 0 1")
+            ET.SubElement(body, "geom", type="capsule", pos="0 0.02561 0.14061", euler="0.39270 0 0",
+                          size="0.004 0.01378", rgba="0 0 0 1")
+            ET.SubElement(body, "geom", type="capsule", pos="0 0.01061 0.15561", euler="1.17810 0 0",
+                          size="0.004 0.01378", rgba="0 0 0 1")
+            ET.SubElement(body, "geom", type="capsule", pos="0 -0.01061 0.15561", euler="1.96350 0 0",
+                          size="0.004 0.01378", rgba="0 0 0 1")
+            ET.SubElement(body, "geom", type="capsule", pos="0 -0.02561 0.14061", euler="2.74889 0 0",
+                          size="0.004 0.008", rgba="0 0 0 1")
+            return {"worldbody": [body]}
+
+        raise RuntimeError(f"No such PassiveObject recognized: {self.mocap_name}")

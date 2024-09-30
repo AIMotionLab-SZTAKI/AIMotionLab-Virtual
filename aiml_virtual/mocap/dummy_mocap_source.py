@@ -35,7 +35,6 @@ def generate_circular_paths(start_poses: dict[str, tuple[np.ndarray, np.ndarray]
         ret[key] = (d_pos + pos, quat)
     return ret
 
-
 class DummyMocapSource(mocap_source.MocapSource):
     """
     Class that emulates a motion capture system, but with specified objects in its frame. It may be initialized with
@@ -57,6 +56,22 @@ class DummyMocapSource(mocap_source.MocapSource):
         self.fps: float = fps  #: The rate at which the frame generator gets called.
         self.generate_frame: Callable[[],dict[str, tuple[np.ndarray, np.ndarray]]] = frame_generator  #: The function that will be used to generate mocap frames.
         self.start_mocap_thread()
+
+    @classmethod
+    def freeze(cls, original: mocap_source.MocapSource) -> 'DummyMocapSource':
+        """
+        Factory function that takes a mocap source, saves its current frame and returns a new mocap source that always
+        shows the given frame that it read. A typical use case for this would be "saving" the position of the buildings
+        in optitrack.
+
+        Args:
+            original (mocap_source.MocapSource): The original mocap stream (e.g.: optitrack)
+
+        Returns:
+            DummyMocapSource: A new Mocap Source that shows the frame from which it was initialized.
+        """
+        frame =  original.data
+        return cls(frame_generator=lambda: frame, fps=1) # fps doesn't really matter, since the data won't get updated
 
 
     def mocap(self) -> None:

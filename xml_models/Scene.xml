@@ -1,38 +1,114 @@
-<mujoco model="empty_checkerboard">
+<mujoco model="Lagyi">
 	<include file="common_assets.xml" />
-	<asset>
-		<texture name="grid" type="2d" builtin="checker" width="100" height="100" rgb1=".1 .2 .3" rgb2=".25 .35 .45" />
-		<material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".05" />
-	</asset>
+	<default class="main">
+		<default class="lagyi">
+			<geom quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1" />
+		</default>
+		<default class="pole">
+			<geom rgba="0.1 0.1 0.1 1" />
+			<default class="pole_top">
+				<geom type="cylinder" size="0.022 0.5" pos="0 0 0.5" />
+			</default>
+			<default class="pole_bottom1">
+				<geom type="box" size="0.02 0.205 0.02" quat="0.7071 0 0 0.7071" pos="0 0 0.02" />
+				<default class="pole_bottom2">
+					<geom quat="1 0 0 0" />
+				</default>
+			</default>
+		</default>
+		<default class="landing_zone">
+			<geom type="box" pos="0 0 0.01" size="0.1175 0.0975 0.01" rgba="0.8 0.8 0.8 1.0" />
+		</default>
+	</default>
+	<compiler angle="radian" meshdir="" />
+	<option timestep="0.001" integrator="implicitfast" />
 	<visual>
+		<quality shadowsize="4096" />
 		<global offwidth="1920" offheight="1200" />
 	</visual>
+	<asset>
+		<mesh file="meshes/crazyflie/cf2_assembly.stl" name="crazyflie" smoothnormal="true" scale="1.5 1.5 1.5" />
+		<mesh file="meshes/building/lagyi_cockpit.stl" name="cockpit" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_fal1.stl" name="fal1" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_fal2.stl" name="fal2" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_oszlop1.stl" name="oszlop1" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_oszlop2.stl" name="oszlop2" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_oszlop3.stl" name="oszlop3" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_oszlop4.stl" name="oszlop4" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/bucket/Bucket3.obj" name="bucket" smoothnormal="false" scale="0.035 0.035 0.035" />
+		<texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512" />
+		<texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .1 .1" rgb2=".2 .2 .2" />
+		<texture name="tex-carpet" type="2d" file="textures/carpet_lagyi4.png" />
+		<texture name="tex-roundabout" type="2d" file="textures/roundabout.png" />
+		<texture name="tex-hospital" type="2d" file="textures/hospital.png" />
+		<texture name="tex-post_office" type="2d" file="textures/post_office.png" />
+		<texture name="tex-airport" type="2d" file="textures/airport.png" />
+		<texture name="tex-parking_lot" type="2d" file="textures/parking_lot.png" />
+		<texture name="tex-sztaki" type="2d" file="textures/sztaki.png" />
+		<material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".05" />
+		<material name="mat-carpet" shininess="0.1" texture="tex-carpet" texuniform="false" />
+		<material name="mat-roundabout" reflectance="0.7" texture="tex-roundabout" texuniform="false" />
+		<material name="mat-hospital" reflectance="0.7" texrepeat="7.843 7.692" texture="tex-hospital" texuniform="true" />
+		<material name="mat-post_office" reflectance="0.7" texrepeat="7.843 7.843" texture="tex-post_office" texuniform="true" />
+		<material name="mat-airport" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-airport" texuniform="true" />
+		<material name="mat-parking_lot" reflectance="0.7" texrepeat="9.524 8.696" texture="tex-parking_lot" texuniform="true" />
+		<material name="mat-sztaki" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-sztaki" texuniform="true" />
+	</asset>
 	<worldbody>
+		<camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958" />
+		<geom size="20 20 .05" type="plane" material="grid" condim="3" />
 		<light dir="0 -0.3 -1" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="1 1 15" cutoff="70" />
 		<light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70" />
 		<light dir="-1.0 -1.0 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="10 10 6" directional="true" cutoff="70" />
-		<camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958" />
-		<geom size="20 20 .05" type="plane" material="grid" condim="3" />
-		<body name="MocapCrazyflie_0" pos="0 0 0" quat="1 0 0 0" mocap="true">
-			<geom name="MocapCrazyflie_0_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0.5 0.5 1" />
-			<geom name="MocapCrazyflie_0_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0.5 0.5 1" />
-			<geom name="MocapCrazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.5 0.5 1" />
-			<body name="MocapCrazyflie_0_prop0">
-				<joint name="MocapCrazyflie_0_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
-				<geom name="MocapCrazyflie_0_prop0" type="mesh" mesh="crazyflie_ccw_prop" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
-			</body>
-			<body name="MocapCrazyflie_0_prop1">
-				<joint name="MocapCrazyflie_0_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
-				<geom name="MocapCrazyflie_0_prop1" type="mesh" mesh="crazyflie_cw_prop" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
-			</body>
-			<body name="MocapCrazyflie_0_prop2">
-				<joint name="MocapCrazyflie_0_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
-				<geom name="MocapCrazyflie_0_prop2" type="mesh" mesh="crazyflie_ccw_prop" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
-			</body>
-			<body name="MocapCrazyflie_0_prop3">
-				<joint name="MocapCrazyflie_0_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
-				<geom name="MocapCrazyflie_0_prop3" type="mesh" mesh="crazyflie_cw_prop" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
-			</body>
+		<geom name="roundabout" size="1.5 1.5 .05" quat="1 0 0 0" pos="0 0 0.001" type="plane" material="mat-roundabout" condim="3" />
+		<geom name="carpet" size="7.644 7.644 .001" pos="3.16 1.115 0.0005" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet" />
+		<body name="lagyi" pos="1.45 -2.8 0" childclass="lagyi">
+			<geom name="cockpit" type="mesh" mesh="cockpit" />
+			<geom name="fal1" type="mesh" mesh="fal1" />
+			<geom name="fal2" type="mesh" mesh="fal2" />
+			<geom name="oszlop1" type="mesh" mesh="oszlop1" rgba="0.3 0.3 0.3 1" />
+			<geom name="oszlop2" type="mesh" mesh="oszlop2" rgba="0.3 0.3 0.3 1" />
+			<geom name="oszlop3" type="mesh" mesh="oszlop3" rgba="0.3 0.3 0.3 1" />
+			<geom name="oszlop4" type="mesh" mesh="oszlop4" rgba="0.3 0.3 0.3 1" />
+		</body>
+		<body name="MocapObject_0" pos="-0.9139087367895707 1.996288814755507 0.0" quat="0 0 0 1" mocap="true">
+			<geom name="MocapObject_0" type="plane" pos="0 0 .05" size="0.105 0.105 .05" material="mat-airport" />
+		</body>
+		<body name="MocapObject_1" pos="0.08609126321042923 1.996288814755507 0.0" quat="0 0 0 1" mocap="true">
+			<geom name="MocapObject_1" type="plane" pos="0 0 .05" size="0.105 0.105 .05" material="mat-parking_lot" />
+		</body>
+		<body name="MocapObject_2" pos="1.0860912632104291 1.996288814755507 0.0" quat="0 0 0 1" mocap="true">
+			<geom class="landing_zone" />
+		</body>
+		<body name="MocapObject_3" pos="-0.9139087367895707 0.9962888147555069 0.0" quat="0 0 0 1" mocap="true">
+			<geom class="pole_top" />
+			<geom class="pole_bottom1" />
+			<geom class="pole_bottom2" />
+		</body>
+		<body name="MocapObject_4" pos="0.08609126321042923 0.9962888147555069 0.0" quat="0 0 0 1" mocap="true">
+			<geom class="pole_top" />
+			<geom class="pole_bottom1" />
+			<geom class="pole_bottom2" />
+		</body>
+		<body name="MocapObject_5" pos="1.0860912632104291 0.9962888147555069 0.0" quat="0 0 0 1" mocap="true">
+			<geom name="MocapObject_5" type="mesh" mesh="payload_simplified" pos="0 0 0.0405" rgba="0 0 0 1" euler="1.57 0 0" />
+			<geom type="capsule" pos="0 0 0.075" size="0.004 0.027" rgba="0 0 0 1" />
+			<geom type="capsule" pos="0 0.01173 0.10565" euler="-1.12200 0 0" size="0.004 0.01562" rgba="0 0 0 1" />
+			<geom type="capsule" pos="0 0.01061 0.10439" euler="-1.17810 0 0" size="0.004 0.01378" rgba="0 0 0 1" />
+			<geom type="capsule" pos="0 0.02561 0.11939" euler="-0.39270 0 0" size="0.004 0.01378" rgba="0 0 0 1" />
+			<geom type="capsule" pos="0 0.02561 0.14061" euler="0.39270 0 0" size="0.004 0.01378" rgba="0 0 0 1" />
+			<geom type="capsule" pos="0 0.01061 0.15561" euler="1.17810 0 0" size="0.004 0.01378" rgba="0 0 0 1" />
+			<geom type="capsule" pos="0 -0.01061 0.15561" euler="1.96350 0 0" size="0.004 0.01378" rgba="0 0 0 1" />
+			<geom type="capsule" pos="0 -0.02561 0.14061" euler="2.74889 0 0" size="0.004 0.008" rgba="0 0 0 1" />
+		</body>
+		<body name="MocapObject_6" pos="-0.9139087367895707 -0.003711185244493098 0.0" quat="0 0 0 1" mocap="true">
+			<geom name="MocapObject_6" type="box" pos="0 0 0.445" size="0.1275 0.13 0.445" material="mat-hospital" />
+		</body>
+		<body name="MocapObject_7" pos="0.08609126321042923 -0.003711185244493098 0.0" quat="0 0 0 1" mocap="true">
+			<geom name="MocapObject_7" type="box" pos="0 0 0.205" size="0.1275 0.1275 0.205" material="mat-post_office" />
+		</body>
+		<body name="MocapObject_8" pos="1.0860912632104291 -0.003711185244493098 0.0" quat="0 0 0 1" mocap="true">
+			<geom name="MocapObject_8" type="box" pos="0 0 0.0925" size="0.105 0.105 0.0925" rgba="0.8 0.8 0.8 1.0" material="mat-sztaki" />
 		</body>
 	</worldbody>
 </mujoco>

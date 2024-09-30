@@ -97,7 +97,7 @@ class Drone(moving_object.MovingObject):
         Returns:
             Optional[list[str]]: The list of aliases for objects belonging to this class.
         """
-        return ["Drone", "drone"]
+        return None
 
     @abstractmethod
     def set_default_controller(self) -> None:

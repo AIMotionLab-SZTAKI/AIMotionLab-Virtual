@@ -15,5 +15,5 @@ documentation for details.
    :maxdepth: 1
    :caption: Contents:
 
-   Code Reference <code_reference/code_reference>
+   aiml_virtual package code reference <aiml_virtual/aiml_virtual_pkg>
 

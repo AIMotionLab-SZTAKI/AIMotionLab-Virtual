@@ -37,6 +37,8 @@ xml_models/meshes/bumblebee/quad_model_no_prop_simplified__.stl
 xml_models/meshes/radar/csepp.stl
 xml_models/test_obstacle_avoidance.xml
 *.mp4
+docs/build/
+docs/source/aiml_virtual
 
 __pycache__/
 *.py[cod]

@@ -1,11 +1,8 @@
-drone-t lecserélni egy közös osztályra: egy olyan dolog aminek propellerjei vnanak (quadcopter?)
-jelenleg mit csinál egy Drone?:
--propellereket kezel
--input mátrixot kezel
--update-el
--bindol adathoz
-
-Ezzel ellenben a MocapDrone sokkal letisztultabb:
--propellereket kezel
--update-el
--bindol a datahoz
+Todo:
+-quadcopter osztály, ami őse a drone-nak meg a mocapdrone-nak
+-épületek (static? sima mocapobject? use case!)
+-hooked drone (valódi és mocap)
+-kocsi
+-kontrollerek
+-szerverrel szinkronizacio
+-példa scriptek!

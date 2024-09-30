@@ -7,16 +7,16 @@ name = "aiml_virtual"
 version = "1.0.0"
 description = "TODO"
 dependencies = [
-    "matplotlib==3.6.0",
-    "motioncapture==1.0a2",
-    "mujoco>=3.1.4",
-    "numpy==1.23.3",
-    "scipy==1.10.1",
-    "sphinx",
-    "furo==2024.8.6",
-    "win-precise-time==1.4.2; sys_platform=='win32'",
-    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git",
-    "opencv-python"
+    "matplotlib",  # 3.6.0
+    "motioncapture", # 1.0a2
+    "mujoco", # 3.2.2
+    "numpy", # 1.23.3
+    "scipy", # 1.10.1
+    "sphinx",  # 8.0.2
+    "furo", # 2024.8.6
+    "win-precise-time; sys_platform=='win32'", # 1.4.2
+    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git",  # 1.1.0
+    "opencv-python" # 4.10.0.84
 ]
 readme = "readme.md"
 

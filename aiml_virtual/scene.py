@@ -135,7 +135,8 @@ class Scene:
         """
         # Do nothing if the object is not in the scene. Note that this works regardless of whether obj was a string
         # (the name of the target object), or a reference to the object itself.
-        if obj not in self.simulated_objects:
+        if obj not in self.simulated_objects and obj not in [o.name for o in self.simulated_objects]:
+            warning(f"Object {obj} not in scene. Available objects: {[o.name for o in self.simulated_objects]}")
             return
         if isinstance(obj, MocapObject):
             obj_to_remove = obj

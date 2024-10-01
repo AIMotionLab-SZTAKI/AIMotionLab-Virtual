@@ -16,6 +16,7 @@ while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
     project_root = project_root.parents[0]
     sys.path.append(project_root.resolve().as_posix())
 xml_directory = os.path.join(project_root.resolve().as_posix(), "xml_models")
+project_root = project_root.resolve().as_posix()
 
 from aiml_virtual import scene, simulator
 from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
@@ -45,7 +46,7 @@ if __name__ == "__main__":
     # The dummy trajectory may have seemed a bit boring, even with the disturbance. A more interesting trajectory type
     # is read from a skyc file. An example skyc file is found under scripts/misc/skyc_example.skyc
     cf = crazyflie.Crazyflie()
-    traj = skyc_trajectory.SkycTrajectory("../misc/skyc_example.skyc")
+    traj = skyc_trajectory.SkycTrajectory(f"{project_root}/scripts/misc/skyc_example.skyc")
     cf.trajectory = traj
     scn.add_object(cf, "0 0 0", "1 0 0 0", "0.5 0.5 0.5 1")
 

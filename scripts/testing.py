@@ -41,6 +41,7 @@ if __name__ == "__main__":
 
     payload = dynamic_object.DynamicPayload()
     scene.add_object(payload, "0 0 1.0")
+
     # dummy_mocap_start_poses = {
     #     "cf0": (np.array([1, -1, 1]), np.array([0, 0, 0, 1])),
     #     "cf1": (np.array([1, 1, 1]), np.array([0, 0, 0, 1])),

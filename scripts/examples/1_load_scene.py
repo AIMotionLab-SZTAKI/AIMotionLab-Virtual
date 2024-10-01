@@ -6,8 +6,6 @@ import os
 import sys
 import pathlib
 
-from aiml_virtual.simulator import Scene
-
 # make sure imports work by adding the necessary folders to the path:
 project_root = pathlib.Path(__file__).parents[0]
 sys.path.append(project_root.resolve().as_posix())  # add the folder this file is in to path

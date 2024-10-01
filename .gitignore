@@ -6,3 +6,5 @@ docs/build
 *__pycache__/
 docs/source/aiml_virtual
 *.idea/
+xml_models/Scene.xml
+xml_models/example_*

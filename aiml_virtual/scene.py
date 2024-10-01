@@ -52,10 +52,10 @@ class Scene:
         "cf" would be lost. To this end, SimulatedObjects may exist without a model or data. However, they must be bound
         to the model and the data before running a simulation.
     """
-    def __init__(self, base_scene_filename: str = EMTPY_SCENE, save_filename: str = os.path.join(XML_FOLDER, "Scene.xml")):
+    def __init__(self, base_scene_filename: str = EMTPY_SCENE, save_filename: str = "Scene.xml"):
         self.model: mujoco.MjModel = mujoco.MjModel.from_xml_path(base_scene_filename)  #: the mjModel with C bindings
         self.xml_root: ET.Element = ET.parse(base_scene_filename).getroot()  #: root of the XML tree
-        self.xml_name: str = save_filename  #: the name under which we will save the new XML
+        self.xml_name: str = os.path.join(XML_FOLDER, save_filename)  #: the name under which we will save the new XML
 
         self.simulated_objects: list[SimulatedObject] = []  #: the objects with python interface
         for i in range(self.model.nbody):  # let's check all the bodies in the model

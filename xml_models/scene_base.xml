@@ -107,8 +107,10 @@
       <geom name="oszlop3" type="mesh" mesh="oszlop3" rgba="0.3 0.3 0.3 1"/>
       <geom name="oszlop4" type="mesh" mesh="oszlop4" rgba="0.3 0.3 0.3 1"/>
     </body>
-  
+
 
   </worldbody>
+  <actuator/>
+  <sensor/>
 
 </mujoco>

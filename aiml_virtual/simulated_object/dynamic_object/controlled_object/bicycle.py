@@ -4,6 +4,7 @@ This module contains the implementation of a very basic ControlledObject: a bike
 import xml.etree.ElementTree as ET
 import mujoco
 from typing import Optional
+import numpy as np
 
 from aiml_virtual.simulated_object.dynamic_object.controlled_object import controlled_object
 from aiml_virtual.controller import bicycle_controller
@@ -20,6 +21,12 @@ class Bicycle(controlled_object.ControlledObject):
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
         return ["Bicycle"]
+
+    def __init__(self):
+        super().__init__()
+        self.controller: BicycleController = BicycleController()
+        self.ctrl: Optional[np.ndarray] = None
+        self.sensor: Optional[np.ndarray] = None
 
     def update(self, time: float) -> None:
         """

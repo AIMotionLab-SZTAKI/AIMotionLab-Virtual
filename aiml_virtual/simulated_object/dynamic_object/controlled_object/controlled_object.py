@@ -15,12 +15,15 @@ class ControlledObject(dynamic_object.DynamicObject, ABC):
     Base class for objects in the simulation that have a controller implemented in python, and therefore need a python
     representation (to interact with the controller).
     """
+
+    @classmethod
+    def get_identifiers(cls) -> Optional[list[str]]:
+        return None
+
     def __init__(self):
         super().__init__()
         self.controllers: list[controller.Controller] = []  # storage for containers to switch between
         self.controller: Optional[controller.Controller] = None
         self.trajectory: Optional[trajectory.Trajectory] = None
 
-    @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return None
+

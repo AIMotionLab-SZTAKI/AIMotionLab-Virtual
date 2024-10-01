@@ -24,8 +24,9 @@ class Crazyflie(drone.Drone):
     COG: str = "0.0 0.0 0.0"  #: **classvar** | Location of the center of mass.
     PROP_COLOR: str = "0.1 0.1 0.1 1.0"  #: **classvar** | Color of the (old style) propellers.
 
-    def __init__(self):
-        super().__init__()
+    @classmethod
+    def get_identifiers(cls) -> Optional[list[str]]:
+        return ["Crazyflie"]  # note: the "cf" id belongs to *mocap* crazyflies!
 
     @property
     def input_matrix(self) -> np.ndarray:
@@ -36,10 +37,6 @@ class Crazyflie(drone.Drone):
                          [1/4, -1/(4*Ly), 1/(4*Lx), -1/(4*motor_param)],
                          [1/4, 1/(4*Ly), 1/(4*Lx), 1/(4*motor_param)],
                          [1/4, 1/(4*Ly), -1/(4*Lx), -1/(4*motor_param)]])
-
-    @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Crazyflie", "crazyflie"]  # note: the "cf" id belongs to *mocap* crazyflies!
 
     def set_default_controller(self) -> None:
         """

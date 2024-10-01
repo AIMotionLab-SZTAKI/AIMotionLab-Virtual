@@ -60,14 +60,14 @@ class Scene:
         self.simulated_objects: list[SimulatedObject] = []  #: the objects with python interface
         for i in range(self.model.nbody):  # let's check all the bodies in the model
             body = self.model.body(i)
-            for sim_name in SimulatedObject.xml_registry.keys():
+            for class_identifier in SimulatedObject.xml_registry.keys():
                 # a body is candidate to be a SimulatedObject, if its parent is the worldbody (meaning that its parent
                 # id is 0), and its name contains one of the keys which identify Simulated Objects
                 # note that instead of checking parents of the worldbody, we used to check for free joints, but a body
                 # may be a valid body in the simulation without having a free joint (mocap objects for example)
-                if body.parentid[0] == 0 and sim_name in body.name:
+                if body.parentid[0] == 0 and body.name.startswith(class_identifier):
                     # this is the class to be instantiated, identified by the registry of the SimulatedObject class
-                    cls: Type[SimulatedObject] = SimulatedObject.xml_registry[sim_name]
+                    cls: Type[SimulatedObject] = SimulatedObject.xml_registry[class_identifier]
                     self.simulated_objects.append(cls())
         self.bind_to_model()
 
@@ -96,7 +96,6 @@ class Scene:
         the model is reloaded, the simulated objects aren't re-initialized, instead, only their reference to the
         model is reset.
         """
-
         for obj in self.simulated_objects:
             obj.bind_to_model(self.model)
 
@@ -180,10 +179,10 @@ class Scene:
         for name, (pos, quat) in frame.items():
             pos_str = ' '.join(map(str, pos))  # np.ndarray([x, y, z]) -> "x y z"
             quat_str = ' '.join(map(str, quat))  # np.ndarray([x, y, z, w]) -> "x y z w"
-            for sim_name in SimulatedObject.xml_registry.keys():  # iterates over Crazyflie, MocapCrazyflie, Bicycle, etc.
-                if sim_name in name:  # sim_name will be something akin to Crazyflie_0, or MocapCrazyflie_5
+            for class_identifier in SimulatedObject.xml_registry.keys():  # iterates over Crazyflie, Bicycle, etc.
+                if name.startswith(class_identifier):  # class_identifier will be something like MocapCrazyflie_5
                     # determine type to instantiate
-                    cls: Type[MocapObject] = cast(Type[MocapObject], SimulatedObject.xml_registry[sim_name])
+                    cls: Type[MocapObject] = cast(Type[MocapObject], SimulatedObject.xml_registry[class_identifier])
                     obj: MocapObject = cls(source=mocap, mocap_name=name)
                     self.add_object(obj, pos_str, quat_str, color)
                     ret.append(obj)

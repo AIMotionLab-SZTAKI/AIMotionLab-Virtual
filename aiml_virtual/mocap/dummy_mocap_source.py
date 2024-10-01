@@ -73,7 +73,6 @@ class DummyMocapSource(mocap_source.MocapSource):
         frame =  original.data
         return cls(frame_generator=lambda: frame, fps=1) # fps doesn't really matter, since the data won't get updated
 
-
     def mocap(self) -> None:
         """
         Calls self.generate_frame (which was the frame generator provided in the constructor) in an infinite loop.

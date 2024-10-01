@@ -24,7 +24,7 @@ class MocapCrazyflie(mocap_drone.MocapDrone):
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["mocapCrazyflie", "MocapCrazyflie", "mocapcrazyflie", "cf"]
+        return ["MocapCrazyflie", "cf"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         """

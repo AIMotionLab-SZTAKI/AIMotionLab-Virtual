@@ -32,7 +32,7 @@ if __name__ == "__main__":
     bike2 = bicycle.Bicycle()
     scene.add_object(bike2, "0 -1 0", "1 0 0 0", "0.5 0.5 0.5 1")
     cf0 = cf.Crazyflie()
-    traj = skyc_trajectory.SkycTrajectory("skyc/skyc_example.skyc")
+    traj = skyc_trajectory.SkycTrajectory("misc/skyc_example.skyc")
     cf0.trajectory = traj
     scene.add_object(cf0, "0 0 0", "1 0 0 0", "0.5 0.5 0.5 1")
     bb0 = bb.Bumblebee()

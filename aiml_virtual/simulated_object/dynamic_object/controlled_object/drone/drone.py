@@ -72,6 +72,11 @@ class Drone(controlled_object.ControlledObject):
     .. todo::
         Several elements in create_xml_element in crazyflie and bumblebee may be moved here.
     """
+
+    @classmethod
+    def get_identifiers(cls) -> Optional[list[str]]:
+        return None
+
     def __init__(self):
         super().__init__()
         self.sensors: dict[str, np.array] = {}  #: Dictionary of sensor data.
@@ -88,10 +93,6 @@ class Drone(controlled_object.ControlledObject):
         outputs (thrust-toruqeX-torqueY-torqueZ) and the individual motor thrusts.
         """
         pass
-
-    @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return None
 
     @abstractmethod
     def set_default_controller(self) -> None:

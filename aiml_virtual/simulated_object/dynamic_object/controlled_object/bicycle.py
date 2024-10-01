@@ -19,7 +19,7 @@ class Bicycle(controlled_object.ControlledObject):
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Bicycle", "bicycle"]
+        return ["Bicycle"]
 
     def update(self, time: float) -> None:
         """

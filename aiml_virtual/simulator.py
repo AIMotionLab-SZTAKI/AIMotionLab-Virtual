@@ -89,7 +89,7 @@ class Simulator:
             else:
                 warning("Calling paused process.")
 
-    def __init__(self, scene: Scene, update_freq: float = 100, target_fps: int = 50):
+    def __init__(self, scene: Scene, update_freq: float = 500, target_fps: int = 50):
         self.scene: Scene = scene  #: The scene corresponding to the mujoco model.
         self.data: mujoco.MjData = mujoco.MjData(self.model)  #: The data corresponding to the model.
         self.viewer: Optional[mujoco.viewer.Handle] = None  #: The handler to be used for the passive viewer.

@@ -21,7 +21,12 @@ class MocapObject(simulated_object.SimulatedObject, ABC):
     Each MocapObject has to have exactly one Mocap Source associated with it: this is where the object will get its pose
     info.
     """
-    def __init__(self, source: mocap_source.MocapSource, mocap_name: Optional[str]=None):
+
+    @classmethod
+    def get_identifiers(cls) -> Optional[list[str]]:
+        return None
+
+    def __init__(self, source: Optional[mocap_source.MocapSource]=None, mocap_name: Optional[str]=None):
         super().__init__()
         self.mocap_name: str = mocap_name if mocap_name is not None else self.name  #: The name in the mocap dictionary (it may differ from the mujoco model name).
         self.source: mocap_source.MocapSource = source  #: The source for the poses of the object.
@@ -45,9 +50,10 @@ class MocapObject(simulated_object.SimulatedObject, ABC):
         Args:
             time (float): The time elapsed in the simulation.
         """
-        mocap_frame = self.source.data
-        if self.mocap_name in mocap_frame:
-            self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid] = mocap_frame[self.mocap_name]
+        if self.source is not None:
+            mocap_frame = self.source.data
+            if self.mocap_name in mocap_frame:
+                self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid] = mocap_frame[self.mocap_name]
         else:
             return
             warning(f"Obj {self.name} not in mocap")
@@ -63,17 +69,14 @@ class MocapObject(simulated_object.SimulatedObject, ABC):
             raise RuntimeError
         self.data = data
 
-    @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return None
-
 class Airport(MocapObject):
     """
     Mocap object to display a piece of paper with the airport sign on it.
     """
+
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["airport", "Airport"]
+        return ["Airport"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -85,9 +88,10 @@ class ParkingLot(MocapObject):
     """
     Mocap object to display a piece of paper with the parking lot sign on it.
     """
+
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["parkinglot", "ParkingLot", "parkingLot", "parking_lot"]
+        return ["ParkingLot"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -99,9 +103,10 @@ class LandingZone(MocapObject):
     """
     Mocap object to display the white pads to be put under crazyflies for landing.
     """
+
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["landingzone", "LandingZone", "landingZone", "landing_zone"]
+        return ["LandingZone"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -112,9 +117,10 @@ class Pole(MocapObject):
     """
     Mocap object to display the pool noodles we use as obstacles.
     """
+
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["pole", "Pole", "obst"]
+        return ["Pole", "obst"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -128,9 +134,10 @@ class Hospital(MocapObject):
     """
     Mocap object to display the Hospital building (currently assumed to be bu1 in optitrack).
     """
+
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["hospital", "Hospital", "bu1"]
+        return ["Hospital", "bu1"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -142,9 +149,10 @@ class PostOffice(MocapObject):
     """
     Mocap object to display the Post Office building (currently assumed to be bu2 in optitrack).
     """
+
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["bu2", "post_office", "postoffice", "PostOffice", "postOffice"]
+        return ["bu2", "PostOffice"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -156,9 +164,10 @@ class Sztaki(MocapObject):
     """
     Mocap object to display the Sztaki building (currently assumed to be bu3 in optitrack).
     """
+
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["sztaki", "Sztaki", "bu3"]
+        return ["Sztaki", "bu3"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -170,9 +179,10 @@ class MocapPayload(MocapObject):
     """
     Mocap object to display a tear shaped Payload.
     """
+
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["payload", "mocapPayload", "MocapPayload", "mocap_payload"]
+        return ["payload", "MocapPayload"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         black = "0 0 0 1"

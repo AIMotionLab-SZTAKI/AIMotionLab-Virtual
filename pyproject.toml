@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "aiml_virtual"
 version = "1.0.0"
 description = "TODO"
-dependencies = [
+dependencies = [  # python 3.10
     "matplotlib",  # 3.6.0
     "motioncapture", # 1.0a2
     "mujoco", # 3.2.2

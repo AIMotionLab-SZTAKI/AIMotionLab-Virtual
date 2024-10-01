@@ -5,17 +5,18 @@ MocapBumblebee)
 
 from typing import Optional
 import mujoco
+from abc import ABC
 
 from aiml_virtual.simulated_object.mocap_object import mocap_object
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.drone import Propeller
 from aiml_virtual.mocap import mocap_source
 
 
-class MocapDrone(mocap_object.MocapObject):
+class MocapDrone(mocap_object.MocapObject, ABC):
     """
     Class encapsulation behaviour common to all mocap drones (which are MocapObjects).
     """
-    def __init__(self, source: mocap_source.MocapSource, mocap_name: Optional[str]=None):
+    def __init__(self, source: Optional[mocap_source.MocapSource]=None, mocap_name: Optional[str]=None):
         super().__init__(source, mocap_name)
         self.propellers: list[Propeller] = [Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE),
                                             Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE)]  #: List of propellers; first and third are ccw, second and fourth are cw

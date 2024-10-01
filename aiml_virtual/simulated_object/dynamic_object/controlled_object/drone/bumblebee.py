@@ -29,8 +29,9 @@ class Bumblebee(drone.Drone):
     COG = "0.0085 0.0 0.0"  #: **classvar** | Location of the center of mass.
     PROP_COLOR = "0.1 0.02 0.5 1.0"  #: **classvar** | Color of the propellers.
 
-    def __init__(self):
-        super().__init__()
+    @classmethod
+    def get_identifiers(cls) -> Optional[list[str]]:
+        return ["Bumblebee"]
 
     @property
     def input_matrix(self) -> np.ndarray:
@@ -42,10 +43,6 @@ class Bumblebee(drone.Drone):
                          [1 / 4, -1 / (4 * Ly), 1 / (4 * Lx1), -1 / (4 * motor_param)],
                          [1 / 4, 1 / (4 * Ly), 1 / (4 * Lx1), 1 / (4 * motor_param)],
                          [1 / 4, 1 / (4 * Ly), -1 / (4 * Lx2), -1 / (4 * motor_param)]])
-
-    @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Bumblebee", "bumblebee"]
 
     def set_default_controller(self) -> None:
         """

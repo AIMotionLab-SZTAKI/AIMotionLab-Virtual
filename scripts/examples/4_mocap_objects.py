@@ -53,6 +53,8 @@ if __name__ == "__main__":
     # There are two ways to make MocapObjects:
     # (1): Adding all objects found in a MocapSource
     # (2): Initializing a mocap object with its MocapSource and mocap_name, then adding it with scene.add_object
+    #      Note, that if there already are mocap objects in the scene that are connected to the given MocapSource,
+    #      then this method will first remove them to avoid duplication.
     # Let's use method (1) first: this also returns a list of references to the added objects
     lst = scn.add_mocap_objects(mocap, "1 0 0 1")
     # At this point let's check another way to manipulate the scene: removing objects. This can be done either by

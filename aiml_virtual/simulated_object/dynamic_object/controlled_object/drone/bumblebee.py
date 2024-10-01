@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from typing import Optional
 import numpy as np
 
-from aiml_virtual.simulated_object.moving_object.drone import drone
+from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import drone
 from aiml_virtual.controller import drone_geom_controller
 from aiml_virtual.utils import utils_general
 
@@ -34,11 +34,6 @@ class Bumblebee(drone.Drone):
 
     @property
     def input_matrix(self) -> np.ndarray:
-        """
-        Overrides (implements) Drone.input_matrix. Property to grab the input matrix for use in input allocation: it
-        shows the connection between the control outputs (thrust-toruqeX-torqueY-torqueZ) and the individual motor
-        thrusts.
-        """
         Lx1 = float(Bumblebee.OFFSET_X1)
         Lx2 = float(Bumblebee.OFFSET_X2)
         Ly = float(Bumblebee.OFFSET_Y)
@@ -50,12 +45,6 @@ class Bumblebee(drone.Drone):
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        """
-        Overrides method in MovingObject to specify whether to check for aliases when parsing an XML.
-
-        Returns:
-            Optional[list[str]]: The list of aliases for objects belonging to this class.
-        """
         return ["Bumblebee", "bumblebee"]
 
     def set_default_controller(self) -> None:
@@ -66,18 +55,6 @@ class Bumblebee(drone.Drone):
                                                             k_r=4, k_v=2, k_R=1.7, k_w=0.2)
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
-        """
-        Overrides method in SimulatedObject. Generates all the necessary XML elements for the model.
-
-        Args:
-            pos (str): The position of the object in the scene, x-y-z separated by spaces. E.g.: "0 1 -1"
-            quat (str): The quaternion orientation of the object in the scene, w-x-y-z separated by spaces.
-            color (str): The base color of the object in th scene, r-g-b-opacity separated by spaces, scaled 0.0  to 1.0
-
-        Returns:
-            dict[str, list[ET.Element]]: A dictionary where the keys are tags of XML elements in the MJCF file, and the
-            values are lists of XML elements to be appended as children to those XML elements.
-        """
         name = self.name
         mass = Bumblebee.MASS
         diaginertia = Bumblebee.DIAGINERTIA

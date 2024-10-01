@@ -1,15 +1,13 @@
 import os
 import pathlib
 
-import glfw
 import mujoco
 import numpy as np
 
 import aiml_virtual.scene as scene
-import aiml_virtual.simulated_object.moving_object.bicycle as bicycle
-import aiml_virtual.simulator as simulator
-import aiml_virtual.simulated_object.moving_object.drone.crazyflie as cf
-import aiml_virtual.simulated_object.moving_object.drone.bumblebee as bb
+import aiml_virtual.simulated_object.dynamic_object.controlled_object.bicycle as bicycle
+import aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.crazyflie as cf
+import aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.bumblebee as bb
 from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
 
 """

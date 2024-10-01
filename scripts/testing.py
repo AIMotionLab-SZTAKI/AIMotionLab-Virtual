@@ -9,22 +9,19 @@ import os
 import sys
 import pathlib
 import numpy as np
-from functools import partial
+
 # make sure imports work by adding the aiml_virtual directory to path:
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 sys.path.append(os.path.join(file_dir, '..'))
 
 import aiml_virtual.scene as scene
-import aiml_virtual.simulated_object.moving_object.bicycle as bicycle
+import aiml_virtual.simulated_object.dynamic_object.controlled_object.bicycle as bicycle
 import aiml_virtual.simulator as simulator
-import aiml_virtual.simulated_object.moving_object.drone.crazyflie as cf
-import aiml_virtual.simulated_object.moving_object.drone.bumblebee as bb
-import aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_crazyflie as mcf
-import aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_bumblebee as mbb
+import aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.crazyflie as cf
+import aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.bumblebee as bb
 from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
-from aiml_virtual.mocap import dummy_mocap_source
-from aiml_virtual.mocap import optitrack_mocap_source
+from aiml_virtual.simulated_object.dynamic_object import dynamic_object
 
 if __name__ == "__main__":
     project_root = pathlib.Path(__file__).parents[1].resolve().as_posix()
@@ -42,6 +39,8 @@ if __name__ == "__main__":
     bb0.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 0, 1]))
     scene.add_object(bb0, "-1 0 0.5", "1 0 0 0", "0.5 0.5 0.5 1")
 
+    payload = dynamic_object.DynamicPayload()
+    scene.add_object(payload, "0 0 1.0")
     # dummy_mocap_start_poses = {
     #     "cf0": (np.array([1, -1, 1]), np.array([0, 0, 0, 1])),
     #     "cf1": (np.array([1, 1, 1]), np.array([0, 0, 0, 1])),

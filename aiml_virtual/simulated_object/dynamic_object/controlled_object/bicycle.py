@@ -1,37 +1,24 @@
 """
-This module contains the implementation of a very basic MovingObject: a bike with two wheels.
+This module contains the implementation of a very basic ControlledObject: a bike with two wheels.
 """
 import xml.etree.ElementTree as ET
 import mujoco
-from typing import Any, Optional
+from typing import Optional
 
-import numpy as np
-
-from aiml_virtual.simulated_object.moving_object import moving_object
+from aiml_virtual.simulated_object.dynamic_object.controlled_object import controlled_object
 from aiml_virtual.controller import bicycle_controller
 
 BicycleController = bicycle_controller.BicycleController
 
 
-class Bicycle(moving_object.MovingObject):
+class Bicycle(controlled_object.ControlledObject):
     """
     A simple controlled object mostly used for testing. Consists of two wheels and an actuator, as well
     as a rectangular body.
     """
-    def __init__(self):
-        super().__init__()
-        self.controller: BicycleController = BicycleController()
-        self.ctrl: Optional[np.ndarray] = None
-        self.sensor: Optional[np.ndarray] = None
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        """
-        Overrides method in MovingObject to specify whether to check for aliases when parsing an XML.
-
-        Returns:
-            Optional[list[str]]: The list of aliases for objects belonging to this class.
-        """
         return ["Bicycle", "bicycle"]
 
     def update(self, time: float) -> None:
@@ -45,18 +32,6 @@ class Bicycle(moving_object.MovingObject):
             self.ctrl[0] = self.controller.compute_control()
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
-        """
-        Overrides method in SimulatedObject. Generates all the necessary XML elements for the model of a Bicycle.
-
-        Args:
-            pos (str): The position of the object in the scene, x-y-z separated by spaces. E.g.: "0 1 -1"
-            quat (str): The quaternion orientation of the object in the scene, w-x-y-z separated by spaces.
-            color (str): The base color of the object in th scene, r-g-b-opacity separated by spaces, scaled 0.0  to 1.0
-
-        Returns:
-            dict[str, list[ET.Element]]: A dictionary where the keys are tags of XML elements in the MJCF file, and the
-            values are lists of XML elements to be appended as children to those XML elements.
-        """
         name = self.name
         site_name = f"{name}_cog"
 
@@ -87,7 +62,14 @@ class Bicycle(moving_object.MovingObject):
                "sensor": [sensor]}
         return ret
 
-    def bind_to_data(self, data: mujoco.MjData):
+    def bind_to_data(self, data: mujoco.MjData) -> None:
+        """
+        Overrides DynamicObject.bind_to_data. In addition to saving a reference to the MjData, it also saves a
+        reference to its actuator and sensor.
+
+        Args:
+            data (mujoco.MjData): The data of the simulation (as opposed to the *model*).
+        """
         self.data = data
         self.ctrl = data.actuator(self.name + "_actr").ctrl
         self.sensor = data.sensor(self.name + "_velocimeter").data

@@ -19,13 +19,13 @@ class SimulatedObject(ABC):
     - Keeps track of how many instances of the class exist in the runtime.
 
     This is achieved by utilizing the __init_subclass__ function, which gets called when a subclass is defined. A
-    subclass of SimulatedObject will be (for example) MovingObject, meaning that when the interpeter first encounters
-    MovingObject, it calls __init_subclass__ with the argument cls set to MovingObject. Since MovingObject is a subclass
-    of SimulatedObject, it inherits this function, meaning that if MovingObject has a subclass Drone, then whenever
-    Drone is defined, this function gets called, even though Drone is not a direct subclass of SimulatedObject. If
-    MovingObject also implements its own __init_subclass__, it will overload the inherited __init_subclass__,
-    therefore, if we want to call it, then MovingObject.__init_subclass__ shall include a call
-    super().__init_subclass__, that way it calls the parent's respective function in addition to its own.
+    subclass of SimulatedObject will be (for example) ControlledObject, meaning that when the interpeter first
+    encounters the class ControlledObject, it calls __init_subclass__ with the argument cls set to ControlledObject.
+    Since ControlledObject is a subclass of SimulatedObject, it inherits this function, meaning that if ControlledObject
+    in turn has a subclass Drone, then whenever Drone is defined, this function gets called, even though Drone is not a
+    direct subclass of SimulatedObject. If ControlledObject also implements its own __init_subclass__, it will overload
+    the inherited __init_subclass__, therefore, if we want to call it, then ControlledObject.__init_subclass__ shall
+    include a call super().__init_subclass__, that way it calls the parent's respective function in addition to its own.
     SimulatedObject.__init_subclass__ registers the potential aliases of the class to its xml registry, and sets its
     instance count to 0. If a class wants to be a candidate for parsing in an xml file, it shall implement all the
     abstract methods defined in SimulatedObject and in get_identifiers return a list of valid string identifiers.
@@ -55,10 +55,11 @@ class SimulatedObject(ABC):
     @abstractmethod
     def get_identifiers(cls) -> Optional[list[str]]:
         """
-        Gives a list of identifiers (aliases) for the class to check when parsing an XML.
+        Gives a list of identifiers (aliases) for the class to check for aliases when parsing an XML. A None returns
+        signals that this class opts out of parsing. This usually also means that it's an abstract class (ABC).
 
         Returns:
-            The list of possible names in the XML, or None if the class doesn't need to be parsed into a python object.
+            Optional[list[str]]: The list of aliases for objects belonging to this class, or None if abstract.
         """
         raise NotImplementedError
 
@@ -109,7 +110,6 @@ class SimulatedObject(ABC):
         """
         pass
 
-    @abstractmethod
     def update(self, time: float) -> None:
         """
         The simulator will call this function once every control loop: if the object needs to update control inputs,

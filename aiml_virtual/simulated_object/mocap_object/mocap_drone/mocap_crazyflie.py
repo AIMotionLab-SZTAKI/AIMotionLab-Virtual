@@ -24,12 +24,6 @@ class MocapCrazyflie(mocap_drone.MocapDrone):
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        """
-        Overrides method in MovingObject to specify whether to check for aliases when parsing an XML.
-
-        Returns:
-            Optional[list[str]]: The list of aliases for objects belonging to this class.
-        """
         return ["mocapCrazyflie", "MocapCrazyflie", "mocapcrazyflie", "cf"]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:

@@ -11,14 +11,14 @@ import pathlib
 
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.simulated_object.mocap_object import mocap_object
-from aiml_virtual.simulated_object.moving_object import moving_object
+from aiml_virtual.simulated_object.dynamic_object.controlled_object import controlled_object
 from aiml_virtual.mocap import mocap_source
 from aiml_virtual.utils import utils_general
 
 # importing whole modules is supposed to be good practice to avoid circular imports, but I want easier access, so here
 # are some aliases to avoid having to type out module.symbol
 MocapObject = mocap_object.MocapObject
-MovingObject = moving_object.MovingObject
+ControlledObject = controlled_object.ControlledObject
 SimulatedObject = simulated_object.SimulatedObject
 MocapSource = mocap_source.MocapSource
 warning = utils_general.warning
@@ -63,6 +63,8 @@ class Scene:
             for sim_name in SimulatedObject.xml_registry.keys():
                 # a body is candidate to be a SimulatedObject, if its parent is the worldbody (meaning that its parent
                 # id is 0), and its name contains one of the keys which identify Simulated Objects
+                # note that instead of checking parents of the worldbody, we used to check for free joints, but a body
+                # may be a valid body in the simulation without having a free joint (mocap objects for example)
                 if body.parentid[0] == 0 and sim_name in body.name:
                     # this is the class to be instantiated, identified by the registry of the SimulatedObject class
                     cls: Type[SimulatedObject] = SimulatedObject.xml_registry[sim_name]

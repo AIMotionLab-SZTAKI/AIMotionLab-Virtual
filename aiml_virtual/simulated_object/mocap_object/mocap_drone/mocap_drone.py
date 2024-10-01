@@ -7,7 +7,7 @@ from typing import Optional
 import mujoco
 
 from aiml_virtual.simulated_object.mocap_object import mocap_object
-from aiml_virtual.simulated_object.moving_object.drone.drone import Propeller
+from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.drone import Propeller
 from aiml_virtual.mocap import mocap_source
 
 
@@ -22,12 +22,6 @@ class MocapDrone(mocap_object.MocapObject):
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        """
-        Overrides method in MocapObject to specify whether to check for aliases when parsing an XML.
-
-        Returns:
-            Optional[list[str]]: The list of aliases for objects belonging to this class.
-        """
         return None
 
     def spin_propellers(self) -> None:
@@ -40,7 +34,7 @@ class MocapDrone(mocap_object.MocapObject):
 
     def update(self, time: float) -> None:
         """
-        Overrides SimulatedObject.update: spins propellers in addition to writing its pose data.
+        Overrides MocapObject.update: spins propellers in addition to writing its pose data.
 
         Args:
             time (float): The elapsed time in the simulation.
@@ -50,7 +44,7 @@ class MocapDrone(mocap_object.MocapObject):
 
     def bind_to_data(self, data: mujoco.MjData) -> None:
         """
-        Overrides SimulatedObstacle.bind_to_data. In addition to saving a reference to the data (in the superclass'
+        Overrides MocapObject.bind_to_data. In addition to saving a reference to the data (in the superclass'
         bind call), it also saves references to propeller data in order to be able to spin them visually.
 
         Args:

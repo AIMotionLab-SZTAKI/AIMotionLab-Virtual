@@ -7,7 +7,7 @@ from typing import Optional
 import numpy as np
 from abc import abstractmethod
 
-from aiml_virtual.simulated_object.moving_object import moving_object
+from aiml_virtual.simulated_object.dynamic_object.controlled_object import controlled_object
 
 
 class Propeller:
@@ -65,9 +65,9 @@ class Propeller:
         self.angle += self.spin_speed
         self.qpos[0] = self.angle
 
-class Drone(moving_object.MovingObject):
+class Drone(controlled_object.ControlledObject):
     """
-    Class encapsulating behaviour common to all drones (which are MovingObjects).
+    Class encapsulating behaviour common to all drones (which are ControlledObjects).
 
     .. todo::
         Several elements in create_xml_element in crazyflie and bumblebee may be moved here.
@@ -91,12 +91,6 @@ class Drone(moving_object.MovingObject):
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        """
-        Overrides method in MovingObject to specify whether to check for aliases when parsing an XML.
-
-        Returns:
-            Optional[list[str]]: The list of aliases for objects belonging to this class.
-        """
         return None
 
     @abstractmethod

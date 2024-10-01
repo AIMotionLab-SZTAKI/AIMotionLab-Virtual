@@ -3,10 +3,10 @@ This module contains the class encapsulating the crazyflie drone.
 """
 
 import xml.etree.ElementTree as ET
-from typing import Optional, Any
+from typing import Optional
 import numpy as np
 
-from aiml_virtual.simulated_object.moving_object.drone import drone
+from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import drone
 from aiml_virtual.controller import drone_geom_controller
 
 
@@ -29,11 +29,6 @@ class Crazyflie(drone.Drone):
 
     @property
     def input_matrix(self) -> np.ndarray:
-        """
-        Overrides (implements) Drone.input_matrix. Property to grab the input matrix for use in input allocation: it
-        shows the connection between the control outputs (thrust-toruqeX-torqueY-torqueZ) and the individual motor
-        thrusts.
-        """
         Lx = float(Crazyflie.OFFSET)
         Ly = Lx
         motor_param = float(Crazyflie.MOTOR_PARAM)
@@ -44,12 +39,6 @@ class Crazyflie(drone.Drone):
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        """
-        Overrides method in MovingObject to specify whether to check for aliases when parsing an XML.
-
-        Returns:
-            Optional[list[str]]: The list of aliases for objects belonging to this class.
-        """
         return ["Crazyflie", "crazyflie"]  # note: the "cf" id belongs to *mocap* crazyflies!
 
     def set_default_controller(self) -> None:

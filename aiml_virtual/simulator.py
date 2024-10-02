@@ -8,8 +8,6 @@ from typing import Optional, Callable
 from contextlib import contextmanager
 import platform
 import glfw
-import cv2
-import numpy as np
 from functools import partial
 if platform.system() == 'Windows':
     import win_precise_time as time
@@ -89,7 +87,7 @@ class Simulator:
             else:
                 warning("Calling paused process.")
 
-    def __init__(self, scene: Scene, update_freq: float = 500, target_fps: int = 50):
+    def __init__(self, scene: Scene, update_freq: float = 500, render_fps: int = 50):
         self.scene: Scene = scene  #: The scene corresponding to the mujoco model.
         self.data: mujoco.MjData = mujoco.MjData(self.model)  #: The data corresponding to the model.
         self.viewer: Optional[mujoco.viewer.Handle] = None  #: The handler to be used for the passive viewer.
@@ -101,11 +99,12 @@ class Simulator:
             (glfw.KEY_F, True): lambda: print("shift+F key callback"),
             (glfw.KEY_R, True): self.toggle_render
         }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
-        self.renderer: renderer.Renderer = renderer.Renderer(self.model, target_fps, 1080, 1920, "mp4v")  #: Renderer for video production
+        self.cam: Optional[mujoco.MjvCamera] = None  #: The camera used for rendering. Comes from viewer then possible.
+        self.vOpt: Optional[mujoco.MjvOption] = None  #: The visual options used for rendering. Comes from viewer then possible. Different from opt (model options).
+        self.renderer: renderer.Renderer = renderer.Renderer(self.model, render_fps, 1080, 1920, "mp4v")  #: Renderer for video production
         self.add_process("update", self.update_objects, update_freq)
-        self.add_process("sync", self.sync, target_fps)
         self.add_process("physics", self.mj_step, 1/self.timestep)
-        self.add_process("render", self.render_viewer_data, target_fps)
+        self.add_process("render", self.render_data, self.renderer.fps)
         self.processes["render"].pause()  # when the render process is on, frames get saved: start with it OFF
 
     @property
@@ -153,35 +152,64 @@ class Simulator:
         self.processes["update"].toggle()
 
     @contextmanager
-    def launch_viewer(self) -> 'Simulator':
+    def launch(self, with_display: bool = True, fps: float = 50) -> 'Simulator':
         """
-        Wraps the mujoco.viewer.launch_passive function so that it handlers the simulator's initialization. As this
-        is a context handler, it should be used like so:
+        A context handler to wrap the initialization and cleanup of a simulation run. If the simulation has a display,
+        it will wrap the mujoco.viewer.launch_passive function. When used with a display, it can be used like so:
 
         .. code-block:: python
 
-            sim = simulator.Simulator(scene, control_freq=500, target_fps=100)
-            with sim.launch_viewer():
+            sim = simulator.Simulator(scene)
+            with sim.launch():
                 while sim.viewer.is_running():
-                    sim.step()
+                    sim.tick()
+
+        When used without a display, sim.viewer will be None, and you should decide for yourself how many times you
+        would like to step the simulation, like so:
+
+        .. code-block:: python
+
+            sim = simulator.Simulator(scene)
+            with sim.launch():
+                while sim.tick_count < 10000:
+                    sim.tick()
+
+        Args:
+            with_display (bool): Whether to display the simulation in a window as it's being calculated.
+            fps (float): The fps of the display animation (if present).
         """
+        # this should be called *after* all objects have been added to the scene, hence it is called here, as opposed
+        # to in __init__()
         self.bind_scene()
-        try:
-            # may need a 0th step here (mujoco.mj_forward)
-            self.start_time = time.time()
-            self.viewer = mujoco.viewer.launch_passive(self.model, self.data, show_left_ui=False, show_right_ui=False,
-                                                       key_callback=self.handle_keypress)
-            yield self
-        finally:
-            self.renderer.write("simulator.mp4")
-            if self.viewer:
-                self.viewer.close()
+        self.start_time = time.time()
+        if with_display:
+            # sync is the process that displays the scene
+            self.add_process("sync", self.sync, fps)
+            # wrap the launch_passive context handler
+            with mujoco.viewer.launch_passive(self.model, self.data, show_left_ui=False, show_right_ui=False,
+                                              key_callback=self.handle_keypress) as viewer:
+                self.viewer = viewer
+                self.cam = viewer.cam
+                self.vOpt = viewer.opt
+                try:
+                    yield self
+                finally:
+                    self.renderer.write("simulator.mp4")
+                    self.viewer = None
+        else:
+            self.cam = mujoco.MjvCamera()
+            self.vOpt = mujoco.MjvOption()
+            try:
+                yield self
+            finally:
+                self.renderer.write("simulator.mp4")
                 self.viewer = None
 
     def bind_scene(self) -> None:
         """
         Similar to Scene.bind_to_model, except this binds the **data**, not the model. The distinction is that the data
-        describes a particular run of the simulation for a given model, at a given time.
+        describes a particular run of the simulation for a given model, at a given time. Should be called once all the
+        objects have been added to the simulation.
         """
         for obj in self.simulated_objects:
             obj.bind_to_data(self.data)
@@ -212,7 +240,6 @@ class Simulator:
         This is the function that wraps mj_step and does the housekeeping relating to it; namely:
 
         - Calling processes in self.processes if necessary.
-        - Syncing to the wall clock.
         """
         for process in self.processes.values():
             interval = max(1, math.ceil((1 / process.frequency) / self.timestep))
@@ -224,9 +251,6 @@ class Simulator:
         # argument nstep. This nstep may be the interval of the fastest process.
         # For example, if the physics is 1000Hz, the control is 100Hz, and the display is 50Hz, then we can call the
         # physics engine for 10 steps at every loop, call the control every loop and the display every other loop
-        dt = self.timestep * self.tick_count - self.time  # this puts a rate limit on the loop
-        if dt > 0:
-            time.sleep(dt)
         self.tick_count += 1
 
     def mj_step(self):
@@ -237,7 +261,7 @@ class Simulator:
 
     def update_objects(self) -> None:
         """
-        Each simulated object may have housekeeping to do: this process is their opportunity.
+        Each simulated object may have housekeeping to do such as setting actuators: this process is their opportunity.
         """
         for obj in self.simulated_objects:
             obj.update(self.data.time)
@@ -245,9 +269,13 @@ class Simulator:
     def sync(self) -> None:
         """
         Syncs the viewer to the underlying data, which also refreshes the image. This means that the frame rate of
-        the resulting animation will be the rate of this process.
+        the resulting animation will be the rate of this process. Syncs to the wall clock in order to prevent the
+        display from running ahead of the simulation..
         """
         self.viewer.sync()
+        dt = self.timestep * self.tick_count - self.time  # this puts a rate limit on the display
+        if dt > 0:
+            time.sleep(dt)
 
     def handle_keypress(self, keycode: int) -> None:
         """
@@ -288,12 +316,15 @@ class Simulator:
         on = self.processes["render"].toggle()
         print(f"Rendering toggled {'ON' if on else 'OFF' }")
 
-    def render_viewer_data(self) -> None:
+    def render_data(self) -> None:
         """
-        Instructs the rendeer to save the data in the passive viewer to a frame.
+        Instructs the renderer to save the data in the passive viewer to a frame.
         """
-        if self.data is not None and self.viewer is not None:
-            self.renderer.render_frame(self.data, self.viewer.cam, self.viewer.opt)
+        if self.data is not None and self.vOpt is not None and self.cam is not None:
+            self.renderer.render_frame(self.data, self.cam, self.vOpt)
+
+
+
 
 
 

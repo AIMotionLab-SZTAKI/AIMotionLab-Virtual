@@ -51,7 +51,7 @@ if __name__ == "__main__":
     mocap = dummy_mocap_source.DummyMocapSource(frame_generator=frame_generator, fps=120)
     cf = mcf.MocapCrazyflie(mocap, "cf0")
     scene.add_object(cf)
-    sim = simulator.Simulator(scene, update_freq=500, target_fps=100)
-    with sim.launch_viewer():
+    sim = simulator.Simulator(scene)
+    with sim.launch():
         while sim.viewer.is_running():
             sim.tick()

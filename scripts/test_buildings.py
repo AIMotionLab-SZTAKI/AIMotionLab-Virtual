@@ -34,7 +34,7 @@ if __name__ == "__main__":
     static_mocap = dummy_mocap_source.DummyMocapSource.freeze(original_mocap)
     time.sleep(0.1)  # leave time for the mocap to get its first frame
     scene.add_mocap_objects(static_mocap)
-    sim = simulator.Simulator(scene, update_freq=500, target_fps=100)
-    with sim.launch_viewer():
+    sim = simulator.Simulator(scene)
+    with sim.launch():
         while sim.viewer.is_running():
             sim.tick()

@@ -33,7 +33,7 @@ if __name__ == "__main__":
     # An example of a DynamicObject (an object which is subject to MuJoCo physics but is not actuated) is a payload:
     payload1 = dynamic_object.DynamicPayload()
     # Let's add this payload to the scene!
-    scn.add_object(payload1, pos="1 0 1", quat="1 0 0 0")
+    scn.add_object(payload1, pos="1 0 1.5", quat="1 0 0 0")
     # There is an important thing to note here. Whenever you modify the scene, it saves its state to an xml.
     # An example of a MocapObject would be a *mocap* payload:
     payload2 = mocap_object.MocapPayload()
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # The key difference between the two payloads is the following: one of them is a dynamic object, subject to
     # gravity, the other is a mocap object (although we currently don't provide it any mocap data yet). This means
     # that the former will drop from the sky when the simulation is launched, whereas the latter will stay in the air.
-    sim = simulator.Simulator(scn, update_freq=500, target_fps=100)
-    with sim.launch_viewer():
+    sim = simulator.Simulator(scn)
+    with sim.launch(fps=20):  # demonstrate lower fps as well
         while sim.viewer.is_running():
             sim.tick()  # tick steps the simulator, including all its subprocesses

@@ -4,26 +4,9 @@ Todo:
 -kocsi
 -kontrollerek
 -szerverrel szinkronizacio
--példa scriptek!
 -szétcsatolni a kinézet változtatását és az update-elést
 -megcsinálni, hogy lehessen display nélkül szimulálni
 -megcsinálni, hogy lehessen alapból menteni a frame-eket
-
-Example készítések során talált bugok:
--ha egy scene-t xml-ből akarunk betölteni, de mocap drone van benne, akkor nem tudjuk megcsinálni az objektumát!
-
-Elérendő cél:
-A top-level testek neve mindig úgy nézzen ki, hogy CLASSNÉV_bármi, tipikusan CLASSNÉV_SZÁM
-cél:
-Crazyflie ne matcheljen rá a MocapCrazyflie-ra -> startswith kellene helyette
-legyen szigorúbb a nevezés
-
-
-
-
-
-
-
 
 
 

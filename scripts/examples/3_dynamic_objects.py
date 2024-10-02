@@ -50,8 +50,8 @@ if __name__ == "__main__":
     cf.trajectory = traj
     scn.add_object(cf, "0 0 0", "1 0 0 0", "0.5 0.5 0.5 1")
 
-    sim = simulator.Simulator(scn, update_freq=500, target_fps=100)
-    with sim.launch_viewer():
+    sim = simulator.Simulator(scn)
+    with sim.launch():
         while sim.viewer.is_running():
             sim.tick()  # tick steps the simulator, including all its subprocesses
 

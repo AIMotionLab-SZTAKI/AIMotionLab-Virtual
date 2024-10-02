@@ -5,7 +5,6 @@ This script shows how mocap objects work.
 import os
 import sys
 import pathlib
-import time
 
 import numpy as np
 from functools import partial
@@ -65,7 +64,7 @@ if __name__ == "__main__":
     # In their stead, let's add a MocapBumblebee using method (2):
     bb0 = mocap_bumblebee.MocapBumblebee(mocap, "bb0")  # In the MocapSource, this bb will look for "bb0"
     scn.add_object(bb0)
-    sim = simulator.Simulator(scn, update_freq=500, target_fps=100)
-    with sim.launch_viewer():
+    sim = simulator.Simulator(scn)
+    with sim.launch():
         while sim.viewer.is_running():
             sim.tick()  # tick steps the simulator, including all its subprocesses

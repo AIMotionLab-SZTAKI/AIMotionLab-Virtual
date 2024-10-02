@@ -54,6 +54,7 @@ if __name__ == "__main__":
     # the simulator, a video is created. This process is toggled OFF when the simulator is initialized, but you can
     # toggle it ON or OFF using the shift+R keybind from the simulation window, or set it via code like so:
     sim.processes["render"].resume()  # this way the simulator records by default
+    # Note that where the video gets saved under cwd/simulator.mp4 by default.
     with sim.launch(fps=30):  # note that render fps is separate from display fps!
         while sim.viewer.is_running():
             sim.tick()  # tick steps the simulator, including all its subprocesses

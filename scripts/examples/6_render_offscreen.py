@@ -29,7 +29,7 @@ if __name__ == "__main__":
     sim = simulator.Simulator(scn, renderer_fps=144)
     sim.processes["render"].toggle()  # let's turn the recording on
     with sim.launch(with_display=False):  # the with_display argument is True by default
-        while sim.tick_count < 300000:  # let's step the physics engine 3 thousand times!
+        while sim.tick_count < 3000:  # let's step the physics engine 3 thousand times!
             sim.tick()
 
 

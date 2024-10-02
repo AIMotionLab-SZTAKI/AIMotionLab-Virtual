@@ -26,10 +26,10 @@ if __name__ == "__main__":
     # first four examples. You can also render without displaying anything. In fact, you can run a simulation with
     # any number of processes disabled (no display, no rendering), to gather data for diagrams for example.
     # For now, let's render a video from the second example's scene without actually displaying anything.
-    sim = simulator.Simulator(scn, render_fps=144)
+    sim = simulator.Simulator(scn, renderer_fps=144)
     sim.processes["render"].toggle()  # let's turn the recording on
     with sim.launch(with_display=False):  # the with_display argument is True by default
-        while sim.tick_count < 3000:  # let's step the physics engine 3 thousand times!
+        while sim.tick_count < 300000:  # let's step the physics engine 3 thousand times!
             sim.tick()
 
 

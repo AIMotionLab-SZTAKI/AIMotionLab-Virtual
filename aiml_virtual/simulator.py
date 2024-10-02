@@ -89,7 +89,7 @@ class Simulator:
             else:
                 warning("Calling paused process.")
 
-    def __init__(self, scene: Scene, update_freq: float = 500, render_fps: int = 50):
+    def __init__(self, scene: Scene, update_freq: float = 500, renderer_fps: int = 50):
         self.scene: Scene = scene  #: The scene corresponding to the mujoco model.
         self.data: mujoco.MjData = mujoco.MjData(self.model)  #: The data corresponding to the model.
         self.viewer: Optional[mujoco.viewer.Handle] = None  #: The handler to be used for the passive viewer.
@@ -103,10 +103,10 @@ class Simulator:
         }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
         self.cam: Optional[mujoco.MjvCamera] = None  #: The camera used for rendering. Comes from viewer then possible.
         self.vOpt: Optional[mujoco.MjvOption] = None  #: The visual options used for rendering. Comes from viewer then possible. Different from opt (model options).
-        self.renderer: renderer.Renderer = renderer.Renderer(self.model, render_fps, 1080, 1920, "mp4v")  #: Renderer for video production
+        self.renderer: renderer.Renderer = renderer.Renderer(self.model, renderer_fps, 1080, 1920)  #: Renderer for video production
         self.add_process("update", self.update_objects, update_freq)
         self.add_process("physics", self.mj_step, 1/self.timestep)
-        self.add_process("render", self.render_data, self.renderer.fps)
+        self.add_process("render", self.render_data, renderer_fps)
         self.processes["render"].pause()  # when the render process is on, frames get saved: start with it OFF
 
     @property
@@ -195,12 +195,13 @@ class Simulator:
                     self.viewer = viewer
                     self.cam = viewer.cam
                     self.vOpt = viewer.opt
+                    yield self
             else:  #if we don't have a viewer, make a fresh camera and visual options
                 self.cam = mujoco.MjvCamera()
                 self.vOpt = mujoco.MjvOption()
-            yield self
+                yield self
         finally:
-            self.renderer.write("simulator.mp4")
+            self.renderer.writer.release()
             self.viewer = None
 
     def bind_scene(self) -> None:
@@ -308,7 +309,7 @@ class Simulator:
 
     def toggle_render(self) -> None:
         """
-        Toggles hwether the rendering process saves frames.
+        Toggles whether the rendering process saves frames.
         """
         on = self.processes["render"].toggle()
         print(f"Rendering toggled {'ON' if on else 'OFF' }")

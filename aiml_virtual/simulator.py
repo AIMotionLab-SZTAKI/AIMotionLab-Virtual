@@ -32,7 +32,9 @@ class Simulator:
         - "physics": steps the physics loop
         - "sync": syncs changes to the internal MjvScene and displays the simulation to the monitor
         - "update": lets the objects in the scene update themselves (e.g. update control inputs)
-        - "render": saves a frame for later video creation
+        - "render": saves a frame for later video creation. The renderer process saves the frame relying on the
+          simulator's internal cam and vOpt. When there is a display active, the camera and options used come from the
+          viewer, but whenever you want to render video without display, make sure to verify cam and vOpt.
 
     .. todo::
         Find a way to disable the default keybinds.
@@ -182,28 +184,24 @@ class Simulator:
         # to in __init__()
         self.bind_scene()
         self.start_time = time.time()
-        if with_display:
-            # sync is the process that displays the scene
-            self.add_process("sync", self.sync, fps)
-            # wrap the launch_passive context handler
-            with mujoco.viewer.launch_passive(self.model, self.data, show_left_ui=False, show_right_ui=False,
-                                              key_callback=self.handle_keypress) as viewer:
-                self.viewer = viewer
-                self.cam = viewer.cam
-                self.vOpt = viewer.opt
-                try:
-                    yield self
-                finally:
-                    self.renderer.write("simulator.mp4")
-                    self.viewer = None
-        else:
-            self.cam = mujoco.MjvCamera()
-            self.vOpt = mujoco.MjvOption()
-            try:
-                yield self
-            finally:
-                self.renderer.write("simulator.mp4")
-                self.viewer = None
+        try:
+            if with_display:
+                # sync is the process that displays the scene
+                self.add_process("sync", self.sync, fps)
+                # wrap the launch_passive context handler
+                with mujoco.viewer.launch_passive(self.model, self.data, show_left_ui=False, show_right_ui=False,
+                                                  key_callback=self.handle_keypress) as viewer:
+                    # if we have a viewer, rely on the viewer for camera and visual options
+                    self.viewer = viewer
+                    self.cam = viewer.cam
+                    self.vOpt = viewer.opt
+            else:  #if we don't have a viewer, make a fresh camera and visual options
+                self.cam = mujoco.MjvCamera()
+                self.vOpt = mujoco.MjvOption()
+            yield self
+        finally:
+            self.renderer.write("simulator.mp4")
+            self.viewer = None
 
     def bind_scene(self) -> None:
         """
@@ -237,9 +235,8 @@ class Simulator:
 
     def tick(self) -> None:
         """
-        This is the function that wraps mj_step and does the housekeeping relating to it; namely:
-
-        - Calling processes in self.processes if necessary.
+        Tick the simulation: call every process that needs to be called. E.g.: the physics process always gets called,
+        but if a process has 1/10th the frequency of the physics process, it only gets called every 10th round.
         """
         for process in self.processes.values():
             interval = max(1, math.ceil((1 / process.frequency) / self.timestep))
@@ -270,7 +267,7 @@ class Simulator:
         """
         Syncs the viewer to the underlying data, which also refreshes the image. This means that the frame rate of
         the resulting animation will be the rate of this process. Syncs to the wall clock in order to prevent the
-        display from running ahead of the simulation..
+        display from running ahead of the simulation.
         """
         self.viewer.sync()
         dt = self.timestep * self.tick_count - self.time  # this puts a rate limit on the display

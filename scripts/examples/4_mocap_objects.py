@@ -5,7 +5,6 @@ This script shows how mocap objects work.
 import os
 import sys
 import pathlib
-
 import numpy as np
 from functools import partial
 

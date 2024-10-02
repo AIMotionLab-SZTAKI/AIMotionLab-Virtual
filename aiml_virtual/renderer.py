@@ -1,7 +1,7 @@
 """
 Module that contains the class responsible for saving and storing frames for a video.
 """
-
+# TODO: figure out a way where this is much faster and/or uses less memory
 import mujoco
 import mujoco.viewer
 import sys

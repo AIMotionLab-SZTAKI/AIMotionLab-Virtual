@@ -1,13 +1,11 @@
 Todo:
 -quadcopter osztály, ami őse a drone-nak meg a mocapdrone-nak
--hooked drone (valódi és mocap)
+-hooked drone mocap?
 -kocsi
 -kontrollerek
 -szerverrel szinkronizacio
 -szétcsatolni a kinézet változtatását és az update-elést
 -megcsinálni, hogy lehessen display nélkül szimulálni
 -megcsinálni, hogy lehessen alapból menteni a frame-eket
-
-
 
 

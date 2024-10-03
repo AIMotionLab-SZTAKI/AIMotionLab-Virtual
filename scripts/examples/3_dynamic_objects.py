@@ -22,7 +22,7 @@ from aiml_virtual import scene, simulator
 from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
 from aiml_virtual.simulated_object.dynamic_object import dynamic_object
 from aiml_virtual.simulated_object.dynamic_object.controlled_object import bicycle
-from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import crazyflie, bumblebee
+from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import crazyflie, bumblebee, hooked_bumblebee
 
 if __name__ == "__main__":
     # As mentioned in 2_build_scene.py, we can simulate physics using DynamicObjects. So far we've only seen dynamic
@@ -36,9 +36,9 @@ if __name__ == "__main__":
 
     # A bumblebee is only interesting if it actually flies. In order to fly, it needs a trajectory to follow. At its
     # most basic, a trajectory is a DummyDroneTrajectory, with a fixed setpoint.
-    bb = bumblebee.Bumblebee()
-    bb.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 0, 0.5]))
-    scn.add_object(bb, "-1 0 0.5", "1 0 0 0", "0.5 0.5 0.5 1")
+    bb = hooked_bumblebee.HookedBumblebee1DOF()
+    bb.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 0, 0.7]))
+    scn.add_object(bb, "-1 0 0.7", "1 0 0 0", "0.5 0.5 0.5 1")
     # In order to give the bumblebee's controller some work, let's add a non-actuated dynamic object that drops from
     # the sky and disturbs the bumblebee:
     scn.add_object(dynamic_object.DynamicPayload(), "-0.9 0 1")

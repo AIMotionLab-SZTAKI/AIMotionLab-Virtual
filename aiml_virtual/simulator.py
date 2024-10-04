@@ -103,10 +103,10 @@ class Simulator:
         }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
         self.cam: Optional[mujoco.MjvCamera] = None  #: The camera used for rendering. Comes from viewer then possible.
         self.vOpt: Optional[mujoco.MjvOption] = None  #: The visual options used for rendering. Comes from viewer then possible. Different from opt (model options).
-        self.renderer: renderer.Renderer = renderer.Renderer(self.model, renderer_fps, 1080, 1920)  #: Renderer for video production
+        self.renderer: Optional[renderer.Rendere] = None  #: Renderer for video production
         self.add_process("update", self.update_objects, update_freq)
         self.add_process("physics", self.mj_step, 1/self.timestep)
-        self.add_process("render", self.render_data, renderer_fps)
+        self.add_process("render", self.render_data, renderer_fps, renderer_fps=renderer_fps)  # last argument is keyword argument for process
         self.processes["render"].pause()  # when the render process is on, frames get saved: start with it OFF
 
     @property
@@ -201,7 +201,9 @@ class Simulator:
                 self.vOpt = mujoco.MjvOption()
                 yield self
         finally:
-            self.renderer.writer.release()
+            if self.renderer is not None:
+                self.renderer.writer.release()
+                self.renderer = None
             self.viewer = None
 
     def bind_scene(self) -> None:
@@ -314,12 +316,16 @@ class Simulator:
         on = self.processes["render"].toggle()
         print(f"Rendering toggled {'ON' if on else 'OFF' }")
 
-    def render_data(self) -> None:
+    def render_data(self, **kwargs) -> None:
         """
-        Instructs the renderer to save the data in the passive viewer to a frame.
+        Instructs the renderer to save the data in the passive viewer to a frame, if there is already a renderer
+        present. If not, initializes the renderer first.
         """
+        if self.renderer is None:
+            self.renderer = renderer.Renderer(self.model, kwargs["renderer_fps"], 1080, 1920)
         if self.data is not None and self.vOpt is not None and self.cam is not None:
             self.renderer.render_frame(self.data, self.cam, self.vOpt)
+
 
 
 

@@ -7,6 +7,7 @@ import platform
 import importlib
 import pkgutil
 import pathlib
+import math
 if platform.system() == 'Windows':
     import win_precise_time as time
 else:
@@ -58,6 +59,39 @@ def quaternion_from_euler(roll: float, pitch: float, yaw: float) -> list[float]:
         np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
 
     return [qw, qx, qy, qz]
+
+def euler_from_quaternion(w: float, x: float, y: float, z: float) -> tuple[float, float, float]:
+    """
+    Convert a quaternion into euler angles (roll, pitch, yaw).
+
+    Args:
+        w (float): quaternion w
+        x (float): quaternion x
+        y (float): quaternion y
+        z (float): quaternion z
+    Returns:
+        tuple[float, float, float]: roll(x), pitch(y), yaw(z), in radians, counterclockwise
+    """
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + y * y)
+    roll_x = math.atan2(t0, t1)
+
+    t2 = +2.0 * (w * y - z * x)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    pitch_y = math.asin(t2)
+
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (y * y + z * z)
+    yaw_z = math.atan2(t3, t4)
+
+    return roll_x, pitch_y, yaw_z  # in radians
+
+def clamp(num: float, min_value: float, max_value: float) -> float:
+    """
+    Returns the number if it falls between the min and max, or min/max if it's smaller/larger respectively.
+    """
+    return max(min(num, max_value), min_value)
 
 class PausableTime:
     """

@@ -115,10 +115,18 @@ class Scene:
             warning(f"Simulated Object {obj.name} is already in the scene!")
         else:
             xml_dict = obj.create_xml_element(pos, quat, color)
-            for child in self.xml_root:
-                if child.tag in xml_dict.keys():
-                    for e in xml_dict[child.tag]:
-                        child.append(e)
+            for xml_tag, xml_elements in xml_dict.items():
+                # if the xml tag we want to add to already exists, we just need to add our elements to it
+                if xml_tag in [child.tag for child in self.xml_root]:
+                    for child in self.xml_root:
+                        if child.tag == xml_tag: # check which tag matches ours
+                            # and add our elements to it
+                            for xml_element in xml_elements:
+                                child.append(xml_element)
+                else: # however, if it doesn't exist, we must create it
+                    new_element = ET.SubElement(self.xml_root, xml_tag)
+                    for xml_element in xml_elements:
+                        new_element.append(xml_element)
 
             # update simulated objects
             self.simulated_objects.append(obj)

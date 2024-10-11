@@ -103,7 +103,7 @@ class Simulator:
         }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
         self.cam: Optional[mujoco.MjvCamera] = None  #: The camera used for rendering. Comes from viewer then possible.
         self.vOpt: Optional[mujoco.MjvOption] = None  #: The visual options used for rendering. Comes from viewer then possible. Different from opt (model options).
-        self.renderer: Optional[renderer.Rendere] = None  #: Renderer for video production
+        self.renderer: Optional[renderer.Renderer] = None  #: Renderer for video production
         self.add_process("update", self.update_objects, update_freq)
         self.add_process("physics", self.mj_step, 1/self.timestep)
         self.add_process("render", self.render_data, renderer_fps, renderer_fps=renderer_fps)  # last argument is keyword argument for process
@@ -264,7 +264,7 @@ class Simulator:
         Each simulated object may have housekeeping to do such as setting actuators: this process is their opportunity.
         """
         for obj in self.simulated_objects:
-            obj.update(self.data.time)
+            obj.update()
 
     def sync(self) -> None:
         """

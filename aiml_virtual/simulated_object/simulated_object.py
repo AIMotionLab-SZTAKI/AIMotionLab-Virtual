@@ -103,20 +103,18 @@ class SimulatedObject(ABC):
     @abstractmethod
     def bind_to_data(self, data: mujoco.MjData) -> None:
         """
-        Method for concrete subclasses to save all their references to controller-actuator-etc.
+        Method for concrete subclasses to save all their references to controller-actuator-etc. This is where we may
+        save references to objects that only get initialized alongside MjData.
 
         Args:
             data (mujoco.MjData): The data of the simulation (as opposed to the *model*).
         """
         pass
 
-    def update(self, time: float) -> None:
+    def update(self) -> None:
         """
         The simulator will call this function once every control loop: if the object needs to update control inputs,
         or change its appearance (such as rotating its propellers), it shall be done in this function.
-
-        Args:
-            time (float): The elapsed time in the simulation.
         """
         pass
 

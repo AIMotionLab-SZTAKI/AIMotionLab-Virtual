@@ -1,9 +1,6 @@
-<mujoco model="Lagyi">
+<mujoco model="empty_checkerboard">
 	<include file="common_assets.xml" />
 	<default class="main">
-		<default class="lagyi">
-			<geom quat="0 0 0.7071 0.7071" rgba="0.9 0.9 0.9 1" />
-		</default>
 		<default class="pole">
 			<geom rgba="0.1 0.1 0.1 1" />
 			<default class="pole_top">
@@ -37,7 +34,6 @@
 		<mesh file="meshes/building/lagyi_oszlop4.stl" name="oszlop4" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
 		<mesh file="meshes/bucket/Bucket3.obj" name="bucket" smoothnormal="false" scale="0.035 0.035 0.035" />
 		<texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512" />
-		<texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .1 .1" rgb2=".2 .2 .2" />
 		<texture name="tex-carpet" type="2d" file="textures/carpet_lagyi4.png" />
 		<texture name="tex-roundabout" type="2d" file="textures/roundabout.png" />
 		<texture name="tex-hospital" type="2d" file="textures/hospital.png" />
@@ -45,7 +41,6 @@
 		<texture name="tex-airport" type="2d" file="textures/airport.png" />
 		<texture name="tex-parking_lot" type="2d" file="textures/parking_lot.png" />
 		<texture name="tex-sztaki" type="2d" file="textures/sztaki.png" />
-		<material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".05" />
 		<material name="mat-carpet" shininess="0.1" texture="tex-carpet" texuniform="false" />
 		<material name="mat-roundabout" reflectance="0.7" texture="tex-roundabout" texuniform="false" />
 		<material name="mat-hospital" reflectance="0.7" texrepeat="7.843 7.692" texture="tex-hospital" texuniform="true" />
@@ -53,79 +48,70 @@
 		<material name="mat-airport" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-airport" texuniform="true" />
 		<material name="mat-parking_lot" reflectance="0.7" texrepeat="9.524 8.696" texture="tex-parking_lot" texuniform="true" />
 		<material name="mat-sztaki" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-sztaki" texuniform="true" />
+		<texture name="grid" type="2d" builtin="checker" width="100" height="100" rgb1=".1 .2 .3" rgb2=".25 .35 .45" />
+		<material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".05" />
 	</asset>
 	<worldbody>
-		<camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958" />
-		<geom size="20 20 .05" type="plane" material="grid" condim="3" />
 		<light dir="0 -0.3 -1" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="1 1 15" cutoff="70" />
 		<light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70" />
 		<light dir="-1.0 -1.0 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="10 10 6" directional="true" cutoff="70" />
-		<geom name="roundabout" size="1.5 1.5 .05" quat="1 0 0 0" pos="0 0 0.001" type="plane" material="mat-roundabout" condim="3" />
-		<geom name="carpet" size="7.644 7.644 .001" pos="3.16 1.115 0.0005" quat="0.7071 0 0 0.7071" type="plane" material="mat-carpet" />
-		<body name="lagyi" pos="1.45 -2.8 0" childclass="lagyi">
-			<geom name="cockpit" type="mesh" mesh="cockpit" />
-			<geom name="fal1" type="mesh" mesh="fal1" />
-			<geom name="fal2" type="mesh" mesh="fal2" />
-			<geom name="oszlop1" type="mesh" mesh="oszlop1" rgba="0.3 0.3 0.3 1" />
-			<geom name="oszlop2" type="mesh" mesh="oszlop2" rgba="0.3 0.3 0.3 1" />
-			<geom name="oszlop3" type="mesh" mesh="oszlop3" rgba="0.3 0.3 0.3 1" />
-			<geom name="oszlop4" type="mesh" mesh="oszlop4" rgba="0.3 0.3 0.3 1" />
-		</body>
-		<body name="HookedBumblebee2DOF_0" pos="0.2 0.2 0.7" quat="1 0 0 0">
-			<geom name="HookedBumblebee2DOF_0_body" pos="0.0132 0 0" type="mesh" quat="-0.7071067811865475 -0.0 0.0 0.7071067811865476" mesh="bumblebee_body" rgba="0.5 0.5 0.5 1" />
-			<inertial pos="0.0085 0.0 0.0" diaginertia="1.5e-3 1.45e-3 2.66e-3" mass="0.605" />
-			<joint name="HookedBumblebee2DOF_0" type="free" />
-			<site name="HookedBumblebee2DOF_0_cog" pos="0 0 0" size="0.005" />
-			<body name="HookedBumblebee2DOF_0_prop0">
-				<joint name="HookedBumblebee2DOF_0_prop0" axis="0 0 1" pos="0.091 -0.087 0.036" />
-				<geom name="HookedBumblebee2DOF_0_prop0" type="mesh" mesh="bumblebee_ccw_prop" mass="0.00001" pos="0.091 -0.087 0.036" rgba="0.1 0.02 0.5 1.0" />
+		<camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958" />
+		<geom name="ground" size="20 20 .005" type="plane" material="grid" condim="3" />
+		<body name="Car_0" pos="0 0 0.052" quat="0.9485664043524404 0 0 0.31657823130133655">
+			<inertial pos="0 0 0" diaginertia=".05 .05 .08" mass="3.0" />
+			<joint name="Car_0" type="free" />
+			<site name="Car_0_cog" pos="0 0 0" />
+			<geom name="Car_0_chassis_b" type="box" size=".10113 .1016 .02" pos="-.06 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_chassis_f" type="box" size=".06 .07 .02" pos=".10113 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_front" type="box" size=".052388 .02 .02" pos=".2135 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_back" type="box" size=".062488 .02 .02" pos="-.2236 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_front_bumper" type="box" size=".005 .09 .02" pos=".265888 0 0.02" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_back_bumper" type="box" size=".005 .08 .02" pos="-.2861 0 0.02" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_number" type="cylinder" size=".01984 .03" pos=".12 0 .05" rgba="0.1 0.1 0.1 1.0" />
+			<geom name="Car_0_camera" type="box" size=".012 .06 0.02" pos=".18 0 .08" />
+			<geom name="Car_0_camera_holder" type="box" size=".012 .008 .02" pos=".18 0 .04" />
+			<geom name="Car_0_circuits" type="box" size=".08 .06 .03" pos="-.05 0 .05" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_antennal" type="box" size=".007 .004 .06" pos="-.16 -.01 .105" euler="0.2 0 0" rgba=".1 .1 .1 1.0" />
+			<geom name="Car_0_antennar" type="box" size=".007 .004 .06" pos="-.16 .01 .105" euler="-0.2 0 0" rgba=".1 .1 .1 1.0" />
+			<geom name="Car_0_antenna_holder" type="box" size=".008 .008 .02" pos="-.16 0 .04" rgba=".1 .1 .1 1.0" />
+			<body name="Car_0_wheelfr">
+				<joint name="Car_0_wheelfr_steer" type="hinge" pos="0.16113 0.10016 0" limited="true" frictionloss="0.2" damping="0.2" armature="0.001" range="-0.6 0.6" axis="0 0 1" />
+				<joint name="Car_0_wheelfr" type="hinge" pos="0.16113 0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_0_wheelfr" type="cylinder" size=".052388 .022225" pos="0.16113 0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
 			</body>
-			<site name="HookedBumblebee2DOF_0_prop0" pos="0.091 -0.087 0.036" size="0.0001" />
-			<body name="HookedBumblebee2DOF_0_prop1">
-				<joint name="HookedBumblebee2DOF_0_prop1" axis="0 0 1" pos="-0.074 -0.087 0.036" />
-				<geom name="HookedBumblebee2DOF_0_prop1" type="mesh" mesh="bumblebee_cw_prop" mass="0.00001" pos="-0.074 -0.087 0.036" rgba="0.1 0.02 0.5 1.0" />
+			<body name="Car_0_wheelrl">
+				<joint name="Car_0_wheelrl" type="hinge" pos="-0.16113 0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_0_wheelrl" type="cylinder" size=".052388 .022225" pos="-0.16113 0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
 			</body>
-			<site name="HookedBumblebee2DOF_0_prop1" pos="-0.074 -0.087 0.036" size="0.0001" />
-			<body name="HookedBumblebee2DOF_0_prop2">
-				<joint name="HookedBumblebee2DOF_0_prop2" axis="0 0 1" pos="-0.074 0.087 0.036" />
-				<geom name="HookedBumblebee2DOF_0_prop2" type="mesh" mesh="bumblebee_ccw_prop" mass="0.00001" pos="-0.074 0.087 0.036" rgba="0.1 0.02 0.5 1.0" />
+			<body name="Car_0_wheelfl">
+				<joint name="Car_0_wheelfl_steer" type="hinge" pos="0.16113 -0.10016 0" limited="true" frictionloss="0.2" damping="0.2" armature="0.001" range="-0.6 0.6" axis="0 0 1" />
+				<joint name="Car_0_wheelfl" type="hinge" pos="0.16113 -0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_0_wheelfl" type="cylinder" size=".052388 .022225" pos="0.16113 -0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
 			</body>
-			<site name="HookedBumblebee2DOF_0_prop2" pos="-0.074 0.087 0.036" size="0.0001" />
-			<body name="HookedBumblebee2DOF_0_prop3">
-				<joint name="HookedBumblebee2DOF_0_prop3" axis="0 0 1" pos="0.091 0.087 0.036" />
-				<geom name="HookedBumblebee2DOF_0_prop3" type="mesh" mesh="bumblebee_cw_prop" mass="0.00001" pos="0.091 0.087 0.036" rgba="0.1 0.02 0.5 1.0" />
-			</body>
-			<site name="HookedBumblebee2DOF_0_prop3" pos="0.091 0.087 0.036" size="0.0001" />
-			<body name="HookedBumblebee2DOF_0_hook" pos="0.0085 0 0">
-				<site name="HookedBumblebee2DOF_0_hook_base" pos="0 0 0.4" type="sphere" size="0.002" />
-				<joint name="HookedBumblebee2DOF_0_hook_y" axis="0 1 0" pos="0 0 0" damping="0.001" />
-				<joint name="HookedBumblebee2DOF_0_hook_x" axis="1 0 0" pos="0 0 0" damping="0.001" />
-				<geom name="HookedBumblebee2DOF_0_rod" type="cylinder" fromto="0 0 0  0 0 -0.4" size="0.005" mass="0.0" />
-				<body name="HookedBumblebee2DOF_0_hook_head" pos="0 0 -0.4" euler="0 3.141592 0">
-					<geom type="box" pos="0 0 0.02" size="0.003 0.003 0.02" mass="0.02" />
-					<geom type="box" pos="0 0.019 0.054" euler="-0.92 0 0" size="0.003 0.003 0.026" mass="0.0001" />
-					<geom type="box" pos="0 0.02 0.0825" euler="0.92 0 0" size="0.003 0.003 0.026" mass="0.0001" />
-					<geom type="box" pos="0 -0.018 0.085" euler="-1.0472 0 0" size="0.003 0.003 0.026" mass="0.0001" />
-				</body>
+			<body name="Car_0_wheelrr">
+				<joint name="Car_0_wheelrr" type="hinge" pos="-0.16113 -0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_0_wheelrr" type="cylinder" size=".052388 .022225" pos="-0.16113 -0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
 			</body>
 		</body>
 	</worldbody>
 	<actuator>
-		<general site="HookedBumblebee2DOF_0_prop0" name="HookedBumblebee2DOF_0_actr0" gear="0 0 1 0 0 0.5954" ctrllimited="true" ctrlrange="0 15" />
-		<general site="HookedBumblebee2DOF_0_prop1" name="HookedBumblebee2DOF_0_actr1" gear="0 0 1 0 0 -0.5954" ctrllimited="true" ctrlrange="0 15" />
-		<general site="HookedBumblebee2DOF_0_prop2" name="HookedBumblebee2DOF_0_actr2" gear="0 0 1 0 0 0.5954" ctrllimited="true" ctrlrange="0 15" />
-		<general site="HookedBumblebee2DOF_0_prop3" name="HookedBumblebee2DOF_0_actr3" gear="0 0 1 0 0 -0.5954" ctrllimited="true" ctrlrange="0 15" />
+		<position forcelimited="true" forcerange="-5 5" name="Car_0_wheelfr_actr_steer" joint="Car_0_wheelfr_steer" kp="15" />
+		<motor name="Car_0_wheelfr_actr" joint="Car_0_wheelfr" />
+		<motor name="Car_0_wheelrl_actr" joint="Car_0_wheelrl" />
+		<position forcelimited="true" forcerange="-5 5" name="Car_0_wheelfl_actr_steer" joint="Car_0_wheelfl_steer" kp="15" />
+		<motor name="Car_0_wheelfl_actr" joint="Car_0_wheelfl" />
+		<motor name="Car_0_wheelrr_actr" joint="Car_0_wheelrr" />
 	</actuator>
 	<sensor>
-		<gyro site="HookedBumblebee2DOF_0_cog" name="HookedBumblebee2DOF_0_gyro" />
-		<framelinvel objtype="site" objname="HookedBumblebee2DOF_0_cog" name="HookedBumblebee2DOF_0_velocimeter" />
-		<accelerometer site="HookedBumblebee2DOF_0_cog" name="HookedBumblebee2DOF_0_accelerometer" />
-		<framepos objtype="site" objname="HookedBumblebee2DOF_0_cog" name="HookedBumblebee2DOF_0_posimeter" />
-		<framequat objtype="site" objname="HookedBumblebee2DOF_0_cog" name="HookedBumblebee2DOF_0_orimeter" />
-		<frameangacc objtype="site" objname="HookedBumblebee2DOF_0_cog" name="HookedBumblebee2DOF_0_ang_accelerometer" />
-		<framepos objtype="site" objname="HookedBumblebee2DOF_0_hook_base" name="HookedBumblebee2DOF_0_hook_pos" />
-		<framelinvel objtype="site" objname="HookedBumblebee2DOF_0_hook_base" name="HookedBumblebee2DOF_0_hook_vel" />
-		<framequat objtype="site" objname="HookedBumblebee2DOF_0_hook_base" name="HookedBumblebee2DOF_0_hook_quat" />
-		<frameangvel objtype="site" objname="HookedBumblebee2DOF_0_hook_base" name="HookedBumblebee2DOF_0_hook_ang_vel" />
+		<gyro site="Car_0_cog" name="Car_0_gyro" />
+		<velocimeter site="Car_0_cog" name="Car_0_velocimeter" />
+		<framepos objtype="site" objname="Car_0_cog" name="Car_0_posimeter" />
+		<framequat objtype="site" objname="Car_0_cog" name="Car_0_orimeter" />
 	</sensor>
+	<contact>
+		<pair geom1="Car_0_wheelfr" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_0_wheelrl" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_0_wheelfl" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_0_wheelrr" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+	</contact>
 </mujoco>

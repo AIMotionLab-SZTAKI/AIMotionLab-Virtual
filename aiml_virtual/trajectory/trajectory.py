@@ -20,12 +20,10 @@ class Trajectory(ABC):  # move this to a separate file, and make it abstract bas
         pass
 
     @abstractmethod
-    def evaluate(self, time: float) -> dict[str, Any]:
+    def evaluate(self, *args, **kwargs) -> dict[str, Any]:
         """
-        Concrete subclasses must implement this method. Calculates the desired setpoint at a given time.
-
-        Args:
-            time (float): The timestamp at which to evaluate the trajectory.
+        Concrete subclasses must implement this method. Calculates the desired setpoint with given inputs. The signature
+        is left flexible to allow multiple kinds of trajectories to map onto it.
 
         Returns:
             dict[str, Any]: The desired setpoint at the provided timestamp.

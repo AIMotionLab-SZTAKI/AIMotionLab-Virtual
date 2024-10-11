@@ -94,13 +94,6 @@ class Drone(controlled_object.ControlledObject):
         """
         pass
 
-    @abstractmethod
-    def set_default_controller(self) -> None:
-        """
-        For ease, all drone types may have a default controller type. This method instantiates it, and sets it for use.
-        """
-        pass
-
     def spin_propellers(self) -> None:
         """
         Updates the display of the propellers, to make it look like they are spinning.
@@ -109,17 +102,15 @@ class Drone(controlled_object.ControlledObject):
             for propeller in self.propellers:
                 propeller.spin()
 
-    def update(self, time: float) -> None:
+    def update(self) -> None:
         """
         Overrides SimulatedObject.update. Updates the position of the propellers to make it look like they are
         spinning, and runs the controller.
-
-        Args:
-            time (float): The elapsed time in the simulation.
         """
         # : check this as compared to the original when cleaning up
         self.spin_propellers()  # update how the propellers look
-        if self.trajectory:  # if we don't have a trajectory, we don't have a reference for the controller: skip
+        # if we don't have a trajectory, we don't have a reference for the controller: skip
+        if self.trajectory is not None and self.controller is not None:
             setpoint = self.trajectory.evaluate(self.data.time)
             self.ctrl_output = self.controller.compute_control(state=self.state, setpoint=setpoint)
             motor_thrusts = self.input_matrix @ self.ctrl_output

@@ -39,9 +39,6 @@ class Crazyflie(drone.Drone):
                          [1/4, 1/(4*Ly), -1/(4*Lx), -1/(4*motor_param)]])
 
     def set_default_controller(self) -> None:
-        """
-        Sets the GeomControl as the controller (default in this package).
-        """
         self.controller = drone_geom_controller.GeomControl(self.mass, self.inertia, self.model.opt.gravity)
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:

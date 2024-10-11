@@ -2,6 +2,7 @@
 Module that contains the class responsible for saving and storing frames for a video.
 """
 # TODO: figure out a way where this is much faster and/or uses less memory
+# TODO: FIX: WHEN TOGGLING THIS PROCESS, THERE IS LAG
 import mujoco
 import mujoco.viewer
 import cv2

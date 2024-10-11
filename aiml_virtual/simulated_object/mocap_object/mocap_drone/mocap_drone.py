@@ -33,14 +33,14 @@ class MocapDrone(mocap_object.MocapObject, ABC):
             for propeller in self.propellers:
                 propeller.spin()
 
-    def update(self, time: float) -> None:
+    def update(self) -> None:
         """
         Overrides MocapObject.update: spins propellers in addition to writing its pose data.
 
         Args:
             time (float): The elapsed time in the simulation.
         """
-        super().update(time)
+        super().update()
         self.spin_propellers()  # update how the propellers look
 
     def bind_to_data(self, data: mujoco.MjData) -> None:

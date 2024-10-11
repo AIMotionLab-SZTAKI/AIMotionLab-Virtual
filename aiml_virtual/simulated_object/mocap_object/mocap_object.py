@@ -42,13 +42,10 @@ class MocapObject(simulated_object.SimulatedObject, ABC):
         else:
             return None
 
-    def update(self, time: float) -> None:
+    def update(self) -> None:
         """
         Overrides SimulatedObject.update. Checks the mocap source to update its pose. The mocap source updates its frame
         in a different thread, this function merely copies the data found there.
-
-        Args:
-            time (float): The time elapsed in the simulation.
         """
         if self.source is not None:
             mocap_frame = self.source.data

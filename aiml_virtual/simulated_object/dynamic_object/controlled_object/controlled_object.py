@@ -3,7 +3,7 @@ This module contains the base class for controlled SimulatedObjects.
 """
 
 from typing import Optional
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from aiml_virtual.simulated_object.dynamic_object import dynamic_object
 from aiml_virtual.controller import controller
@@ -22,8 +22,14 @@ class ControlledObject(dynamic_object.DynamicObject, ABC):
 
     def __init__(self):
         super().__init__()
-        self.controllers: list[controller.Controller] = []  # storage for containers to switch between
-        self.controller: Optional[controller.Controller] = None
-        self.trajectory: Optional[trajectory.Trajectory] = None
+        self.controller: Optional[controller.Controller] = None  #: The controller in use currently.
+        self.trajectory: Optional[trajectory.Trajectory] = None  #: The trajectory to follow.
 
+    @abstractmethod
+    def set_default_controller(self) -> None:
+        """
+        For ease, all controlled objects must have a default controller type. This method instantiates it, and sets it
+        for use.
+        """
+        pass
 

@@ -5,7 +5,21 @@ Todo:
 -kontrollerek
 -szerverrel szinkronizacio
 -szétcsatolni a kinézet változtatását és az update-elést
--megcsinálni, hogy lehessen display nélkül szimulálni
--megcsinálni, hogy lehessen alapból menteni a frame-eket
+
+ground:
+ground (invisible): 1mm-től 1.5mm-ig
+roundabout: 0.5mm-től 1mm-ig (középpont 0.75mm)
+carpet: 0mm-től 0.5mm-ig (középpont 0.25mm)
+grid: -0.5mm-től 0mm-ig (középpont -0.25mm)
+
+Kerekek:
+    name->azonosítja hol van a keréken(front/back, left/right)
+    pos
+    1 joint a tengely körül
+    (opt) 1 joint amellyel kormányoz
+    1 aktuátor a tengely körül
+    (opt) aktuátor a kormányzáshoz
+
+
 
 

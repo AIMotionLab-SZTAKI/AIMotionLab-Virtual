@@ -24,16 +24,13 @@ class Bicycle(controlled_object.ControlledObject):
 
     def __init__(self):
         super().__init__()
-        self.controller: BicycleController = BicycleController()
+        self.controller: Optional[BicycleController] = None
         self.ctrl: Optional[np.ndarray] = None
         self.sensor: Optional[np.ndarray] = None
 
-    def update(self, time: float) -> None:
+    def update(self) -> None:
         """
         Overrides method in SimulatedObject. Sets the control input (the torque of the actuated wheel).
-
-        Args:
-            time (float): The elapsed time in the simulation.
         """
         if self.controller:
             self.ctrl[0] = self.controller.compute_control()
@@ -77,7 +74,13 @@ class Bicycle(controlled_object.ControlledObject):
         Args:
             data (mujoco.MjData): The data of the simulation (as opposed to the *model*).
         """
+        if self.model is None:
+            raise RuntimeError
+        if self.controller is None:
+            self.set_default_controller()
         self.data = data
         self.ctrl = data.actuator(self.name + "_actr").ctrl
         self.sensor = data.sensor(self.name + "_velocimeter").data
 
+    def set_default_controller(self) -> None:
+        self.controller: BicycleController = BicycleController()

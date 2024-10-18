@@ -20,6 +20,9 @@ Kerekek:
     1 aktuátor a tengely körül
     (opt) aktuátor a kormányzáshoz
 
+PETI REQUEST:
+-a propeller ne egy külön body/geom legyen, aminek van egy jointja a drónhoz képest, hanem egy "mocap body", ami
+az orientációját az actuator inputhoz köti
 
 
 

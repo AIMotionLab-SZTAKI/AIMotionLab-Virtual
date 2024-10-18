@@ -4,8 +4,6 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import math
 
-from sympy.abc import delta
-
 from aiml_virtual.simulated_object.dynamic_object.controlled_object import controlled_object
 from aiml_virtual.controller import car_lpv_controller
 from aiml_virtual.utils import utils_general

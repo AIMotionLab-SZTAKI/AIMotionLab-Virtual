@@ -24,7 +24,7 @@ if __name__ == "__main__":
     scn = scene.Scene(os.path.join(xml_directory, "Scene.xml"))
     # Once we have our scene, we can simulate it using a Simulator, which requires a target update frequency for
     # controllers to adhere to (default is 500), and a target fps for display to adhere to (default is 100).
-    sim = simulator.Simulator(scn, update_freq=500)
+    sim = simulator.Simulator(scn)
     # We can start displaying our simulation by launching its context handler.
     with sim.launch(fps=100):
         while sim.viewer.is_running():

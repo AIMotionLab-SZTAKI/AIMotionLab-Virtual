@@ -48,6 +48,7 @@ class SimulatedObject(ABC):
         means that when we reload, and the model/data are lost, the object may persist.
     """
 
+    DEFAULT_UPDATE_FREQ: float = 500 #: **classvar** | The default frequency at which each object runs its update function
     xml_registry: dict[str, Type['SimulatedObject']] = {}  #: **classvar** | The registry of xml names associated with each class.
     instance_count: dict[Type['SimulatedObject'], int] = {}  #: **classvar** | The registry tallying the number of instances per class.
 
@@ -86,6 +87,7 @@ class SimulatedObject(ABC):
         SimulatedObject.instance_count[cls] += 1
         self.model: Optional[mujoco.MjModel] = None  #: The mujoco model in which the object exists.
         self.data: Optional[mujoco.MjData] = None  #: The mujoco data for the simulation.
+        self.update_frequency: float = SimulatedObject.DEFAULT_UPDATE_FREQ  #: The frequency with which the update function will run.
 
     def bind_to_model(self, model: mujoco.MjModel) -> None:
         """

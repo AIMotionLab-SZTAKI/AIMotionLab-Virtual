@@ -1,5 +1,8 @@
 """
 This module implements the geometric control for drones, as designed by Dr. PhD Antal Péter.
+
+.. note::
+       The commenting and docstrings in this controller are somewhat sparse.
 """
 import numpy as np
 from scipy.spatial.transform import Rotation
@@ -10,9 +13,6 @@ from aiml_virtual.controller import controller
 class GeomControl(controller.Controller):
     """
     Geometric control for drones. Its output is corresponding to ControlModeForceTorque in the crazyflie firmware.
-
-    .. note::
-       The commenting and docstrings in this controller are somewhat sparse.
     """
     def __init__(self, mass: np.ndarray, inertia: np.ndarray, gravity: np.ndarray, k_r: float = 0.15, k_v: float = 0.2,
                  k_R: float = 0.007, k_w: float = 0.0015):

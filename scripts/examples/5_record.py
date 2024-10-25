@@ -48,14 +48,14 @@ if __name__ == "__main__":
     # Let's add a moving mocap drone connected to mocap1 as well:
     bb = mocap_bumblebee.MocapBumblebee(mocap1, "MocapBumblebee")
     scn.add_object(bb, color="0 1 0 1")
-    sim = simulator.Simulator(scn, renderer_fps=120)  # note that render fps is separate from display fps!
-    # Let's say you'd like to record a video of your simulation. The simulator has an optional rendering process that
-    # you may toggle on or off. Whenever it's toggled ON, the simulator saves the frames it renders and upon closing
-    # the simulator, a video is created. This process is toggled OFF when the simulator is initialized, but you can
-    # toggle it ON or OFF using the shift+R keybind from the simulation window, or set it via code like so:
-    sim.processes["render"].resume()  # this way the simulator records by default
-    # Note that where the video gets saved under cwd/simulator.mp4 by default.
-    with sim.launch(fps=30):  # note that render fps is separate from display fps!
+    sim = simulator.Simulator(scn)  # note that render fps is separate from display fps!
+    with sim.launch(fps=30, renderer_fps=120):  # note that render fps is separate from display fps!
+        # Let's say you'd like to record a video of your simulation. The simulator has an optional rendering process that
+        # you may toggle on or off. Whenever it's toggled ON, the simulator saves the frames it renders and upon closing
+        # the simulator, a video is created. This process is toggled OFF when the simulator is initialized, but you can
+        # toggle it ON or OFF using the shift+R keybind from the simulation window, or set it via code like so:
+        sim.processes["render"].resume()  # this way the simulator records by default
+        # Note that where the video gets saved under cwd/simulator.mp4 by default.
         while sim.viewer.is_running():
             sim.tick()  # tick steps the simulator, including all its subprocesses
 

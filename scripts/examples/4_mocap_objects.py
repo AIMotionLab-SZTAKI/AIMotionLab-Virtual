@@ -62,6 +62,7 @@ if __name__ == "__main__":
     scn.remove_object(scn.simulated_objects[-1])
     # In their stead, let's add a MocapBumblebee using method (2):
     bb0 = mocap_bumblebee.MocapBumblebee(mocap, "bb0")  # In the MocapSource, this bb will look for "bb0"
+    bb0.update_frequency = 5  # One may set the update frequencies for simulated objects individually too
     scn.add_object(bb0)
     sim = simulator.Simulator(scn)
     with sim.launch():

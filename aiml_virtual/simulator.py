@@ -31,7 +31,7 @@ class Simulator:
 
         - "physics": steps the physics loop
         - "sync": syncs changes to the internal MjvScene and displays the simulation to the monitor
-        - "update": lets the objects in the scene update themselves (e.g. update control inputs)
+        - a process for each of the simulated objects in the scene to update themselves (e.g. update control inputs)
         - "render": saves a frame for later video creation. The renderer process saves the frame relying on the
           simulator's internal cam and vOpt. When there is a display active, the camera and options used come from the
           viewer, but whenever you want to render video without display, make sure to verify cam and vOpt.
@@ -51,7 +51,7 @@ class Simulator:
         Class for containing all the data for a process that is tied to the Simulator. I.E. a process that may only
         run when the simulator ticks.
         """
-        def __init__(self, func: Callable, frequency:float, **kwargs):
+        def __init__(self, func: Callable, frequency: float, **kwargs):
             self.func: Callable[[], None] = partial(func, **kwargs)  #: The function that gets called when the process gets its turn.
             self.frequency: float = frequency  #: The real-life frequency of the process if it's not stopped
             self.paused: bool = False  #: Whether the process should run when it gets the next chance.
@@ -89,7 +89,7 @@ class Simulator:
             else:
                 warning("Calling paused process.")
 
-    def __init__(self, scene: Scene, update_freq: float = 500, renderer_fps: int = 50):
+    def __init__(self, scene: Scene):
         self.scene: Scene = scene  #: The scene corresponding to the mujoco model.
         self.data: mujoco.MjData = mujoco.MjData(self.model)  #: The data corresponding to the model.
         self.viewer: Optional[mujoco.viewer.Handle] = None  #: The handler to be used for the passive viewer.
@@ -104,10 +104,42 @@ class Simulator:
         self.cam: Optional[mujoco.MjvCamera] = None  #: The camera used for rendering. Comes from viewer then possible.
         self.vOpt: Optional[mujoco.MjvOption] = None  #: The visual options used for rendering. Comes from viewer then possible. Different from opt (model options).
         self.renderer: Optional[renderer.Renderer] = None  #: Renderer for video production
-        self.add_process("update", self.update_objects, update_freq)
-        self.add_process("physics", self.mj_step, 1/self.timestep)
-        self.add_process("render", self.render_data, renderer_fps, renderer_fps=renderer_fps)  # last argument is keyword argument for process
+
+    def add_process(self, name: str, func: Callable, frequency: float, *args, **kwargs) -> None:
+        """
+        Register a process to be run at a specified frequency. The function will be ran after a given number of
+        physics steps to match the frequency, rounded down. If additional keyword arguments are passed to this method,
+        they will be used as keyword arguments for the function of the process. This may be used if the process is
+        something that requires arguments. If no additional keyword arguments are used, then func must take no
+        arguments (and not return anything either).
+
+        Args:
+            name (str): The name of the process in the dictionary, to allow named access later.
+            func (func: Callable): The function that will run when the process gets its turn.
+            frequency (float): The frequency (in Hz) at which to run the method.
+        """
+        # the method we're registering shall be called after interval number of physics loops, for example, if
+        # the physics step is 1ms, and the control frequency is 100Hz, then the method calculating control inputs
+        # must be called every 10th physics loop
+        if name in self.processes.keys():
+            warning(f"Process {name} already present.")
+        else:
+            self.processes[name] = Simulator.Process(func, frequency, **kwargs)
+
+    def initialize_processes(self, renderer_fps: float) -> None:
+        """
+        Adds the necessary processes to the process dictionary. Should be called after all the simulated objects
+        are set, since each object will have a process associated with it, where it can update.
+
+        Args:
+            renderer_fps (float): If the renderer is enabled, this will be the fps of the resulting video.
+        """
+        self.add_process("physics", self.mj_step, 1 / self.timestep)
+        self.add_process("render", self.render_data, renderer_fps,
+                         renderer_fps=renderer_fps)  # last argument is keyword argument for process
         self.processes["render"].pause()  # when the render process is on, frames get saved: start with it OFF
+        for obj in self.simulated_objects:
+            self.add_process(obj.name, obj.update, obj.update_frequency)
 
     @property
     def time(self) -> float:
@@ -151,10 +183,11 @@ class Simulator:
         simulation is paused, this is where that can be done.
         """
         self.processes["physics"].toggle()
-        self.processes["update"].toggle()
+        for obj in self.simulated_objects:
+            self.processes[obj.name].toggle()
 
     @contextmanager
-    def launch(self, with_display: bool = True, fps: float = 50) -> 'Simulator':
+    def launch(self, with_display: bool = True, fps: float = 50, renderer_fps: float = 50) -> 'Simulator':
         """
         A context handler to wrap the initialization and cleanup of a simulation run. If the simulation has a display,
         it will wrap the mujoco.viewer.launch_passive function. When used with a display, it can be used like so:
@@ -182,6 +215,7 @@ class Simulator:
         """
         # this should be called *after* all objects have been added to the scene, hence it is called here, as opposed
         # to in __init__()
+        self.initialize_processes(renderer_fps)
         self.bind_scene()
         self.start_time = time.time()
         try:
@@ -215,27 +249,6 @@ class Simulator:
         for obj in self.simulated_objects:
             obj.bind_to_data(self.data)
 
-    def add_process(self, name: str, func: Callable, frequency: float, *args, **kwargs) -> None:
-        """
-        Register a process to be run at a specified frequency. The function will be ran after a given number of
-        physics steps to match the frequency, rounded down. If additional keyword arguments are passed to this method,
-        they will be used as keyword arguments for the function of the process. This may be used if the process is
-        something that requires arguments. If no additional keyword arguments are used, then func must take no
-        arguments (and not return anything either).
-
-        Args:
-            name (str): The name of the process in the dictionary, to allow named access later.
-            func (func: Callable): The function that will run when the process gets its turn.
-            frequency (float): The frequency (in Hz) at which to run the method.
-        """
-        # the method we're registering shall be called after interval number of physics loops, for example, if
-        # the physics step is 1ms, and the control frequency is 100Hz, then the method calculating control inputs
-        # must be called every 10th physics loop
-        if name in self.processes.keys():
-            warning(f"Process {name} already present.")
-        else:
-            self.processes[name] = Simulator.Process(func, frequency, **kwargs)
-
     def tick(self) -> None:
         """
         Tick the simulation: call every process that needs to be called. E.g.: the physics process always gets called,
@@ -258,13 +271,6 @@ class Simulator:
         Process that steps the internal simulator physics.
         """
         mujoco.mj_step(self.model, self.data)
-
-    def update_objects(self) -> None:
-        """
-        Each simulated object may have housekeeping to do such as setting actuators: this process is their opportunity.
-        """
-        for obj in self.simulated_objects:
-            obj.update()
 
     def sync(self) -> None:
         """

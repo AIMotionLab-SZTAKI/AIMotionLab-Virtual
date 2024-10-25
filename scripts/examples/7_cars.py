@@ -1,10 +1,11 @@
+"""
+This script shows how you can add cars to the scene.
+"""
+
 import os
 import sys
 import pathlib
 import numpy as np
-"""
-CHECK OUT original/scripts/test_car_controller.py
-"""
 
 # make sure imports work by adding the necessary folders to the path:
 project_root = pathlib.Path(__file__).parents[0]
@@ -46,22 +47,33 @@ path_points = np.array(
         [0, 0],
     ]
 )
+path_points1 = path_points + np.array([1.5, 0])
+path_points2 = path_points + np.array([-1.5, 0])
 
 if __name__ == "__main__":
-    project_root = pathlib.Path(__file__).parents[1].resolve().as_posix()
-    xml_directory = os.path.join(project_root, "xml_models")
-    scene = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"))
+    scn = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"))
+    # So far dynamic objects only had default constructors, but when it comes to Cars, you can provide a boolean
+    # argument to the constructor to decide whether to add a trailer.
+    car1 = car.Car()
+    traj1 = car_trajectory.CarTrajectory()
+    # This is the simplest way to build a Car trajectory: provide the points for it, and build with const speed
+    traj1.build_from_points_smooth_const_speed(path_points=path_points1, path_smoothing=0.1, path_degree=4, virtual_speed=1)
+    car1.trajectory = traj1
 
-    traj = car_trajectory.CarTrajectory()
-    traj.build_from_points_smooth_const_speed(path_points=path_points, path_smoothing=0.01, path_degree=4, virtual_speed=1.5)
+    # For the next car, let's add a trailer
+    car2 = car.Car(has_trailer=True)
+    # A Spatial car trajectory ise parametrized by arc length
+    traj2 = car_trajectory.CarTrajectorySpatial()
+    traj2.build_from_points_const_speed(path_points=path_points2, path_smoothing=0.1, path_degree=4, const_speed=1)
+    car2.trajectory = traj2
 
-    # traj = car_trajectory.CarTrajectorySpatial()
-    # traj.build_from_points_const_speed(path_points, path_smoothing=0.01, path_degree=4, const_speed=1.5, start_delay=2)
-
-    c = car.Car(has_trailer=True)
-    c.trajectory = traj
-    scene.add_object(c, pos="0 0 0.052", quat='0.9485664043524404 0 0 0.31657823130133655')
-    sim = simulator.Simulator(scene)
+    scn.add_object(car1, pos="1.5 0 0.05", quat='0.948 0 0 0.3165')
+    scn.add_object(car2, pos="-1.5 0 0.05", quat='0.948 0 0 0.3165')
+    sim = simulator.Simulator(scn)
     with sim.launch():
         while sim.viewer.is_running():
-            sim.tick()
+            sim.tick()  # tick steps the simulator, including all its subprocesses
+
+
+
+

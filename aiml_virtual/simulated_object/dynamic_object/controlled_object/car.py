@@ -41,9 +41,14 @@ class Car(controlled_object.ControlledObject):
     WHEEL_Y: float = 0.122385
     STEER_Y: float = 0.10016
     MAX_TORQUE: float = 2.0
-    C_M1: float = 52.4282
-    C_M2: float = 5.2465
-    C_M3: float = 1.119465
+    C_M1: float = 52.4282  #: lumped drivetrain parameters 1
+    C_M2: float = 5.2465  #: lumped drivetrain parameters 2
+    C_M3: float = 1.119465  #: lumped drivetrain parameters 3
+    C_F: float = 41.7372  #: Cornering stiffness of front tire
+    C_R: float = 29.4662  #: Cornering stiffness of the rear tire
+    L_F: float = 0.163  #: Distance of the front axis from the center of mass
+    L_R: float = 0.168  #: Distance of the rear axis from the center of mass
+    CTRL_FREQ: float = 40.0
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
@@ -51,6 +56,7 @@ class Car(controlled_object.ControlledObject):
 
     def __init__(self):
         super().__init__()
+        self.update_frequency = Car.CTRL_FREQ
         self.wb: float = 2*Car.WHEEL_Y
         self.tw: float = 2*Car.WHEEL_X
         self.sensors: dict[str, np.array] = {}  #: Dictionary of sensor data.
@@ -62,7 +68,7 @@ class Car(controlled_object.ControlledObject):
         }
 
     @property
-    def state(self):
+    def state(self) -> dict[str, float]:
         roll, pitch, yaw = utils_general.euler_from_quaternion(*self.sensors["quat"])
         state = {"pos_x": self.sensors["pos"][0],
                  "pos_y": self.sensors["pos"][1],
@@ -83,7 +89,7 @@ class Car(controlled_object.ControlledObject):
         v = self.sensors["vel"][0]
         torque = Car.C_M1*d - Car.C_M2*v - Car.C_M3*np.sign(v)
         for wheel in self.wheels.values():
-            wheel.ctrl[0] = utils_general.clamp(torque, -Car.MAX_TORQUE, Car.MAX_TORQUE)
+            wheel.ctrl[0] = utils_general.clamp(torque, Car.MAX_TORQUE)
 
     def update(self) -> None:
         if self.trajectory is not None and self.controller is not None:

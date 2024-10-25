@@ -1,11 +1,34 @@
+"""
+This module implements an LPV feedback controller for the Car, originally written by
+Prof. Dr. PhD Mr. Floch Kristóf I believe.
+
+.. note::
+       The classes in this module, as well as the car trajectories were carried over from
+       the previous aiml_virtual with as minimal changes as possible. I was not
+       comfortable enough with the code and the working of the
+       car to refactor it with confidence. Because of this, the docstrings and
+       comments in this module (and the car_controller.py) are rather sparse
+       and the code is in dire need of refactoring.
+
+.. todo::
+    Refactor this module.
+"""
+
 import numpy as np
 from typing import Union
 
 from aiml_virtual.controller import controller
+from aiml_virtual.simulated_object.dynamic_object.controlled_object import car
+from aiml_virtual.utils import utils_general
+
+normalize = utils_general.normalize
+clamp = utils_general.clamp
 
 class CarLPVController(controller.Controller):
-    def __init__(self, mass: float, inertia: Union[tuple, np.ndarray, list], long_gains: Union[np.ndarray, None] = None,
-                 lat_gains: Union[np.ndarray, None] = None, disturbed: bool = False, **kwargs):
+    def __init__(self, mass: np.ndarray, inertia: Union[tuple, np.ndarray, list],
+                 long_gains: np.ndarray = np.array([[0.0010, -0.0132, 0.4243], [-0.0044, 0.0563, 0.0959]]),
+                 lat_gains: np.ndarray = np.array([[0.00127, -0.00864, 0.0192, 0.0159], [0.172, -1.17, 2.59, 5.14], [0.00423, 0.0948, 0.463, 0.00936]]),
+                 disturbed: bool = False, **kwargs):
         """Trajectory tracking LPV feedback controller, based on the decoupled longitudinal and lateral dynamics
 
         Args:
@@ -19,64 +42,44 @@ class CarLPVController(controller.Controller):
         """
         super().__init__()
         # get mass/intertia & additional vehicle params
-        self.m = mass
-        self.I_z = inertia[2]  # only Z-axis inertia is needed
-        self.disturbed = disturbed
+        self.m: np.ndarray = mass  #: Mass of the vehicle.
+        self.I_z: float = inertia[2]  #: Z-axis inertia of the vehicle.
+        self.disturbed: bool = disturbed  # Whether disturbances are applied.
 
         # set additional vehicle params or default to predefined values
-        try:
-            self.C_m1 = kwargs["C_m1"]
-        except KeyError:
-            self.C_m1 = 52.4282
-        try:
-            self.C_m2 = kwargs["C_m2"]
-        except KeyError:
-            self.C_m2 = 5.2465
-        try:
-            self.C_m3 = kwargs["C_m3"]
-        except KeyError:
-            self.C_m3 = 1.119465
+        self.C_m1: float = car.Car.C_M1 if "C_m1" not in kwargs else kwargs["C_m1"]  #: lumped drivetrain parameters 1
+        self.C_m2: float = car.Car.C_M2 if "C_m2" not in kwargs else kwargs["C_m2"]  #: lumped drivetrain parameters 2
+        self.C_m3: float = car.Car.C_M3 if "C_m3" not in kwargs else kwargs["C_m3"]  #: lumped drivetrain parameters 3
 
-        try:
-            self.dt = kwargs["control_step"]
-        except KeyError:
-            self.dt = 1.0 / 40  # standard frequency for which the controllers are designed
+        self.dt: float = 1/car.Car.CTRL_FREQ if "control_step" not in kwargs else kwargs["control_step"]  #: controller tipestep
 
-        if long_gains is not None:  # gains are specified
-            self.k_long1 = np.poly1d(long_gains[0, :])
-            self.k_long2 = np.poly1d(long_gains[1, :])
+        self.k_long1: np.poly1d = np.poly1d(long_gains[0, :])  #: longitude gains 1
+        self.k_long2: np.poly1d = np.poly1d(long_gains[1, :])  #: longitude gains 2
 
-        else:  # no gains specified use the default
-            self.k_long1 = np.poly1d([0.0010, -0.0132, 0.4243])
-            self.k_long2 = np.poly1d([-0.0044, 0.0563, 0.0959])
+        self.k_lat1: np.poly1d = np.poly1d(lat_gains[0, :])  #: latitude gains 1
+        self.k_lat2: np.poly1d = np.poly1d(lat_gains[1, :])  #: latitude gains 2
+        self.k_lat3: np.poly1d = np.poly1d(lat_gains[2, :])  #: latitude gains 3
 
-        if lat_gains is not None:
-            self.k_lat1 = np.poly1d(lat_gains[0, :])
-            self.k_lat2 = np.poly1d(lat_gains[1, :])
-            self.k_lat3 = np.poly1d(lat_gains[2, :])
-        else:
-            self.k_lat1 = np.poly1d([0.00127, -0.00864, 0.0192, 0.0159])
-            self.k_lat2 = np.poly1d([0.172, -1.17, 2.59, 5.14])
-            self.k_lat3 = np.poly1d([0.00423, 0.0948, 0.463, 0.00936])
-
-        self.C_f = 41.7372
-        self.C_r = 29.4662
-        self.l_f = 0.163
-        self.l_r = 0.168
+        self.C_f = car.Car.C_F  #: Cornering stiffness of front tire
+        self.C_r = car.Car.C_R  #: Cornering stiffness of the rear tire
+        self.l_f = car.Car.L_F  #: Distance of the front axis from the center of mass
+        self.l_r = car.Car.L_R  #: Distance of the rear axis from the center of mass
 
         # define the initial value of the lateral controller integrator
         self.q = 0  # lateral controller integrator
 
     def compute_control(self, state: dict, setpoint: dict, time, **kwargs) -> tuple[float, float]:
-        """Method for calculating the control input, based on the current state and setpoints
+        """
+        Overrides (implements) superclass' compture_control, ensuring CarLPVCOntroller is a complete class.
+        Other than the required positional arguments, additional keyword arguments may be supplies.
 
         Args:
-            state (dict): Dict containing the state variables
-            setpoint (dict): Setpoint determined by the trajectory object
-            time (float): Current simuator time
+            state (dict): Dict containing the state variables.
+            setpoint (dict): Setpoint determined by the trajectory object.
+            time (float): Current simuator time.
 
         Returns:
-            np.array: Computed control inputs [d, delta]
+            tuple[float, float]: Computed control inputs [d, delta]
         """
 
         # check if the the trajectory exectuion is still needed
@@ -105,7 +108,7 @@ class CarLPVController(controller.Controller):
         z1 = np.dot(pos - ref_pos, z0)
 
         # heading error
-        theta_e = self._normalize(phi - theta_p)
+        theta_e = normalize(phi - theta_p)
 
         # longitudinal model parameter
         p = abs(np.cos(theta_e + beta) / np.cos(beta) / (1 - c * z1))
@@ -113,7 +116,7 @@ class CarLPVController(controller.Controller):
         # invert z1 for lateral dynamics:
         e = -z1
         self.q += e
-        self.q = self._clamp(self.q, 0.1)
+        self.q = clamp(self.q, 0.1)
 
         # estimate error derivative
         try:
@@ -140,50 +143,10 @@ class CarLPVController(controller.Controller):
                     v_xi - v_ref)
 
         # clamp control inputs into the feasible range
-        d = self._clamp(d, (0, 0.25))  # currently only forward motion, TODO: reversing control
-        delta = self._clamp(delta, (-.5, .5))
+        d = clamp(d, (0, 0.25))  # currently only forward motion, TODO: reversing control
+        delta = clamp(delta, (-.5, .5))
 
         return d, delta
 
-    @staticmethod
-    def _clamp(value: Union[float, int], bound: Union[int, float, list, tuple, np.ndarray]) -> float:
-        """Helper function that clamps the given value with the specified bounds
 
-        Args:
-            value (float | int): The value to clamp
-            bound (list | tuple | np.ndarray): If int | float the function constrains the value into [-bound,bound]
-                                               If tuple| list | np.ndarray the value is constained into the range of [bound[0],bound[1]]
-
-        Returns:
-            float: The clamped value
-        """
-        if isinstance(bound, int) or isinstance(bound, float):
-            if value < -bound:
-                return float(-bound)
-            elif value > bound:
-                return float(bound)
-            return float(value)
-        elif isinstance(bound, tuple) or isinstance(bound, list) or isinstance(bound, np.ndarray):
-            if value < bound[0]:
-                return float(bound[0])
-            elif value > bound[1]:
-                return float(bound[1])
-            return float(value)
-
-    @staticmethod
-    def _normalize(angle: float) -> float:
-        """Normalizes the given angle into the [-pi/2, pi/2] range
-
-        Args:
-            angle (float): Input angle
-
-        Returns:
-            float: Normalized angle
-        """
-        while angle > np.pi:
-            angle -= 2 * np.pi
-        while angle < -np.pi:
-            angle += 2 * np.pi
-
-        return angle
 

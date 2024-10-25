@@ -55,10 +55,13 @@ if __name__ == "__main__":
     traj = car_trajectory.CarTrajectory()
     traj.build_from_points_smooth_const_speed(path_points=path_points, path_smoothing=0.01, path_degree=4, virtual_speed=1)
 
+    # traj = car_trajectory.CarTrajectorySpatial()
+    # traj.build_from_points_const_speed(path_points, path_smoothing=0.01, path_degree=4, const_speed=1.5, start_delay=2)
+
     c = car.Car()
     c.trajectory = traj
     scene.add_object(c, pos="0 0 0.052", quat='0.9485664043524404 0 0 0.31657823130133655')
-    sim = simulator.Simulator(scene, update_freq=40, renderer_fps=50)
+    sim = simulator.Simulator(scene)
     with sim.launch():
         while sim.viewer.is_running():
             sim.tick()

@@ -164,7 +164,7 @@ class Simulator:
         return self.model.opt
 
     @property
-    def simulated_objects(self):
+    def simulated_objects(self) -> list[SimulatedObject]:
         """
         Property to grab the list of objects in the scene.
         """
@@ -266,7 +266,7 @@ class Simulator:
         # physics engine for 10 steps at every loop, call the control every loop and the display every other loop
         self.tick_count += 1
 
-    def mj_step(self):
+    def mj_step(self) -> None:
         """
         Process that steps the internal simulator physics.
         """

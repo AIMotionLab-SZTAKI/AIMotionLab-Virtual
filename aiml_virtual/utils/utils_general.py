@@ -8,6 +8,7 @@ import importlib
 import pkgutil
 import pathlib
 import math
+from typing import Union
 if platform.system() == 'Windows':
     import win_precise_time as time
 else:
@@ -87,11 +88,45 @@ def euler_from_quaternion(w: float, x: float, y: float, z: float) -> tuple[float
 
     return roll_x, pitch_y, yaw_z  # in radians
 
-def clamp(num: float, min_value: float, max_value: float) -> float:
+def clamp(value: Union[float, int], bound: Union[int, float, list, tuple, np.ndarray]) -> float:
+    """Helper function that clamps the given value with the specified bounds
+
+    Args:
+        value (float | int): The value to clamp
+        bound Union[int, float, list, tuple, np.ndarray]: If int | float the function constrains the value into [-bound,bound]
+                                                          If tuple| list | np.ndarray the value is constained into the range of [bound[0],bound[1]]
+
+    Returns:
+        float: The clamped value
     """
-    Returns the number if it falls between the min and max, or min/max if it's smaller/larger respectively.
+    if isinstance(bound, int) or isinstance(bound, float):
+        if value < -bound:
+            return float(-bound)
+        elif value > bound:
+            return float(bound)
+        return float(value)
+    elif isinstance(bound, tuple) or isinstance(bound, list) or isinstance(bound, np.ndarray):
+        if value < bound[0]:
+            return float(bound[0])
+        elif value > bound[1]:
+            return float(bound[1])
+        return float(value)
+
+def normalize(angle: float) -> float:
+    """Normalizes the given angle into the [-pi/2, pi/2] range
+
+    Args:
+        angle (float): Input angle
+
+    Returns:
+        float: Normalized angle
     """
-    return max(min(num, max_value), min_value)
+    while angle > np.pi:
+        angle -= 2 * np.pi
+    while angle < -np.pi:
+        angle += 2 * np.pi
+
+    return angle
 
 class PausableTime:
     """

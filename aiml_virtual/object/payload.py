@@ -76,7 +76,7 @@ class Payload(MovingObject):
                 f, t = airflow_sampler.generate_forces_opt(self)
                 force += f
                 torque += t
-            self.set_force_torque(force / 1.5, torque / 1.5)
+            self.set_force_torque(force, torque)
     
     def add_airflow_sampler(self, airflow_sampler):
         from aiml_virtual.airflow import AirflowSampler

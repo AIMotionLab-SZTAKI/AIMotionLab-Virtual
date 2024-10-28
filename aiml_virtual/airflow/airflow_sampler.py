@@ -198,7 +198,7 @@ class AirflowSampler:
             pos, pos_in_own_frame, normal, area = payload.get_bottom_data()
             force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
             force_sum += force
-            torque_sum += torque * 0
+            torque_sum += torque
 
         else:
             raise RuntimeError("payload not implemented!")

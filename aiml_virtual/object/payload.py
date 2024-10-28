@@ -45,23 +45,30 @@ class Payload(MovingObject):
         # supporting only rectangular objects for now
         self.geom = self.model.geom(name_in_xml)
         
-        self.free_joint = self.data.joint(self.name_in_xml)
-        self.qfrc_passive = self.free_joint.qfrc_passive
-        self.qfrc_applied = self.free_joint.qfrc_applied
+        free_joints = mujoco_helper.get_freejoint_name_list(model)
+        if self.name_in_xml in free_joints:
+            # payload is defined as a separate object with own free joint
+            self.payload_cog = self.data.joint(self.name_in_xml)
+            self.applied_force = self.payload_cog.qfrc_applied
+            self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
+            self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
+            self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data
+        else:
+            # payload is a part of a complex multi-body object (e.g. Bumblebee + payload is defined together)
+            self.payload_cog = self.data.body(self.name_in_xml)
+            self.applied_force = self.payload_cog.xfrc_applied
+            for i in range(self.model.nsensor):
+                if 'payload_pos' in self.data.sensor(i).name:
+                    self.sensor_posimeter = self.data.sensor(i).data
+                elif 'payload_vel' in self.data.sensor(i).name:
+                    self.sensor_velocimeter = self.data.sensor(i).data
+                elif 'payload_quat' in self.data.sensor(i).name:
+                    self.sensor_orimeter = self.data.sensor(i).data
+            if not (hasattr(self, 'sensor_posimeter') and hasattr(self, 'sensor_velocimeter') and hasattr(self, 'sensor_orimeter')):
+                raise ValueError("Payload 'pos', 'vel', and 'quat' sensors have been defined with wrong naming convention!")
 
-        self.qpos = self.free_joint.qpos
-        self.qvel = self.free_joint.qvel
-
-        self.sensor_posimeter = self.data.sensor(self.name_in_xml + "_posimeter").data
-        self.sensor_orimeter = self.data.sensor(self.name_in_xml + "_orimeter").data
-        self.sensor_velocimeter = self.data.sensor(self.name_in_xml + "_velocimeter").data
 
         self._airflow_samplers = []
-
-        #self._top_rectangle_positions_world = np.zeros_like(self._top_rectangle_positions)
-        #self._top_rectangle_positions_own_frame = np.zeros_like(self._top_rectangle_positions)
-        #self._rectangle_normals = np.zeros_like(self._top_rectangle_positions)
-        #self._rectangle_areas = np.zeros_like(len(self._top_rectangle_positions))
 
 
     def create_surface_mesh(self, surface_division_area: float):
@@ -90,12 +97,12 @@ class Payload(MovingObject):
  
     def set_force_torque(self, force, torque):
 
-        self.qfrc_applied[0] = force[0]
-        self.qfrc_applied[1] = force[1]
-        self.qfrc_applied[2] = force[2]
-        self.qfrc_applied[3] = torque[0]
-        self.qfrc_applied[4] = torque[1]
-        self.qfrc_applied[5] = torque[2]
+        self.applied_force[0] = force[0]
+        self.applied_force[1] = force[1]
+        self.applied_force[2] = force[2]
+        self.applied_force[3] = torque[0]
+        self.applied_force[4] = torque[1]
+        self.applied_force[5] = torque[2]
 
 
 class BoxPayload(Payload):

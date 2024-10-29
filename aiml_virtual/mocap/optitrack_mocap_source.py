@@ -35,7 +35,7 @@ class OptitrackMocapSource(mocap_source.MocapSource):
             for name, obj in self.optitrack.rigidBodies.items():
                 pos = obj.position
                 quat = obj.rotation
-                data_dict[name] = (pos, np.array([quat.x, quat.y, quat.z, quat.w]))
+                data_dict[name] = (pos, np.array([quat.w, quat.x, quat.y, quat.z]))
             with self.lock:  # use a deep copy just in case
                 self._data = copy.deepcopy(data_dict)
 

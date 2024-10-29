@@ -51,7 +51,7 @@ path_points1 = path_points + np.array([1.5, 0])
 path_points2 = path_points + np.array([-1.5, 0])
 
 if __name__ == "__main__":
-    scn = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"))
+    scn = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"), save_filename="example_scene_7.xml")
     # So far dynamic objects only had default constructors, but when it comes to Cars, you can provide a boolean
     # argument to the constructor to decide whether to add a trailer.
     car1 = car.Car()

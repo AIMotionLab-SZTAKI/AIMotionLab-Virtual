@@ -36,9 +36,6 @@ class MocapDrone(mocap_object.MocapObject, ABC):
     def update(self) -> None:
         """
         Overrides MocapObject.update: spins propellers in addition to writing its pose data.
-
-        Args:
-            time (float): The elapsed time in the simulation.
         """
         super().update()
         self.spin_propellers()  # update how the propellers look

@@ -4,10 +4,13 @@ This module contains the class Scene.
 
 import os.path
 import sys
+import time
 import xml.etree.ElementTree as ET
 from typing import Type, cast, Union
 import mujoco
 import pathlib
+
+from casadi import times
 
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.simulated_object.mocap_object import mocap_object
@@ -183,6 +186,8 @@ class Scene:
         objects_to_remove = [o for o in self.simulated_objects if isinstance(o, MocapObject) and o.source == mocap]
         for object_to_remove in objects_to_remove:
             self.remove_object(object_to_remove)
+        while len(mocap.data) == 0:
+            time.sleep(0.1)
         frame = mocap.data  # a dictionary where each items corresponds to one eventual mocap object
         ret: list[MocapObject] = []
         for name, (pos, quat) in frame.items():

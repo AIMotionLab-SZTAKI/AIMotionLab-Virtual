@@ -64,6 +64,9 @@ class Wheel:
         self.actr_force_steer: Optional[np.ndarray] = np.zeros(1) if "_wheelfr" in name or "_wheelfl" in name else None
 
 class Car(controlled_object.ControlledObject):
+    """
+    Class that encapsulates a simulated car along with its actuators and dynamics.
+    """
     DIAGINERTIA: str = ".05 .05 .08"  #: inertia for the car (based on measurements?)
     MASS: str = "3.0"  #: mass of the car in kg
     WHEEL_X: float = 0.16113  #: distance between axles and center of gravity
@@ -185,7 +188,7 @@ class Car(controlled_object.ControlledObject):
         ET.SubElement(trailer_wheelfr, "joint", type="hinge", axis="0 1 0", frictionloss=TRAILER.FRICTIONLOSS,
                       damping=TRAILER.DAMPING, armature=TRAILER.ARMATURE)
 
-        # rear structure consisnts of the axle, the plates, holders and screws
+        # rear structure consists of the axle, the plates, holders and screws
         rear_structure = ET.SubElement(front_axle, "body", name=self.name + "_trailer_rear_structure")
         # top plate
         ET.SubElement(rear_structure, "geom", type="box", size=".25 .1475 .003", pos="-.21 0 .08",
@@ -247,9 +250,7 @@ class Car(controlled_object.ControlledObject):
         ]
         return trailer, contact_pairs
 
-
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
-        # for now without trailer and hook
         site_name = f"{self.name}_cog"
         car = ET.Element("body", name=self.name, pos=pos, quat=quat)  # top level body with free joint
         ret = {"worldbody" : [car],

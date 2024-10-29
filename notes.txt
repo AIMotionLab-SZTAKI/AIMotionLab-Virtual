@@ -6,3 +6,12 @@ Todo:
 -szerverrel szinkronizacio
 -szétcsatolni a kinézet változtatását és az update-elést
 
+Skeleton jellegű mocapdrone:
+-Ő is MocapObject, adott source-al, és névvel
+-Van neki egy list[MocapObject]-e, akiknek a sourceja megegyezik vele, és a nevük beállításfüggő
+-Mivel MocapObject, az alábbiakat kell megvalósítania:
+    -get_identifiers: tudjuk, kik fizikailag azok akik valóságban skeletonok (pl. bb3)
+    -update: kiolvassa az őt alkotó objektumok adatait, és azok alapján mindegyiknek
+             a pozícióját a constrainteket figyelembe véve updateli
+    -create_xml_element: kihasználjuk, hogy mindenhol listát ad vissza: belerakja az összes
+                         mocap bodyt a worldbody-ba

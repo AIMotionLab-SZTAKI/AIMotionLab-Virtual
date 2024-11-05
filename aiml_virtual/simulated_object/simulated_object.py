@@ -113,6 +113,7 @@ class SimulatedObject(ABC):
         """
         pass
 
+    @abstractmethod
     def update(self) -> None:
         """
         The simulator will call this function once every control loop: if the object needs to update control inputs,

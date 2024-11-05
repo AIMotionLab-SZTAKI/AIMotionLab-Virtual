@@ -11,6 +11,7 @@ from abc import ABC
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.mocap import mocap_source
 from aiml_virtual.utils import utils_general
+from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import hooked_bumblebee
 
 warning = utils_general.warning
 
@@ -202,3 +203,30 @@ class MocapPayload(MocapObject):
         ET.SubElement(body, "geom", type="capsule", pos="0 -0.02561 0.14061", euler="2.74889 0 0",
                       size="0.004 0.008", rgba=black)
         return {"worldbody": [body]}
+
+class MocapHook(MocapObject):
+    """
+    Mocap object to display a drone hook.
+    """
+
+    @classmethod
+    def get_identifiers(cls) -> Optional[list[str]]:
+        return ["hook"]
+
+    def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
+        L = hooked_bumblebee.HookedBumblebee1DOF.ROD_LENGTH
+        # The hook structure consists of the rod (which is a geom in the xml), and the head of the hook (which is a body
+        # in the xml, although it is welded to the parent body). The head of the hook in turn consists of other geoms.
+        # The rationale is that although we could have the hook structure be only geoms, it's simpler to define the
+        # geoms of the hook's 'head' in relation to the end of the rod
+        hook = ET.Element("body", name=self.name, pos="0.0085 0 0", mocap="true")  # parent body of rod+hook_head
+        ET.SubElement(hook, "geom", name=f"{self.name}_rod", type="cylinder", fromto=f"0 0 0  0 0 -{L}",
+                      size="0.005", mass="0.0")
+        # this is the body for the "head" of the hook, which is welded to the parent body
+        hook_head = ET.SubElement(hook, "body", name=f"{self.name}_head", pos=f"0 0 -{L}", euler="0 3.141592 0")
+        ET.SubElement(hook_head, "geom", type="box", pos="0 0 0.02", size="0.003 0.003 0.02")
+        ET.SubElement(hook_head, "geom", type="box", pos="0 0.019 0.054", euler="-0.92 0 0", size="0.003 0.003 0.026")
+        ET.SubElement(hook_head, "geom", type="box", pos="0 0.02 0.0825", euler="0.92 0 0", size="0.003 0.003 0.026")
+        ET.SubElement(hook_head, "geom", type="box", pos="0 -0.018 0.085", euler="-1.0472 0 0",
+                      size="0.003 0.003 0.026")
+        return {"worldbody": [hook]}

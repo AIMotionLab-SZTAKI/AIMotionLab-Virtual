@@ -27,7 +27,7 @@ class MocapBumblebee(mocap_drone.MocapDrone):
 
     @classmethod
     def get_identifiers(cls) -> Optional[list[str]]:
-        return ["MocapBumblebee", "bb"]
+        return ["MocapBumblebee"] # "bb" moved to mocap_hooked_bumblebee, at least for now
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         """

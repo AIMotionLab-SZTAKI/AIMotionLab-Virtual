@@ -15,3 +15,7 @@ Skeleton jellegű mocapdrone:
              a pozícióját a constrainteket figyelembe véve updateli
     -create_xml_element: kihasználjuk, hogy mindenhol listát ad vissza: belerakja az összes
                          mocap bodyt a worldbody-ba
+
+Ha létrehozunk az optitrackkel egy bb3-at:
+-az egy mocap_hooked_bumblebee lesz
+-részei: hook12, bb3

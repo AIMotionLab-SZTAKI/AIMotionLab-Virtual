@@ -5,9 +5,12 @@ This module contains the class encapsulating mocap bumblebee drones.
 from typing import Optional
 import xml.etree.ElementTree as ET
 import math
+import numpy as np
 
 from aiml_virtual.simulated_object.mocap_object.mocap_drone import mocap_drone
 from aiml_virtual.utils import utils_general
+from aiml_virtual.mocap.mocap_source import MocapSource
+
 
 class MocapBumblebee(mocap_drone.MocapDrone):
     """
@@ -26,8 +29,12 @@ class MocapBumblebee(mocap_drone.MocapDrone):
     PROP_COLOR = "0.1 0.02 0.5 1.0"  #: **classvar** | Color of the propellers.
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["MocapBumblebee"] # "bb" moved to mocap_hooked_bumblebee, at least for now
+    def get_identifier(cls) -> Optional[str]:
+        return "MocapBumblebee" # "bb" moved to mocap_hooked_bumblebee, at least for now
+
+    def __init__(self, source: MocapSource, mocap_name: str):
+        super().__init__(source, mocap_name)
+        self.offset = np.array([0, 0, -0.06])
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         """

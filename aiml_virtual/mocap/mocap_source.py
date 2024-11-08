@@ -27,6 +27,38 @@ class MocapSource(ABC):
         Whenever one wants to work with the internal data, they shall either access it through data, or take care to
         only access it after acquiring its lock, as well as never returning a direct reference to it.
     """
+
+    # TODO: read this config from file
+    config: dict[str, str] = {
+        "cf1": "MocapCrazyflie",
+        "cf2": "MocapCrazyflie",
+        "cf3": "MocapCrazyflie",
+        "cf4": "MocapCrazyflie",
+        "cf5": "MocapCrazyflie",
+        "cf6": "MocapCrazyflie",
+        "cf7": "MocapCrazyflie",
+        "cf8": "MocapCrazyflie",
+        "cf9": "MocapCrazyflie",
+        "cf10": "MocapCrazyflie",
+        "bb1": "MocapBumblebee",
+        "bb2": "MocapBumblebee",
+        "AI_Car_01": "MocapCar",
+        "RC_Car_01": "MocapCar",
+        "RC_Car_02": "MocapCar",
+        "RC_Car_03": "MocapCar",
+        "obst0": "Pole",
+        "obst1": "Pole",
+        "obst2": "Pole",
+        "bu1": "Hospital",
+        "bu2": "PostOffice",
+        "bu3": "Sztaki",
+        "payload1": "MocapPayload",
+        "payload2": "MocapPayload",
+        "bb3": "MocapHookedBumblebee2DOF",
+        "JoeBush1": "MocapCar",  # TODO: move to skeleton
+        "trailer": "MocapTrailer"
+    }  #: **classcar** | Contains the recognized rigid bodies. Keys are the optitrack names, values are the class identifiers.
+
     def __init__(self):
         self.lock: threading.Lock = threading.Lock()  #: The lock used to access the underlying data dictionary.
         self._data: dict[str, tuple[np.ndarray, np.ndarray]] = {}  #: The underyling data dictionary

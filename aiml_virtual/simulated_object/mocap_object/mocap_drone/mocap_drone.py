@@ -16,20 +16,20 @@ class MocapDrone(mocap_object.MocapObject, ABC):
     """
     Class encapsulation behaviour common to all mocap drones (which are MocapObjects).
     """
-    def __init__(self, source: Optional[mocap_source.MocapSource]=None, mocap_name: Optional[str]=None):
+    def __init__(self, source: mocap_source.MocapSource, mocap_name: str):
         super().__init__(source, mocap_name)
         self.propellers: list[Propeller] = [Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE),
                                             Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE)]  #: List of propellers; first and third are ccw, second and fourth are cw
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
+    def get_identifier(cls) -> Optional[str]:
         return None
 
     def spin_propellers(self) -> None:
         """
         Updates the display of the propellers, to make it look like they are spinning.
         """
-        if self.xpos[2] > 0.015:  # only start spinning if the mocap_drone has taken flight
+        if self.xpos[2] > 0.15:  # only start spinning if the mocap_drone has taken flight
             for propeller in self.propellers:
                 propeller.spin()
 

@@ -23,8 +23,8 @@ class MocapCrazyflie(mocap_drone.MocapDrone):
     PROP_COLOR: str = "0.1 0.1 0.1 1.0"  #: **classvar** | Color of the (old style) propellers.
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["MocapCrazyflie", "cf"]
+    def get_identifier(cls) -> Optional[str]:
+        return "MocapCrazyflie"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         """

@@ -72,7 +72,26 @@
 			<geom name="oszlop3" type="mesh" mesh="oszlop3" rgba="0.3 0.3 0.3 1" />
 			<geom name="oszlop4" type="mesh" mesh="oszlop4" rgba="0.3 0.3 0.3 1" />
 		</body>
-		<body name="MocapBumblebee_0" pos="0 0 0" quat="1 0 0 0" mocap="true">
+		<body name="MocapCar_0" pos="1.002249 0.09183602 0.14860953" quat="-0.9994437098503113 0.005916429217904806 -0.009882212616503239 -0.03129913657903671" mocap="true">
+			<geom name="MocapCar_0_chassis_b" type="box" size=".10113 .1016 .02" pos="-.06 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="MocapCar_0_chassis_f" type="box" size=".06 .07 .02" pos=".10113 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="MocapCar_0_front" type="box" size=".052388 .02 .02" pos=".2135 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="MocapCar_0_back" type="box" size=".062488 .02 .02" pos="-.2236 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="MocapCar_0_front_bumper" type="box" size=".005 .09 .02" pos=".265888 0 0.02" rgba="0.5 0.5 0.5 1" />
+			<geom name="MocapCar_0_back_bumper" type="box" size=".005 .08 .02" pos="-.2861 0 0.02" rgba="0.5 0.5 0.5 1" />
+			<geom name="MocapCar_0_number" type="cylinder" size=".01984 .03" pos=".12 0 .05" rgba="0.1 0.1 0.1 1.0" />
+			<geom name="MocapCar_0_camera" type="box" size=".012 .06 0.02" pos=".18 0 .08" />
+			<geom name="MocapCar_0_camera_holder" type="box" size=".012 .008 .02" pos=".18 0 .04" />
+			<geom name="MocapCar_0_circuits" type="box" size=".08 .06 .03" pos="-.05 0 .05" rgba="0.5 0.5 0.5 1" />
+			<geom name="MocapCar_0_antennal" type="box" size=".007 .004 .06" pos="-.16 -.01 .105" euler="0.2 0 0" rgba=".1 .1 .1 1.0" />
+			<geom name="MocapCar_0_antennar" type="box" size=".007 .004 .06" pos="-.16 .01 .105" euler="-0.2 0 0" rgba=".1 .1 .1 1.0" />
+			<geom name="MocapCar_0_antenna_holder" type="box" size=".008 .008 .02" pos="-.16 0 .04" rgba=".1 .1 .1 1.0" />
+			<geom name="MocapCar_0_wheelfr" type="cylinder" size=".052388 .022225" pos="0.16113 0.122385 0" rgba="0.1 0.1 0.1 1.0" euler="1.571 0 0" />
+			<geom name="MocapCar_0_wheelrl" type="cylinder" size=".052388 .022225" pos="-0.16113 0.122385 0" rgba="0.1 0.1 0.1 1.0" euler="1.571 0 0" />
+			<geom name="MocapCar_0_wheelfl" type="cylinder" size=".052388 .022225" pos="0.16113 -0.122385 0" rgba="0.1 0.1 0.1 1.0" euler="1.571 0 0" />
+			<geom name="MocapCar_0_wheelrr" type="cylinder" size=".052388 .022225" pos="-0.16113 -0.122385 0" rgba="0.1 0.1 0.1 1.0" euler="1.571 0 0" />
+		</body>
+		<body name="MocapBumblebee_0" pos="0.11465476 -0.07244205 0.5074504" quat="-0.13370124995708466 0.00842184666544199 0.0008581432630307972 0.990985631942749" mocap="true">
 			<geom name="MocapBumblebee_0_body" pos="0.0132 0 0" type="mesh" quat="-0.7071067811865475 -0.0 0.0 0.7071067811865476" mesh="bumblebee_body" rgba="0.5 0.5 0.5 1" />
 			<body name="MocapBumblebee_0_prop0">
 				<joint name="MocapBumblebee_0_prop0" axis="0 0 1" pos="0.091 -0.087 0.036" />
@@ -98,6 +117,35 @@
 				<geom type="box" pos="0 0.019 0.054" euler="-0.92 0 0" size="0.003 0.003 0.026" />
 				<geom type="box" pos="0 0.02 0.0825" euler="0.92 0 0" size="0.003 0.003 0.026" />
 				<geom type="box" pos="0 -0.018 0.085" euler="-1.0472 0 0" size="0.003 0.003 0.026" />
+			</body>
+		</body>
+		<body name="MocapTrailer_0" pos="-0.053337738 0.6674512 0.108504325" quat="-0.8621505498886108 -8.133875780913513e-06 -0.006121058948338032 -0.5066152811050415" mocap="true">
+			<geom type="cylinder" size="0.0025 0.09" euler="0 1.571 0" pos="-0.09 0 0" />
+			<body name="MocapTrailer_0_trailer_front_structure" pos="-0.18 0 0">
+				<geom type="box" size="0.0075 0.0965 0.0075" />
+				<body pos="0 0.0965 0" name="MocapTrailer_0_trailer_wheelfl">
+					<geom type="cylinder" size=".0315 .005" rgba="0.1 0.1 0.1 1.0" euler="1.571 0 0" name="MocapTrailer_0_trailer_wheelfl" />
+				</body>
+				<body pos="0 -0.0965 0" name="MocapTrailer_0_trailer_wheelfr">
+					<geom type="cylinder" size=".0315 .005" rgba="0.1 0.1 0.1 1.0" euler="1.571 0 0" name="MocapTrailer_0_trailer_wheelfr" />
+				</body>
+				<body name="MocapTrailer_0_trailer_rear_structure">
+					<geom type="box" size=".25 .1475 .003" pos="-.21 0 .08" rgba="0.7 0.6 0.35 1.0" euler="0 0.0 0" />
+					<geom type="box" size="0.0075 0.0965 0.0075" pos="-0.225 0 0" />
+					<geom type="box" size="0.1375 0.07150000000000001 0.0025" pos="-0.1125 0 0.014" rgba="0.9 0.9 0.9 0.2" euler="0 0.0 0" />
+					<geom type="cylinder" size="0.0025 0.035" pos=".01 0 0.05" euler="0 0.0 0" />
+					<geom type="cylinder" size="0.0025 0.035" pos=".01 -0.03 0.05" euler="0 0.0 0" />
+					<geom type="cylinder" size="0.0025 0.035" pos=".01 0.03 0.05" euler="0 0.0 0" />
+					<geom type="cylinder" size="0.0025 0.035" pos="-.01 -0.015 0.05" euler="0 0.0 0" />
+					<geom type="cylinder" size="0.0025 0.035" pos="-.01 0.015 0.05" euler="0 0.0 0" />
+					<geom type="cylinder" size="0.008 0.032" pos="-0.20500000000000002 0 0.045" rgba="0.1 0.1 0.1 1.0" euler="0 0.0 0" />
+					<body pos="-0.225 0.0965 0" name="MocapTrailer_0_trailer_wheelrl">
+						<geom type="cylinder" size=".0315 .005" rgba="0.1 0.1 0.1 1.0" euler="1.571 0 0" name="MocapTrailer_0_trailer_wheelrl" />
+					</body>
+					<body pos="-0.225 -0.0965 0" name="MocapTrailer_0_trailer_wheelrr">
+						<geom type="cylinder" size=".0315 .005" rgba="0.1 0.1 0.1 1.0" euler="1.571 0 0" name="MocapTrailer_0_trailer_wheelrr" />
+					</body>
+				</body>
 			</body>
 		</body>
 	</worldbody>

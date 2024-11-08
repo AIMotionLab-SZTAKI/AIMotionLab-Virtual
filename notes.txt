@@ -16,6 +16,40 @@ Skeleton jellegű mocapdrone:
     -create_xml_element: kihasználjuk, hogy mindenhol listát ad vissza: belerakja az összes
                          mocap bodyt a worldbody-ba
 
-Ha létrehozunk az optitrackkel egy bb3-at:
--az egy mocap_hooked_bumblebee lesz
--részei: hook12, bb3
+Kellene két új dolog:
+MocapConfig fájl:
+-benne van, mely mocap név mihez tartozik
+    - ez teljesen szétválasztja az eddig opcionális összeköttetést a mocap_name és a name között
+    - pl. cf1 -> fájl -> MocapCrazyflie
+    - payload12 -> fájl -> MocapPayload
+    - hook12 -> MocapHookedBumblebee2DOF
+    - bb3 -> MocapHookedBumblebee2DOF
+        - ez utóbbi 2 együtt érvényes. Ha látunk egy bb3-at, keresni kell hozzá egy
+          hook12-t is, különben valami nem stimmel. Fordítva nem feltétlen igaz
+
+
+tehát 4 use case:
+1: Mocap object hozzáadás kézzel
+2: Mocap skeleton hozzáadás kézzel
+3: Mocap object hozzáadás automatikusan
+4: Mocap skeleton hozzáadás automatikusan
+-----------------------------------------------------------------------------------------
+1: TODO TEST
+-----------------------------------------------------------------------------------------
+2: TODO TEST
+-----------------------------------------------------------------------------------------
+3:
+olvasott név a frame-ben: cf1 -> mocap_source.config-ban megnézzük -> MocapCrazyflie ->
+-> simulated_objects-ben megnézzük -> MocapCrazyflie -> !issubclass MocapSkeleton ->
+-> meg lehet hívni a konstruktorját a kiolvasott névvel
+-----------------------------------------------------------------------------------------
+4:
+olvasott név a frame-ben: bb3 -> mocap_source.config-ban megnézzük -> MocapHookedBumblebee2DOF ->
+-> simulate_objects-ben megnézzük -> MocapHookedBumblebee2DOF -> issubclass MocapSkeleton ->
+a konstruktorját meghívjuk a névvel
+
+
+kell valahol egy szétcsatolás a bb3-ban, hogy hol utaljon MocapBumblebee-re
+ezt megnehezíti, hogy jelenleg a bb3-hoz csak MocabHookedBumblebee van
+valszeg át kell vinni az inicializálás felelősségét a MocapSkeleton leszármazottakba
+az biztos, hogy nem szabad a konstruktorban create-et hívni

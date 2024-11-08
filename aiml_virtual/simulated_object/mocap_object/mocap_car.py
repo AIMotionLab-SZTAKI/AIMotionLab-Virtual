@@ -5,9 +5,10 @@ It also relies on some constants defined in the dynamic car's module.
 
 from typing import Optional
 from xml.etree import ElementTree as ET
+import numpy as np
+from aiml_virtual.mocap.mocap_source import MocapSource
 
 from aiml_virtual.simulated_object.mocap_object import mocap_object
-from aiml_virtual.mocap import mocap_source
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.car import Wheel, TRAILER
 
 class MocapCar(mocap_object.MocapObject):
@@ -17,10 +18,10 @@ class MocapCar(mocap_object.MocapObject):
     WHEEL_X: float = 0.16113  #: distance between axles and center of gravity
     WHEEL_Y: float = 0.122385  #: distance between center line and wheels
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["MocapCar", "JoeBush"]
+    def get_identifier(cls) -> Optional[str]:
+        return "MocapCar"
 
-    def __init__(self, source: Optional[mocap_source.MocapSource] = None, mocap_name: Optional[str] = None):
+    def __init__(self, source: MocapSource, mocap_name: str):
         super().__init__(source, mocap_name)
         self.wheels: dict[str, Wheel] = {
             "front_left": Wheel(self.name + Wheel.FRONT_LEFT, pos=f"{MocapCar.WHEEL_X} {MocapCar.WHEEL_Y} 0"),
@@ -28,21 +29,7 @@ class MocapCar(mocap_object.MocapObject):
             "front_right": Wheel(self.name + Wheel.FRONT_RIGHT, pos=f"{MocapCar.WHEEL_X} -{MocapCar.WHEEL_Y} 0"),
             "rear_right": Wheel(self.name + Wheel.REAR_RIGHT, pos=f"-{MocapCar.WHEEL_X} -{MocapCar.WHEEL_Y} 0")
         }  #: Object to access the relevant mjdata for Wheels.
-
-    def update(self) -> None:
-        """
-        Overrides MocapObject.update: the car's mocap deck is not in the geometric center of the car (relative to
-        which the XML elements were defined). To this end, if we didn't post-process the data received by the
-        Optitrack system, the car would float in the air, since the Optitrack position is the geometric center
-        of the mocap markers.
-
-        .. todo::
-            Currently, we just push the Z coordinate of the car down by 10cm. This will work for most purposes,
-            since the car lies on flat ground. However, it would be more accurate to offset the car in the -z direction
-            of its local coordinate system, instead of the global one.
-        """
-        super().update()
-        self.data.mocap_pos[self.mocapid][2] -= 0.1
+        self.offset = np.array([0, 0, -0.1])
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         car = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")  # top level mocap body
@@ -84,23 +71,12 @@ class MocapTrailer(mocap_object.MocapObject):
     Class that encapsulates a mocap trailer (which in this approximation is not attached to a car!).
     """
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["MocapTrailer", "trailer"]
+    def get_identifier(cls) -> Optional[str]:
+        return "MocapTrailer"
 
-    def update(self) -> None:
-        """
-        Overrides MocapObject.update: the trailer's mocap deck is not in the geometric center of the trailer (relative
-        to which the XML elements were defined). To this end, if we didn't post-process the data received by the
-        Optitrack system, the trailer would float in the air, since the Optitrack position is the geometric center
-        of the mocap markers.
-
-        .. todo::
-            Currently, we just push the Z coordinate of the trailer down by 8cm. This will work for most purposes,
-            since the trailer lies on flat ground. However, it would be more accurate to offset the trailer in the
-            -z direction of its local coordinate system, instead of the global one.
-        """
-        super().update()
-        self.data.mocap_pos[self.mocapid][2] -= 0.08
+    def __init__(self, source: MocapSource, mocap_name: str):
+        super().__init__(source, mocap_name)
+        self.offset = np.array([0, 0, -0.08])
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         trailer = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")

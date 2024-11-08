@@ -19,8 +19,8 @@ class Bicycle(controlled_object.ControlledObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Bicycle"]
+    def get_identifier(cls) -> Optional[str]:
+        return "Bicycle"
 
     def __init__(self):
         super().__init__()

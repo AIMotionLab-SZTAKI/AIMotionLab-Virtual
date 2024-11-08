@@ -22,3 +22,4 @@ readme = "readme.md"
 
 [tool.setuptools]
 py-modules = []
+packages = ["aiml_virtual"]

@@ -17,7 +17,7 @@ class ControlledObject(dynamic_object.DynamicObject, ABC):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
+    def get_identifier(cls) -> Optional[str]:
         return None
 
     def __init__(self):

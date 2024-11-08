@@ -15,8 +15,8 @@ class HookedBumblebee1DOF(bumblebee.Bumblebee):
     """
     ROD_LENGTH = 0.4
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["HookedBumblebee1DOF"]
+    def get_identifier(cls) -> Optional[str]:
+        return "HookedBumblebee1DOF"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         L = HookedBumblebee1DOF.ROD_LENGTH
@@ -71,8 +71,8 @@ class HookedBumblebee2DOF(bumblebee.Bumblebee):
     """
     ROD_LENGTH = 0.4
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["HookedBumblebee2DOF"]
+    def get_identifier(cls) -> Optional[str]:
+        return "HookedBumblebee2DOF"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         L = HookedBumblebee1DOF.ROD_LENGTH

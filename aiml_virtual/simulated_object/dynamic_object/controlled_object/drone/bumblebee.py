@@ -30,8 +30,8 @@ class Bumblebee(drone.Drone):
     PROP_COLOR = "0.1 0.02 0.5 1.0"  #: **classvar** | Color of the propellers.
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Bumblebee"]
+    def get_identifier(cls) -> Optional[str]:
+        return "Bumblebee"
 
     @property
     def input_matrix(self) -> np.ndarray:

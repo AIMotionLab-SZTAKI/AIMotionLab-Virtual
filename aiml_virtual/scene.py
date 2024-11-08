@@ -6,14 +6,13 @@ import os.path
 import sys
 import time
 import xml.etree.ElementTree as ET
-from typing import Type, cast, Union
+from typing import Type, cast, Union, Optional
 import mujoco
 import pathlib
 
-from casadi import times
-
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.simulated_object.mocap_object import mocap_object
+from aiml_virtual.simulated_object.mocap_skeleton import mocap_skeleton
 from aiml_virtual.simulated_object.dynamic_object.controlled_object import controlled_object
 from aiml_virtual.mocap import mocap_source
 from aiml_virtual.utils import utils_general
@@ -24,6 +23,7 @@ MocapObject = mocap_object.MocapObject
 ControlledObject = controlled_object.ControlledObject
 SimulatedObject = simulated_object.SimulatedObject
 MocapSource = mocap_source.MocapSource
+MocapSkeleton = mocap_skeleton.MocapSkeleton
 warning = utils_general.warning
 
 XML_FOLDER = os.path.join(pathlib.Path(__file__).parents[1].resolve().as_posix(), "xml_models")
@@ -193,14 +193,10 @@ class Scene:
         for name, (pos, quat) in frame.items():
             pos_str = ' '.join(map(str, pos))  # np.ndarray([x, y, z]) -> "x y z"
             quat_str = ' '.join(map(str, quat))  # np.ndarray([x, y, z, w]) -> "x y z w"
-            for class_identifier in SimulatedObject.xml_registry.keys():  # iterates over Crazyflie, Bicycle, etc.
-                if name.startswith(class_identifier):  # class_identifier will be something like MocapCrazyflie_5
-                    # determine type to instantiate
-                    cls: Type[MocapObject] = cast(Type[MocapObject], SimulatedObject.xml_registry[class_identifier])
-                    obj: MocapObject = cls(source=mocap, mocap_name=name)
-                    self.add_object(obj, pos_str, quat_str, color)
-                    ret.append(obj)
+            obj: Optional[MocapObject] = MocapObject.create(mocap, name)
+            if obj is not None:
+                self.add_object(obj, pos_str, quat_str, color)
+                ret.append(obj)
         return ret
-
 
 

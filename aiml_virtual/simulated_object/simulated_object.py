@@ -28,8 +28,8 @@ class SimulatedObject(ABC):
     include a call super().__init_subclass__, that way it calls the parent's respective function in addition to its own.
     SimulatedObject.__init_subclass__ registers the potential aliases of the class to its xml registry, and sets its
     instance count to 0. If a class wants to be a candidate for parsing in an xml file, it shall implement all the
-    abstract methods defined in SimulatedObject and in get_identifiers return a list of valid string identifiers.
-    If a class need not be target for parsing, it may return None in get_identifiers.
+    abstract methods defined in SimulatedObject and in get_identifier return its identifier.
+    If a class need not be target for parsing, it may return None in get_identifier.
 
     .. note::
         Only classes which get initialized with __init_subclass__ are candidates for parsing. If the script the user
@@ -54,13 +54,13 @@ class SimulatedObject(ABC):
 
     @classmethod
     @abstractmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
+    def get_identifier(cls) -> Optional[str]:
         """
         Gives a list of identifiers (aliases) for the class to check for aliases when parsing an XML. A None returns
         signals that this class opts out of parsing. This usually also means that it's an abstract class (ABC).
 
         Returns:
-            Optional[list[str]]: The list of aliases for objects belonging to this class, or None if abstract.
+            Optional[str]: The list of aliases for objects belonging to this class, or None if abstract.
         """
         raise NotImplementedError
 
@@ -68,17 +68,16 @@ class SimulatedObject(ABC):
         super().__init_subclass__(**kwargs)
         #  A class descended from SimulatedObject *must* specify whether he is a candidate for parsing. If the user
         #  doesn't want the class to be a candidate for parsing (because the class is abstract, or for any other
-        #  reason), the get_identifiers() function shall return None
-        identifiers: Optional[str] = cls.get_identifiers()
-        if identifiers is None:
+        #  reason), the get_identifier() function shall return None
+        identifier: Optional[str] = cls.get_identifier()
+        if identifier is None:
             return
         else:
-            for identifier in identifiers:
-                if identifier in SimulatedObject.xml_registry:
-                    raise ValueError(f"identifier {identifier} is already registered to "
-                                     f"{SimulatedObject.xml_registry[identifier].__name__}")
-                else:
-                    SimulatedObject.xml_registry[identifier] = cls
+            if identifier in SimulatedObject.xml_registry:
+                raise ValueError(f"identifier {identifier} is already registered to "
+                                 f"{SimulatedObject.xml_registry[identifier].__name__}")
+            else:
+                SimulatedObject.xml_registry[identifier] = cls
             SimulatedObject.instance_count[cls] = 0
 
     def __init__(self):

@@ -21,8 +21,7 @@ from aiml_virtual.simulated_object.mocap_skeleton import mocap_hooked_bumblebee
 if __name__ == "__main__":
     scn = scene.Scene(os.path.join(xml_directory, "scene_base.xml"))
     mocap = optitrack_mocap_source.OptitrackMocapSource()
-    bb = mocap_hooked_bumblebee.MocapHookedBumblebee2DOF(mocap, "bb3", "hook12")
-    scn.add_object(bb)
+    scn.add_mocap_objects(mocap)
     sim = simulator.Simulator(scn)
     with sim.launch():
         while sim.viewer.is_running():

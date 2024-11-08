@@ -73,7 +73,7 @@ class Drone(controlled_object.ControlledObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
+    def get_identifier(cls) -> Optional[str]:
         return None
 
     def __init__(self):
@@ -97,7 +97,7 @@ class Drone(controlled_object.ControlledObject):
         """
         Updates the display of the propellers, to make it look like they are spinning.
         """
-        if self.sensors["pos"][2] > 0.015:  # only start spinning if the drone has taken flight
+        if self.sensors["pos"][2] > 0.1:  # only start spinning if the drone has taken flight
             for propeller in self.propellers:
                 propeller.spin()
 

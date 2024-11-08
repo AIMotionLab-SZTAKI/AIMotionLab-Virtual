@@ -25,8 +25,8 @@ class Crazyflie(drone.Drone):
     PROP_COLOR: str = "0.1 0.1 0.1 1.0"  #: **classvar** | Color of the (old style) propellers.
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Crazyflie"]  # note: the "cf" id belongs to *mocap* crazyflies!
+    def get_identifier(cls) -> Optional[str]:
+        return "Crazyflie"
 
     @property
     def input_matrix(self) -> np.ndarray:

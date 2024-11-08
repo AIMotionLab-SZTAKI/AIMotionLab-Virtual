@@ -17,7 +17,7 @@ class DynamicObject(simulated_object.SimulatedObject, ABC):
     dynamic payload (as opposed to a mocap payload), as well as actuated objects such as a drone.
     """
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
+    def get_identifier(cls) -> Optional[str]:
         """
         Overrides method in MocapObject to specify whether to check for aliases when parsing an XML. A None returns
         signals that this class opts out of parsing. This usually also means that it's an abstract class (ABC).
@@ -26,7 +26,7 @@ class DynamicObject(simulated_object.SimulatedObject, ABC):
             Will need to reconcile identifiers in passive mocap objects vs passive moving objects.
 
         Returns:
-            Optional[list[str]]: The list of aliases for objects belonging to this class.
+            Optional[str]: The alias for objects belonging to this class.
         """
 
         return None
@@ -60,8 +60,8 @@ class DynamicPayload(DynamicObject):
     what we use to track a payload in optitrack.
     """
     @classmethod
-    def  get_identifiers(cls) -> Optional[list[str]]:
-        return ["dynamicpayload", "dynamicPayload", "DynamicPayload", "dynamic_payload"]
+    def get_identifier(cls) -> Optional[str]:
+        return "DynamicPayload"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         load_mass = "0.07"  # I'm pretty sure it's something like 70g
@@ -90,3 +90,6 @@ class DynamicPayload(DynamicObject):
         ET.SubElement(body, "geom", type="capsule", pos="0 -0.02561 0.14061", euler="2.74889 0 0",
                       size="0.004 0.008", rgba=black, mass=segment_mass)
         return {"worldbody": [body]}
+
+    def update(self) -> None:
+        pass

@@ -4,33 +4,66 @@ receive their pose data from a motion capture system (in our case, most likely O
 """
 
 import mujoco
-from typing import Optional
+from typing import Optional, cast, Type
 from xml.etree import ElementTree as ET
 from abc import ABC
+from scipy.spatial.transform import Rotation
+import numpy as np
 
-from aiml_virtual.simulated_object import simulated_object
+from aiml_virtual.simulated_object.simulated_object import SimulatedObject
 from aiml_virtual.mocap import mocap_source
 from aiml_virtual.utils import utils_general
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import hooked_bumblebee
 
 warning = utils_general.warning
 
-class MocapObject(simulated_object.SimulatedObject, ABC):
+class MocapObject(SimulatedObject, ABC):
     """
-    Base class for objects in the simulation that receive their data from a motion capture system.
+    Base class for **rigid** objects in the simulation that receive their data from a motion capture system.
     The corresponding mujoco documentation can be found here: https://mujoco.readthedocs.io/en/stable/modeling.html#cmocap
     Each MocapObject has to have exactly one Mocap Source associated with it: this is where the object will get its pose
     info.
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
+    def get_identifier(cls) -> Optional[str]:
         return None
 
-    def __init__(self, source: Optional[mocap_source.MocapSource]=None, mocap_name: Optional[str]=None):
+    def __init__(self, source: mocap_source.MocapSource, mocap_name: str):
         super().__init__()
-        self.mocap_name: str = mocap_name if mocap_name is not None else self.name  #: The name in the mocap dictionary (it may differ from the mujoco model name).
+        self.mocap_name: str = mocap_name  #: The name in the mocap dictionary (different from the mujoco model name).
         self.source: mocap_source.MocapSource = source  #: The source for the poses of the object.
+        self.offset: np.array = np.array([0, 0, 0]) #: The offset from the center of the marker set to the center of the XML body.
+
+    def set_offset(self, offset: np.ndarray) -> None:
+        """
+        Change the offset from the center of the marker set to the center of the XML body.
+
+        Args:
+            offset (np.ndarray): The new offset.
+        """
+        self.offset = offset
+
+    @classmethod
+    def create(cls, source: mocap_source.MocapSource, mocap_name: str) -> Optional['MocapObject']:
+        """
+        Creates an instance of a Mocap Object with the given source and mocap name. Different from the base construtor
+        in that this method returns an object whose dynamic type corresponds to the type read in MocapSource.config,
+        where the recognized mocap bodies' names are kept.
+
+        Args:
+            source (mocap_source.MocapSource): The mocap source.
+            mocap_name (str): The name in the mocap source.
+
+        Returns:
+            Optional['MocapObject']: A MocapObject of dynamic type corresponding to mocap_name.
+        """
+        class_name: Optional[str] = mocap_source.MocapSource.config.get(mocap_name) # e.g. "MocapCrazyflie" (str)
+        if class_name is None:
+            return None
+        else:
+            cls_to_create: Type[MocapObject] = cast(Type[MocapObject], SimulatedObject.xml_registry[class_name])  # e.g. MocapCrazyflie (class)
+            return cls_to_create(source, mocap_name)
 
     @property
     def mocapid(self) -> Optional[int]:
@@ -46,12 +79,15 @@ class MocapObject(simulated_object.SimulatedObject, ABC):
     def update(self) -> None:
         """
         Overrides SimulatedObject.update. Checks the mocap source to update its pose. The mocap source updates its frame
-        in a different thread, this function merely copies the data found there.
+        in a different thread, this function merely copies the data found there. Applies offset to the received data.
         """
         if self.source is not None:
             mocap_frame = self.source.data
             if self.mocap_name in mocap_frame:
-                self.data.mocap_pos[self.mocapid], self.data.mocap_quat[self.mocapid] = mocap_frame[self.mocap_name]
+                mocap_pos, mocap_quat = mocap_frame[self.mocap_name]
+                offet_world_frame = Rotation.from_quat(np.roll(mocap_quat, -1)).as_matrix() @ self.offset
+                self.data.mocap_pos[self.mocapid] = mocap_pos + offet_world_frame
+                self.data.mocap_quat[self.mocapid] = mocap_quat
         else:
             return
             warning(f"Obj {self.name} not in mocap")
@@ -73,8 +109,8 @@ class Airport(MocapObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Airport"]
+    def get_identifier(cls) -> Optional[str]:
+        return "Airport"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -88,8 +124,8 @@ class ParkingLot(MocapObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["ParkingLot"]
+    def get_identifier(cls) -> Optional[str]:
+        return "ParkingLot"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -103,8 +139,8 @@ class LandingZone(MocapObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["LandingZone"]
+    def get_identifier(cls) -> Optional[str]:
+        return "LandingZone"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -117,8 +153,8 @@ class Pole(MocapObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Pole", "obst"]
+    def get_identifier(cls) -> Optional[str]:
+        return "Pole"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -134,8 +170,8 @@ class Hospital(MocapObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Hospital", "bu1"]
+    def get_identifier(cls) -> Optional[str]:
+        return "Hospital"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -149,8 +185,8 @@ class PostOffice(MocapObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["bu2", "PostOffice"]
+    def get_identifier(cls) -> Optional[str]:
+        return "PostOffice"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -164,8 +200,8 @@ class Sztaki(MocapObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Sztaki", "bu3"]
+    def get_identifier(cls) -> Optional[str]:
+        return "Sztaki"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -179,8 +215,8 @@ class MocapPayload(MocapObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["payload", "MocapPayload"]
+    def get_identifier(cls) -> Optional[str]:
+        return "MocapPayload"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         black = "0 0 0 1"
@@ -210,8 +246,8 @@ class MocapHook(MocapObject):
     """
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["hook"]
+    def get_identifier(cls) -> Optional[str]:
+        return "MocapHook"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         L = hooked_bumblebee.HookedBumblebee1DOF.ROD_LENGTH

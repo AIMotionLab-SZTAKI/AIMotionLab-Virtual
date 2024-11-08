@@ -83,8 +83,8 @@ class Car(controlled_object.ControlledObject):
     CTRL_FREQ: float = 40.0  #: the default control frequency to initialize the car with
 
     @classmethod
-    def get_identifiers(cls) -> Optional[list[str]]:
-        return ["Car"]
+    def get_identifier(cls) -> Optional[str]:
+        return "Car"
 
     def __init__(self, has_trailer: bool = False):
         super().__init__()

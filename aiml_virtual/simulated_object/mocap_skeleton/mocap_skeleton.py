@@ -1,17 +1,29 @@
 from xml.etree import ElementTree as ET
 import mujoco
-from typing import Optional, Type, cast
+from typing import Optional, Type
 from abc import ABC
 from aiml_virtual.simulated_object.mocap_object import mocap_object
-from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.mocap import mocap_source
 from aiml_virtual.simulated_object.mocap_object.mocap_object import MocapObject
-from aiml_virtual.simulated_object.simulated_object import SimulatedObject
 from aiml_virtual.utils import utils_general
 warning = utils_general.warning
 
 class MocapSkeleton(mocap_object.MocapObject, ABC):
-    configurations: dict[str, list[tuple[str, Type[MocapObject]]]]
+    """
+    Base class for objects that receive their pose data fro a motion capture system, and are made up of several
+    individually rigid motion capture objects. For example, the hooked mocap drone has two individually rigid parts:
+    the drone and the hook. Since mujoco mocap objects cannot have joints, these objects each have their own top-level
+    rigid mocap body. Of these rigid bodies, one has to be the 'owner' of the rest, and operations which require a
+    single name/body/etc will use the respective methods of that body. In the case of a hooked bumblebee, for example,
+    the owner is the MocapBumblebee part. For example, the mocapid property returns the mocapid of the corresponding
+    mocap body in the xml.
+    Their update shall be constructed in a way to keep the constraints between the bodies valid.
+
+    .. todo::
+        Check if these can be read from XML. Also check if we event want to be able to read Mocap Bodies from XML.
+
+    """
+    configurations: dict[str, list[tuple[str, Type[MocapObject]]]]  #: The recognized combinations for a given subclass.
 
     @classmethod
     def get_identifier(cls) -> Optional[str]:
@@ -19,7 +31,7 @@ class MocapSkeleton(mocap_object.MocapObject, ABC):
 
     def __init__(self, source: mocap_source.MocapSource, mocap_name: str):
         super().__init__(source, mocap_name)
-        self.mocap_objects: list[mocap_object.MocapObject] = []
+        self.mocap_objects: list[mocap_object.MocapObject] = []  # is made up of several mocap objects
         for part_name, cls in self.configurations[mocap_name]:
             self.mocap_objects.append(cls(source, part_name))
 

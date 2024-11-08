@@ -253,6 +253,10 @@ class Simulator:
         """
         Tick the simulation: call every process that needs to be called. E.g.: the physics process always gets called,
         but if a process has 1/10th the frequency of the physics process, it only gets called every 10th round.
+
+        .. todo::
+            Display the frequency of the processes, particularly update, to make sure we're not lagging behind.
+
         """
         for process in self.processes.values():
             interval = max(1, math.ceil((1 / process.frequency) / self.timestep))

@@ -19,10 +19,15 @@ warning = utils_general.warning
 
 class MocapObject(SimulatedObject, ABC):
     """
-    Base class for **rigid** objects in the simulation that receive their data from a motion capture system.
+    Base class for objects in the simulation that receive their data from a motion capture system.
     The corresponding mujoco documentation can be found here: https://mujoco.readthedocs.io/en/stable/modeling.html#cmocap
     Each MocapObject has to have exactly one Mocap Source associated with it: this is where the object will get its pose
     info.
+
+    .. todo::
+        Do we want to be able to read mocap bodies from XML? Think about it. If yes, make it clear how that works,
+        particularly in the case of skeletons.
+
     """
 
     @classmethod

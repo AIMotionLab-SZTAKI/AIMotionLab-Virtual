@@ -12,7 +12,11 @@ from aiml_virtual.utils import utils_general
 warning = utils_general.warning
 
 class MocapHookedBumblebee2DOF(mocap_skeleton.MocapSkeleton):
-    configurations: dict[str, list[str]] = {
+    """
+    Implementation of a mocap skeleton: is made up of a MocapBumblebee and a MocapHook.
+    The orientation of the hook is read from optitrack, but its position is determined by the drone's pose.
+    """
+    configurations: dict[str, list[str]] = {  #: The recognized combinations for MocapHookedBumblebee2DOF objects: bb3 with hook12
         "bb3": [("bb3", MocapBumblebee), ("hook12", MocapHook)]
     }
 
@@ -22,10 +26,15 @@ class MocapHookedBumblebee2DOF(mocap_skeleton.MocapSkeleton):
 
     def __init__(self, source: mocap_source.MocapSource, mocap_name: str):
         super().__init__(source, mocap_name)
-        self.bumblebee: MocapBumblebee =  cast(MocapBumblebee, self.mocap_objects[0])
-        self.hook: mocap_object.MocapHook = cast(mocap_object.MocapHook, self.mocap_objects[1])
+        self.bumblebee: MocapBumblebee =  cast(MocapBumblebee, self.mocap_objects[0])  #: The top-level 'owner' body.
+        self.hook: mocap_object.MocapHook = cast(mocap_object.MocapHook, self.mocap_objects[1])  #: The hook's rigid body
 
     def update(self) -> None:
+        """
+        Overrides MocapObject's update: instead of merely reading the data from the mocap system and applying an offset,
+        it does this for the drone, and then calculates the position of the hook so that the end of the rod is attached
+        to the bumblebee's bottom.
+        """
         if self.source is not None:
             mocap_frame = self.source.data
             self.bumblebee.spin_propellers()

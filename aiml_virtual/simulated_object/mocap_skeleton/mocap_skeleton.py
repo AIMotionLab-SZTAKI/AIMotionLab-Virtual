@@ -3,7 +3,7 @@ import mujoco
 from typing import Optional, Type
 from abc import ABC
 from aiml_virtual.simulated_object.mocap_object import mocap_object
-from aiml_virtual.mocap import mocap_source
+from aiml_virtual.mocap.mocap_source import MocapSource
 from aiml_virtual.simulated_object.mocap_object.mocap_object import MocapObject
 from aiml_virtual.utils import utils_general
 warning = utils_general.warning
@@ -29,7 +29,7 @@ class MocapSkeleton(mocap_object.MocapObject, ABC):
     def get_identifier(cls) -> Optional[str]:
         return None
 
-    def __init__(self, source: mocap_source.MocapSource, mocap_name: str):
+    def __init__(self, source: MocapSource, mocap_name: str):
         super().__init__(source, mocap_name)
         self.mocap_objects: list[mocap_object.MocapObject] = []  # is made up of several mocap objects
         for part_name, cls in self.configurations[mocap_name]:

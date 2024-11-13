@@ -105,7 +105,13 @@ class Scene:
     def add_object(self, obj: SimulatedObject, pos: str = "0 0 0", quat: str = "1 0 0 0", color: str = "0.5 0.5 0.5 1") \
             -> None:
         """
-        Adds an object to the Scene, with the specified position, orientation and base color.
+        Adds an object to the Scene, with the specified position, orientation and base color. The simplest way to modify
+        the underlying mujoco model is by modifying the xml file, and reloading it. To this end, adding an object is
+        achieved in three steps (which achieve the consistency between the three representations):
+
+        - Adds the reference to the object to the simulated_objects list
+        - Adds the object's xml data to the xml representation
+        - Saves the xml file and reloads the model from it.
 
         Args:
             obj (SimulatedObject): The object to add. As it's a SimulatedObject, it handles its own xml representation.

@@ -21,7 +21,7 @@ class MocapCar(mocap_object.MocapObject):
     def get_identifier(cls) -> Optional[str]:
         return "MocapCar"
 
-    def __init__(self, source: MocapSource, mocap_name: str):
+    def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.wheels: dict[str, Wheel] = {
             "front_left": Wheel(self.name + Wheel.FRONT_LEFT, pos=f"{MocapCar.WHEEL_X} {MocapCar.WHEEL_Y} 0"),

@@ -6,7 +6,11 @@ import os
 import sys
 import pathlib
 
-# make sure imports work by adding the necessary folders to the path:
+# The lines under here are intended to make sure imports work, by adding parent folders to the path (i.e. the list
+# of folders where the interpreter will look for a given package when you try to import it). This is to account for
+# differences in what the interpreter identifies as your current working directory when launching these scripts
+# from the command line as regular scripts vs with the -m option vs from PyCharm, as well as the script being placed
+# in any depth of sub-sub-subfolder.
 project_root = pathlib.Path(__file__).parents[0]
 sys.path.append(project_root.resolve().as_posix())  # add the folder this file is in to path
 # until we meet the "aiml_virtual" package, keep adding the current folder to the path and then changing folder into
@@ -30,7 +34,9 @@ if __name__ == "__main__":
     # of SimulatedObject: MocapObjects(a) that get their pose data from a mocap system and DynamicObjects(a) that get
     # their pose from MuJoCo calculations. DynamicObjects may also have controllers and actuators, in which case they
     # are ControlledObject(a).
-    # An example of a DynamicObject (an object which is subject to MuJoCo physics but is not actuated) is a payload:
+    # An example of a DynamicObject (an object which is subject to MuJoCo physics) is a payload.
+    # This payload is 'passive' in that it has no actuators, as opposed to controlled objects, which we will discuss
+    # later.
     payload1 = dynamic_object.DynamicPayload()
     # Let's add this payload to the scene!
     scn.add_object(payload1, pos="1 0 1.5", quat="1 0 0 0")

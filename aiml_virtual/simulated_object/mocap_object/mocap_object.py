@@ -11,7 +11,7 @@ from scipy.spatial.transform import Rotation
 import numpy as np
 
 from aiml_virtual.simulated_object.simulated_object import SimulatedObject
-from aiml_virtual.mocap import mocap_source
+from aiml_virtual.mocap.mocap_source import MocapSource
 from aiml_virtual.utils import utils_general
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import hooked_bumblebee
 
@@ -34,11 +34,22 @@ class MocapObject(SimulatedObject, ABC):
     def get_identifier(cls) -> Optional[str]:
         return None
 
-    def __init__(self, source: mocap_source.MocapSource, mocap_name: str):
+    def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__()
         self.mocap_name: str = mocap_name  #: The name in the mocap dictionary (different from the mujoco model name).
-        self.source: mocap_source.MocapSource = source  #: The source for the poses of the object.
+        self.source: MocapSource = source  #: The source for the poses of the object.
         self.offset: np.array = np.array([0, 0, 0]) #: The offset from the center of the marker set to the center of the XML body.
+
+    def assign_mocap(self, source: MocapSource, mocap_name: str) -> None:
+        """
+        Assigns a source and a name to the mocap object, since these variables may have been None.
+
+        Args:
+            source (MocapSource): The source of the mocap data.
+            mocap_name (str): The string to look for in the mocap dictionary when updating the mocap object.
+        """
+        self.mocap_name = mocap_name
+        self.source = source
 
     def set_offset(self, offset: np.ndarray) -> None:
         """
@@ -50,7 +61,7 @@ class MocapObject(SimulatedObject, ABC):
         self.offset = offset
 
     @classmethod
-    def create(cls, source: mocap_source.MocapSource, mocap_name: str) -> Optional['MocapObject']:
+    def create(cls, source: MocapSource, mocap_name: str) -> Optional['MocapObject']:
         """
         Creates an instance of a Mocap Object with the given source and mocap name. Different from the base construtor
         in that this method returns an object whose dynamic type corresponds to the type read in MocapSource.config,
@@ -63,7 +74,7 @@ class MocapObject(SimulatedObject, ABC):
         Returns:
             Optional['MocapObject']: A MocapObject of dynamic type corresponding to mocap_name.
         """
-        class_name: Optional[str] = mocap_source.MocapSource.config.get(mocap_name) # e.g. "MocapCrazyflie" (str)
+        class_name: Optional[str] = MocapSource.config.get(mocap_name) # e.g. "MocapCrazyflie" (str)
         if class_name is None:
             return None
         else:
@@ -178,6 +189,10 @@ class Hospital(MocapObject):
     def get_identifier(cls) -> Optional[str]:
         return "Hospital"
 
+    def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
+        super().__init__(source, mocap_name)
+        self.offset = np.array([0, 0, -0.88])
+
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
         ET.SubElement(body, "geom", name=self.name, type="box", pos="0 0 0.445", size="0.1275 0.13 0.445",
@@ -193,6 +208,10 @@ class PostOffice(MocapObject):
     def get_identifier(cls) -> Optional[str]:
         return "PostOffice"
 
+    def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
+        super().__init__(source, mocap_name)
+        self.offset = np.array([0, 0, 0.0])
+
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
         ET.SubElement(body, "geom", name=self.name, type="box", pos="0 0 0.205", size="0.1275 0.1275 0.205",
@@ -207,6 +226,10 @@ class Sztaki(MocapObject):
     @classmethod
     def get_identifier(cls) -> Optional[str]:
         return "Sztaki"
+
+    def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
+        super().__init__(source, mocap_name)
+        self.offset = np.array([0, 0, -0.18])
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")

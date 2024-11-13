@@ -3,7 +3,7 @@ from typing import Optional, cast, Type
 from scipy.spatial.transform import Rotation
 
 from aiml_virtual.simulated_object.mocap_object import mocap_object
-from aiml_virtual.mocap import mocap_source
+from aiml_virtual.mocap.mocap_source import MocapSource
 from aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_bumblebee import MocapBumblebee
 from aiml_virtual.simulated_object.mocap_object.mocap_object import MocapHook
 from aiml_virtual.simulated_object.mocap_skeleton import mocap_skeleton
@@ -24,7 +24,7 @@ class MocapHookedBumblebee2DOF(mocap_skeleton.MocapSkeleton):
     def get_identifier(cls) -> Optional[str]:
         return "MocapHookedBumblebee2DOF"
 
-    def __init__(self, source: mocap_source.MocapSource, mocap_name: str):
+    def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.bumblebee: MocapBumblebee =  cast(MocapBumblebee, self.mocap_objects[0])  #: The top-level 'owner' body.
         self.hook: mocap_object.MocapHook = cast(mocap_object.MocapHook, self.mocap_objects[1])  #: The hook's rigid body

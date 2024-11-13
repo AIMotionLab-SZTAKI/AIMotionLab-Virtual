@@ -1,68 +1,35 @@
 """
-testing.py
-========================
-
-Docstring needs to be written!
+This script shows how to load and display a simulation from an xml.
 """
 
 import os
 import sys
 import pathlib
-import numpy as np
 
-# make sure imports work by adding the aiml_virtual directory to path:
-file_dir = os.path.dirname(__file__)
-sys.path.append(file_dir)
-sys.path.append(os.path.join(file_dir, '..'))
+# The lines under here are intended to make sure imports work, by adding parent folders to the path (i.e. the list
+# of folders where the interpreter will look for a given package when you try to import it). This is to account for
+# differences in what the interpreter identifies as your current working directory when launching these scripts
+# from the command line as regular scripts vs with the -m option vs from PyCharm, as well as the script being placed
+# in any depth of sub-sub-subfolder.
+project_root = pathlib.Path(__file__).parents[0]
+sys.path.append(project_root.resolve().as_posix())  # add the folder this file is in to path
+# until we meet the "aiml_virtual" package, keep adding the current folder to the path and then changing folder into
+# the parent folder
+while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
+    project_root = project_root.parents[0]
+    sys.path.append(project_root.resolve().as_posix())
+xml_directory = os.path.join(project_root.resolve().as_posix(), "xml_models")
 
-import aiml_virtual.scene as scene
-import aiml_virtual.simulated_object.dynamic_object.controlled_object.bicycle as bicycle
-import aiml_virtual.simulator as simulator
-import aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.crazyflie as cf
-import aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.bumblebee as bb
-from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
-from aiml_virtual.simulated_object.dynamic_object import dynamic_object
+from aiml_virtual import scene, simulator
 
 if __name__ == "__main__":
-    project_root = pathlib.Path(__file__).parents[1].resolve().as_posix()
-    xml_directory = os.path.join(project_root, "xml_models")
-    scene = scene.Scene(os.path.join(xml_directory, "bicycle.xml"))
-    bike1 = bicycle.Bicycle()
-    scene.add_object(bike1, "0 1 0", "1 0 0 0", "0.5 0.5 0.5 1")
-    bike2 = bicycle.Bicycle()
-    scene.add_object(bike2, "0 -1 0", "1 0 0 0", "0.5 0.5 0.5 1")
-    cf0 = cf.Crazyflie()
-    traj = skyc_trajectory.SkycTrajectory("misc/skyc_example.skyc")
-    cf0.trajectory = traj
-    scene.add_object(cf0, "0 0 0", "1 0 0 0", "0.5 0.5 0.5 1")
-    bb0 = bb.Bumblebee()
-    bb0.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 0, 1]))
-    scene.add_object(bb0, "-1 0 0.5", "1 0 0 0", "0.5 0.5 0.5 1")
-
-    payload = dynamic_object.DynamicPayload()
-    scene.add_object(payload, "0 0 1.0")
-
-    dummy_mocap_start_poses = {
-        "cf0": (np.array([1, -1, 1]), np.array([0, 0, 0, 1])),
-        "cf1": (np.array([1, 1, 1]), np.array([0, 0, 0, 1])),
-        "bb0": (np.array([-1, 1, 1]), np.array([0, 0, 0, 1])),
-        "bb1": (np.array([-1, -1, 1]), np.array([0, 0, 0, 1]))
-    }
-    mocap1_framegen = partial(dummy_mocap_source.generate_circular_paths, start_poses=dummy_mocap_start_poses, T=5)
-    mocap1 = dummy_mocap_source.DummyMocapSource(frame_generator=mocap1_framegen, fps=120)
-    mcf0 = mcf.MocapCrazyflie(mocap1, "cf0")
-    scene.add_object(mcf0, "1 0 0", "1 0 0 0", "0.5 0.0 0.0 1")
-    mbb0 = mbb.MocapBumblebee(mocap1, "bb0")
-    scene.add_object(mbb0, "-1 0 0", "1 0 0 0", "0.5 0.0 0.0 1")
-    scene.add_mocap_objects(mocap1, color="0 0.5 0 1")
-    scene.remove_object(scene.simulated_objects[-1])
-
-    mocap2 = optitrack_mocap_source.OptitrackMocapSource(ip="192.168.2.141")
-    mcf2 = mcf.MocapCrazyflie(mocap2, "cf9")
-    scene.add_object(mcf2, color="0.5 0 0 1")
-
-    sim = simulator.Simulator(scene, update_freq=500, renderer_fps=100)
-    with sim.launch():
+    # A Scene is the container for the objects in a simulation. A Simulator needs a scene to simulate. To this end,
+    # let's read a Scene from a mjcf file.
+    scn = scene.Scene(os.path.join(xml_directory, "Scene.xml"))
+    # Once we have our scene, we can simulate it using a Simulator, which requires a target update frequency for
+    # controllers to adhere to (default is 500), and a target fps for display to adhere to (default is 100).
+    sim = simulator.Simulator(scn)
+    # We can start displaying our simulation by launching its context handler.
+    with sim.launch(fps=100):
         while sim.viewer.is_running():
-            sim.tick()
-
+            sim.tick()  # tick steps the simulator, including all its subprocesses

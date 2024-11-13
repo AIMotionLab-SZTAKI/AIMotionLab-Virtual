@@ -8,7 +8,11 @@ import pathlib
 import numpy as np
 from functools import partial
 
-# make sure imports work by adding the necessary folders to the path:
+# The lines under here are intended to make sure imports work, by adding parent folders to the path (i.e. the list
+# of folders where the interpreter will look for a given package when you try to import it). This is to account for
+# differences in what the interpreter identifies as your current working directory when launching these scripts
+# from the command line as regular scripts vs with the -m option vs from PyCharm, as well as the script being placed
+# in any depth of sub-sub-subfolder.
 project_root = pathlib.Path(__file__).parents[0]
 sys.path.append(project_root.resolve().as_posix())  # add the folder this file is in to path
 # until we meet the "aiml_virtual" package, keep adding the current folder to the path and then changing folder into
@@ -37,7 +41,8 @@ if __name__ == "__main__":
         "cf0": (np.array([1, -1, 0.5]), np.array([0, 0, 0, 1])),
         "cf1": (np.array([1, 1, 0.5]), np.array([0, 0, 1, 0])),
         "bb0": (np.array([-1, 1, 0.5]), np.array([0, 1, 0, 0])),
-        "bb1": (np.array([-1, -1, 0.5]), np.array([1, 0, 0, 0]))
+        "bb1": (np.array([-1, -1, 0.5]), np.array([1, 0, 0, 0])),
+        "payload1": (np.array([0, 0, 0.25]), np.array([0, 0, 0, 1]))
     }
     # In order to make a frame generator, we can use a function provided in the dummy_mocap_source module.
     # This way, frame generator will generate mocap data that moves the elements of this dictionary around in a circle.
@@ -48,7 +53,7 @@ if __name__ == "__main__":
     # regular intervals, and objects subscribed to a mocap source read the frame whenever they want to.
     # A MocapObject can only be subscribed to one mocap source at a time. It will check the mocap source's frame for
     # its mocap_name, and update its pose in MuJoCo accordingly.
-    # There are two ways to make MocapObjects:
+    # There are two ways to make new MocapObjects:
     # (1): Adding all objects found in a MocapSource
     # (2): Initializing a mocap object with its MocapSource and mocap_name, then adding it with scene.add_object
     #      Note, that if there already are mocap objects in the scene that are connected to the given MocapSource,

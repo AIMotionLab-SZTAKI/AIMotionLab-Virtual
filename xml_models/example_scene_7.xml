@@ -1,0 +1,207 @@
+<mujoco model="empty_checkerboard">
+	<include file="common_assets.xml" />
+	<default class="main">
+		<default class="pole">
+			<geom rgba="0.1 0.1 0.1 1" />
+			<default class="pole_top">
+				<geom type="cylinder" size="0.022 0.5" pos="0 0 0.5" />
+			</default>
+			<default class="pole_bottom1">
+				<geom type="box" size="0.02 0.205 0.02" quat="0.7071 0 0 0.7071" pos="0 0 0.02" />
+				<default class="pole_bottom2">
+					<geom quat="1 0 0 0" />
+				</default>
+			</default>
+		</default>
+		<default class="landing_zone">
+			<geom type="box" pos="0 0 0.01" size="0.1175 0.0975 0.01" rgba="0.8 0.8 0.8 1.0" />
+		</default>
+	</default>
+	<compiler angle="radian" meshdir="" />
+	<option timestep="0.001" integrator="implicitfast" />
+	<visual>
+		<quality shadowsize="4096" />
+		<global offwidth="1920" offheight="1200" />
+	</visual>
+	<asset>
+		<mesh file="meshes/crazyflie/cf2_assembly.stl" name="crazyflie" smoothnormal="true" scale="1.5 1.5 1.5" />
+		<mesh file="meshes/building/lagyi_cockpit.stl" name="cockpit" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_fal1.stl" name="fal1" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_fal2.stl" name="fal2" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_oszlop1.stl" name="oszlop1" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_oszlop2.stl" name="oszlop2" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_oszlop3.stl" name="oszlop3" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/building/lagyi_oszlop4.stl" name="oszlop4" smoothnormal="true" scale="0.0085 0.0085 0.0085" />
+		<mesh file="meshes/bucket/Bucket3.obj" name="bucket" smoothnormal="false" scale="0.035 0.035 0.035" />
+		<texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="512" height="512" />
+		<texture name="tex-carpet" type="2d" file="textures/carpet_lagyi4.png" />
+		<texture name="tex-roundabout" type="2d" file="textures/roundabout.png" />
+		<texture name="tex-hospital" type="2d" file="textures/hospital.png" />
+		<texture name="tex-post_office" type="2d" file="textures/post_office.png" />
+		<texture name="tex-airport" type="2d" file="textures/airport.png" />
+		<texture name="tex-parking_lot" type="2d" file="textures/parking_lot.png" />
+		<texture name="tex-sztaki" type="2d" file="textures/sztaki.png" />
+		<material name="mat-carpet" shininess="0.1" texture="tex-carpet" texuniform="false" />
+		<material name="mat-roundabout" reflectance="0.7" texture="tex-roundabout" texuniform="false" />
+		<material name="mat-hospital" reflectance="0.7" texrepeat="7.843 7.692" texture="tex-hospital" texuniform="true" />
+		<material name="mat-post_office" reflectance="0.7" texrepeat="7.843 7.843" texture="tex-post_office" texuniform="true" />
+		<material name="mat-airport" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-airport" texuniform="true" />
+		<material name="mat-parking_lot" reflectance="0.7" texrepeat="9.524 8.696" texture="tex-parking_lot" texuniform="true" />
+		<material name="mat-sztaki" reflectance="0.7" texrepeat="9.524 9.524" texture="tex-sztaki" texuniform="true" />
+		<texture name="grid" type="2d" builtin="checker" width="100" height="100" rgb1=".1 .2 .3" rgb2=".25 .35 .45" />
+		<material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".05" />
+	</asset>
+	<worldbody>
+		<light dir="0 -0.3 -1" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="1 1 15" cutoff="70" />
+		<light dir="-.2 1 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="2 -5 6" cutoff="70" />
+		<light dir="-1.0 -1.0 -.4" diffuse=".9 .9 .9" specular="0.6 0.9 0.6" pos="10 10 6" directional="true" cutoff="70" />
+		<camera pos="2.867 -5.173 1.776" xyaxes="0.875 0.485 0.000 -0.139 0.252 0.958" />
+		<geom name="ground" size="20 20 .005" type="plane" material="grid" condim="3" />
+		<body name="Car_0" pos="1.5 0 0.05" quat="0.948 0 0 0.3165">
+			<inertial pos="0 0 0" diaginertia=".05 .05 .08" mass="3.0" />
+			<joint name="Car_0" type="free" />
+			<site name="Car_0_cog" pos="0 0 0" />
+			<geom name="Car_0_chassis_b" type="box" size=".10113 .1016 .02" pos="-.06 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_chassis_f" type="box" size=".06 .07 .02" pos=".10113 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_front" type="box" size=".052388 .02 .02" pos=".2135 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_back" type="box" size=".062488 .02 .02" pos="-.2236 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_front_bumper" type="box" size=".005 .09 .02" pos=".265888 0 0.02" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_back_bumper" type="box" size=".005 .08 .02" pos="-.2861 0 0.02" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_number" type="cylinder" size=".01984 .03" pos=".12 0 .05" rgba="0.1 0.1 0.1 1.0" />
+			<geom name="Car_0_camera" type="box" size=".012 .06 0.02" pos=".18 0 .08" />
+			<geom name="Car_0_camera_holder" type="box" size=".012 .008 .02" pos=".18 0 .04" />
+			<geom name="Car_0_circuits" type="box" size=".08 .06 .03" pos="-.05 0 .05" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_0_antennal" type="box" size=".007 .004 .06" pos="-.16 -.01 .105" euler="0.2 0 0" rgba=".1 .1 .1 1.0" />
+			<geom name="Car_0_antennar" type="box" size=".007 .004 .06" pos="-.16 .01 .105" euler="-0.2 0 0" rgba=".1 .1 .1 1.0" />
+			<geom name="Car_0_antenna_holder" type="box" size=".008 .008 .02" pos="-.16 0 .04" rgba=".1 .1 .1 1.0" />
+			<body name="Car_0_wheelfr">
+				<joint name="Car_0_wheelfr_steer" type="hinge" pos="0.16113 0.10016 0" limited="true" frictionloss="0.2" damping="0.2" armature="0.001" range="-0.6 0.6" axis="0 0 1" />
+				<joint name="Car_0_wheelfr" type="hinge" pos="0.16113 0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_0_wheelfr" type="cylinder" size=".052388 .022225" pos="0.16113 0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
+			</body>
+			<body name="Car_0_wheelrl">
+				<joint name="Car_0_wheelrl" type="hinge" pos="-0.16113 0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_0_wheelrl" type="cylinder" size=".052388 .022225" pos="-0.16113 0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
+			</body>
+			<body name="Car_0_wheelfl">
+				<joint name="Car_0_wheelfl_steer" type="hinge" pos="0.16113 -0.10016 0" limited="true" frictionloss="0.2" damping="0.2" armature="0.001" range="-0.6 0.6" axis="0 0 1" />
+				<joint name="Car_0_wheelfl" type="hinge" pos="0.16113 -0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_0_wheelfl" type="cylinder" size=".052388 .022225" pos="0.16113 -0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
+			</body>
+			<body name="Car_0_wheelrr">
+				<joint name="Car_0_wheelrr" type="hinge" pos="-0.16113 -0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_0_wheelrr" type="cylinder" size=".052388 .022225" pos="-0.16113 -0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
+			</body>
+		</body>
+		<body name="Car_1" pos="-1.5 0 0.05" quat="0.948 0 0 0.3165">
+			<inertial pos="0 0 0" diaginertia=".05 .05 .08" mass="3.0" />
+			<joint name="Car_1" type="free" />
+			<site name="Car_1_cog" pos="0 0 0" />
+			<geom name="Car_1_chassis_b" type="box" size=".10113 .1016 .02" pos="-.06 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_1_chassis_f" type="box" size=".06 .07 .02" pos=".10113 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_1_front" type="box" size=".052388 .02 .02" pos=".2135 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_1_back" type="box" size=".062488 .02 .02" pos="-.2236 0 0" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_1_front_bumper" type="box" size=".005 .09 .02" pos=".265888 0 0.02" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_1_back_bumper" type="box" size=".005 .08 .02" pos="-.2861 0 0.02" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_1_number" type="cylinder" size=".01984 .03" pos=".12 0 .05" rgba="0.1 0.1 0.1 1.0" />
+			<geom name="Car_1_camera" type="box" size=".012 .06 0.02" pos=".18 0 .08" />
+			<geom name="Car_1_camera_holder" type="box" size=".012 .008 .02" pos=".18 0 .04" />
+			<geom name="Car_1_circuits" type="box" size=".08 .06 .03" pos="-.05 0 .05" rgba="0.5 0.5 0.5 1" />
+			<geom name="Car_1_antennal" type="box" size=".007 .004 .06" pos="-.16 -.01 .105" euler="0.2 0 0" rgba=".1 .1 .1 1.0" />
+			<geom name="Car_1_antennar" type="box" size=".007 .004 .06" pos="-.16 .01 .105" euler="-0.2 0 0" rgba=".1 .1 .1 1.0" />
+			<geom name="Car_1_antenna_holder" type="box" size=".008 .008 .02" pos="-.16 0 .04" rgba=".1 .1 .1 1.0" />
+			<body name="Car_1_wheelfr">
+				<joint name="Car_1_wheelfr_steer" type="hinge" pos="0.16113 0.10016 0" limited="true" frictionloss="0.2" damping="0.2" armature="0.001" range="-0.6 0.6" axis="0 0 1" />
+				<joint name="Car_1_wheelfr" type="hinge" pos="0.16113 0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_1_wheelfr" type="cylinder" size=".052388 .022225" pos="0.16113 0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
+			</body>
+			<body name="Car_1_wheelrl">
+				<joint name="Car_1_wheelrl" type="hinge" pos="-0.16113 0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_1_wheelrl" type="cylinder" size=".052388 .022225" pos="-0.16113 0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
+			</body>
+			<body name="Car_1_wheelfl">
+				<joint name="Car_1_wheelfl_steer" type="hinge" pos="0.16113 -0.10016 0" limited="true" frictionloss="0.2" damping="0.2" armature="0.001" range="-0.6 0.6" axis="0 0 1" />
+				<joint name="Car_1_wheelfl" type="hinge" pos="0.16113 -0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_1_wheelfl" type="cylinder" size=".052388 .022225" pos="0.16113 -0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
+			</body>
+			<body name="Car_1_wheelrr">
+				<joint name="Car_1_wheelrr" type="hinge" pos="-0.16113 -0.122385 0" axis="0 1 0" frictionloss="0.01" damping="0.00001" armature="0.05" limited="false" />
+				<geom name="Car_1_wheelrr" type="cylinder" size=".052388 .022225" pos="-0.16113 -0.122385 0" mass="0.1" material="material_check" euler="1.571 0 0" />
+			</body>
+			<body name="Car_1_trailer" pos="-0.18 0 0">
+				<joint type="ball" name="car_to_rod" />
+				<geom type="cylinder" size="0.0025 0.09" euler="0 1.571 0" pos="-0.09 0 0" mass="0.1" />
+				<body name="Car_1_trailer_front_structure" pos="-0.18 0 0">
+					<joint type="hinge" axis="0 1 0" name="rod_to_front" />
+					<geom type="box" size="0.0075 0.0965 0.0075" mass="0.3" />
+					<body pos="0 0.0965 0" name="Car_1_trailer_wheelfl">
+						<geom type="cylinder" size=".0315 .005" material="material_check" euler="1.571 0 0" mass="0.1" name="Car_1_trailer_wheelfl" />
+						<joint type="hinge" axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.00005" />
+					</body>
+					<body pos="0 -0.0965 0" name="Car_1_trailer_wheelfr">
+						<geom type="cylinder" size=".0315 .005" material="material_check" euler="1.571 0 0" mass="0.1" name="Car_1_trailer_wheelfr" />
+						<joint type="hinge" axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.00005" />
+					</body>
+					<body name="Car_1_trailer_rear_structure">
+						<geom type="box" size=".25 .1475 .003" pos="-.21 0 .08" rgba="0.7 0.6 0.35 1.0" euler="0 0.0 0" mass="1.5" />
+						<geom type="box" size="0.0075 0.0965 0.0075" pos="-0.225 0 0" mass="0.3" />
+						<geom type="box" size="0.1375 0.07150000000000001 0.0025" pos="-0.1125 0 0.014" rgba="0.9 0.9 0.9 0.2" euler="0 0.0 0" mass="1.11" />
+						<geom type="cylinder" size="0.0025 0.035" pos=".01 0 0.05" euler="0 0.0 0" mass="0.005" />
+						<geom type="cylinder" size="0.0025 0.035" pos=".01 -0.03 0.05" euler="0 0.0 0" mass="0.005" />
+						<geom type="cylinder" size="0.0025 0.035" pos=".01 0.03 0.05" euler="0 0.0 0" mass="0.005" />
+						<geom type="cylinder" size="0.0025 0.035" pos="-.01 -0.015 0.05" euler="0 0.0 0" mass="0.005" />
+						<geom type="cylinder" size="0.0025 0.035" pos="-.01 0.015 0.05" euler="0 0.0 0" mass="0.005" />
+						<geom type="cylinder" size="0.008 0.032" pos="-0.20500000000000002 0 0.045" rgba="0.1 0.1 0.1 1.0" euler="0 0.0 0" mass="0.005" />
+						<joint type="hinge" axis="0 0 1" name="front_to_rear" />
+						<body pos="-0.225 0.0965 0" name="Car_1_trailer_wheelrl">
+							<geom type="cylinder" size=".0315 .005" material="material_check" euler="1.571 0 0" mass="0.1" name="Car_1_trailer_wheelrl" />
+							<joint type="hinge" axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.00005" />
+						</body>
+						<body pos="-0.225 -0.0965 0" name="Car_1_trailer_wheelrr">
+							<geom type="cylinder" size=".0315 .005" material="material_check" euler="1.571 0 0" mass="0.1" name="Car_1_trailer_wheelrr" />
+							<joint type="hinge" axis="0 1 0" frictionloss="0.001" damping="0.00001" armature="0.00005" />
+						</body>
+					</body>
+				</body>
+			</body>
+		</body>
+	</worldbody>
+	<actuator>
+		<position forcelimited="true" forcerange="-5 5" name="Car_0_wheelfr_actr_steer" joint="Car_0_wheelfr_steer" kp="15" />
+		<motor name="Car_0_wheelfr_actr" joint="Car_0_wheelfr" />
+		<motor name="Car_0_wheelrl_actr" joint="Car_0_wheelrl" />
+		<position forcelimited="true" forcerange="-5 5" name="Car_0_wheelfl_actr_steer" joint="Car_0_wheelfl_steer" kp="15" />
+		<motor name="Car_0_wheelfl_actr" joint="Car_0_wheelfl" />
+		<motor name="Car_0_wheelrr_actr" joint="Car_0_wheelrr" />
+		<position forcelimited="true" forcerange="-5 5" name="Car_1_wheelfr_actr_steer" joint="Car_1_wheelfr_steer" kp="15" />
+		<motor name="Car_1_wheelfr_actr" joint="Car_1_wheelfr" />
+		<motor name="Car_1_wheelrl_actr" joint="Car_1_wheelrl" />
+		<position forcelimited="true" forcerange="-5 5" name="Car_1_wheelfl_actr_steer" joint="Car_1_wheelfl_steer" kp="15" />
+		<motor name="Car_1_wheelfl_actr" joint="Car_1_wheelfl" />
+		<motor name="Car_1_wheelrr_actr" joint="Car_1_wheelrr" />
+	</actuator>
+	<sensor>
+		<gyro site="Car_0_cog" name="Car_0_gyro" />
+		<velocimeter site="Car_0_cog" name="Car_0_velocimeter" />
+		<framepos objtype="site" objname="Car_0_cog" name="Car_0_posimeter" />
+		<framequat objtype="site" objname="Car_0_cog" name="Car_0_orimeter" />
+		<gyro site="Car_1_cog" name="Car_1_gyro" />
+		<velocimeter site="Car_1_cog" name="Car_1_velocimeter" />
+		<framepos objtype="site" objname="Car_1_cog" name="Car_1_posimeter" />
+		<framequat objtype="site" objname="Car_1_cog" name="Car_1_orimeter" />
+	</sensor>
+	<contact>
+		<pair geom1="Car_0_wheelfr" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_0_wheelrl" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_0_wheelfl" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_0_wheelrr" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_1_wheelfr" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_1_wheelrl" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_1_wheelfl" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_1_wheelrr" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_1_trailer_wheelfl" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_1_trailer_wheelfr" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_1_trailer_wheelrl" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+		<pair geom1="Car_1_trailer_wheelrr" geom2="ground" condim="6" friction="2.5 2.5 .009 .0001 .0001" />
+	</contact>
+</mujoco>

@@ -7,7 +7,11 @@ import sys
 import pathlib
 import numpy as np
 
-# make sure imports work by adding the necessary folders to the path:
+# The lines under here are intended to make sure imports work, by adding parent folders to the path (i.e. the list
+# of folders where the interpreter will look for a given package when you try to import it). This is to account for
+# differences in what the interpreter identifies as your current working directory when launching these scripts
+# from the command line as regular scripts vs with the -m option vs from PyCharm, as well as the script being placed
+# in any depth of sub-sub-subfolder.
 project_root = pathlib.Path(__file__).parents[0]
 sys.path.append(project_root.resolve().as_posix())  # add the folder this file is in to path
 # until we meet the "aiml_virtual" package, keep adding the current folder to the path and then changing folder into
@@ -25,8 +29,8 @@ from aiml_virtual.simulated_object.dynamic_object.controlled_object import bicyc
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import crazyflie, bumblebee, hooked_bumblebee
 
 if __name__ == "__main__":
-    # As mentioned in 2_build_scene.py, we can simulate physics using DynamicObjects. So far we've only seen dynamic
-    # objects that had no actuators. Let's change that, and build a scene with dynamic objects based on the empty
+    # As mentioned in 2_build_scene.py, we can simulate physics using DynamicObjects. So far we've only seen a dynamic
+    # object that had no actuators. Let's change that, and build a scene with dynamic objects based on the empty
     # checkerboard scene base!
     scn = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"), save_filename=f"example_scene_3.xml")
 
@@ -40,7 +44,7 @@ if __name__ == "__main__":
     bb.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 0, 0.7]))
     scn.add_object(bb, "-1 0 0.7", "1 0 0 0", "0.5 0.5 0.5 1")
     # In order to give the bumblebee's controller some work, let's add a non-actuated dynamic object that drops from
-    # the sky and disturbs the bumblebee:
+    # the sky and disturbs the bumblebee when colliding with it.
     scn.add_object(dynamic_object.DynamicPayload(), "-0.9 0 1")
 
     # The dummy trajectory may have seemed a bit boring, even with the disturbance. A more interesting trajectory type

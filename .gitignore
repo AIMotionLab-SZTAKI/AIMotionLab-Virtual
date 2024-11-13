@@ -7,4 +7,3 @@ docs/build
 docs/source/aiml_virtual
 *.idea/
 xml_models/Scene.xml
-xml_models/example_*

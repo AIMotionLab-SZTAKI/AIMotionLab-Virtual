@@ -32,7 +32,7 @@ class MocapBumblebee(mocap_drone.MocapDrone):
     def get_identifier(cls) -> Optional[str]:
         return "MocapBumblebee" # "bb" moved to mocap_hooked_bumblebee, at least for now
 
-    def __init__(self, source: MocapSource, mocap_name: str):
+    def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.offset = np.array([0, 0, -0.06])
 

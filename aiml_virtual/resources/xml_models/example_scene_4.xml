@@ -96,7 +96,7 @@
 			<geom type="capsule" pos="0 -0.01061 0.15561" euler="1.96350 0 0" size="0.004 0.01378" rgba="0 0 0 1" />
 			<geom type="capsule" pos="0 -0.02561 0.14061" euler="2.74889 0 0" size="0.004 0.008" rgba="0 0 0 1" />
 		</body>
-		<body name="MocapCrazyflie_0" pos="1.9363031460881697 1.3511986550723594 0.5" quat="0 0 1 0" mocap="true">
+		<body name="MocapCrazyflie_0" pos="0.6607713072110144 0.05928797707204325 0.5" quat="0 0 1 0" mocap="true">
 			<geom name="MocapCrazyflie_0_body" type="mesh" mesh="crazyflie_body" rgba="1 0 0 1" />
 			<geom name="MocapCrazyflie_0_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="1 0 0 1" />
 			<geom name="MocapCrazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="1 0 0 1" />

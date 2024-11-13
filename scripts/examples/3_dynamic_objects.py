@@ -19,9 +19,9 @@ sys.path.append(project_root.resolve().as_posix())  # add the folder this file i
 while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
     project_root = project_root.parents[0]
     sys.path.append(project_root.resolve().as_posix())
-xml_directory = os.path.join(project_root.resolve().as_posix(), "xml_models")
-project_root = project_root.resolve().as_posix()
 
+import aiml_virtual
+xml_directory = aiml_virtual.xml_directory
 from aiml_virtual import scene, simulator
 from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
 from aiml_virtual.simulated_object.dynamic_object import dynamic_object
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     # The dummy trajectory may have seemed a bit boring, even with the disturbance. A more interesting trajectory type
     # is read from a skyc file. An example skyc file is found under scripts/misc/skyc_example.skyc
     cf = crazyflie.Crazyflie()
-    traj = skyc_trajectory.SkycTrajectory(f"{project_root}/scripts/misc/skyc_example.skyc")
+    traj = skyc_trajectory.SkycTrajectory(os.path.join(aiml_virtual.resource_directory, "skyc_example.skyc"))
     cf.trajectory = traj
     scn.add_object(cf, "0 0 0", "1 0 0 0", "0.5 0.5 0.5 1")
 

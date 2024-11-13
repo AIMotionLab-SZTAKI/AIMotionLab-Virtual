@@ -22,4 +22,8 @@ readme = "readme.md"
 
 [tool.setuptools]
 py-modules = []
+include-package-data = true
 packages = ["aiml_virtual"]
+
+[tool.setuptools.package-data]
+aiml_virtual = ["resources/**/*"]

@@ -10,6 +10,7 @@ from typing import Type, cast, Union, Optional
 import mujoco
 import pathlib
 
+import aiml_virtual
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.simulated_object.mocap_object import mocap_object
 from aiml_virtual.simulated_object.mocap_skeleton import mocap_skeleton
@@ -26,9 +27,8 @@ MocapSource = mocap_source.MocapSource
 MocapSkeleton = mocap_skeleton.MocapSkeleton
 warning = utils_general.warning
 
-XML_FOLDER = os.path.join(pathlib.Path(__file__).parents[1].resolve().as_posix(), "xml_models")
-EMTPY_SCENE = os.path.join(pathlib.Path(__file__).parents[1].resolve().as_posix(), "xml_models", "empty_scene.xml")
-
+XML_FOLDER = aiml_virtual.xml_directory
+EMTPY_SCENE = os.path.join(XML_FOLDER, "empty_scene.xml")
 
 class Scene:
     """

@@ -18,9 +18,9 @@ sys.path.append(project_root.resolve().as_posix())  # add the folder this file i
 while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
     project_root = project_root.parents[0]
     sys.path.append(project_root.resolve().as_posix())
-xml_directory = os.path.join(project_root.resolve().as_posix(), "xml_models")
-project_root = project_root.resolve().as_posix()
 
+import aiml_virtual
+xml_directory = aiml_virtual.xml_directory
 from aiml_virtual import scene, simulator
 
 if __name__ == "__main__":

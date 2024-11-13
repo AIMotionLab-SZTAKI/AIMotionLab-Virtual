@@ -20,9 +20,9 @@ sys.path.append(project_root.resolve().as_posix())  # add the folder this file i
 while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
     project_root = project_root.parents[0]
     sys.path.append(project_root.resolve().as_posix())
-xml_directory = os.path.join(project_root.resolve().as_posix(), "xml_models")
-project_root = project_root.resolve().as_posix()
 
+import aiml_virtual
+xml_directory = aiml_virtual.xml_directory
 from aiml_virtual import scene, simulator
 from aiml_virtual.mocap import dummy_mocap_source
 from aiml_virtual.simulated_object.mocap_object.mocap_drone import mocap_bumblebee
@@ -38,9 +38,9 @@ if __name__ == "__main__":
         "landing_zone_10": (np.array([1, 1, 0]), np.array([0, 0, 0, 1])),
         "obst1": (np.array([-1, 0, 0]), np.array([0, 0, 0, 1])),
         "payload 12": (np.array([1, 0, 0]), np.array([0, 0, 0, 1])),
-        "bu1": (np.array([-1, -1, 0]), np.array([0, 0, 0, 1])),
-        "bu2": (np.array([0, -1, 0]), np.array([0, 0, 0, 1])),
-        "bu3": (np.array([1, -1, 0]), np.array([0, 0, 0, 1])),
+        "bu11": (np.array([-1, -1, 0.9]), np.array([0, 0, 0, 1])),
+        "bu13": (np.array([0, -1, 0]), np.array([0, 0, 0, 1])),
+        "bu14": (np.array([1, -1, 0.2]), np.array([0, 0, 0, 1])),
         "MocapBumblebee": (np.array([0, 0, 0.5]), np.array([0, 0, 0, 1]))
     }
     frame_generator = partial(dummy_mocap_source.generate_circular_paths, start_poses=dummy_mocap_dict, T=5)

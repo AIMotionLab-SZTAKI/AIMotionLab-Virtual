@@ -1,6 +1,5 @@
 """
-As opposed to dynamic cars, currently the trailer and the car are separate mocap objects. This
-example is meant to demonstrate that, as well as the usage of the Optitrack system as a mocap source.
+This script shows how to use the optitrack motion capture system as a mocap source.
 """
 
 import os

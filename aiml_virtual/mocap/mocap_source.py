@@ -55,7 +55,7 @@ class MocapSource(ABC):
         "payload1": "MocapPayload",
         "payload2": "MocapPayload",
         "bb3": "MocapHookedBumblebee2DOF",
-        "JoeBush1": "MocapCar",  # TODO: move to skeleton
+        "JoeBush1": "MocapCar",
         "trailer": "MocapTrailer"
     }  #: **classcar** | Contains the recognized rigid bodies. Keys are the optitrack names, values are the class identifiers.
 

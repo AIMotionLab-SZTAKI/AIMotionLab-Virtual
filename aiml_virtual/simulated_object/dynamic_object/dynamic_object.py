@@ -7,7 +7,7 @@ from xml.etree import ElementTree as ET
 from abc import ABC
 import mujoco
 import numpy as np
-
+from scipy.spatial.transform import Rotation
 from aiml_virtual.simulated_object import simulated_object
 
 
@@ -67,7 +67,11 @@ class DynamicPayload(DynamicObject):
         load_mass = "0.07"  # I'm pretty sure it's something like 70g
         segment_mass = "0.0001"
         black = "0 0 0 1"
-        body = ET.Element("body", name=self.name, pos=pos, quat=quat)
+        quat_np = np.array(quat.split(" "), dtype=float)
+        quat_rot_np = Rotation.from_matrix(Rotation.from_euler("xyz", (0, 0, -np.pi/2)).as_matrix() @ 
+                                           Rotation.from_quat(np.roll(quat_np, -1)).as_matrix()).as_quat()
+        quat_rot = " ".join(map(str, np.roll(quat_rot_np, 1)))
+        body = ET.Element("body", name=self.name, pos=pos, quat=quat_rot)
         ET.SubElement(body, "joint", name=self.name, type="free")
         ET.SubElement(body, "geom", name=self.name, type="mesh", mesh="payload_simplified", pos="0 0 0.0405",
                       rgba="0 0 0 1", euler="1.57 0 0", mass=segment_mass)
@@ -89,6 +93,8 @@ class DynamicPayload(DynamicObject):
                       size="0.004 0.01378", rgba=black, mass=segment_mass)
         ET.SubElement(body, "geom", type="capsule", pos="0 -0.02561 0.14061", euler="2.74889 0 0",
                       size="0.004 0.008", rgba=black, mass=segment_mass)
+        ET.SubElement(body, "site", name="load_contact_point", pos="0 0 0.16", type="sphere", size="0.002", rgba=black)
+        ET.SubElement(body, "site", name="load_hook_center_point", pos="0 0 0.1275", type="sphere", size="0.001", rgba=black)
         return {"worldbody": [body]}
 
     def update(self) -> None:

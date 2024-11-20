@@ -57,8 +57,10 @@ class Scene:
     """
     def __init__(self, base_scene_filename: str = EMTPY_SCENE, save_filename: str = "Scene.xml"):
         self.model: mujoco.MjModel = mujoco.MjModel.from_xml_path(base_scene_filename)  #: the mjModel with C bindings
-        self.xml_root: ET.Element = ET.parse(base_scene_filename).getroot()  #: root of the XML tree
-        self.xml_name: str = os.path.join(XML_FOLDER, save_filename)  #: the name under which we will save the new XML
+        self.xml_root: ET.Element = ET.Element("mujoco", {"model": save_filename}) #: root of the XML tree
+        # include the base xml in the scene when we save it
+        ET.SubElement(self.xml_root, "include", {"file": os.path.join(XML_FOLDER, base_scene_filename)})
+        self.xml_name: str = save_filename  #: the name under which we will save the new XML
 
         self.simulated_objects: list[SimulatedObject] = []  #: the objects with python interface
         for i in range(self.model.nbody):  # let's check all the bodies in the model

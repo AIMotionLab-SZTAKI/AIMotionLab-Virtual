@@ -51,5 +51,6 @@ if __name__ == "__main__":
     # that the former will drop from the sky when the simulation is launched, whereas the latter will stay in the air.
     sim = simulator.Simulator(scn)
     with sim.launch(fps=20):  # demonstrate lower fps as well
+        sim.cam.distance = 4  # demonstrate positioning the camera at a different distance
         while sim.viewer.is_running():
             sim.tick()  # tick steps the simulator, including all its subprocesses

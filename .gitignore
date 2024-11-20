@@ -7,3 +7,4 @@ docs/build
 docs/source/aiml_virtual
 *.idea/
 aiml_virtual/resources/xml_models/Scene.xml
+scripts/examples/*.xml

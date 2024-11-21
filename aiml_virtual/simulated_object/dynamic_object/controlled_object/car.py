@@ -32,6 +32,7 @@ class TRAILER:
     MASS_BOTTOM_PLATE = "1.11"
     MASS_SCREW = "0.005"
     MASS_REAR_HOLDER = "0.005"
+    DRAWBAR_DEFAULT_PITCH = -0.1
 
 class Wheel:
     """
@@ -324,6 +325,9 @@ class Car(controlled_object.ControlledObject):
         self.sensors["vel"] = self.data.sensor(self.name + "_velocimeter").data
         self.sensors["pos"] = self.data.sensor(self.name + "_posimeter").data
         self.sensors["quat"] = self.data.sensor(self.name + "_orimeter").data
+        if self.has_trailer:
+            self.data.joint("car_to_rod").qpos = utils_general.quaternion_from_euler(0, TRAILER.DRAWBAR_DEFAULT_PITCH, 0)
+            self.data.joint("rod_to_front").qpos = -TRAILER.DRAWBAR_DEFAULT_PITCH
         for wheel in self.wheels.values():
             wheel.ctrl = self.data.actuator(wheel.name+"_actr").ctrl
             wheel.actr_force = self.data.actuator(wheel.name+"_actr").force

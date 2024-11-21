@@ -319,11 +319,11 @@ class Car(controlled_object.ControlledObject):
             raise RuntimeError
         if self.controller is None:
             self.set_default_controller()
-            self.data = data
-            self.sensors["ang_vel"] = self.data.sensor(self.name + "_gyro").data
-            self.sensors["vel"] = self.data.sensor(self.name + "_velocimeter").data
-            self.sensors["pos"] = self.data.sensor(self.name + "_posimeter").data
-            self.sensors["quat"] = self.data.sensor(self.name + "_orimeter").data
+        self.data = data
+        self.sensors["ang_vel"] = self.data.sensor(self.name + "_gyro").data
+        self.sensors["vel"] = self.data.sensor(self.name + "_velocimeter").data
+        self.sensors["pos"] = self.data.sensor(self.name + "_posimeter").data
+        self.sensors["quat"] = self.data.sensor(self.name + "_orimeter").data
         for wheel in self.wheels.values():
             wheel.ctrl = self.data.actuator(wheel.name+"_actr").ctrl
             wheel.actr_force = self.data.actuator(wheel.name+"_actr").force

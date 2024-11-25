@@ -82,7 +82,7 @@ class DynamicPayload(DynamicObject):
         ET.SubElement(body, "geom", type="capsule", pos="0.02561 0 0.11939", euler="0 0.39270 0",
                       size="0.004 0.01378", rgba=black, mass=segment_mass)
         ET.SubElement(body, "geom", type="capsule", pos="-0.02561 0 0.14061", euler="0 0.39270 0",
-                      size="0.004 0.01378", rgba=black, mass=segment_mass)
+                      size="0.004 0.005", rgba=black, mass=segment_mass)
         ET.SubElement(body, "geom", type="capsule", pos="-0.01061 0 0.15561", euler="0 1.17810 0",
                       size="0.004 0.01378", rgba=black, mass=segment_mass)
         ET.SubElement(body, "geom", type="capsule", pos="0.01061 0 0.15561", euler="0 1.96350 0",

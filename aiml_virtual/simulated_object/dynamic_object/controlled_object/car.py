@@ -166,12 +166,12 @@ class Car(controlled_object.ControlledObject):
         """
         # the body for the trailer under which all other geoms go
         trailer = ET.Element("body", name=self.name+"_trailer", pos=f"{-TRAILER.CAR_COG_TO_HITCH} 0 0")
-        ET.SubElement(trailer, "joint", type="ball", name="car_to_rod")  # joint between car and drawbar
+        ET.SubElement(trailer, "joint", type="ball", name=self.name + "car_to_rod")  # joint between car and drawbar
         ET.SubElement(trailer, "geom", type="cylinder", size=f"0.0025 {TRAILER.DRAWBAR_LENGTH/2}",  # drawbar geom
                       euler="0 1.571 0", pos=f"-{TRAILER.DRAWBAR_LENGTH/2} 0 0", mass = TRAILER.MASS_DRAW_BAR)
         front_axle = ET.SubElement(trailer, "body", name=self.name + "_trailer_front_structure",
                                    pos = f"{-TRAILER.DRAWBAR_LENGTH} 0 0")  # the body for the front axle
-        ET.SubElement(front_axle, "joint", type="hinge", axis="0 1 0", name="rod_to_front")
+        ET.SubElement(front_axle, "joint", type="hinge", axis="0 1 0", name=self.name + "rod_to_front")
         ET.SubElement(front_axle, "geom", type="box", size=f"0.0075 {TRAILER.TRACK_DISTANCE/2} 0.0075",
                       mass=TRAILER.MASS_FRONT_AXLE)
         # front left wheel
@@ -194,7 +194,8 @@ class Car(controlled_object.ControlledObject):
         # top plate
         ET.SubElement(rear_structure, "geom", type="box", size=".25 .1475 .003", pos="-.21 0 .08",
                       rgba="0.7 0.6 0.35 1.0", euler="0 " + TRAILER.TOP_TILT + " 0",
-                      mass=TRAILER.MASS_TOP_PLATE)
+                      mass=TRAILER.MASS_TOP_PLATE, name=self.name + "_trailer_top_plate")
+        ET.SubElement(rear_structure, "site", name=self.name + "_trailer_top_plate", pos="-.21 0 .08")
         # rear axle
         ET.SubElement(rear_structure, "geom", type="box", size=f"0.0075 {TRAILER.TRACK_DISTANCE / 2} 0.0075",
                       pos = f"{-TRAILER.AXLE_DISTANCE} 0 0",  mass=TRAILER.MASS_REAR_AXLE)
@@ -223,7 +224,7 @@ class Car(controlled_object.ControlledObject):
                       euler="0 " + TRAILER.TOP_TILT + " 0", mass=TRAILER.MASS_REAR_HOLDER)
 
         # joint for the rear part
-        ET.SubElement(rear_structure, "joint", type="hinge", axis="0 0 1", name="front_to_rear")
+        ET.SubElement(rear_structure, "joint", type="hinge", axis="0 0 1", name=self.name + "front_to_rear")
 
         # rear left wheel
         trailer_wheelrl = ET.SubElement(rear_structure, "body",
@@ -306,6 +307,10 @@ class Car(controlled_object.ControlledObject):
             trailer, contacts = self.get_trailer()
             car.append(trailer)
             ret["contact"].extend(contacts)
+            ret["sensor"].append(ET.Element("gyro", site=self.name + "_trailer_top_plate", name=self.name + "_trailer_ang_vel"))
+            ret["sensor"].append(ET.Element("framelinvel", objtype="site", objname=self.name + "_trailer_top_plate", name=self.name + "_trailer_vel"))
+            ret["sensor"].append(ET.Element("framepos", objtype="site", objname=self.name + "_trailer_top_plate", name=self.name + "_trailer_pos"))
+            ret["sensor"].append(ET.Element("framequat", objtype="site", objname=self.name + "_trailer_top_plate", name=self.name + "_trailer_quat"))
         return ret
 
     def bind_to_data(self, data: mujoco.MjData) -> None:
@@ -326,8 +331,8 @@ class Car(controlled_object.ControlledObject):
         self.sensors["pos"] = self.data.sensor(self.name + "_posimeter").data
         self.sensors["quat"] = self.data.sensor(self.name + "_orimeter").data
         if self.has_trailer:
-            self.data.joint("car_to_rod").qpos = utils_general.quaternion_from_euler(0, TRAILER.DRAWBAR_DEFAULT_PITCH, 0)
-            self.data.joint("rod_to_front").qpos = -TRAILER.DRAWBAR_DEFAULT_PITCH
+            self.data.joint(self.name + "car_to_rod").qpos = utils_general.quaternion_from_euler(0, TRAILER.DRAWBAR_DEFAULT_PITCH, 0)
+            self.data.joint(self.name + "rod_to_front").qpos = -TRAILER.DRAWBAR_DEFAULT_PITCH
         for wheel in self.wheels.values():
             wheel.ctrl = self.data.actuator(wheel.name+"_actr").ctrl
             wheel.actr_force = self.data.actuator(wheel.name+"_actr").force

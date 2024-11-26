@@ -89,8 +89,9 @@ class DynamicPayload(DynamicObject):
                       size="0.004 0.01378", rgba=black, mass=segment_mass)
         ET.SubElement(body, "geom", type="capsule", pos="0.02561 0 0.14061", euler="0 2.74889 0",
                       size="0.004 0.008", rgba=black, mass=segment_mass)
-        ET.SubElement(body, "site", name="load_contact_point", pos="0 0 0.16", type="sphere", size="0.002", rgba=black)
-        ET.SubElement(body, "site", name="load_hook_center_point", pos="0 0 0.1275", type="sphere", size="0.001", rgba=black)
+        ET.SubElement(body, "site", name=f"{self.name}_contact_point", pos="0 0 0.16", type="sphere", size="0.002", rgba=black)
+        ET.SubElement(body, "site", name=f"{self.name}_hook_center_point", pos="0 0 0.1275", type="sphere", size="0.001", rgba=black)
+        ET.SubElement(body, "site", name=f"{self.name}_origin", pos="0 0 0", type="sphere", size="0.001", rgba=black)
         return {"worldbody": [body]}
 
     def update(self) -> None:

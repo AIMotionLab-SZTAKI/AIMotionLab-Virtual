@@ -53,8 +53,10 @@ class Simulator:
         """
         def __init__(self, func: Callable, frequency: float, **kwargs):
             self.func: Callable[[], None] = partial(func, **kwargs)  #: The function that gets called when the process gets its turn.
-            self.frequency: float = frequency  #: The real-life frequency of the process if it's not stopped
+            self.target_frequency: float = frequency  #: The target frequency of the process
             self.paused: bool = False  #: Whether the process should run when it gets the next chance.
+            self.actual_frequency: float = frequency  #: How often the process actually runs in wall clock time.
+            self.last_called = time.time()  #: When the process was last called, in wall clock time.
 
         def pause(self) -> None:
             """
@@ -86,6 +88,8 @@ class Simulator:
             """
             if not self.paused:
                 self.func()
+                self.actual_frequency = 1/(time.time()-self.last_called)
+                self.last_called = time.time()
             else:
                 warning("Calling paused process.")
 
@@ -259,7 +263,7 @@ class Simulator:
 
         """
         for process in self.processes.values():
-            interval = max(1, math.ceil((1 / process.frequency) / self.timestep))
+            interval = max(1, math.ceil((1 / process.target_frequency) / self.timestep))
             if not process.paused and self.tick_count % interval == 0:
                 process()
 

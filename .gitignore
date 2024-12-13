@@ -36,6 +36,7 @@ xml_models/heightmaps/world0_64.png
 xml_models/meshes/bumblebee/quad_model_no_prop_simplified__.stl
 xml_models/meshes/radar/csepp.stl
 xml_models/test_obstacle_avoidance.xml
+airflow_data/raw_airflow_data/
 
 __pycache__/
 *.py[cod]

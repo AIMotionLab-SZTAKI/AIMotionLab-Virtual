@@ -98,6 +98,7 @@ def get_normalized_velocities(tmp_velocities, cube_size):
     return velocities_xyz_normalized
 
 USE_EXISTING_DATA = False
+ang_vel_str = "2500"
 
 if USE_EXISTING_DATA:
     abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -115,8 +116,8 @@ else:
     SLICE = 40
 
     abs_path = os.path.dirname(os.path.abspath(__file__))
-    data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "single_rotor_cw_velocity.csv")
-    mirrored_data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "single_rotor_ccw_velocity.csv")
+    data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", f"single_rotor_cw_{ang_vel_str}_velocity.csv")
+    mirrored_data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", f"single_rotor_ccw_{ang_vel_str}_velocity.csv")
     
     tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
     mirrored_tmp = np.loadtxt(mujoco_helper.skipper(mirrored_data_file_name), delimiter=',', dtype=np.float64)
@@ -287,4 +288,4 @@ if not USE_EXISTING_DATA:
     slices_shifted_not_normalized = np.array(slices_shifted_not_normalized)
 
     slices_shifted_not_normalized = slices_shifted_not_normalized.reshape((cube_size**3, 3))
-    np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_velocity.txt"), slices_shifted_not_normalized)
+    np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts_velocity", f"openfoam_velocity_{ang_vel_str}.txt"), slices_shifted_not_normalized)

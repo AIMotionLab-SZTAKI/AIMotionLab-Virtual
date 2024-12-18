@@ -8,7 +8,6 @@ from aiml_virtual.controller import LqrLoadControl, GeomControl
 import numpy as np
 import matplotlib.pyplot as plt
 from aiml_virtual.airflow import AirflowSampler
-from aiml_virtual.wind_flow.wind_sampler import WindSampler
 from aiml_virtual.object import parseMovingObjects
 from aiml_virtual.util import plot_payload_and_airflow_volume
 
@@ -47,16 +46,15 @@ rod_length = xml_generator.ROD_LENGTH
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 xml_path = os.path.join(abs_path, "..", "xml_models")
-xmlBaseFileName = "scene_base.xml"
+xmlBaseFileName = "scene_without_walls.xml"
 save_filename = "built_scene.xml"
 
 # Set scenario parameters
 drone0_init_pos = np.array([0.0, 0.0, 2, 0])
-load0_mass = 0.2
-load0_size = np.array([.07, .07, .04])
-#load0_mass = 0.2
-#load0_size = np.array([16.2, 11.8, 8.6]) / 100
-load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_pos[2] - (2 * load0_size[2]) - .55])
+load0_mass = 0.25
+load0_size = np.array([16.2, 11.8, 8.6]) / 100 / 2
+load0_initpos = np.array([drone0_init_pos[0], drone0_init_pos[1], drone0_init_pos[2] - (2 * load0_size[2]) - .575])
+USE_VARIABLE_LUTS = True
 
 
 # create the model as xml
@@ -64,8 +62,8 @@ scene = xml_generator.SceneXmlGenerator(xmlBaseFileName)
 
 drone0_name = scene.add_drone(np.array2string(drone0_init_pos[0:3])[1:-1], "1 0 0 0", BLUE_COLOR, DRONE_TYPES.BUMBLEBEE_HOOKED, 2)
 
-payload0_name = scene.add_payload(np.array2string(load0_initpos)[1:-1], 0, str(load0_mass), "1 0 0 0", RED_COLOR, PAYLOAD_TYPES.Teardrop)
-#payload0_name = scene.add_payload(np.array2string(load0_initpos)[1:-1], np.array2string(load0_size)[1:-1], str(load0_mass), "1 0 0 0", RED_COLOR)
+#payload0_name = scene.add_payload(np.array2string(load0_initpos)[1:-1], 0, str(load0_mass), "1 0 0 0", RED_COLOR, PAYLOAD_TYPES.Teardrop)
+payload0_name = scene.add_payload(np.array2string(load0_initpos)[1:-1], np.array2string(load0_size)[1:-1], str(load0_mass), "1 0 0 0", RED_COLOR)
 
 scene.save_xml(os.path.join(xml_path, save_filename))
 virt_parsers = [parseMovingObjects]
@@ -89,23 +87,18 @@ drone0_controllers = [drone0_controller]
 drone0.set_trajectory(drone0_trajectory)
 drone0.set_controllers(drone0_controllers)
 
-pressure_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_pressure.txt")
-velocity_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_velocity.txt")
+pressure_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts_pressure", "openfoam_pressure_1500.txt")
+velocity_data_filename = os.path.join(abs_path, "..", "airflow_data", "airflow_luts_velocity", "openfoam_velocity_1500.txt")
 #airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0)
 
-pressure_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_pressure")
-velocity_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_variable_luts_velocity")
-airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0, None, True, pressure_folder_path, True, velocity_folder_path)
+pressure_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_luts_pressure")
+velocity_folder_path = os.path.join(abs_path, "..", "airflow_data", "airflow_luts_velocity")
+airflow_sampl0 = AirflowSampler(pressure_data_filename, drone0)
 
-wind_velocity_folder = os.path.join(abs_path, "..", "airflow_data", "wind_data")
-wind_velocity_filenames = glob.glob(os.path.join(wind_velocity_folder, '*'))
-wind_sampler = WindSampler(wind_velocity_filenames)
-drone0.add_wind_sampler(wind_sampler)
+payload0.create_surface_mesh(0.00001)
 
-payload0.create_surface_mesh(MeshPart.TOP, 0.005)
-payload0.create_surface_mesh(MeshPart.BOTTOM, 0.001)
 payload0.add_airflow_sampler(airflow_sampl0)
-drone0.add_wind_sampler(wind_sampler)
+#drone0.add_wind_sampler(wind_sampler)
 
 simulator.pause()
 while not simulator.glfw_window_should_close():

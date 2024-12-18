@@ -92,7 +92,8 @@ def create_shifted_slice(slice_, mirrored_slice, offset_x1, offset_x2, offset_y)
     return slice_shifted
 
 
-USE_EXISTING_DATA = True
+USE_EXISTING_DATA = False
+ang_vel_str = "2500"
 
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -106,10 +107,10 @@ if USE_EXISTING_DATA:
     print(combined_data.shape)
 
 else:
-    data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "single_rotor_cw_pressure.csv")
+    data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", f"single_rotor_cw_{ang_vel_str}_pressure.csv")
     tmp = np.loadtxt(mujoco_helper.skipper(data_file_name), delimiter=',', dtype=np.float64)
     
-    mirrored_data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", "single_rotor_ccw_pressure.csv")
+    mirrored_data_file_name = os.path.join(abs_path, "..", "airflow_data", "raw_airflow_data", f"single_rotor_ccw_{ang_vel_str}_pressure.csv")
     mirrored_tmp = np.loadtxt(mujoco_helper.skipper(mirrored_data_file_name), delimiter=',', dtype=np.float64)
 
     # transform data into 3D array
@@ -130,7 +131,7 @@ else:
     
         combined_data[:, :, i] = slice_shifted
     combined_1d = combined_data.reshape(-1)
-    np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts", "openfoam_pressure.txt"), combined_1d)
+    np.savetxt(os.path.join(abs_path, "..", "airflow_data", "airflow_luts_pressure", f"openfoam_pressure_{ang_vel_str}.txt"), combined_1d)
 
 #plt.imshow(data[:, :, 0], cmap='jet', interpolation='nearest')
 #im = plt.imshow(np.rot90(combined_data[15, :, :]), cmap='jet', interpolation='nearest')

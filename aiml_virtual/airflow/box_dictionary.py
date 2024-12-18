@@ -81,5 +81,8 @@ class BoxDictionary:
     def get_lower_upper_bounds_arrays(self, lower_bound, upper_bound):
         return self._loaded_data[lower_bound], self._loaded_data[upper_bound]
 
-    def get_interpolated_array(self, average_velocity, upper_array, lower_array, upper_bound, lower_bound):    
-        return ( (upper_array - lower_array) / (upper_bound - lower_bound) ) * (average_velocity - lower_bound) + lower_array
+    def get_interpolated_array(self, average_velocity, upper_array, lower_array, upper_bound, lower_bound):
+        if lower_bound  == upper_bound:
+            return lower_array
+        else:
+            return ( (upper_array - lower_array) / (upper_bound - lower_bound) ) * (average_velocity - lower_bound) + lower_array

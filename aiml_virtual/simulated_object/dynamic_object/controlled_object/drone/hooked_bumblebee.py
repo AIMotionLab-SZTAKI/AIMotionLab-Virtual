@@ -118,3 +118,5 @@ class HookedBumblebee2DOF(bumblebee.Bumblebee):
         self.sensors["hook_vel"] = self.data.sensor(f"{self.name}_hook_vel")
         self.sensors["hook_quat"] = self.data.sensor(f"{self.name}_hook_quat")
         self.sensors["hook_ang_vel"] = self.data.sensor(f"{self.name}_hook_ang_vel")
+        self.sensors["qpos"] = self.data.qpos
+        self.sensors["qvel"] = self.data.qvel

@@ -29,7 +29,7 @@ class MocapCar(mocap_object.MocapObject):
             "front_right": Wheel(self.name + Wheel.FRONT_RIGHT, pos=f"{MocapCar.WHEEL_X} -{MocapCar.WHEEL_Y} 0"),
             "rear_right": Wheel(self.name + Wheel.REAR_RIGHT, pos=f"-{MocapCar.WHEEL_X} -{MocapCar.WHEEL_Y} 0")
         }  #: Object to access the relevant mjdata for Wheels.
-        self.offset = np.array([0, 0, -0.1])
+        self.offset = np.array([0, 0, -0.097])
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         car = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")  # top level mocap body
@@ -76,7 +76,7 @@ class MocapTrailer(mocap_object.MocapObject):
 
     def __init__(self, source: MocapSource, mocap_name: str):
         super().__init__(source, mocap_name)
-        self.offset = np.array([0, 0, -0.08])
+        self.offset = np.array([0, 0.02, -0.08])
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         trailer = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")

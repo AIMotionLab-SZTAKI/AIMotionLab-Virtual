@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Type
 import mujoco
 import numpy as np
+import re
 
 
 class SimulatedObject(ABC):
@@ -166,3 +167,27 @@ class SimulatedObject(ABC):
             return self.data.body(self.name).xquat
         else:
             return None
+
+    @classmethod
+    def name_to_class(cls, name: str) -> Optional[Type['SimulatedObject']]:
+        """
+        Converts a possible simulated object's name to the corresponding class if it's valid.
+        Valid names are "identifier_integer", for example "Crazyflie_1"
+
+        Args:
+            name (str): The name candidate
+
+        Returns:
+            Optional[Type['SimulatedObject']]: The python **class** to which an object under
+            this name should belong, or None if there isn't one.
+        """
+        # Convert identifiers to a case-sensitive regex pattern
+        identifier_pattern = '|'.join(re.escape(idf) for idf in cls.xml_registry.keys())
+
+        # Create a regex to match "identifier_integer"
+        pattern = f"^({identifier_pattern})_\\d+$"
+
+        # Check if the input string matches the pattern
+        match = re.match(pattern, name)
+
+        return cls.xml_registry[match.group(1)] if match else None

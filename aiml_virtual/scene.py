@@ -65,14 +65,14 @@ class Scene:
         self.simulated_objects: list[SimulatedObject] = []  #: the objects with python interface
         for i in range(self.model.nbody):  # let's check all the bodies in the model
             body = self.model.body(i)
-            for class_identifier in SimulatedObject.xml_registry.keys():
-                # a body is candidate to be a SimulatedObject, if its parent is the worldbody (meaning that its parent
-                # id is 0), and its name contains one of the keys which identify Simulated Objects
-                # note that instead of checking parents of the worldbody, we used to check for free joints, but a body
-                # may be a valid body in the simulation without having a free joint (mocap objects for example)
-                if body.parentid[0] == 0 and body.name.startswith(class_identifier):
-                    # this is the class to be instantiated, identified by the registry of the SimulatedObject class
-                    cls: Type[SimulatedObject] = SimulatedObject.xml_registry[class_identifier]
+            # a body is candidate to be a SimulatedObject, if its parent is the worldbody (meaning that its parent
+            # id is 0), and its name contains one of the keys which identify Simulated Objects
+            # note that instead of checking parents of the worldbody, we used to check for free joints, but a body
+            # may be a valid body in the simulation without having a free joint (mocap objects for example)
+            if body.parentid[0] == 0:
+                # this is the class to be instantiated, identified by the registry of the SimulatedObject class:
+                cls: Optional[Type[SimulatedObject]] = SimulatedObject.name_to_class(body.name)
+                if cls is not None:
                     self.simulated_objects.append(cls())
         self.bind_to_model()
 

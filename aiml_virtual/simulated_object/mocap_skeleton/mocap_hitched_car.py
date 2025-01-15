@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Optional, cast, Type
 
-from aiml_virtual.simulated_object.mocap_object import mocap_object
+from aiml_virtual.simulated_object.mocap_object.mocap_object import MocapObject
 from aiml_virtual.mocap.mocap_source import MocapSource
 from aiml_virtual.simulated_object.mocap_object.mocap_car import MocapCar, MocapTrailer
 from aiml_virtual.simulated_object.mocap_skeleton import mocap_skeleton
@@ -15,7 +15,7 @@ class MocapHitchedCar(mocap_skeleton.MocapSkeleton):
     Implementation of a mocap skeleton: is madeup of a MocapCar and a MocapTrailer.
     The orientation of the trailer is read from optitrack, but its position is constrained by the car's position.
     """
-    configurations: dict[str, list[str]] = {
+    configurations: dict[str, list[tuple[str, Type[MocapObject]]]] = {
         #: The recognized combinations for MocapHitchedCar objects: bb3 with hook12
         "JoeBush1": [("JoeBush1", MocapCar), ("trailer", MocapTrailer)]
     }

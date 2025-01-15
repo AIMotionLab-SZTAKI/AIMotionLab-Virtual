@@ -6,7 +6,22 @@ from abc import ABC, abstractmethod
 import threading
 import copy
 import numpy as np
+import os
+import json
+import aiml_virtual
 
+def load_mocap_config(class_name: str, config_key: str):
+    config_path = os.path.join(aiml_virtual.resource_directory, "mocap_config.json")
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Config file '{config_path}' not found.")
+
+    with open(config_path, "r") as file:
+        all_configs = json.load(file)
+
+    if class_name not in all_configs or config_key not in all_configs[class_name]:
+        raise KeyError(f"Configuration for '{class_name}.{config_key}' not found in config file.")
+
+    return all_configs[class_name][config_key]
 
 class MocapSource(ABC):
     """
@@ -29,36 +44,7 @@ class MocapSource(ABC):
     """
 
     # TODO: read this config from file
-    config: dict[str, str] = {
-        "cf1": "MocapCrazyflie",
-        "cf2": "MocapCrazyflie",
-        "cf3": "MocapCrazyflie",
-        "cf4": "MocapCrazyflie",
-        "cf5": "MocapCrazyflie",
-        "cf6": "MocapCrazyflie",
-        "cf7": "MocapCrazyflie",
-        "cf8": "MocapCrazyflie",
-        "cf9": "MocapCrazyflie",
-        "cf10": "MocapCrazyflie",
-        "bb1": "MocapBumblebee",
-        "bb2": "MocapBumblebee",
-        "AI_Car_01": "MocapCar",
-        "RC_Car_01": "MocapCar",
-        "RC_Car_02": "MocapCar",
-        "RC_Car_03": "MocapCar",
-        "obst0": "Pole",
-        "obst1": "Pole",
-        "obst2": "Pole",
-        "bu11": "Hospital",
-        "bu13": "PostOffice",
-        "bu14": "Sztaki",
-        "payload1": "MocapPayload",
-        "payload2": "MocapPayload",
-        "bb3": "MocapHookedBumblebee2DOF",
-        "JoeBush1": "MocapHitchedCar"
-        #"JoeBush1": "MocapCar",
-        #"trailer": "MocapTrailer"
-    }  #: **classcar** | Contains the recognized rigid bodies. Keys are the optitrack names, values are the class identifiers.
+    config: dict[str, str] = load_mocap_config("MocapSource", "config") #: **classcar** | Contains the recognized rigid bodies. Keys are the optitrack names, values are the class identifiers.
 
     def __init__(self):
         self.lock: threading.Lock = threading.Lock()  #: The lock used to access the underlying data dictionary.

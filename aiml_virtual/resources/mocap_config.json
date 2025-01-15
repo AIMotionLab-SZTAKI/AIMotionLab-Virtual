@@ -1,0 +1,32 @@
+{
+    "MocapSource": {
+        "config": {
+            "cf1": "MocapCrazyflie",
+            "cf2": "MocapCrazyflie",
+            "cf3": "MocapCrazyflie",
+            "cf4": "MocapCrazyflie",
+            "cf5": "MocapCrazyflie",
+            "cf6": "MocapCrazyflie",
+            "cf7": "MocapCrazyflie",
+            "cf8": "MocapCrazyflie",
+            "cf9": "MocapCrazyflie",
+            "cf10": "MocapCrazyflie",
+            "bb1": "MocapBumblebee",
+            "bb2": "MocapBumblebee",
+            "AI_Car_01": "MocapCar",
+            "RC_Car_01": "MocapCar",
+            "RC_Car_02": "MocapCar",
+            "RC_Car_03": "MocapCar",
+            "obst0": "Pole",
+            "obst1": "Pole",
+            "obst2": "Pole",
+            "bu11": "Hospital",
+            "bu13": "PostOffice",
+            "bu14": "Sztaki",
+            "payload1": "MocapPayload",
+            "payload2": "MocapPayload",
+            "bb3": "MocapHookedBumblebee2DOF",
+            "JoeBush1": "MocapHitchedCar"
+        }
+    }
+}

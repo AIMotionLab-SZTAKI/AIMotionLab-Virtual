@@ -51,5 +51,5 @@ class MocapHookedBumblebee2DOF(mocap_skeleton.MocapSkeleton):
                 hook_offset_world_frame = bb_rotmat @ hook_offset_drone_frame
                 self.data.mocap_pos[self.hook.mocapid] = bb_pos + hook_offset_world_frame
         else:
-            warning(f"Obj {self.name} Mocap is none.")
+            warning(f"Obj {self.name} Mocap is None.")
             return

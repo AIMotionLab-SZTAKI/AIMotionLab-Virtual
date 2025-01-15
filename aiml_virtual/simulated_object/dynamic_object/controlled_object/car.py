@@ -16,7 +16,8 @@ class TRAILER:
     """
     Data class to group together parameters relating to the trailer
     """
-    CAR_COG_TO_HITCH = 0.18  #: distance between car and hitch
+    CAR_COG_TO_HITCH = 0.18  #: distance between car and hitch, should be 0.22 by my measurements actually
+    TRAILER_COG_TO_HITCH = 0.19 #: distance between the trailer's COG and its hitch
     DRAWBAR_LENGTH = 0.18  #: length of the connecting bar
     TRACK_DISTANCE = 0.193  #: distance between wheels on the same axle
     AXLE_DISTANCE = 0.225  #: distance between axles

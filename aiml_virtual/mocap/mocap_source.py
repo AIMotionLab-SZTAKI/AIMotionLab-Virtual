@@ -10,7 +10,7 @@ import os
 import json
 import aiml_virtual
 
-def load_mocap_config(class_name: str, config_key: str):
+def load_mocap_config(class_name: str, config_key: str):  #TODO: docstring
     config_path = os.path.join(aiml_virtual.resource_directory, "mocap_config.json")
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Config file '{config_path}' not found.")
@@ -43,7 +43,6 @@ class MocapSource(ABC):
         only access it after acquiring its lock, as well as never returning a direct reference to it.
     """
 
-    # TODO: read this config from file
     config: dict[str, str] = load_mocap_config("MocapSource", "config") #: **classcar** | Contains the recognized rigid bodies. Keys are the optitrack names, values are the class identifiers.
 
     def __init__(self):

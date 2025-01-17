@@ -14,7 +14,8 @@ if platform.system() == 'Windows':
 else:
     import time
 
-from aiml_virtual.scene import warning
+from aiml_virtual.utils import utils_general
+warning = utils_general.warning
 from aiml_virtual import scene
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual import renderer

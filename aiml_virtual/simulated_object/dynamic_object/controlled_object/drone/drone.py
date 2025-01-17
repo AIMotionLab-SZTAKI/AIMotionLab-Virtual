@@ -67,9 +67,6 @@ class Propeller:
 class Drone(controlled_object.ControlledObject):
     """
     Class encapsulating behaviour common to all drones (which are ControlledObjects).
-
-    .. todo::
-        Several elements in create_xml_element in crazyflie and bumblebee may be moved here.
     """
 
     @classmethod

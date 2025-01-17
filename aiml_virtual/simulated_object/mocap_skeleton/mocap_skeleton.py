@@ -1,12 +1,18 @@
 from xml.etree import ElementTree as ET
 import mujoco
-from typing import Optional, Type
+from typing import Optional, Type, cast
 from abc import ABC
+import os
+import json
+
 from aiml_virtual.simulated_object.mocap_object import mocap_object
 from aiml_virtual.mocap.mocap_source import MocapSource
 from aiml_virtual.simulated_object.mocap_object.mocap_object import MocapObject
+from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.utils import utils_general
+import aiml_virtual
 warning = utils_general.warning
+
 
 class MocapSkeleton(mocap_object.MocapObject, ABC):
     """
@@ -23,7 +29,40 @@ class MocapSkeleton(mocap_object.MocapObject, ABC):
         Check if these can be read from XML. Also check if we event want to be able to read Mocap Bodies from XML.
 
     """
-    configurations: dict[str, list[tuple[str, Type[MocapObject]]]]  #: The recognized combinations for a given subclass.
+    configurations: dict[str, list[tuple[str, Type[MocapObject]]]] = {} #: The recognized combinations for a given subclass.
+
+    def __init_subclass__(cls, **kwargs):
+        """
+        MocapSkeleton subclasses will each have their own configuration, read from the config file. This method
+        will run each time  anew MocapSkeleton subclass is defined, and read the config.
+        """
+        super().__init_subclass__(**kwargs)
+        cls.configurations = {}
+        config_path = os.path.join(aiml_virtual.resource_directory, "mocap_config.json")
+        if not os.path.exists(config_path):
+            raise FileNotFoundError(f"Config file '{config_path}' not found.")
+        with open(config_path, "r") as file:
+            all_configs = json.load(file)
+        identifier = cls.get_identifier()
+        if identifier not in all_configs or "configurations" not in all_configs[identifier]:
+            raise KeyError(f"Configuration for '{identifier}.configurations' not found in config file.")
+        configurations = all_configs[identifier]["configurations"]
+        for key, value in configurations.items():
+            # Value is a list, where each element is again a list, of length 2. For example:
+            # "bb3": [["bb3", "MocapBumblebee"], ["hook12", "MocapHook"]]
+            # value[0]=["bb3", "MocapBumblebee"]
+            # value[1]=["hook12", "MocapHook"]
+            # the first element is the optitrack name of an element in the mocap skeleton, the second is the identifier
+            # of the class corresponding to the mocap object
+            # in other words, the value above defines a mocap skeleton, whose parent mocap object is called "bb3" in
+            # motive, and its first element (the parent) is a mocap bumblebee, the second element is a mocap hook
+            lst = []
+            for element in value:
+                name = element[0]  # e.g. "hook12"
+                obj_type = simulated_object.SimulatedObject.xml_registry[element[1]] # e.g. "MocapHook" -> MocapHook (as type)
+                lst.append((name, cast(Type[MocapObject], obj_type)))
+            cls.configurations[key] = lst
+        print(f"{cls.__name__} configurations: {cls.configurations}")
 
     @classmethod
     def get_identifier(cls) -> Optional[str]:

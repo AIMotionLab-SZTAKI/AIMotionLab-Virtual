@@ -15,10 +15,6 @@ class MocapHitchedCar(mocap_skeleton.MocapSkeleton):
     Implementation of a mocap skeleton: is madeup of a MocapCar and a MocapTrailer.
     The orientation of the trailer is read from optitrack, but its position is constrained by the car's position.
     """
-    configurations: dict[str, list[tuple[str, Type[MocapObject]]]] = {
-        #: The recognized combinations for MocapHitchedCar objects: bb3 with hook12
-        "JoeBush1": [("JoeBush1", MocapCar), ("trailer", MocapTrailer)]
-    }
 
     @classmethod
     def get_identifier(cls) -> Optional[str]:

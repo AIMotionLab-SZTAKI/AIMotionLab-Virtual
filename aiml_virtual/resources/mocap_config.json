@@ -28,5 +28,15 @@
             "bb3": "MocapHookedBumblebee2DOF",
             "JoeBush1": "MocapHitchedCar"
         }
+    },
+    "MocapHitchedCar": {
+        "configurations": {
+            "JoeBush1": [["JoeBush1", "MocapCar"], ["trailer", "MocapTrailer"]]
+        }
+    },
+    "MocapHookedBumblebee2DOF": {
+        "configurations": {
+            "bb3": [["bb3", "MocapBumblebee"], ["hook12", "MocapHook"]]
+        }
     }
 }

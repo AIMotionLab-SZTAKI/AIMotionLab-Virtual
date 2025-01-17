@@ -5,9 +5,7 @@ from scipy.spatial.transform import Rotation
 from aiml_virtual.simulated_object.mocap_object import mocap_object
 from aiml_virtual.mocap.mocap_source import MocapSource
 from aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_bumblebee import MocapBumblebee
-from aiml_virtual.simulated_object.mocap_object.mocap_object import MocapHook
 from aiml_virtual.simulated_object.mocap_skeleton import mocap_skeleton
-from aiml_virtual.simulated_object.mocap_object.mocap_object import MocapObject
 
 from aiml_virtual.utils import utils_general
 warning = utils_general.warning
@@ -17,9 +15,6 @@ class MocapHookedBumblebee2DOF(mocap_skeleton.MocapSkeleton):
     Implementation of a mocap skeleton: is made up of a MocapBumblebee and a MocapHook.
     The orientation of the hook is read from optitrack, but its position is determined by the drone's pose.
     """
-    configurations: dict[str, list[tuple[str, Type[MocapObject]]]] = {  #: The recognized combinations for MocapHookedBumblebee2DOF objects: bb3 with hook12
-        "bb3": [("bb3", MocapBumblebee), ("hook12", MocapHook)]
-    }
 
     @classmethod
     def get_identifier(cls) -> Optional[str]:

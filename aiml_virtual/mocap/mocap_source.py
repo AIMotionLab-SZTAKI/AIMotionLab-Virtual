@@ -10,7 +10,17 @@ import os
 import json
 import aiml_virtual
 
-def load_mocap_config(class_name: str, config_key: str):  #TODO: docstring
+def load_mocap_config(class_name: str, config_key: str) -> dict[str, str]:
+    """
+    Reads the motive configuration from the mocap config file.
+
+    Args:
+        class_name (str): What class to look for in the config file.
+        config_key (str): Which static variable to look for in the config file.
+
+    Returns:
+        dict[str, str]: The mapping of motive rigidbody names to class identifiers.
+    """
     config_path = os.path.join(aiml_virtual.resource_directory, "mocap_config.json")
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Config file '{config_path}' not found.")

@@ -16,7 +16,7 @@ warning = utils_general.warning
 
 class MocapSkeleton(mocap_object.MocapObject, ABC):
     """
-    Base class for objects that receive their pose data fro a motion capture system, and are made up of several
+    Base class for objects that receive their pose data from a motion capture system, and are made up of several
     individually rigid motion capture objects. For example, the hooked mocap drone has two individually rigid parts:
     the drone and the hook. Since mujoco mocap objects cannot have joints, these objects each have their own top-level
     rigid mocap body. Of these rigid bodies, one has to be the 'owner' of the rest, and operations which require a
@@ -24,12 +24,6 @@ class MocapSkeleton(mocap_object.MocapObject, ABC):
     the owner is the MocapBumblebee part. For example, the mocapid property returns the mocapid of the corresponding
     mocap body in the xml.
     Their update shall be constructed in a way to keep the constraints between the bodies valid.
-
-    .. todo::
-        Check if these can be read from XML. Also check if we event want to be able to read Mocap Bodies from XML.
-        The mocap source won't be saved! However, we don't want to desync the model's representations, so I'll leave it
-        in, and handle mocap skeletons instead
-
     """
     configurations: dict[str, list[tuple[str, Type[MocapObject]]]] = {} #: The recognized combinations for a given subclass.
 

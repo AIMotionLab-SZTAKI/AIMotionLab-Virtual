@@ -59,7 +59,7 @@ class Scene:
         self.model: mujoco.MjModel = mujoco.MjModel.from_xml_path(base_scene_filename)  #: the mjModel with C bindings
         self.xml_root: ET.Element = ET.Element("mujoco", {"model": save_filename}) #: root of the XML tree
         # include the base xml in the scene when we save it
-        ET.SubElement(self.xml_root, "include", {"file": os.path.join(XML_FOLDER, base_scene_filename)})
+        ET.SubElement(self.xml_root, "include", {"file": base_scene_filename})
         self.xml_name: str = save_filename  #: the name under which we will save the new XML
 
         self.simulated_objects: list[SimulatedObject] = []  #: the objects with python interface

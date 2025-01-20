@@ -16,7 +16,7 @@ class MocapDrone(mocap_object.MocapObject, ABC):
     """
     Class encapsulation behaviour common to all mocap drones (which are MocapObjects).
     """
-    def __init__(self, source: mocap_source.MocapSource, mocap_name: str):
+    def __init__(self, source: Optional[mocap_source.MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.propellers: list[Propeller] = [Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE),
                                             Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE)]  #: List of propellers; first and third are ccw, second and fourth are cw

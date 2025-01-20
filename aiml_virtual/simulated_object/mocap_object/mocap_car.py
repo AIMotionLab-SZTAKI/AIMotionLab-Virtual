@@ -74,7 +74,7 @@ class MocapTrailer(mocap_object.MocapObject):
     def get_identifier(cls) -> Optional[str]:
         return "MocapTrailer"
 
-    def __init__(self, source: MocapSource, mocap_name: str):
+    def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.offset = np.array([0, 0.02, -0.08])
 

@@ -27,6 +27,8 @@ class MocapSkeleton(mocap_object.MocapObject, ABC):
 
     .. todo::
         Check if these can be read from XML. Also check if we event want to be able to read Mocap Bodies from XML.
+        The mocap source won't be saved! However, we don't want to desync the model's representations, so I'll leave it
+        in, and handle mocap skeletons instead
 
     """
     configurations: dict[str, list[tuple[str, Type[MocapObject]]]] = {} #: The recognized combinations for a given subclass.
@@ -62,7 +64,6 @@ class MocapSkeleton(mocap_object.MocapObject, ABC):
                 obj_type = simulated_object.SimulatedObject.xml_registry[element[1]] # e.g. "MocapHook" -> MocapHook (as type)
                 lst.append((name, cast(Type[MocapObject], obj_type)))
             cls.configurations[key] = lst
-        print(f"{cls.__name__} configurations: {cls.configurations}")
 
     @classmethod
     def get_identifier(cls) -> Optional[str]:

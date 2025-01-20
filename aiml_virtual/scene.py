@@ -76,6 +76,15 @@ class Scene:
                     self.simulated_objects.append(cls())
         self.bind_to_model()
 
+    def save_mjcf(self):
+        """
+        Saves the mjcf (xml) representation of the model to the file identified by xml_root.
+        """
+        tree = ET.ElementTree(self.xml_root)
+        if sys.version_info.major >= 3 and sys.version_info.minor >= 9:
+            ET.indent(tree, space="\t", level=0)
+        tree.write(self.xml_name)
+
     def reload_model(self) -> None:
         """
         Syncs the mujoco model to the xml. Must be called when objects are added or removed to any of the
@@ -85,10 +94,7 @@ class Scene:
             Whenever we reload the model, the references stored in self.simulated_objects become obsolete. We have to
             re-assign them using bind_to_model.
         """
-        tree = ET.ElementTree(self.xml_root)
-        if sys.version_info.major >= 3 and sys.version_info.minor >= 9:
-            ET.indent(tree, space="\t", level=0)
-        tree.write(self.xml_name)
+        self.save_mjcf()
         self.model = mujoco.MjModel.from_xml_path(self.xml_name)
         # we want to preserve the references in self.simulated_objects, therefore, instead of reassigning
         # self.simulated_objects, we only re-bind them to the model (this is the reason why there is a separate bind,

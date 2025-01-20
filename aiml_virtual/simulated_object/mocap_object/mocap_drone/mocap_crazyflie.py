@@ -38,10 +38,6 @@ class MocapCrazyflie(mocap_drone.MocapDrone):
         Returns:
             dict[str, list[ET.Element]]: A dictionary where the keys are tags of XML elements in the MJCF file, and the
             values are lists of XML elements to be appended as children to those XML elements.
-
-        .. todo::
-            Determine whether a mocap object needs inertial and mass parameters. They are omitted in the old
-            aiml-virtual. Also, pos and quat may not be neccessary?
         """
         name = self.name
         Lx1 = MocapCrazyflie.OFFSET

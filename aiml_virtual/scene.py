@@ -155,6 +155,10 @@ class Scene:
         """
         Analogous to add_object, except it removes a specified object from the scene.
 
+        .. note::
+            Only bodies added to the current scene can be removed. That is to say, a base scene (on top of which we
+            build the current scene) cannot be modified by removing objects from it.
+
         Args:
             obj (Union[str, SimulatedObject]): The object to remove, either by reference or by name.
         """
@@ -163,7 +167,7 @@ class Scene:
         if obj not in self.simulated_objects and obj not in [o.name for o in self.simulated_objects]:
             warning(f"Object {obj} not in scene. Available objects: {[o.name for o in self.simulated_objects]}")
             return
-        if isinstance(obj, MocapObject):
+        if isinstance(obj, SimulatedObject):
             obj_to_remove = obj
             obj_name = obj.name
         else:
@@ -172,7 +176,11 @@ class Scene:
         self.simulated_objects.remove(obj_to_remove)  # python object needs to be removed
         SimulatedObject.instance_count[type(obj_to_remove)] -= 1  # counter needs to be decremented
         # xml element needs to be removed
-        worldbody: ET.Element = self.xml_root.findall(".//worldbody")[0]
+        worldbody = self.xml_root.findall(".//worldbody")
+        if len(worldbody) == 0:
+            return
+        else:
+            worldbody = worldbody[0]
         for body in worldbody:
             if body.attrib.get('name') == obj_name:
                 worldbody.remove(body)

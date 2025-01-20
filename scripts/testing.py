@@ -1,7 +1,3 @@
-"""
-This script shows how to load and display a simulation from an xml.
-"""
-
 import os
 import sys
 import pathlib
@@ -23,11 +19,13 @@ xml_directory = aiml_virtual.xml_directory
 from aiml_virtual import scene, simulator
 
 from aiml_virtual.mocap import optitrack_mocap_source
+from aiml_virtual.simulated_object.mocap_skeleton.mocap_hitched_car import MocapHitchedCar
 
 if __name__ == "__main__":
     scn = scene.Scene(os.path.join(xml_directory, "scene_base.xml"), save_filename="test.xml")
     mocap = optitrack_mocap_source.OptitrackMocapSource()
-    scn.add_mocap_objects(mocap)
+    car = MocapHitchedCar(source=mocap, mocap_name="JoeBush1")
+    scn.add_object(car)
     sim = simulator.Simulator(scn)
     with sim.launch():
         while sim.viewer.is_running():

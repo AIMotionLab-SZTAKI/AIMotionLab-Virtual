@@ -1,0 +1,29 @@
+<mujoco model="mocap_test.xml">
+	<include file="/home/aimotion-i9/Projects/ReworkLab-Virtual/rework/AIMotionLab-Virtual/aiml_virtual/resources/xml_models/scene_base.xml" />
+	<worldbody>
+		<body name="Hospital_0" pos="-0.5879205 -0.35868758 0.9080253" quat="-0.5553293824195862 -0.00020066231081727892 -0.019063390791416168 -0.8314118981361389" mocap="true">
+			<geom name="Hospital_0" type="box" pos="0 0 0.445" size="0.1275 0.13 0.445" material="mat-hospital" />
+		</body>
+		<body name="MocapCrazyflie_0" pos="0.20658967 0.712105 0.13035256" quat="-0.9870739579200745 0.047119561582803726 -0.0337531641125679 -0.14941707253456116" mocap="true">
+			<geom name="MocapCrazyflie_0_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0.5 0.5 1" />
+			<geom name="MocapCrazyflie_0_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0.5 0.5 1" />
+			<geom name="MocapCrazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.5 0.5 1" />
+			<body name="MocapCrazyflie_0_prop0">
+				<joint name="MocapCrazyflie_0_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_0_prop0" type="mesh" mesh="crazyflie_ccw_prop" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_0_prop1">
+				<joint name="MocapCrazyflie_0_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
+				<geom name="MocapCrazyflie_0_prop1" type="mesh" mesh="crazyflie_cw_prop" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_0_prop2">
+				<joint name="MocapCrazyflie_0_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_0_prop2" type="mesh" mesh="crazyflie_ccw_prop" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<body name="MocapCrazyflie_0_prop3">
+				<joint name="MocapCrazyflie_0_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
+				<geom name="MocapCrazyflie_0_prop3" type="mesh" mesh="crazyflie_cw_prop" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+		</body>
+	</worldbody>
+</mujoco>

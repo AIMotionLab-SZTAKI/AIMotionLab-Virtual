@@ -76,7 +76,7 @@ class MocapTrailer(mocap_object.MocapObject):
 
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
-        self.offset = np.array([0, 0.02, -0.08])
+        self.offset = np.array([0.37, 0.02, -0.08])
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         trailer = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")

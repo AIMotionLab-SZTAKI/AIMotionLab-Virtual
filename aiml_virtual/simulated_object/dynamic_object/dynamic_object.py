@@ -22,9 +22,6 @@ class DynamicObject(simulated_object.SimulatedObject, ABC):
         Overrides method in MocapObject to specify whether to check for aliases when parsing an XML. A None returns
         signals that this class opts out of parsing. This usually also means that it's an abstract class (ABC).
 
-        .. todo::
-            Will need to reconcile identifiers in passive mocap objects vs passive moving objects.
-
         Returns:
             Optional[str]: The alias for objects belonging to this class.
         """

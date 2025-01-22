@@ -108,7 +108,7 @@ class Simulator:
         }  #: A dictionary of what function to call when receiving a given keypress,and whether it requires a shift press.
         self.cam: Optional[mujoco.MjvCamera] = None  #: The camera used for rendering. Comes from viewer then possible.
         self.vOpt: Optional[mujoco.MjvOption] = None  #: The visual options used for rendering. Comes from viewer then possible. Different from opt (model options).
-        self.renderer: Optional[renderer.Renderer] = None  #: Renderer for video production
+        self.renderer: Optional[renderer.VideoRenderer] = None  #: Renderer for video production
 
     def add_process(self, name: str, func: Callable, frequency: float, *args, **kwargs) -> None:
         """
@@ -333,7 +333,7 @@ class Simulator:
         present. If not, initializes the renderer first.
         """
         if self.renderer is None:
-            self.renderer = renderer.Renderer(self.model, kwargs["renderer_fps"], 1080, 1920)
+            self.renderer = renderer.VideoRenderer(self.model, kwargs["renderer_fps"], 1080, 1920)
         if self.data is not None and self.vOpt is not None and self.cam is not None:
             self.renderer.render_frame(self.data, self.cam, self.vOpt)
 

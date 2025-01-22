@@ -1,0 +1,40 @@
+Hogyan működik a Máté féle viewer/simulátor
+gui subpackage és a simulator subpackagere lesz szükségem, kifejezetten a mujoco_display.py-re
+gyalogoljunk végig a build_scene.py-on:
+-xml pathokat definiál
+-scene: xml generátor
+-simulator: szerintem kb hasonló mint az én szimulátorom, Display leszármazottja? xd
+a csatolás itt sajnos jóval erősebb az osztályok között
+
+Szeretném, ha a működés nagyjából hasonló maradna kívülről:
+
+
+Lefutás:
+-inicialázáljuk a scene-t
+-csak with graphics esetben inicializáljuk a szülőt lol (a without graphics eset tulajdonképpen kész van nekünk)
+    -szülő: Display, ez a nagyon fontos nekünk, ez a lényeg
+    -init_glfw() -> szerintem csak simán kötelező
+        -window csinálás
+        -context current
+        -alap callbackek beállítása: glfw.set_scroll_callback
+            -scroll
+            -mouse button
+            -cursor pos
+    -load_model() -> xml, mujoco model, mjopt
+    -kell egy mjvScene, ez az opengl rendereléshez kötődik
+    -kell egy mjrcontext, ez szükséges lesz a rendereléshez
+    -kell egy viewport
+-set_XYZ_key_callback: mindegyik gombnak külön van egy ilyen fgv, és annyit csinál, hogy
+ csekkolja, callable-e, és ha igen, elmenti a self.XYZ_key_callback-be, aztán a self.key_callback
+ függvény a megfelelőt hívja meg, ennél én valami elegánsabbat akarok
+-belépünk a main()-be:
+    -pár extra callback
+    -pörgeti a simulator.update-t:
+        -optitrack kezelés, első futáskor time mentegetés
+        -render: overlaytől függő paraméterekkel
+            -viewport kell, a framebufferből
+            -mjv_updateScene
+            -mjr_render
+        -objecteknek update
+        -mj step
+        -sync: az utilban van, a real time-hoz szinkronizál

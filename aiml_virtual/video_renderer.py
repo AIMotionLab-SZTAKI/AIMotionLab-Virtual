@@ -8,7 +8,7 @@ import cv2
 from typing import Optional
 
 
-class Renderer:
+class VideoRenderer:
     """
     Wrapper class around mujoco.Renderer and cv2.VideoWriter.
     """

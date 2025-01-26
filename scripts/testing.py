@@ -14,19 +14,14 @@ sys.path.append(project_root.resolve().as_posix())  # add the folder this file i
 while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
     project_root = project_root.parents[0]
     sys.path.append(project_root.resolve().as_posix())
+
 import aiml_virtual
 xml_directory = aiml_virtual.xml_directory
 from aiml_virtual import scene, simulator
 
-from aiml_virtual.mocap import optitrack_mocap_source
-from aiml_virtual.simulated_object.mocap_skeleton.mocap_hitched_car import MocapHitchedCar
-
 if __name__ == "__main__":
-    scn = scene.Scene(os.path.join(xml_directory, "scene_base.xml"), save_filename="test.xml")
-    mocap = optitrack_mocap_source.OptitrackMocapSource()
-    car = MocapHitchedCar(source=mocap, mocap_name="JoeBush1")
-    scn.add_object(car)
+    scn = scene.Scene(os.path.join(xml_directory, "example_scene_1.xml"))
     sim = simulator.Simulator(scn)
-    with sim.launch():
-        while sim.viewer.is_running():
+    with sim.launch(with_display=True, speed=0.3):
+        while not sim.display_should_close():
             sim.tick()  # tick steps the simulator, including all its subprocesses

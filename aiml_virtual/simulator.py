@@ -10,6 +10,9 @@ from contextlib import contextmanager
 import platform
 import glfw
 from functools import partial
+
+from aiml_virtual.visualize import Visualizer
+
 if platform.system() == 'Windows':
     import win_precise_time as time
 else:
@@ -19,7 +22,7 @@ from aiml_virtual.utils import utils_general
 warning = utils_general.warning
 from aiml_virtual import scene
 from aiml_virtual.simulated_object import simulated_object
-from aiml_virtual.display import Display
+from aiml_virtual.visualize import Visualizer
 
 Scene = scene.Scene
 SimulatedObject = simulated_object.SimulatedObject
@@ -86,7 +89,7 @@ class Simulator:
         self.tick_count: int = 0  #: The number of times self.tick was called. Still ticks when sim is stopped.
         self.processes: dict[str, Simulator.Process] = {}  #: The dictionary of simulator processes and their names
         self.start_time: float = time.time()  #: The time when the simulation starts.
-        self.display: Optional[Display] = None  #: The Display which handles visualization, rendering and video saving.
+        self.visualizer: Optional[Visualizer] = None  #: Responsible for rendering, display and video creation
 
     def add_process(self, name: str, func: Callable, frequency: float, *args, **kwargs) -> None:
         """
@@ -179,26 +182,12 @@ class Simulator:
         self.initialize_processes()
         self.bind_scene()
         self.start_time = time.time()
-        if with_display:
-            self.display = Display(self, fps, self.scene.xml_name)
-            self.add_process("render", partial(self.render, speed=speed), fps/speed)
-            yield self
-            self.display.close()
-        else:
-            pass
-
-    def render(self, speed: float = 1.0) -> None:
-        """
-        Calls the display's renderer and rate limits the simulation loop so that the animation doesn't run ahead
-        of the wall clock.
-
-        Args:
-            speed (float): The relative speed of the simulation compared to real time.
-        """
-        self.display.render()
-        dt = self.timestep * self.tick_count - self.time * speed
-        if dt > 0:
-            time.sleep(dt)
+        # Note that we can have a visualizer even when there is no display, since it's required to render a video, which
+        # is independent of whether there is a display.
+        self.visualizer = Visualizer(self, fps, with_display=with_display)
+        self.add_process("visualize", partial(self.visualizer.visualize, speed=speed), fps / speed)
+        yield self
+        self.visualizer.close()
 
     def bind_scene(self) -> None:
         """
@@ -237,8 +226,8 @@ class Simulator:
         If there is a display, returns whether the glfw window has been closed (X pressed).
         If there is no display, returns None.
         """
-        if self.display is not None:
-            return glfw.window_should_close(self.display.window)
+        if self.visualizer is not None:
+            return self.visualizer.should_close()
         else:
             return None
 

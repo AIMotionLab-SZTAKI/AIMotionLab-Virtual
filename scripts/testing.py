@@ -22,6 +22,9 @@ from aiml_virtual import scene, simulator
 if __name__ == "__main__":
     scn = scene.Scene(os.path.join(xml_directory, "example_scene_1.xml"))
     sim = simulator.Simulator(scn)
-    with sim.launch(with_display=True, speed=0.3):
+    with sim.launch(speed=0.7):
+        # sim.visualizer.recording = True
+        # for i in range(3000):
+        #     sim.tick()
         while not sim.display_should_close():
-            sim.tick()  # tick steps the simulator, including all its subprocesses
+            sim.tick()  # tick steps the simulator, including all its processes

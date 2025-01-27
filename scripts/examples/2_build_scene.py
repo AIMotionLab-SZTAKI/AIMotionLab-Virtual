@@ -1,5 +1,5 @@
 """
-This script shows how to modify and build a scene from a base.
+This script shows how to modify and build a scene from a mostly empty base scene.
 """
 
 import os
@@ -27,7 +27,7 @@ from aiml_virtual.simulated_object.mocap_object import mocap_object
 
 if __name__ == "__main__":
     # Often we don't just read a scene from a file and roll with it. A common use case is reading the base of a scene
-    # from a file, and then adding objects to it from a python script. "scene_base.xml" is the SZTAKI Lagyi 6th IDT
+    # from a file, and then adding objects to it in a python script. "scene_base.xml" is the SZTAKI Lagyi 6th floor IDT
     scn = scene.Scene(os.path.join(xml_directory, "scene_base.xml"), save_filename=f"example_scene_2.xml")
     # Before adding objects to the scene, let's discuss what objects we can choose from. (a) signals that a class is
     # abstract, meaning that only its descendants may be initialized.
@@ -39,9 +39,10 @@ if __name__ == "__main__":
     # This payload is 'passive' in that it has no actuators, as opposed to controlled objects, which we will discuss
     # later.
     payload1 = dynamic_object.DynamicPayload()
-    # Let's add this payload to the scene!
-    scn.add_object(payload1, pos="1 0 1.5", quat="1 0 0 0")
-    # There is an important thing to note here. Whenever you modify the scene, it saves its state to an xml.
+    # Let's add this payload to the scene! We can give it a starting position and starting orientation.
+    scn.add_object(payload1, pos="1 0 2.5", quat="1 0 0 0")
+    # There is an important thing to note here. Whenever you modify the scene, it saves its state to an xml file
+    # determined by save_filename.
     # An example of a MocapObject would be a *mocap* payload:
     payload2 = mocap_object.MocapPayload()
     # Let's add this payload to the scene as well!
@@ -49,6 +50,7 @@ if __name__ == "__main__":
     # The key difference between the two payloads is the following: one of them is a dynamic object, subject to
     # gravity, the other is a mocap object (although we currently don't provide it any mocap data yet). This means
     # that the former will drop from the sky when the simulation is launched, whereas the latter will stay in the air.
+    # Read here about mocap objects in mujoco: https://mujoco.readthedocs.io/en/stable/modeling.html#mocap-bodies
     sim = simulator.Simulator(scn)
     with sim.launch(fps=20):  # demonstrate lower fps as well
         sim.cam.distance = 4  # demonstrate positioning the camera at a different distance

@@ -21,9 +21,53 @@ if TYPE_CHECKING:
     from aiml_virtual.simulator import Simulator
 warning = utils_general.warning
 
-class Display:
+class AbstractVisualizer:
+    MAX_GEOM: int = 1000  #: Size of allocated geom buffer for the mjvScene struct.
+    def __init__(self, simulator):
+        self.simulator: Simulator = simulator  #: Reference to the simulator which the display will animate.
+        self.model: mujoco.MjModel = simulator.scene.model  #: The mujoco model.
+        self.data: mujoco.MjData = simulator.data  #: The mujoco data.
+        self.mjvScene = mujoco.MjvScene(self.model, maxgeom=AbstractVisualizer.MAX_GEOM)  #: MjvScene for rendering.
+        self.mjvCamera: mujoco.MjvCamera = mujoco.MjvCamera()  #: The camera through which the scene is viewed.
+        self.mjvOption: mujoco.MjvOption = mujoco.MjvOption()  #: The visual options for rendering.
+        self.mjvCamera.azimuth = 180
+        self.mjvCamera.elevation = -20
+        self.mjvCamera.lookat = [0, 0, 0.5]
+        self.mjvCamera.distance = 5
+
+    def visualize(self):
+        pass
+
+
+class WindowHandler:
+    def __init__(self, simulator, fps: float, title: str, codec_format: str, output_file: str, width: int, height: int):
+        if not glfw.init():
+            warning("Could not create glfw window.")
+            glfw.terminate()
+            return
+        self.window: Any = glfw.create_window(width, height, title, None, None)  #: The handle for the glfw window.
+        if not self.window:
+            warning("Could not create glfw window.")
+            glfw.terminate()
+            return
+        self.simulator: Simulator = simulator  #: Reference to the simulator which the display will animate.
+        self.fps: float = fps  #: The frame rate for the recording.
+        glfw.make_context_current(self.window)  # The context needs to be made current before handling the window.
+        self.model: mujoco.MjModel = simulator.scene.model  #: The mujoco model.
+        self.data: mujoco.MjData = simulator.data  #: The mujoco data.
+        self.mjrContext = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)  #: Context for rendering.
+        w, h = glfw.get_framebuffer_size(self.window)
+        self.viewport: mujoco.MjrRect = mujoco.MjrRect(0, 0, w, h)  #: OpenGL rectangle where the rendering happens.
+
+    def render(self):
+        pass
+
+
+class Visualizer:
     """
     Class responsible for handling the glfw window of the simulation and rendering mujoco data.
+    A lot of the initialization under here is based on sample C code from this link:
+    https://mujoco.readthedocs.io/en/stable/programming/visualization.html
 
     .. todo:
         Make the video frame saving use multiprocessing.
@@ -80,7 +124,7 @@ class Display:
         """
         Callback for the mouse scroll. Zooms the camera.
         """
-        self.mjvCamera.distance -= Display.SCROLL_DISTANCE_STEP * y
+        self.mjvCamera.distance -= Visualizer.SCROLL_DISTANCE_STEP * y
 
     def handle_keypress(self, window: Any, key: int, scancode: int, action: int, mods: int) -> None:
         """
@@ -125,32 +169,14 @@ class Display:
 
     def __init__(self, simulator, fps: float, title: str, codec_format: str = "mp4v", output_file: str = "simulator.mp4",
                  width: int = DEFAULT_WIDTH, height: int = DEFAULT_HEIGHT):
-        if not glfw.init():
-            warning("Could not create glfw window.")
-            glfw.terminate()
-            return
-        self.window: Any = glfw.create_window(width, height, title, None, None)  #: The handle for the glfw window.
-        if not self.window:
-            warning("Could not create glfw window.")
-            glfw.terminate()
-            return
-        self.simulator: Simulator = simulator  #: Reference to the simulator which the display will animate.
-        self.fps: float = fps  #: The frame rate for the recording.
-        self.model: mujoco.MjModel = simulator.scene.model  #: The mujoco model.
-        self.data: mujoco.MjData = simulator.data  #: The mujoco data.
-        # A lot of the initialization under here is based on sample C code from this link:
-        # https://mujoco.readthedocs.io/en/stable/programming/visualization.html
-        glfw.make_context_current(self.window)  # The context needs to be made current before handling the window.
-        self.mjrContext = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100) #: Context for rendering.
-        self.mjvScene = mujoco.MjvScene(self.model, maxgeom=Display.MAX_GEOM)  #: MjvScene for rendering.
-        self.mjvCamera: mujoco.MjvCamera = mujoco.MjvCamera()  #: The camera through which the scene is viewed.
-        self.mjvOption: mujoco.MjvOption = mujoco.MjvOption()  #: The visual options for rendering.
-        self.mjvCamera.azimuth = 180
-        self.mjvCamera.elevation = -20
-        self.mjvCamera.lookat = [0, 0, 0.5]
-        self.mjvCamera.distance = 5
-        w, h = glfw.get_framebuffer_size(self.window)
-        self.viewport: mujoco.MjrRect = mujoco.MjrRect(0, 0, w, h)  #: OpenGL rectangle where the rendering happens.
+
+
+
+
+
+
+
+
         self.prev_x: int = 0  #: Mouse x position when the last click happened.
         self.prev_y: int = 0  #: Mouse y position when the last click happened.
         self.mouse_left_btn_down: bool = False  #: Whether the left mouse button is pressed.

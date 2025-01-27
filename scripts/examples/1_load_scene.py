@@ -25,12 +25,13 @@ from aiml_virtual import scene, simulator
 
 if __name__ == "__main__":
     # A Scene is the container for the objects in a simulation. A Simulator needs a scene to simulate. To this end,
-    # let's read a Scene from a mjcf file. This scene contains dynamic object, controlled objects and mocap objects
-    # as well: all things that we will talk about in further examples.
+    # let's read a Scene from a mjcf file. This scene already contains several objects, which are dynamic objects,
+    # controlled objects and mocap objects: all things that we will talk about in further examples.
     scn = scene.Scene(os.path.join(xml_directory, "example_scene_1.xml"), save_filename="example_scene_1.xml")
-    # Once we have our scene, we can simulate it using a Simulator
+    # Once we have our scene, we can simulate it using a Simulator. So the scene is like the initial setup,
+    # corresponding to the mujoco MODEL, as opposed to the simulator, which generates mujoco DATA.
     sim = simulator.Simulator(scn)
     # We can start displaying our simulation by launching its context handler.
     with sim.launch(fps=100):
-        while sim.viewer.is_running():
+        while not sim.display_should_close():
             sim.tick()  # tick steps the simulator, including all its subprocesses

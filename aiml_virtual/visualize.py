@@ -87,6 +87,9 @@ class Visualizer:
 
     .. todo:
         Make the video frame saving use multiprocessing.
+
+    .. todo:
+        When the window is dragged, the simulation lags and then rushes to catch up. This is a bug.
     """
     DEFAULT_WIDTH: int = 1536  #: The width of the window unless specified otherwise.
     DEFAULT_HEIGHT: int = 864  #: The height of the window unless specified otherwise.

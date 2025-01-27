@@ -53,14 +53,13 @@ if __name__ == "__main__":
     bb = mocap_bumblebee.MocapBumblebee(mocap1, "MocapBumblebee")
     scn.add_object(bb, color="0 1 0 1")
     sim = simulator.Simulator(scn)  # note that render fps is separate from display fps!
-    with sim.launch(fps=30, renderer_fps=120):  # note that render fps is separate from display fps!
-        # Let's say you'd like to record a video of your simulation. The simulator has an optional rendering process that
-        # you may toggle on or off. Whenever it's toggled ON, the simulator saves the frames it renders and upon closing
-        # the simulator, a video is created. This process is toggled OFF when the simulator is initialized, but you can
-        # toggle it ON or OFF using the shift+R keybind from the simulation window, or set it via code like so:
-        sim.processes["render"].resume()  # this way the simulator records by default
+    with sim.launch(fps=60):
+        # Let's say you'd like to record a video of your simulation. The simulator's visualizer has an attribute called
+        # recording. Whenever a frame is generated, if this attribute is True, the frame gets saved to a video. This is
+        # true even when there is no display.
+        sim.visualizer.recording = True
         # Note that where the video gets saved under cwd/simulator.mp4 by default.
-        while sim.viewer.is_running():
+        while not sim.display_should_close():
             sim.tick()  # tick steps the simulator, including all its subprocesses
 
 

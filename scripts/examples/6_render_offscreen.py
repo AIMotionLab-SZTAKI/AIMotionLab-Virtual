@@ -25,14 +25,12 @@ from aiml_virtual import scene, simulator
 
 if __name__ == "__main__":
     scn = scene.Scene(os.path.join(xml_directory, "example_scene_2.xml"), save_filename="example_scene_2.xml")
-    # As noted in 5_record.py, the render fps is different from the display fps. This is due to the fact that these
-    # two processes are completely separate: You can have a display without rendering anything, like we did in the
-    # first four examples. You can also render without displaying anything. In fact, you can run a simulation with
-    # any number of processes disabled (no display, no rendering), to gather data for diagrams for example.
+    # As noted in 5_record.py, you can have a display without rendering anything, like we did in the
+    # first four examples, but you can also render without displaying anything.
     # For now, let's render a video from the second example's scene without actually displaying anything.
     sim = simulator.Simulator(scn)
-    with sim.launch(with_display=False, renderer_fps=144):  # the with_display argument is True by default
-        sim.processes["render"].toggle()  # let's turn the recording on
+    with sim.launch(with_display=False, fps=144):  # the with_display argument is True by default
+        sim.visualizer.recording = True  # let's turn the recording on
         while sim.tick_count < 3000:  # let's step the physics engine 3 thousand times!
             sim.tick()
 

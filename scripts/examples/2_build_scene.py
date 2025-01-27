@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # that the former will drop from the sky when the simulation is launched, whereas the latter will stay in the air.
     # Read here about mocap objects in mujoco: https://mujoco.readthedocs.io/en/stable/modeling.html#mocap-bodies
     sim = simulator.Simulator(scn)
-    with sim.launch(fps=20):  # demonstrate lower fps as well
-        sim.cam.distance = 4  # demonstrate positioning the camera at a different distance
-        while sim.viewer.is_running():
+    with sim.launch(fps=20, speed=0.2):  # demonstrate lower fps as well as a slower simulation speed
+        sim.visualizer.mjvCamera.distance = 4  # demonstrate positioning the camera at a different distance
+        while not sim.display_should_close():
             sim.tick()  # tick steps the simulator, including all its subprocesses

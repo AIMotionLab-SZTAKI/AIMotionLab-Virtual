@@ -75,7 +75,7 @@ if __name__ == "__main__":
     scn.add_object(car2, pos="-1.5 0 0.05", quat='0.948 0 0 0.3165')
     sim = simulator.Simulator(scn)
     with sim.launch():
-        while sim.viewer.is_running():
+        while not sim.display_should_close():
             sim.tick()  # tick steps the simulator, including all its subprocesses
 
 

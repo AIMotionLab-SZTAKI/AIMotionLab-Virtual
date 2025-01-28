@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # For now, let's render a video from the second example's scene without actually displaying anything.
     sim = simulator.Simulator(scn)
     with sim.launch(with_display=False, fps=144):  # the with_display argument is True by default
-        sim.visualizer.recording = True  # let's turn the recording on
+        sim.visualizer.toggle_record()  # let's turn the recording on
         while sim.tick_count < 3000:  # let's step the physics engine 3 thousand times!
             sim.tick()
 

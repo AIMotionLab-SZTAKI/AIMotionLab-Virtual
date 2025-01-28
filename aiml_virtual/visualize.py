@@ -1,5 +1,6 @@
 """
 This module contains classes relating to the display of the simulator, and the glfw window handling.
+The visualization happens in two phases: abstract visualization and openGL rendering.
 """
 
 from __future__ import annotations
@@ -24,7 +25,8 @@ warning = utils_general.warning
 
 class Display:
     """
-    Class responsible for handing the glfw window and context for when the simulation requires a display.
+    Class responsible for handing the OpenGL rendering phase and display of the simulation (as opposed to the
+    abstract visualization).
     """
     def __init__(self, model: mujoco.MjModel, width: int, height: int, title: str):
         if not glfw.init():
@@ -247,8 +249,10 @@ class Visualizer:
 
     def toggle_record(self) -> None:
         """
-        Initializes the Video Writer if it hasn't been initialized yet and starts/stops the recording.
+        Starts/stops the recording, and adds the visualize process to the simulator if it's not already present.
         """
+        if "visualize" not in self.simulator.processes:
+            self.simulator.add_process("visualize", self.visualize, self.fps)
         self.recording = not self.recording
 
     def visualize(self, speed: float = 1.0) -> None:
@@ -269,21 +273,10 @@ class Visualizer:
                 self.write()
                 self.display.render_recording_symbol()
             self.display.display()  # this is the point where the new pixels actually appear on screen
-            # if we finished the animation too quick and immediately running the next loop would cause the animation
-            # to be too fast, we need to wait
-            leftover_time = self.simulator.timestep * self.simulator.tick_count - self.simulator.time * speed
-            if leftover_time > 0:
-                time.sleep(leftover_time)
+
         else:
             if self.recording:
                 self.write()
-
-
-    def should_close(self) -> bool:
-        """
-        Whether the glfw window has been closed (X pressed).
-        """
-        return glfw.window_should_close(self.display.window)
 
     def close(self) -> None:
         """

@@ -185,9 +185,23 @@ class Simulator:
         # Note that we can have a visualizer even when there is no display, since it's required to render a video, which
         # is independent of whether there is a display.
         self.visualizer = Visualizer(self, fps, with_display=with_display)
-        self.add_process("visualize", partial(self.visualizer.visualize, speed=speed), fps / speed)
+        if with_display:
+            self.add_process("visualize", self.visualizer.visualize, fps / speed)
+            self.add_process("rate_limit", partial(self.rate_limit, speed=speed), fps/speed)
         yield self
         self.visualizer.close()
+
+    def rate_limit(self, speed: float = 1.0):
+        """
+        If we finished the last loop too quick and immediately running the next loop would cause the animation
+        to be too fast, we need to wait by calling this method.
+
+        Args:
+            speed (float): The speed of the loop compared to wall clock time.
+        """
+        leftover_time = self.timestep * self.tick_count - self.time * speed
+        if leftover_time > 0:
+            time.sleep(leftover_time)
 
     def bind_scene(self) -> None:
         """
@@ -226,8 +240,8 @@ class Simulator:
         If there is a display, returns whether the glfw window has been closed (X pressed).
         If there is no display, returns None.
         """
-        if self.visualizer is not None:
-            return self.visualizer.should_close()
+        if self.visualizer is not None and self.visualizer.with_display:
+            return glfw.window_should_close(self.visualizer.display.window)
         else:
             return None
 

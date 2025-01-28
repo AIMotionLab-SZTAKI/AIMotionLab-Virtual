@@ -24,7 +24,5 @@ if __name__ == "__main__":
     sim = simulator.Simulator(scn)
     with sim.launch(speed=0.7):
         # sim.visualizer.recording = True
-        # for i in range(3000):
-        #     sim.tick()
         while not sim.display_should_close():
             sim.tick()  # tick steps the simulator, including all its processes

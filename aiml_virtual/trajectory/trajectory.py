@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 
-class Trajectory(ABC):  # move this to a separate file, and make it abstract base
+class Trajectory(ABC):
     """
     Base class for all trajectories.
 

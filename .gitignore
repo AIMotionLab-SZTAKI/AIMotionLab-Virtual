@@ -9,3 +9,5 @@ docs/source/aiml_virtual
 aiml_virtual/resources/xml_models/Scene.xml
 scripts/examples/*.xml
 scripts/*.xml
+scripts/demo/*.xml
+scripts/demo/*.skyc

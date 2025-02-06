@@ -1,0 +1,13 @@
+cél: egy skyc trajectory-t le tudjon játszani a simulator, úgy, hogy akkor indul amikor
+a szerver elindítja a valódi drónokat
+na most:
+egy skyc trajectory-t két módon lehet felhasználni: vagy straight up mocap data-t ad a drónoknak, vagy
+csak a trajektória setpointot, igazából talán mindkettő megoldható
+első sorban használjuk mint control target
+workflow:
+-"feltöltjük" a trajektóriát a drónoknak, azaz a legenerált skyc fájlt már betöltve elindítjuk a szimulációt
+    -ehhez kell egy mód, hogy skyc fájlból inicializáljunk drónokat
+        -kezdőpozíciójukat beolvassuk a trajektória elejéből
+        -kezdésre várnak
+-vár a szimuláció a launchra: ehhez fel kell csatlakozni a megfelelő tcp portra
+-várunk a launchra, amikor megtörténik a launch, a szimulált drónok is nekirugaszkodnak

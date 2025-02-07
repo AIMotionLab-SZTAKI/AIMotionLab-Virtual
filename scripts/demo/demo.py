@@ -4,6 +4,8 @@ import pathlib
 import numpy as np
 from skyc_utils.skyc_maker import write_skyc, XYZYaw, Trajectory, TrajectoryType
 from skyc_utils.skyc_inspector import get_traj_data
+import socket
+import threading
 
 # The lines under here are intended to make sure imports work, by adding parent folders to the path (i.e. the list
 # of folders where the interpreter will look for a given package when you try to import it). This is to account for
@@ -23,7 +25,8 @@ xml_directory = aiml_virtual.xml_directory
 from aiml_virtual.scene import Scene
 from aiml_virtual.simulator import Simulator
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.crazyflie import Crazyflie
-from aiml_virtual.trajectory.skyc_trajectory import SkycTrajectory
+from aiml_virtual.trajectory.skyc_trajectory import SkycTrajectory, extract_trajectories
+from aiml_virtual.mocap.optitrack_mocap_source import OptitrackMocapSource
 
 def generate_skyc():
     z = 0.75
@@ -59,15 +62,39 @@ def initialize_from_skyc(skyc_file: str, base: str, save_filename: str) -> Scene
         scn.add_object(cf, f"{start_pos[0]} {start_pos[1]} {start_pos[2]}", "1 0 0 0", "1 0 0 1")
     return scn
 
+def wait_show_start(soc: socket.socket, trajectories: list[SkycTrajectory], simulator: Simulator):
+    while True:
+        res = soc.recv(1024).strip()
+        if res == b"START":
+            print("START SIGNAL RECEIVED")
+            for trajectory in trajectories:
+                trajectory.set_start(simulator.sim_time)
+            break
 
 if __name__ == "__main__":
+    ip = "127.0.0.1"
+    port = 7002  # 6002
+
     generate_skyc()
-    scene = initialize_from_skyc("run_skyc.skyc", "scene_base.xml", "run_skyc.xml")
+    scene = Scene(os.path.join(xml_directory, "scene_base.xml"))
+    trajectories = extract_trajectories("demo.skyc")
+    for trajectory in trajectories:
+        cf = Crazyflie()
+        cf.trajectory = trajectory
+        start_pos = trajectory.evaluate(0.0).get("target_pos")
+        scene.add_object(cf, f"{start_pos[0]} {start_pos[1]} {start_pos[2]}", "1 0 0 0", "1 0 0 1")
+    mocap = OptitrackMocapSource()
+    scene.add_mocap_objects(mocap)
     simulator = Simulator(scene)
-    with simulator.launch():
-        while not simulator.display_should_close():
-            simulator.tick()
 
-
-
+    try:
+        soc = socket.socket()
+        soc.connect((ip, port))
+        t = threading.Thread(target=wait_show_start, args=(soc, trajectories, simulator), daemon=True)
+        t.start()
+        with simulator.launch():
+            while not simulator.display_should_close():
+                simulator.tick()
+    except ConnectionRefusedError:
+        print("Server connection refused.")
 

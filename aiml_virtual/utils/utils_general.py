@@ -1,5 +1,5 @@
 """
-This module contains utility functions and classes for the aimotion_virtual paclage.
+This module contains utility functions and classes for the aiml_virtual package.
 """
 
 import numpy as np

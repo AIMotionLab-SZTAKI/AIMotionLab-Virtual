@@ -122,11 +122,18 @@ class Simulator:
             self.add_process(obj.name, obj.update, obj.update_frequency)
 
     @property
-    def time(self) -> float:
+    def wallclock_time(self) -> float:
         """
         Property to grab the real-life (wall clock) time since the simulation started (time.time() with an offset).
         """
         return time.time() - self.start_time
+
+    @property
+    def sim_time(self) -> float:
+        """
+        Property to grab the time that has passed in the simulation.
+        """
+        return self.data.time
 
     @property
     def timestep(self) -> float:
@@ -199,7 +206,7 @@ class Simulator:
         Args:
             speed (float): The speed of the loop compared to wall clock time.
         """
-        leftover_time = self.timestep * self.tick_count - self.time * speed
+        leftover_time = self.timestep * self.tick_count - self.wallclock_time * speed
         if leftover_time > 0:
             time.sleep(leftover_time)
 

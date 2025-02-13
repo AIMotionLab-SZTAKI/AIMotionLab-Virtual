@@ -11,3 +11,4 @@ scripts/examples/*.xml
 scripts/*.xml
 scripts/demo/*.xml
 scripts/demo/*.skyc
+scripts/demo/Saves/

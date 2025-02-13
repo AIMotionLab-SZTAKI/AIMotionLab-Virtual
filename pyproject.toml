@@ -19,7 +19,9 @@ dependencies = [  # python 3.10
     "opencv-python", # 4.10.0.84
     "cyipopt; sys_platform != 'win32'", # 1.5.0, for MPCCCar
     "casadi", # 3.6.4, for MPCCCar
-    "pyyaml" # 6.0.2, for MPCCCar
+    "pyyaml", # 6.0.2, for MPCCCar
+    "pandas", #
+    "networkx",
 ]
 readme = "readme.md"
 

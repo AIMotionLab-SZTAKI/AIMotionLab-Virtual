@@ -17,6 +17,7 @@ from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import
 
 warning = utils_general.warning
 
+#TODO: Make some mocap objects set in orientation/height, regardless of read pose.
 class MocapObject(SimulatedObject, ABC):
     """
     Base class for objects in the simulation that receive their data from a motion capture system.
@@ -166,6 +167,10 @@ class Pole(MocapObject):
     @classmethod
     def get_identifier(cls) -> Optional[str]:
         return "Pole"
+
+    def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
+        super().__init__(source, mocap_name)
+        self.offset = np.array([0, 0, -1.04])
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")

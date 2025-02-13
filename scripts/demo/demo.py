@@ -33,6 +33,8 @@ from aiml_virtual.mocap.optitrack_mocap_source import OptitrackMocapSource
 from Utils.Utils import load
 from skyc_utils.skyc_maker import trim_ppoly, extend_ppoly_coeffs
 
+#TODO: Comments, docstrings
+
 def generate_skyc(input_file: str, output_file: str):
     routes: list[list[dict[str, Union[int, np.ndarray]]]] = load(input_file)
     # routes will have one element per drone

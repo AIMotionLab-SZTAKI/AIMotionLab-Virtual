@@ -8,7 +8,8 @@ import importlib
 import pkgutil
 import pathlib
 import math
-from typing import Union
+from typing import Union, Optional
+from scipy.spatial.transform import Rotation
 if platform.system() == 'Windows':
     import win_precise_time as time
 else:
@@ -188,3 +189,28 @@ def warning(text: str) -> None:
     reset = "\033[0m"
     formatted_text = f"WARNING: {text}"
     print(red + formatted_text + reset)
+
+def fix_angles(quat: np.array, *, roll: Optional[float] = None, pitch: Optional[float] = None,
+               yaw: Optional[float] = None) -> np.array:
+    """
+    Turns a quaternion into euler angles, overwrites the euler angles provided as not None, and returns a quaterion
+    matching the modified angles.
+
+    Args:
+        quat (np.array): The original quaternion, ordered w-x-y-z.
+        roll (Optional[float]): The fixed angle around the x-axis.
+        pitch (Optional[float]): The fixed angle around the y-axis.
+        yaw (Optional[float]): The fixed angle around the z-axis.
+
+    Returns:
+        np.array: The modified quaternion
+    """
+    euler = Rotation.from_quat(np.roll(quat, -1)).as_euler("xyz") # np.roll because scipy Rotation uses x-y-z-w
+    if roll is not None:
+        euler[0] = roll
+    if pitch is not None:
+        euler[1] = pitch
+    if yaw is not None:
+        euler[2] = yaw
+    new_quat = Rotation.from_euler("xyz", euler).as_quat()
+    return np.roll(new_quat, 1)

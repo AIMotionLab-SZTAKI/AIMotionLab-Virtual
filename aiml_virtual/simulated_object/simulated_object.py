@@ -205,7 +205,8 @@ class SimulatedObject(ABC):
         if self.model is None:
             raise RuntimeError
         color = np.array([r, g, b, a], dtype=np.float32)
-        # The body consists of several geoms
+        # The body consists of several geoms, we ned to set their color individually. These geoms are a continuous
+        # portion of the array of geoms, starting from geom_start and including geom_num elements.
         geom_start = self.model.body_geomadr[self.id]
         geom_num = self.model.body_geomnum[self.id]
         for geomid in range(geom_start, geom_start + geom_num):

@@ -17,13 +17,18 @@ from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import
 
 warning = utils_general.warning
 
-#TODO: Make some mocap objects set in orientation/height, regardless of read pose.
 class MocapObject(SimulatedObject, ABC):
     """
     Base class for objects in the simulation that receive their data from a motion capture system.
     The corresponding mujoco documentation can be found here: https://mujoco.readthedocs.io/en/stable/modeling.html#cmocap
     Each MocapObject has to have exactly one Mocap Source associated with it: this is where the object will get its pose
     info.
+    Mocap objects can have an offset and fixed angles. Fixed angles overwrite the euler angles read from the mocap
+    system, and the offset is applied to their position in their own coordinate frame after the angles have been fixed.
+    For example, if a mocap object is read as having a roll and pitch of 10 degrees (maybe due to the inaccuracy of the
+    mocap system), but those angles are fixed, then its yaw will be unchanged but roll and pitch will register as 0 in
+    the simulation. Then, if it has an offset of, say, [0, 0.1, 0], then its position will be 10cm to its right in the
+    simulation compared to the mocap data.
     """
 
     @classmethod
@@ -35,6 +40,7 @@ class MocapObject(SimulatedObject, ABC):
         self.mocap_name: str = mocap_name  #: The name in the mocap dictionary (different from the mujoco model name).
         self.source: MocapSource = source  #: The source for the poses of the object.
         self.offset: np.array = np.array([0, 0, 0]) #: The offset from the center of the marker set to the center of the XML body.
+        self.fixed_angles: list[Optional[float]] = [None, None, None] #: The angles in which a mocap object must be fixed.
 
     def assign_mocap(self, source: MocapSource, mocap_name: str) -> None:
         """
@@ -91,12 +97,15 @@ class MocapObject(SimulatedObject, ABC):
     def update(self) -> None:
         """
         Overrides SimulatedObject.update. Checks the mocap source to update its pose. The mocap source updates its frame
-        in a different thread, this function merely copies the data found there. Applies offset to the received data.
+        in a different thread, this function merely copies the data found there. Applies offset to the received data,
+        and if it has fixed angles due to physical limitations, it applies them.
         """
         if self.source is not None:
             mocap_frame = self.source.data
             if self.mocap_name in mocap_frame:
                 mocap_pos, mocap_quat = mocap_frame[self.mocap_name]
+                mocap_quat = utils_general.fix_angles(mocap_quat, roll=self.fixed_angles[0], pitch=self.fixed_angles[1],
+                                                      yaw=self.fixed_angles[2])
                 offet_world_frame = Rotation.from_quat(np.roll(mocap_quat, -1)).as_matrix() @ self.offset
                 self.data.mocap_pos[self.mocapid] = mocap_pos + offet_world_frame
                 self.data.mocap_quat[self.mocapid] = mocap_quat
@@ -171,6 +180,7 @@ class Pole(MocapObject):
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.offset = np.array([0, 0, -1.04])
+        self.fixed_angles = [0, 0, None]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -192,6 +202,7 @@ class Hospital(MocapObject):
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.offset = np.array([0, 0, -0.88])
+        self.fixed_angles = [0, 0, None]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -210,7 +221,8 @@ class PostOffice(MocapObject):
 
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
-        self.offset = np.array([0, 0, 0.0])
+        self.offset = np.array([0, 0, -0.4])
+        self.fixed_angles = [0, 0, None]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -230,6 +242,7 @@ class Sztaki(MocapObject):
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.offset = np.array([0, 0, -0.18])
+        self.fixed_angles = [0, 0, None]
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")

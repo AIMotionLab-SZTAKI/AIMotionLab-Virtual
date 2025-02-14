@@ -191,3 +191,22 @@ class SimulatedObject(ABC):
         match = re.match(pattern, name)
 
         return cls.xml_registry[match.group(1)] if match else None
+
+    def set_color(self, r: float, g: float, b: float, a: float = 1.0) -> None:
+        """
+        Changes the object's color at runtime.
+
+        Args:
+            r (float): The red portion of the RGBA, ranges from 0.0 to 1.0
+            g (float): The blue portion of the rgba, ranges from 0.0 to 1.0
+            b (float): The green portion of the rgba, ranges from 0.0 to 1.0
+            a (float): The alpha portion of the rgba, ranges from 0.0 to 1.0
+        """
+        if self.model is None:
+            raise RuntimeError
+        color = np.array([r, g, b, a], dtype=np.float32)
+        # The body consists of several geoms
+        geom_start = self.model.body_geomadr[self.id]
+        geom_num = self.model.body_geomnum[self.id]
+        for geomid in range(geom_start, geom_start + geom_num):
+            self.model.geom_rgba[geomid] = color

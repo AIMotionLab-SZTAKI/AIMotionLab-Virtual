@@ -99,6 +99,9 @@ def wait_show_start(soc: socket.socket, trajectories: list[SkycTrajectory], simu
             print("START SIGNAL RECEIVED")
             for trajectory in trajectories:
                 trajectory.set_start(simulator.sim_time)
+                for obj in simulator.simulated_objects:
+                    if isinstance(obj, Crazyflie):
+                        obj.set_color(0, 1, 0)
             break
 
 if __name__ == "__main__":

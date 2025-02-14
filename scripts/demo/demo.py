@@ -36,42 +36,56 @@ from skyc_utils.skyc_maker import trim_ppoly, extend_ppoly_coeffs
 #TODO: Comments, docstrings
 
 def generate_skyc(input_file: str, output_file: str):
+    """
+    Generates a skyc file named output_file.skyc from the routes read from input_file
+    """
     routes: list[list[dict[str, Union[int, np.ndarray]]]] = load(input_file)
     # routes will have one element per drone
     # that element will be again a list, which contains one element per trajectory
     # that element is a dict, where the key 'Route' shows the points the trajectory
     # those points are stored in a numpy array, where the columns are t-x-y-z-vel
-    # in the resulting trajectory, we'd like to have no more than 60 segments altogether, which will be a
-    # challenge as there will be more than 60 points per drone
+    # in the resulting trajectory, we'd like to have no more than 60 segments altogether, which may prove a
+    # challenge as there will be more than 60 points per drone.
     trajectories = []
     for drone_segments in routes:
+        # drone_segments is a list of dicts cotaining a 'Route' element which is a np array of the trajectory's points
         takeoff_time = 2
-        for segment in drone_segments:
+        # the 0th segments actually start at 1sec, so the takeoff will take 3 seconds instead of 2
+        for segment in drone_segments: # push all trajectories back by takeoff_time
             segment['Route'][:, 0] += takeoff_time
-        # We want each drone to end up having 60 segments plus one takeoff segment
         first_point = copy.deepcopy(np.append(drone_segments[0]['Route'][0][1:4], 0))
         first_point[2] = 0.0
-        start = XYZYaw(first_point)
+        start = XYZYaw(first_point) # the start = takeoff position is under the first point of the first trajectory
         traj = Trajectory(TrajectoryType.POLY4D, degree=5)
         traj.set_start(start)
+        # 62 segments can be stored in the trajectory memory. One will be the landing segment, one the takeoff segment,
+        # meaning that we may use 60 for all segments. One "position hold" is necessary between segments, hende:
         bezier_curve_per_segment = int(60.0 / len(drone_segments)) - 1
         last_time = 0
         for segment in drone_segments:
+            # a segment is a dict, where 'Start' signals the node where it starts from, and 'Route' the points it
+            # touches along the way.
             points = segment["Route"]
             dt = points[0][0] - last_time
+            # start off with a position hold if there is a delay between the last route's end and the next one
             traj.add_goto(XYZYaw(np.append(points[0][1:4], 0)), dt)
             last_time = points[-1][0]
             points[:, -1] = 0
             t_x_y_z_yaw = points.T.tolist()
-            t_x_y_z_yaw[0] = [t - t_x_y_z_yaw[0][0] for t in t_x_y_z_yaw[0]]
+            # When adding an interpolated segment, the segment is supposed to start at time 0.
+            t_x_y_z_yaw[0] = [timestamp - t_x_y_z_yaw[0][0] for timestamp in t_x_y_z_yaw[0]]
             if len(points) > bezier_curve_per_segment:
                 traj.add_interpolated_traj(t_x_y_z_yaw, number_of_segments=bezier_curve_per_segment, method="mosek",
                                            fit_ends=True, force_0_derivs=True)
             else:
+                # if there are fewer or equal points in the trajectory than the resulting number of bezier segments,
+                # we don't need to bother with optimizing the nodes using mosek, we can just use a spline fitting,
+                # which will result in the exact same number of segments as the number of points
                 t = t_x_y_z_yaw[0]
-                bc = ([(1, 0.0), (2, 0.0)], [(1, 0.0), (2, 0.0)])
+                bc = ([(1, 0.0), (2, 0.0)], [(1, 0.0), (2, 0.0)])  # boundary conditions: start and end with 0 derivs
                 bspline_lst = [interpolate.make_interp_spline(t, values, k=5, bc_type=bc) for values in
                                t_x_y_z_yaw[1:]]
+                # remove duplicate nodes at the ends
                 trimmed_ppoly_lst = [trim_ppoly(interpolate.PPoly.from_spline(bspline)) for bspline in bspline_lst]
                 for ppoly in trimmed_ppoly_lst:
                     extend_ppoly_coeffs(ppoly, 6)
@@ -80,19 +94,11 @@ def generate_skyc(input_file: str, output_file: str):
         trajectories.append(traj)
     write_skyc(trajectories, name=output_file)
 
-
-def initialize_from_skyc(skyc_file: str, base: str, save_filename: str) -> Scene:
-    scn = Scene(os.path.join(xml_directory, base), save_filename=save_filename)
-    traj_data = get_traj_data(skyc_file)
-    for i in range(len(traj_data)):
-        cf = Crazyflie()
-        traj = SkycTrajectory(skyc_file, i)
-        cf.trajectory = traj
-        start_pos = traj.evaluate(0.0).get("target_pos")
-        scn.add_object(cf, f"{start_pos[0]} {start_pos[1]} {start_pos[2]}", "1 0 0 0", "1 0 0 1")
-    return scn
-
 def wait_show_start(soc: socket.socket, trajectories: list[SkycTrajectory], simulator: Simulator):
+    """
+    Waits for a b"START" bytearray from the server, and doesn't return until it receives it. When that happens,
+    the trajectories of the drones are started, and the drones are turned green to indicate it.
+    """
     while True:
         res = soc.recv(1024).strip()
         if res == b"START":
@@ -106,10 +112,9 @@ def wait_show_start(soc: socket.socket, trajectories: list[SkycTrajectory], simu
 
 if __name__ == "__main__":
     ip = "127.0.0.1"
-    port = 7002  # 6002
+    port = 7002  # 6002 is actual server port, 7002 is Dummy Port
     generate_skyc("Saves/Routes/virtual_routes", "virtual")
     generate_skyc("Saves/Routes/real_routes", "real")
-    # scene = Scene(os.path.join(xml_directory, "scene_base.xml"))
     scene = Scene(os.path.join(xml_directory, "empty_checkerboard.xml"))
     trajectories = extract_trajectories("virtual.skyc")
     for trajectory in trajectories:
@@ -120,12 +125,11 @@ if __name__ == "__main__":
     mocap = OptitrackMocapSource()
     scene.add_mocap_objects(mocap)
     simulator = Simulator(scene)
-
     try:
         soc = socket.socket()
         soc.connect((ip, port))
-        t = threading.Thread(target=wait_show_start, args=(soc, trajectories, simulator), daemon=True)
-        t.start()
+        thread = threading.Thread(target=wait_show_start, args=(soc, trajectories, simulator), daemon=True)
+        thread.start()
         with simulator.launch():
             while not simulator.display_should_close():
                 simulator.tick()

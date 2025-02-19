@@ -55,6 +55,7 @@ class Scene:
         "cf" would be lost. To this end, SimulatedObjects may exist without a model or data. However, they must be bound
         to the model and the data before running a simulation.
     """
+
     def __init__(self, base_scene_filename: str = EMTPY_SCENE, save_filename: str = "Scene.xml"):
         self.model: mujoco.MjModel = mujoco.MjModel.from_xml_path(base_scene_filename)  #: the mjModel with C bindings
         self.xml_root: ET.Element = ET.Element("mujoco", {"model": save_filename}) #: root of the XML tree
@@ -133,18 +134,21 @@ class Scene:
         else:
             xml_dict = obj.create_xml_element(pos, quat, color)
             for xml_tag, xml_elements in xml_dict.items():
-                # if the xml tag we want to add to already exists, we just need to add our elements to it
-                if xml_tag in [child.tag for child in self.xml_root]:
-                    for child in self.xml_root:
-                        if child.tag == xml_tag: # check which tag matches ours
-                            # and add our elements to it
-                            for xml_element in xml_elements:
-                                child.append(xml_element)
-                else: # however, if it doesn't exist, we must create it
-                    new_element = ET.SubElement(self.xml_root, xml_tag)
-                    for xml_element in xml_elements:
-                        new_element.append(xml_element)
-
+                if xml_tag in aiml_virtual.grouping_element_tags:
+                    # if the xml tag we want to add to already exists, we just need to add our elements to it
+                    if xml_tag in [child.tag for child in self.xml_root]:
+                        for child in self.xml_root:
+                            if child.tag == xml_tag:  # check which tag matches ours
+                                # and add our elements to it
+                                for xml_element in xml_elements:
+                                    child.append(xml_element)
+                    else:  # however, if it doesn't exist, we must create it
+                        new_element = ET.SubElement(self.xml_root, xml_tag)
+                        for xml_element in xml_elements:
+                            new_element.append(xml_element)
+                else: # not a grouping element, meaning we must append it directly to the root
+                    for element in xml_elements:
+                        self.xml_root.append(element)
             # update simulated objects
             self.simulated_objects.append(obj)
 

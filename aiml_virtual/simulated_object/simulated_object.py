@@ -8,6 +8,7 @@ from typing import Optional, Type
 import mujoco
 import numpy as np
 import re
+import aiml_virtual
 
 
 class SimulatedObject(ABC):
@@ -120,6 +121,31 @@ class SimulatedObject(ABC):
         or change its appearance (such as rotating its propellers), it shall be done in this function.
         """
         pass
+
+    @staticmethod
+    def parse_xml(xml_path: str) -> dict[str, list[ET.Element]]:
+        """
+        Parses a mjcf file into a dictionary similar to what is returned by a SimulatedObject's create_xml_element.
+
+        Args:
+            xml_path (str): Path to the xml file that contains the model to be imported.
+
+        Returns:
+            dict[str, list[ET.Element]]: A dictionary, where the keys are the xml tags found in the model file,
+            and the values are either the elements to be inserted into grouping elements or a list of elements with
+            the same tag, if that tag does not belong to a grouping element.
+        """
+        tree = ET.parse(xml_path)
+        root = tree.getroot()
+        top_level_dict: dict[str, list[ET.Element]] = {}
+        for elem in root:
+            if elem.tag not in top_level_dict:
+                top_level_dict[elem.tag] = []
+            if elem.tag in aiml_virtual.grouping_element_tags:
+                top_level_dict[elem.tag].extend(list(elem))
+            else:
+                top_level_dict[elem.tag].append(elem)
+        return top_level_dict
 
     @abstractmethod
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:

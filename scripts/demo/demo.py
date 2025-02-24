@@ -158,7 +158,7 @@ def start_show(soc: socket.socket, virt_trajectories: list[SkycTrajectory], real
 def handle_colors(drone: MocapDrone, light_data: dict):
     for color, duration in light_data['colors']:
         r, g, b = map(int, color.split(','))
-        drone.set_color(r/1255, g/255, b/255, 1.0)
+        drone.set_color(r/255, g/255, b/255, 1.0)
         time.sleep(duration)
 
 if __name__ == "__main__":

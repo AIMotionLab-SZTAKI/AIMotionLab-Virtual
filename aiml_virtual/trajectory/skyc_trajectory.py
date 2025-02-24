@@ -29,11 +29,12 @@ class SkycTrajectory(trajectory.Trajectory):
     segment is special (it has to be, since it has no previous segment to describe its starting time/point): it shall
     have no extra control points.
     """
-    def __init__(self, traj_data: dict[str, Any]):
+    def __init__(self, traj_data: dict[str, Any], light_data: dict[str, Any] = None):
         super().__init__()
         self.traj_data: dict[str, Any] = traj_data  #: The dictionary that can be read from trajectory.json.
         self.traj_data["started"] = False
         self.evaluator: Optional[TrajEvaluator] = None
+        self.light_data: dict[str, Any] = light_data
 
     def set_start(self, t: float):
         """
@@ -98,5 +99,5 @@ def extract_trajectories(skyc_file: str) -> list[SkycTrajectory]:
     Returns:
         list[SkycTrajectory]: A list with one SkycTrajectory per drone in the skyc file.
     """
-    traj_data: list[dict[str, Any]] = skyc_inspector.get_traj_data(skyc_file)
-    return [SkycTrajectory(t) for t in traj_data]
+    data: list[tuple[dict, dict]] = skyc_inspector.get_data(skyc_file)
+    return [SkycTrajectory(t, l) for t, l in data]

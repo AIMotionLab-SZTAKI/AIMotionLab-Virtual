@@ -213,7 +213,8 @@ class Scene:
         for object_to_remove in objects_to_remove:
             self.remove_object(object_to_remove)
         while len(mocap.data) == 0:
-            time.sleep(0.1)
+            print("No objects found in mocap.")
+            time.sleep(0.2)
         frame = mocap.data  # a dictionary where each items corresponds to one eventual mocap object
         ret: list[MocapObject] = []
         for name, (pos, quat) in frame.items():

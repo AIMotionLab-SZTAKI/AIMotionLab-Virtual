@@ -2,13 +2,18 @@ import os
 import sys
 import pathlib
 import numpy as np
-from skyc_utils.skyc_maker import write_skyc, XYZYaw, Trajectory, TrajectoryType
+from skyc_utils.skyc_maker import write_skyc, XYZYaw, Trajectory, TrajectoryType, LightProgram, Color
 from skyc_utils.skyc_inspector import get_traj_data
 import socket
 import threading
 from typing import Optional, Union
 import copy
 from scipy import interpolate
+import platform
+if platform.system() == 'Windows':
+    import win_precise_time as time
+else:
+    import time
 
 # The lines under here are intended to make sure imports work, by adding parent folders to the path (i.e. the list
 # of folders where the interpreter will look for a given package when you try to import it). This is to account for
@@ -32,10 +37,12 @@ from aiml_virtual.trajectory.skyc_trajectory import SkycTrajectory, extract_traj
 from aiml_virtual.mocap.optitrack_mocap_source import OptitrackMocapSource
 from Utils.Utils import load
 from skyc_utils.skyc_maker import trim_ppoly, extend_ppoly_coeffs
+from aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_drone import MocapDrone
 
 #TODO: Comments, docstrings
+COLORS = [Color.RED, Color.GREEN, Color.BLUE, Color.CYAN, Color.MAGENTA, Color.YELLOW]
 
-def generate_skyc(input_file: str, output_file: str):
+def generate_skyc(input_file: str, output_file: str, add_colors: bool = False):
     """
     Generates a skyc file named output_file.skyc from the routes read from input_file
     """
@@ -48,7 +55,11 @@ def generate_skyc(input_file: str, output_file: str):
     # challenge as there will be more than 60 points per drone.
     trajectories = []
     for drone_segments in routes:
-        # drone_segments is a list of dicts cotaining a 'Route' element which is a np array of the trajectory's points
+        starts = [segment['Start'] for segment in drone_segments]
+        goals = starts[1:]+starts[:1]
+        for i, goal in enumerate(goals):
+            drone_segments[i]['Start'] = goal
+        # drone_segments is a list of dicts containing a 'Route' element which is a np array of the trajectory's points
         takeoff_time = 2
         # the 0th segments actually start at 1sec, so the takeoff will take 3 seconds instead of 2
         for segment in drone_segments: # push all trajectories back by takeoff_time
@@ -92,9 +103,25 @@ def generate_skyc(input_file: str, output_file: str):
                 traj.add_ppoly(XYZYaw(trimmed_ppoly_lst))
         traj.add_goto(start, takeoff_time)
         trajectories.append(traj)
-    write_skyc(trajectories, name=output_file)
+    if add_colors:
+        light_programs = []
+        for drone_segments in routes:
+            light_program = LightProgram()
+            last_time = 0
+            for segment in drone_segments:
+                color = COLORS[segment["Start"]%len(COLORS)]
+                points = segment["Route"]
+                duration = points[-1][0] - last_time
+                duration = round(duration*50)/50
+                last_time = points[-1][0]
+                light_program.append_color(color, duration)
+            light_programs.append(light_program)
+        write_skyc(trajectories, light_programs, name=output_file)
+    else:
+        write_skyc(trajectories, name=output_file)
 
-def wait_show_start(soc: socket.socket, trajectories: list[SkycTrajectory], simulator: Simulator):
+def start_show(soc: socket.socket, virt_trajectories: list[SkycTrajectory], real_trajectories: list[SkycTrajectory],
+               simulator: Simulator, mocap: OptitrackMocapSource) -> None:
     """
     Waits for a b"START" bytearray from the server, and doesn't return until it receives it. When that happens,
     the trajectories of the drones are started, and the drones are turned green to indicate it.
@@ -103,21 +130,46 @@ def wait_show_start(soc: socket.socket, trajectories: list[SkycTrajectory], simu
         res = soc.recv(1024).strip()
         if res == b"START":
             print("START SIGNAL RECEIVED")
-            for trajectory in trajectories:
-                trajectory.set_start(simulator.sim_time)
-                for obj in simulator.simulated_objects:
-                    if isinstance(obj, Crazyflie):
-                        obj.set_color(0, 1, 0)
             break
+    def d(p1: np.ndarray, p2: np.ndarray):
+        dx = p1[0] - p2[0]
+        dy = p1[1] - p2[1]
+        return np.sqrt(dx*dx + dy*dy)
+    traj_dict: dict[str, SkycTrajectory] = {}
+    # start_positions = [t.evaluate(0)["target_pos"][:2] for t in real_trajectories]
+    data = mocap.data
+    while len(data) == 0:
+        print("No objects found in mocap, sleeping zzzzZZZZZzz")
+        time.sleep(0.5)
+    for traj in virt_trajectories:
+        traj.set_start(simulator.sim_time)
+    for obj in simulator.simulated_objects:
+        if isinstance(obj, MocapDrone):
+            name = obj.mocap_name
+            pos = data[name][0]
+            for traj in real_trajectories:
+                start_position = traj.evaluate(0)["target_pos"][:2]
+                if name not in traj_dict or d(pos, start_position) < d(pos, traj_dict[name].evaluate(0)["target_pos"][:2]):
+                    traj_dict[name] = traj
+            t = threading.Thread(target=handle_colors, args=(obj, traj_dict[name].light_data), daemon=True)
+            t.start()
+
+
+def handle_colors(drone: MocapDrone, light_data: dict):
+    for color, duration in light_data['colors']:
+        r, g, b = map(int, color.split(','))
+        drone.set_color(r/1255, g/255, b/255, 1.0)
+        time.sleep(duration)
 
 if __name__ == "__main__":
     ip = "127.0.0.1"
-    port = 7002  # 6002 is actual server port, 7002 is Dummy Port
+    port = 6002  # 6002 is actual server port, 7002 is Dummy Port
     generate_skyc("Saves/Routes/virtual_routes", "virtual")
-    generate_skyc("Saves/Routes/real_routes", "real")
-    scene = Scene(os.path.join(xml_directory, "empty_checkerboard.xml"))
-    trajectories = extract_trajectories("virtual.skyc")
-    for trajectory in trajectories:
+    generate_skyc("Saves/Routes/real_routes", "real", add_colors=True)
+    scene = Scene(os.path.join(xml_directory, "demo_base.xml"))
+    virtual_trajectories = extract_trajectories("virtual.skyc")
+    real_trajectories = extract_trajectories("real.skyc")
+    for trajectory in virtual_trajectories:
         cf = Crazyflie()
         cf.trajectory = trajectory
         start_pos = trajectory.evaluate(0.0).get("target_pos")
@@ -128,7 +180,7 @@ if __name__ == "__main__":
     try:
         soc = socket.socket()
         soc.connect((ip, port))
-        thread = threading.Thread(target=wait_show_start, args=(soc, trajectories, simulator), daemon=True)
+        thread = threading.Thread(target=start_show, args=(soc, virtual_trajectories, real_trajectories, simulator, mocap), daemon=True)
         thread.start()
         with simulator.launch():
             while not simulator.display_should_close():

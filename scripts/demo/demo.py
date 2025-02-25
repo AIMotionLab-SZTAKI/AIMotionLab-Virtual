@@ -1,6 +1,8 @@
 import os
 import sys
 import pathlib
+from xml.etree import ElementTree as ET
+
 import numpy as np
 from skyc_utils.skyc_maker import write_skyc, XYZYaw, Trajectory, TrajectoryType, LightProgram, Color
 from skyc_utils.skyc_inspector import get_traj_data
@@ -35,12 +37,46 @@ from aiml_virtual.simulator import Simulator
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.crazyflie import Crazyflie
 from aiml_virtual.trajectory.skyc_trajectory import SkycTrajectory, extract_trajectories
 from aiml_virtual.mocap.optitrack_mocap_source import OptitrackMocapSource
+from aiml_virtual.mocap.mocap_source import MocapSource
+from aiml_virtual.simulated_object.mocap_object.mocap_object import Box
 from Utils.Utils import load
 from skyc_utils.skyc_maker import trim_ppoly, extend_ppoly_coeffs
 from aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_drone import MocapDrone
+from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.crazyflie import Crazyflie
+from aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_crazyflie import MocapCrazyflie
+
+class DemoCrazyflie(Crazyflie):
+    @classmethod
+    def get_identifier(cls) -> Optional[str]:
+        return "DemoCrazyflie"
+
+    def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
+        ret = super().create_xml_element(pos, quat, color)
+        drone = ret["worldbody"][0]
+        r, g, b, _ = color.split()
+        ET.SubElement(drone, "geom", name=self.name+"_sphere", type="sphere", size="0.1", rgba=f"{r} {g} {b} {0.2}",
+                      contype="0", conaffinity="0")
+        return ret
+
+class DeMocapCrazyflie(MocapCrazyflie):
+    @classmethod
+    def get_identifier(cls) -> Optional[str]:
+        return "DeMocapCrazyflie"
+
+    def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
+        ret = super().create_xml_element(pos, quat, color)
+        drone = ret["worldbody"][0]
+        r, g, b, _ = color.split()
+        ET.SubElement(drone, "geom", name=self.name+"_sphere", type="sphere", size="0.1", rgba=f"{r} {g} {b} {0.2}",
+                      contype="0", conaffinity="0")
+        return ret
+
+for k, v in MocapSource.config.items():
+    if v=="MocapCrazyflie":
+        MocapSource.config[k] = "DeMocapCrazyflie"
 
 #TODO: Comments, docstrings
-COLORS = [Color.RED, Color.GREEN, Color.BLUE, Color.CYAN, Color.MAGENTA, Color.YELLOW]
+COLORS = [Color.GREEN, Color.BLUE, Color.CYAN, Color.MAGENTA, Color.YELLOW]
 
 def generate_skyc(input_file: str, output_file: str, add_colors: bool = False):
     """
@@ -107,7 +143,8 @@ def generate_skyc(input_file: str, output_file: str, add_colors: bool = False):
         light_programs = []
         for drone_segments in routes:
             light_program = LightProgram()
-            last_time = 0
+            last_time = 3
+            light_program.append_color(Color.WHITE, last_time)
             for segment in drone_segments:
                 color = COLORS[segment["Start"]%len(COLORS)]
                 points = segment["Route"]
@@ -149,16 +186,17 @@ def start_show(soc: socket.socket, virt_trajectories: list[SkycTrajectory], real
             pos = data[name][0]
             for traj in real_trajectories:
                 start_position = traj.evaluate(0)["target_pos"][:2]
+                # TODO: CHECK IF CORRECT
                 if name not in traj_dict or d(pos, start_position) < d(pos, traj_dict[name].evaluate(0)["target_pos"][:2]):
                     traj_dict[name] = traj
+            print(f'Distance from start point: {d(pos, traj_dict[name].evaluate(0)["target_pos"][:2])}')
             t = threading.Thread(target=handle_colors, args=(obj, traj_dict[name].light_data), daemon=True)
             t.start()
-
 
 def handle_colors(drone: MocapDrone, light_data: dict):
     for color, duration in light_data['colors']:
         r, g, b = map(int, color.split(','))
-        drone.set_color(r/255, g/255, b/255, 1.0)
+        drone.set_color(r/255, g/255, b/255, 0.2)
         time.sleep(duration)
 
 if __name__ == "__main__":
@@ -170,12 +208,24 @@ if __name__ == "__main__":
     virtual_trajectories = extract_trajectories("virtual.skyc")
     real_trajectories = extract_trajectories("real.skyc")
     for trajectory in virtual_trajectories:
-        cf = Crazyflie()
+        cf = DemoCrazyflie()
         cf.trajectory = trajectory
         start_pos = trajectory.evaluate(0.0).get("target_pos")
         scene.add_object(cf, f"{start_pos[0]} {start_pos[1]} {start_pos[2]}", "1 0 0 0", "1 0 0 1")
     mocap = OptitrackMocapSource()
     scene.add_mocap_objects(mocap)
+    # TODO: change this to load from a file
+    building_data = [
+       [ 1.        ,  2.5       ,  1.        ,  0.1       ,  0.1       ],
+       [-1.        ,  2.5       ,  1.        ,  0.1       ,  0.1       ],
+       [-1.        , -2.5       ,  1.        ,  0.1       ,  0.1       ],
+       [ 1.        , -2.5       ,  1.        ,  0.1       ,  0.1       ],
+       [ 2.5       ,  1.        ,  1.        ,  0.1       ,  0.1       ],
+       [-2.5       ,  1.        ,  1.        ,  0.1       ,  0.1       ],
+       [-2.5       , -1.        ,  1.        ,  0.1       ,  0.1       ],
+       [ 2.5       , -1.        ,  1.        ,  0.1       ,  0.1       ]]
+    for x, y, h, w, l in building_data:
+        scene.add_object(Box(w/2, w/2, h), f"{x} {y} {0}")
     simulator = Simulator(scene)
     try:
         soc = socket.socket()

@@ -210,6 +210,28 @@ class Hospital(MocapObject):
                       material="mat-hospital")
         return {"worldbody": [body]}
 
+class Box(MocapObject):
+    """
+        Mocap object to display an anonymous block.
+        """
+
+    @classmethod
+    def get_identifier(cls) -> Optional[str]:
+        return "Box"
+
+    def __init__(self, width: float, length: float, height: float, source: Optional[MocapSource] = None,
+                 mocap_name: Optional[str] = None):
+        super().__init__(source, mocap_name)
+        self.width: float = width
+        self.legth: float = length
+        self.height: float = height
+
+    def create_xml_element(self, pos: str, quat: str, color: str = "1 1 1 1") -> dict[str, list[ET.Element]]:
+        body = ET.Element("body", name=self.name, pos="0 0 0", quat=quat, mocap="true")
+        ET.SubElement(body, "geom", name=self.name, type="box", pos=pos,
+                      size=f"{self.width} {self.legth} {self.height}", rgba=color)
+        return {"worldbody": [body]}
+
 class PostOffice(MocapObject):
     """
     Mocap object to display the Post Office building (currently assumed to be bu2 in optitrack).

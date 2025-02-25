@@ -26,7 +26,7 @@ if __name__ == '__main__':
     real_routes_save_name = check_routes_save_file(file_name="real_routes")
     virtual_routes_save_name = check_routes_save_file(file_name="virtual_routes")
 
-    set_rand_seed(130009)
+    set_rand_seed(130010)
 
     # -------- ANIMATION --------
     drones = drones[:(drone_num+virtual_drone_num)]
@@ -39,7 +39,7 @@ if __name__ == '__main__':
             _drone.place(scenario=scenario, vertex=scenario.target_vertices[0], lock_home_vertex=True) # !!!
         else:
             _drone.color = 'orange'
-            _drone.place(scenario=scenario, vertex=scenario.extra_target_vertices[0], lock_home_vertex=True)  # !!!
+            _drone.place(scenario=scenario, vertex=scenario.extra_target_vertices[-1], lock_home_vertex=True)  # !!!
             _drone.virtual = True
 
 

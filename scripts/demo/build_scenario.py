@@ -15,8 +15,8 @@ from Utils.Utils import save, get_trajectories, save_trajectories, set_rand_seed
 #-----------------------------------------------------------------------------------------------------------------------
 # INITIALIZE SCENARIO
 
-DIMENSION = np.array([8, 8, 0.1, 3])
-REAL_DIMENSION = np.array([3, 3, 0.1, 1.7])
+DIMENSION = np.array([6.4, 6.4, 0.1, 3])
+REAL_DIMENSION = np.array([3, 3, 0.1, 1.4])
 #corridor: np.array([10.0, 4.0, 0.2, 3.0])
 #city: np.array([3, 3, 0.1, 1.5])
 #multidrone_area: np.array([10, 10, 0.1, 4])
@@ -54,14 +54,14 @@ scenario = Scenario(dimension=DIMENSION,
                     vertex_number=50,
                     max_edge_length=0.5,
                     min_vertex_distance=0.2,
-                    fix_vertex_layout_id=8,
+                    fix_vertex_layout_id=9,
                     point_cloud_density=0.05, # TODO: set it automaticaly
                     #terrain=terrain,
                     static_obstacles=static_obstacles,
                     #radars=radars
                     )
 
-scenario.plot(plt_graph=True,
+scenario.plot(plt_graph=False,
               plt_terrain=True,
               plt_targets=True,
               plt_static_obstacles=True,

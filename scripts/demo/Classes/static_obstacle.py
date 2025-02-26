@@ -43,8 +43,8 @@ def obstacle_layout_set(layout_id: int) -> np.ndarray:
     elif layout_id == 6:
         "AR city"
         obstacle_positions = np.array([#[-2, -2, 1.0], [2, 2, 1], [-2, 2, 1], [2, -2, 1],
-                                       [1, 2.5, 1], [-1, 2.5, 1], [-1, -2.5, 1], [1, -2.5, 1],
-                                       [2.5, 1, 1], [-2.5, 1, 1], [-2.5, -1, 1], [2.5, -1, 1]])
+                                       [1, 2, 1], [-1, 2, 1], [-1, -2, 1], [1, -2, 1],
+                                       [2, 1, 1], [-2, 1, 1], [-2, -1, 1], [2, -1, 1]])
         obstacle_dimensions = np.array([[0.2, 0.2]]) / 2
     else:
         return np.array([])

@@ -138,6 +138,7 @@ def generate_skyc(input_file: str, output_file: str, add_colors: bool = False):
                     extend_ppoly_coeffs(ppoly, 6)
                 traj.add_ppoly(XYZYaw(trimmed_ppoly_lst))
         traj.add_goto(start, takeoff_time)
+        traj.add_parameter(-15, "stabilizer.controller", 2)
         trajectories.append(traj)
     if add_colors:
         light_programs = []
@@ -215,15 +216,7 @@ if __name__ == "__main__":
     mocap = OptitrackMocapSource()
     scene.add_mocap_objects(mocap)
     # TODO: change this to load from a file
-    building_data = [
-       [ 1.        ,  2.5       ,  1.        ,  0.1       ,  0.1       ],
-       [-1.        ,  2.5       ,  1.        ,  0.1       ,  0.1       ],
-       [-1.        , -2.5       ,  1.        ,  0.1       ,  0.1       ],
-       [ 1.        , -2.5       ,  1.        ,  0.1       ,  0.1       ],
-       [ 2.5       ,  1.        ,  1.        ,  0.1       ,  0.1       ],
-       [-2.5       ,  1.        ,  1.        ,  0.1       ,  0.1       ],
-       [-2.5       , -1.        ,  1.        ,  0.1       ,  0.1       ],
-       [ 2.5       , -1.        ,  1.        ,  0.1       ,  0.1       ]]
+    building_data  = load("Saves/Scenarios/city_scenario")["Scenario"].static_obstacles.enclosed_spaces[-8:]
     for x, y, h, w, l in building_data:
         scene.add_object(Box(w/2, w/2, h), f"{x} {y} {0}")
     simulator = Simulator(scene)

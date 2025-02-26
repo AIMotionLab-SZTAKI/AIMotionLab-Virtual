@@ -116,7 +116,8 @@ class Drone:
         self.home_vertex: None | int = None
         self.start_vertex: None | int = None
         self.target_vertex: None | int = None
-        self.returned_home = False
+        self.returned_home: bool = False
+        self.landed: bool = False
 
         self.position: None | np.ndarray = None
         self.trajectory: None | np.ndarray = None
@@ -494,11 +495,30 @@ class Drone:
             return round(self.trajectory[0][-1], 5)
         return -1
 
-    def move(self, t: np.ndarray) -> np.ndarray:
+    def move(self, t: np.ndarray | float) -> np.ndarray:
         t = np.where(t > self.trajectory_start_time(), t, self.trajectory_start_time())
         t = np.where(t < self.trajectory_final_time(), t, self.trajectory_final_time())
         position = interpolate.splev(t, self.trajectory)
         return np.transpose(position)
+
+    def land(self, scenario, time):
+        self.landed = True
+
+        # Visual update
+        fig = plt.gcf()
+        ax = fig.gca()
+        for axes in self.trajectory_plot:
+            axes.remove()
+        self.my_plot.set_alpha(0.1)
+
+        # Landing trajectory route = np.array([[t,x,y,z],[t,x,y,z]]), t = 0
+        final_pos = self.move(t=self.trajectory_final_time())
+        h = final_pos[2] + self.bounding_box[1]
+        land_pos = final_pos - np.array([0,0,h])
+        landing_time = 3 # under the surface to compensate for the upper half of the downwash
+        landing_route = np.concatenate((np.array([[time], [time+landing_time]]), np.array([final_pos,land_pos])), axis=1)
+        self.fit_trajectory(route=landing_route, t=0)
+
 
     def plot_trajectory(self) -> None:
         fig = plt.gcf()

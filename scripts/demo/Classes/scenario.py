@@ -90,7 +90,6 @@ def target_layout_set(layout_id: int) -> np.ndarray:
         V_fix = [[1,1,1], [-0.5,-1,0.75], [-1.2,-0.5,0.5], [-1.2, 0.5,0.5]]
 
     elif layout_id == 8:
-        "AR City demo"
         X = 3.5
         H = 1.4
 
@@ -115,6 +114,33 @@ def target_layout_set(layout_id: int) -> np.ndarray:
                        [H,  H, H,  H]]).T
 
         return np.row_stack((w1, w2, w3, w4, w5))
+
+    elif layout_id == 9:
+        "AR City demo"
+        X = 3
+        H = 1.4
+
+        w1 = np.array([[-2, -1,  0,  1,  2],
+                       [-X, -X, -X, -X, -X],
+                       [ H,  H,  H,  H,  H]]).T
+
+        w2 = np.array([[-2, -1,  0,  1,  2],
+                       [ X,  X,  X,  X,  X],
+                       [ H,  H,  H,  H,  H]]).T
+
+        w3 = np.array([[-X, -X, -X, -X, -X],
+                       [-2, -1,  0,  1,  2],
+                       [ H,  H,  H,  H,  H]]).T
+
+        w4 = np.array([[ X,  X,  X,  X,  X],
+                       [-2, -1,  0,  1,  2],
+                       [ H,  H,  H,  H,  H]]).T
+
+        #w5 = np.array([[X-0.5,  X-0.5, -(X-0.5), -(X-0.5)],
+        #               [X-0.5, -(X-0.5), X-0.5, -(X-0.5)],
+        #               [H,  H, H,  H]]).T
+
+        return np.row_stack((w1, w2, w3, w4))
 
     else:
         c_print("The id exedes the number of layouts. Empty fix vertex list was returned", "yellow")

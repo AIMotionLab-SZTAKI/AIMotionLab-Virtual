@@ -12,6 +12,8 @@ import mujoco
 import math
 import cv2
 import numpy as np
+import os  # needed for video conversion
+import subprocess  # needed for video conversion
 
 if platform.system() == 'Windows':
     import win_precise_time as time
@@ -284,5 +286,18 @@ class Visualizer:
         """
         if self.writer is not None:
             self.writer.release()
+            # if ffmpeg is installed, convert the video to H.264 codec that is more versatile
+            try:
+                # check if it is installed by running bash command
+                ffmpeg_installed = subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                if ffmpeg_installed.returncode == 0:
+                    # if installed: convert and save video
+                    os.system("ffmpeg -i simulator.mp4 -vcodec libx264 simulator_x264.mp4")
+                else:
+                    print("FFmpeg is installed but there was an issue running it.")
+            except FileNotFoundError:
+                print("FFmpeg is not installed, skipping file conversion.")
+            except Exception as e:
+                print(f"Unexpected error: {e}")
         if self.with_display:
             glfw.terminate()

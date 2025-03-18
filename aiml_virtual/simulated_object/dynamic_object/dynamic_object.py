@@ -62,31 +62,32 @@ class DynamicPayload(DynamicObject):
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         load_mass = "0.07"  # I'm pretty sure it's something like 70g
-        segment_mass = "0.0001"
+        segment_mass = "0.001"
         black = "0 0 0 1"
         body = ET.Element("body", name=self.name, pos=pos, quat=quat)
+        capsule_width = "0.004"
         ET.SubElement(body, "joint", name=self.name, type="free")
         # ET.SubElement(body, "joint", name=self.name, type="slide", axis="0 0 1")
         ET.SubElement(body, "geom", name=self.name, type="mesh", mesh="payload_simplified", pos="0 0 0.0405",
                       rgba="0 0 0 1", euler="1.57 0 0", mass=segment_mass, condim="1")
         ET.SubElement(body, "geom", name=f"{self.name}_bottom", type="box", size=".016 .016 .02",
                       pos="0 0 0.0175", mass=load_mass, rgba="1.0 1.0 1.0 0.0")
-        ET.SubElement(body, "geom", type="capsule", pos="0 0 0.075", size="0.004 0.027", rgba=black,
+        ET.SubElement(body, "geom", type="capsule", pos="0 0 0.075", size=capsule_width+" 0.027", rgba=black,
                       mass=segment_mass, condim="1")
         ET.SubElement(body, "geom", type="capsule", pos="0.01173 0 0.10565", euler="0 1.12200 0",
-                      size="0.004 0.01562", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.01562", rgba=black, mass=segment_mass, condim="1")
         ET.SubElement(body, "geom", type="capsule", pos="0.01061 0 0.10439", euler="0 1.17810 0",
-                      size="0.004 0.01378", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim="1")
         ET.SubElement(body, "geom", type="capsule", pos="0.02561 0 0.11939", euler="0 0.39270 0",
-                      size="0.004 0.01378", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim="1")
         ET.SubElement(body, "geom", type="capsule", pos="-0.02561 0 0.14061", euler="0 0.39270 0",
-                      size="0.004 0.005", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.005", rgba=black, mass=segment_mass, condim="1")
         ET.SubElement(body, "geom", type="capsule", pos="-0.01061 0 0.15561", euler="0 1.17810 0",
-                      size="0.004 0.01378", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim="1")
         ET.SubElement(body, "geom", type="capsule", pos="0.01061 0 0.15561", euler="0 1.96350 0",
-                      size="0.004 0.01378", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim="1")
         ET.SubElement(body, "geom", type="capsule", pos="0.02561 0 0.14061", euler="0 2.74889 0",
-                      size="0.004 0.008", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.008", rgba=black, mass=segment_mass, condim="1")
         ET.SubElement(body, "site", name=f"{self.name}_contact_point", pos="0 0 0.16", type="sphere", size="0.002", rgba=black)
         ET.SubElement(body, "site", name=f"{self.name}_hook_center_point", pos="0 0 0.1275", type="sphere", size="0.001", rgba=black)
         ET.SubElement(body, "site", name=f"{self.name}_origin", pos="0 0 0", type="sphere", size="0.001", rgba=black)

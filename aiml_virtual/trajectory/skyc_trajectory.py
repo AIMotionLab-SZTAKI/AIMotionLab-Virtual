@@ -99,5 +99,5 @@ def extract_trajectories(skyc_file: str) -> list[SkycTrajectory]:
     Returns:
         list[SkycTrajectory]: A list with one SkycTrajectory per drone in the skyc file.
     """
-    data: list[tuple[dict, dict]] = skyc_inspector.get_data(skyc_file)
-    return [SkycTrajectory(t, l) for t, l in data]
+    data: list[dict] = skyc_inspector.get_traj_data(skyc_file)
+    return [SkycTrajectory(t) for t in data]

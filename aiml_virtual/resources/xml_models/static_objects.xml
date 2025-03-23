@@ -1,0 +1,12 @@
+<mujoco>
+    <worldbody>
+
+        <body name="structure" pos="0 0 0.1">
+            <geom type="box" pos="0 0 1" size="0.5 0.5 1"/>
+            <geom type="box" pos="0.4 0.2 1" size="0.5 0.5 1"/>
+            <geom type="box" pos="-1.2 -1.1 1" size="0.5 0.5 1"/>
+            <geom type="sphere" pos="-1.5 0.4 1" size="0.7"/>
+        </body>
+
+    </worldbody>
+</mujoco>

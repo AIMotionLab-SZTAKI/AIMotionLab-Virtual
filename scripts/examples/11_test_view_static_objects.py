@@ -5,7 +5,6 @@ This script shows how dynamic objects work.
 import os
 import sys
 import pathlib
-import numpy as np
 
 # The lines under here are intended to make sure imports work, by adding parent folders to the path (i.e. the list
 # of folders where the interpreter will look for a given package when you try to import it). This is to account for
@@ -23,22 +22,12 @@ while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
 import aiml_virtual
 xml_directory = aiml_virtual.xml_directory
 from aiml_virtual import scene, simulator
-from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
-from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import crazyflie
 
 if __name__ == "__main__":
     # As mentioned in 2_build_scene.py, we can simulate physics using DynamicObjects. So far we've only seen a dynamic
     # object that had no actuators. Let's change that, and build a scene with dynamic objects based on the empty
     # checkerboard scene base!
     scn = scene.Scene(os.path.join(xml_directory, "scene_base_with_static_objects.xml"), save_filename=f"example_scene_3.xml")
-
-    # The dummy trajectory may have seemed a bit boring, even with the disturbance. A more interesting trajectory type
-    # is read from a skyc file. An example skyc file is found under scripts/misc/skyc_example.skyc
-    cf = crazyflie.Crazyflie()
-    traj = skyc_trajectory.extract_trajectories(os.path.join(aiml_virtual.resource_directory, "skyc_example.skyc"))[0]
-    traj.set_start(5)
-    cf.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 1.5, 0.5]))
-    scn.add_object(cf, "-1 1.5 0.5", "1 0 0 0", "0.5 0.5 0.5 1")
 
     sim = simulator.Simulator(scn)
     with sim.launch():

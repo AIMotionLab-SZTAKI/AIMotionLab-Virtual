@@ -6,6 +6,12 @@ docs/build
 *__pycache__/
 docs/source/aiml_virtual
 *.idea/
+scripts/windflow/.bash_history
+scripts/windflow/.config
+scripts/windflow/.cache
+scripts/windflow/.Xauthority
+scripts/windflow/foam_files
+scripts/windflow/output
 aiml_virtual/resources/xml_models/Scene.xml
 scripts/examples/*.xml
 scripts/*.xml

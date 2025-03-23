@@ -1,0 +1,4 @@
+<mujoco>
+    <include file="scene_base.xml"/>
+    <include file="static_objects.xml"/>
+</mujoco>

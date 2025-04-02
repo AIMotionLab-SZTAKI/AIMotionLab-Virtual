@@ -6,4 +6,4 @@ OUTPUT_PATH=./output
 python ./parser/parser.py \
     $SOURCE_XML \
     $OUTPUT_PATH \
-    --semi-merge
+    --merge

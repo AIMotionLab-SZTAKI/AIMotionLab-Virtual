@@ -8,7 +8,8 @@ import numpy as np
 from abc import abstractmethod
 
 from aiml_virtual.simulated_object.dynamic_object.controlled_object import controlled_object
-
+from scipy.spatial import KDTree
+import pandas as pd
 
 class Propeller:
     """
@@ -81,6 +82,12 @@ class Drone(controlled_object.ControlledObject):
         self.state: dict[str, np.ndarray] = self.sensors  #: Convenience alias for sensors.
         self.ctrl_output: np.ndarray = np.zeros(4)  #: Output of the controllers, usually force-torque(x3).
 
+        self.qfrc_applied = np.zeros(4)
+        df = pd.read_csv('/home/szabo/github/AIMotionLab-Virtual/aiml_virtual/simulated_object/dynamic_object/controlled_object/drone/windflow_data.csv')
+        self.wind_positions = df[['Points:0', 'Points:1', 'Points:2']].to_numpy()
+        self.wind_velocities = df[['U:0', 'U:1', 'U:2']].to_numpy()
+        self.search_tree = KDTree(self.wind_positions)
+
     @property
     @abstractmethod
     def input_matrix(self) -> np.ndarray:
@@ -98,6 +105,10 @@ class Drone(controlled_object.ControlledObject):
             for propeller in self.propellers:
                 propeller.spin()
 
+    def _get_wind_vel(self):
+        _, index = self.search_tree.query(self.state['pos'])
+        return self.wind_velocities[index]
+
     def update(self) -> None:
         """
         Overrides SimulatedObject.update. Updates the position of the propellers to make it look like they are
@@ -105,6 +116,16 @@ class Drone(controlled_object.ControlledObject):
         """
         # : check this as compared to the original when cleaning up
         self.spin_propellers()  # update how the propellers look
+
+        x = self._get_wind_vel() - self.state['vel']
+        ALPHA = (10 ** (-2)) * np.array([3.3, 2.7, 2.2])
+        phi = np.diag(x)
+        force = 3.0 * np.dot(phi, ALPHA)
+        self.set_force(force)
+
+        print('asfd')
+
+
         # if we don't have a trajectory, we don't have a reference for the controller: skip
         if self.trajectory is not None and self.controller is not None:
             setpoint = self.trajectory.evaluate(self.data.time)
@@ -112,6 +133,11 @@ class Drone(controlled_object.ControlledObject):
             motor_thrusts = self.input_matrix @ self.ctrl_output
             for propeller, thrust in zip(self.propellers, motor_thrusts):
                 propeller.ctrl[0] = thrust
+
+    def set_force(self, force):
+        self.qfrc_applied[0] = force[0]
+        self.qfrc_applied[1] = force[1]
+        self.qfrc_applied[2] = force[2]
 
     def bind_to_data(self, data: mujoco.MjData) -> None:
         """
@@ -132,6 +158,9 @@ class Drone(controlled_object.ControlledObject):
         self.sensors["pos"] = self.data.sensor(self.name + "_posimeter").data
         self.sensors["quat"] = self.data.sensor(self.name + "_orimeter").data
         self.sensors["ang_acc"] = self.data.sensor(self.name + "_ang_accelerometer").data
+        free_joint = self.data.joint(self.name)
+        self.qfrc_applied = free_joint.qfrc_applied
+
         for i, propeller in enumerate(self.propellers):
             prop_joint = self.data.joint(f"{self.name}_prop{i}")
             propeller.qpos = prop_joint.qpos

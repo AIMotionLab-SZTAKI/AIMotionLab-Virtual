@@ -14,7 +14,7 @@ class XMLObjectParser(IXMLObjectParser):
 
     def get_primitives(self, source_xml_path):
         self._populate_asset_map(source_xml_path)
-        self._factory = PrimitiveFactory(self._asset_map, source_xml_path.parent)
+        self._factory = PrimitiveFactory(self._asset_map)
 
         tree = ET.parse(source_xml_path)
         root = tree.getroot()

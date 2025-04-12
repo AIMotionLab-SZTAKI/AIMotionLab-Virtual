@@ -34,7 +34,8 @@ boundaryField
 	
 	top
 	{
-		type			zeroGradient;
+		type			freestream;
+		freestreamValue	$internalField;
 	}
 	
 	ground

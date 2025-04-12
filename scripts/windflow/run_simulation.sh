@@ -6,7 +6,7 @@ FOAM_DICT_NAME="foam_files"
 clone_archive() {
     local archive=.foam_archive
     if [ -d "$FOAM_DICT_NAME" ]; then
-        rm -rf "$DIR"
+        rm -rf "$FOAM_DICT_NAME"
     fi
     cp -r "$archive" "$FOAM_DICT_NAME"
 }
@@ -59,9 +59,7 @@ populate_patch_field_dicts() {
         foamDictionary "$p_file" -entry boundaryField/"$filename"/type -add "zeroGradient"
 
         foamDictionary "$U_file" -entry boundaryField/"$filename" -add "{}"
-        foamDictionary "$U_file" -entry boundaryField/"$filename"/type -add "fixedValue"
-        foamDictionary "$U_file" -entry boundaryField/"$filename"/value -add "uniform (0 0 0)"
-
+        foamDictionary "$U_file" -entry boundaryField/"$filename"/type -add "noSlip"
 
         foamDictionary "$nut_file" -entry boundaryField/"$filename" -add "{}"
         foamDictionary "$nut_file" -entry boundaryField/"$filename"/type -add "nutUSpaldingWallFunction"
@@ -84,7 +82,19 @@ run_simulation() {
     paraFoam
 }
 
+move_csv_file() {
+  local FINAL_CSV_FILE_PATH="../../../aiml_virtual/resources/windflow_data"
+  CSV_FILE=$(find "./" -maxdepth 1 -type f -name "*.csv" | head -n 1)
+  if [ -z "$CSV_FILE" ]; then
+    echo "No .csv file found in $SOURCE_DIR"
+    exit 1
+  fi
+  mv "$CSV_FILE" "$FINAL_CSV_FILE_PATH"
+  echo "Moved $(basename "$CSV_FILE") to $FINAL_CSV_FILE_PATH"
+}
+
 clone_archive
 populate_snappy_config_dicts
 populate_patch_field_dicts
 run_simulation
+move_csv_file

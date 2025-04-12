@@ -5,7 +5,6 @@ This script shows how dynamic objects work.
 import os
 import sys
 import pathlib
-import numpy as np
 
 # The lines under here are intended to make sure imports work, by adding parent folders to the path (i.e. the list
 # of folders where the interpreter will look for a given package when you try to import it). This is to account for
@@ -35,10 +34,11 @@ if __name__ == "__main__":
     # The dummy trajectory may have seemed a bit boring, even with the disturbance. A more interesting trajectory type
     # is read from a skyc file. An example skyc file is found under scripts/misc/skyc_example.skyc
     cf = crazyflie.Crazyflie()
-    traj = skyc_trajectory.extract_trajectories(os.path.join(aiml_virtual.resource_directory, "skyc_example.skyc"))[0]
+
+    traj = skyc_trajectory.extract_trajectories(os.path.join(aiml_virtual.resource_directory, "../../scripts/misc/skyc_example.skyc"))[0]
     traj.set_start(5)
-    cf.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 1.5, 0.5]))
-    scn.add_object(cf, "-1 1.5 0.5", "1 0 0 0", "0.5 0.5 0.5 1")
+    cf.trajectory = traj
+    scn.add_object(cf, "-0.5 -1 1", "1 0 0 0", "0.5 0.5 0.5 1")
 
     sim = simulator.Simulator(scn)
     with sim.launch():

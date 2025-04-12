@@ -3,13 +3,14 @@ This module contains classes relating to the general drone model.
 """
 
 import mujoco
-from typing import Optional
+import os
 import numpy as np
+
+from typing import Optional
 from abc import abstractmethod
 
 from aiml_virtual.simulated_object.dynamic_object.controlled_object import controlled_object
-from scipy.spatial import KDTree
-import pandas as pd
+from aiml_virtual.utils.wind_sampler import WindSampler
 
 class Propeller:
     """
@@ -83,10 +84,9 @@ class Drone(controlled_object.ControlledObject):
         self.ctrl_output: np.ndarray = np.zeros(4)  #: Output of the controllers, usually force-torque(x3).
 
         self.qfrc_applied = np.zeros(4)
-        df = pd.read_csv('/home/szabo/github/AIMotionLab-Virtual/aiml_virtual/simulated_object/dynamic_object/controlled_object/drone/windflow_data.csv')
-        self.wind_positions = df[['Points:0', 'Points:1', 'Points:2']].to_numpy()
-        self.wind_velocities = df[['U:0', 'U:1', 'U:2']].to_numpy()
-        self.search_tree = KDTree(self.wind_positions)
+        self.windflow_csv_file = "data.csv"
+        import aiml_virtual
+        self.wind_sampler = WindSampler(os.path.join(aiml_virtual.windflow_data_directory, self.windflow_csv_file))
 
     @property
     @abstractmethod
@@ -105,10 +105,6 @@ class Drone(controlled_object.ControlledObject):
             for propeller in self.propellers:
                 propeller.spin()
 
-    def _get_wind_vel(self):
-        _, index = self.search_tree.query(self.state['pos'])
-        return self.wind_velocities[index]
-
     def update(self) -> None:
         """
         Overrides SimulatedObject.update. Updates the position of the propellers to make it look like they are
@@ -116,14 +112,8 @@ class Drone(controlled_object.ControlledObject):
         """
         # : check this as compared to the original when cleaning up
         self.spin_propellers()  # update how the propellers look
-
-        x = self._get_wind_vel() - self.state['vel']
-        ALPHA = (10 ** (-2)) * np.array([3.3, 2.7, 2.2])
-        phi = np.diag(x)
-        force = 3.0 * np.dot(phi, ALPHA)
+        force = self.wind_sampler.get_force(self.state['pos'], self.state['vel'])
         self.set_force(force)
-
-        print('asfd')
 
 
         # if we don't have a trajectory, we don't have a reference for the controller: skip

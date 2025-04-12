@@ -24,9 +24,7 @@ boundaryField
 {
 	inlet
 	{
-		//type	zeroGradient;
-		type		freestreamPressure;
-		freestreamValue	$internalField;
+		type	zeroGradient;
 	}
 
 	ground

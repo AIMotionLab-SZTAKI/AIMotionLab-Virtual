@@ -32,7 +32,8 @@ class Utility:
                 mesh = ellipsoid_mesh
 
             case 'mesh':
-                mesh = trimesh.load(primitive.get_xml_path())
+                path = primitive.get_stl_path()
+                mesh = trimesh.load(path)
 
         mesh.apply_transform(primitive.get_transform())
         return mesh
@@ -63,9 +64,7 @@ class Utility:
 
         quaternion_attribute = xml_geom.get('quat')
         if quaternion_attribute != None:
-            return Utility.convert_to_float(quaternion_attribute) 
-
-        # TODO: axis aligned orientation
+            return Utility.convert_to_float(quaternion_attribute)
 
         return np.array([1.0, 0.0, 0.0, 0.0])
     

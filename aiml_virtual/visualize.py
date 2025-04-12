@@ -36,6 +36,7 @@ class Display:
             glfw.terminate()
             return
         glfw.window_hint(glfw.RESIZABLE, glfw.FALSE)  # make the window non-resizable since that messes up the video
+        glfw.window_hint(glfw.SAMPLES, 4)  # This enables 4x anti-aliasing
         self.window: Any = glfw.create_window(width, height, title, None, None)  #: The handle for the glfw window.
         if not self.window:
             warning("Could not create glfw window.")

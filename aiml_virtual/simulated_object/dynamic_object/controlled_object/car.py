@@ -124,8 +124,8 @@ class Car(controlled_object.ControlledObject):
             delta_in (float): The steer angle in the bicycle model.
         """
         num = self.wb * math.tan(delta_in)
-        delta_left = math.atan(num / (self.wb + (0.5 * self.tw * math.tan(delta_in))))
-        delta_right = math.atan(num / (self.wb - (0.5 * self.tw * math.tan(delta_in))))
+        delta_left = math.atan(num / (self.wb - (0.5 * self.tw * math.tan(delta_in))))
+        delta_right = math.atan(num / (self.wb + (0.5 * self.tw * math.tan(delta_in))))
         self.wheels["front_left"].ctrl_steer[0] = delta_left
         self.wheels["front_right"].ctrl_steer[0] = delta_right
 

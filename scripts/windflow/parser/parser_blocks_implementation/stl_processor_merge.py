@@ -3,10 +3,10 @@ import trimesh
 from parser_blocks_interface.istl_processor import ISTLProcessor
 from primitives.utility import Utility
 
+
 class STLProcessorMerge(ISTLProcessor):
     def __init__(self):
         self._meshes = []
-
 
     def generate_stl(self, primitives, stl_filename):
         for primitive in primitives:

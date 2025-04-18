@@ -1,6 +1,7 @@
 from parser_blocks_interface.istl_processor import ISTLProcessor
 from primitives.utility import Utility
 
+
 class STLProcessorSeparate(ISTLProcessor):
     def __init__(self):
         self._meshes = []

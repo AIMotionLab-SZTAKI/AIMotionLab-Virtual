@@ -1,0 +1,12 @@
+<mujoco>
+    <worldbody>
+        <geom type="box" size="0.5 0.5 0.5" rgba="0.8 0.1 0.1 1" pos="-2.5 0.3 0.7" euler="1.1708 0 0"/>
+
+        <include file="example_2.xml"/>
+
+        <body name="cylinder" pos="-2.0 -2.0 1" euler="0 0.7854 0">
+            <geom type="cylinder" size="0.5 0.4" rgba="0.1 0.1 0.8 1"/>
+            <include file="example_3.xml"/>
+        </body>
+    </worldbody>
+</mujoco>

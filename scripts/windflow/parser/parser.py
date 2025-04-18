@@ -11,16 +11,16 @@ from parser_blocks_implementation.stl_processor_merge import STLProcessorMerge
 from parser_blocks_implementation.bound_checker import BoundChecker
 from parser_blocks_implementation.internal_point_calculator import InternalPointCalculator
 
+
 class Parser:
     def __init__(self, preprocessor, object_parser, stl_processor, bound_checker, point_calculator):
         self._TEMPORARY_NAME = '__temp__.xml'
-        self._STL_FILENAME   = 'merged'
-        self._preprocessor   = preprocessor
-        self._object_parser  = object_parser
-        self._stl_processor  = stl_processor
-        self._bound_checker  = bound_checker
-        self._point_calc     = point_calculator
-
+        self._STL_FILENAME = 'merged'
+        self._preprocessor = preprocessor
+        self._object_parser = object_parser
+        self._stl_processor = stl_processor
+        self._bound_checker = bound_checker
+        self._point_calc = point_calculator
 
     def run(self, source_xml_path, output_dir):
         preprocessed_xml_path = Path.cwd() / self._TEMPORARY_NAME
@@ -50,11 +50,8 @@ class Parser:
             for stl_filename in stl_names:
                 file.write(stl_filename + '\n')
 
-
                 moved_destination = Path(output_dir) / Path(stl_filename)
                 Path(stl_filename).rename(moved_destination)
-
-
 
 
 if __name__ == '__main__':
@@ -78,8 +75,8 @@ if __name__ == '__main__':
         print('Error: stl processor option must be specified: --separate, --merge, --semi-merge')
         sys.exit()
 
-    preprocessor     = Preprocessor() 
-    xml_parser       = XMLObjectParser()
+    preprocessor = Preprocessor()
+    xml_parser = XMLObjectParser()
 
     if args.separate:
         stl_processor = STLProcessorSeparate()
@@ -88,7 +85,7 @@ if __name__ == '__main__':
     else:
         stl_processor = STLProcessorSemiMerge()
 
-    bound_checker    = BoundChecker() 
+    bound_checker = BoundChecker()
     point_calculator = InternalPointCalculator()
 
     parser = Parser(

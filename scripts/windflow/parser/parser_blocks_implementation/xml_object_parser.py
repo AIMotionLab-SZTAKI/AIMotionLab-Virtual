@@ -5,12 +5,12 @@ from parser_blocks_interface.ixml_object_parser import IXMLObjectParser
 from primitives.utility import Utility
 from primitives.primitive_factory import PrimitiveFactory
 
+
 class XMLObjectParser(IXMLObjectParser):
     def __init__(self):
         self._primitives = []
-        self._asset_map  = {}
-        self._factory    = None
-
+        self._asset_map = {}
+        self._factory = None
 
     def get_primitives(self, source_xml_path):
         self._populate_asset_map(source_xml_path)
@@ -23,7 +23,6 @@ class XMLObjectParser(IXMLObjectParser):
 
         return self._primitives
 
-
     def _populate_asset_map(self, source_xml_path):
         tree = ET.parse(source_xml_path)
         root = tree.getroot()
@@ -33,7 +32,6 @@ class XMLObjectParser(IXMLObjectParser):
             for asset in assets:
                 mesh_name = asset.get('name')
                 self._asset_map[mesh_name] = asset
-
 
     def _process_nodes(self, node, parent_transform):
         if node.tag == 'geom':

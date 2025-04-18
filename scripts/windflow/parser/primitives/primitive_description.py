@@ -1,4 +1,3 @@
-
 class PrimitiveDescription:
     def __init__(self, name, type, rgba, position, rotation):
         self.name = name
@@ -6,7 +5,6 @@ class PrimitiveDescription:
         self.rgba = rgba
         self.position = position
         self.rotation = rotation
-
 
     def print(self):
         print(f'name: {self.name}')

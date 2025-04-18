@@ -9,10 +9,10 @@ from primitives.ellipsoid_primitive import EllipsoidPrimitive
 from primitives.sphere_primitive import SpherePrimitive
 from primitives.mesh_primitive import MeshPrimitive
 
+
 class PrimitiveFactory:
     def __init__(self, mesh_assets):
         self._mesh_assets = mesh_assets
-
 
     def make_primitive(self, xml_geom):
         geom_type = xml_geom.get('type')

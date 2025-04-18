@@ -4,6 +4,7 @@ from parser_blocks_interface.ibound_checker import IBoundChecker
 from primitives.utility import Utility
 from parser_blocks_implementation.space_cuboid import SPACE_CUBOID
 
+
 class BoundChecker(IBoundChecker):
     def check_mesh_bounds(self, primitives):
         for primitive in primitives:

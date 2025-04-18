@@ -12,13 +12,11 @@ class SpherePrimitive(Primitive):
         self._radius = 1.0
         self._set_radius_from_xml(xml_geom)
 
-
     def _set_radius_from_xml(self, xml_geom):
         radius_attribute = xml_geom.get('size')
         if radius_attribute == None:
             return
         self._radius = float(radius_attribute)
-
 
     def get_radius(self):
         return self._radius

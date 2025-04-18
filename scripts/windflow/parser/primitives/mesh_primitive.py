@@ -10,27 +10,27 @@ from primitives.utility import Utility
 class MeshPrimitive(Primitive):
     def __init__(self, xml_geom, asset):
         super().__init__(xml_geom)
-        self._scale    = np.array([1.0, 1.0, 1.0])
+        self._scale = np.array([1.0, 1.0, 1.0])
         self._xml_path = None
         self._set_attributes_path(asset)
-        
+
         scale_matrix = trimesh.transformations.scale_matrix(self._scale[0], direction=[1, 0, 0]) @ \
                        trimesh.transformations.scale_matrix(self._scale[1], direction=[0, 1, 0]) @ \
                        trimesh.transformations.scale_matrix(self._scale[2], direction=[0, 0, 1])
         self._transform = self._transform @ scale_matrix
 
-
     def _set_attributes_path(self, asset):
         stl_file_path = Path(asset.get('file'))
         if not stl_file_path.is_absolute():
-            cc = Path.cwd()
-            stl_file_path = cc / Path('../../aiml_virtual/resources/xml_models/') / stl_file_path
+            cc = Path(__file__).parent
+            stl_file_path = cc / Path('../../../../aiml_virtual/resources/xml_models/') / stl_file_path
+            stl_file_path = stl_file_path.resolve()
+
         self._xml_path = stl_file_path
 
-        scale_attribute = asset.get('scale') 
+        scale_attribute = asset.get('scale')
         if scale_attribute != None:
             self._scale = Utility.convert_to_float(scale_attribute)
-
 
     def get_stl_path(self):
         return self._xml_path

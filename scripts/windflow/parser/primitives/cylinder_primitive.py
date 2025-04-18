@@ -13,13 +13,11 @@ class CylinderPrimitive(Primitive):
         self._height = 1.0
         self._set_attributes_from_xml(xml_geom)
 
-
     def _set_attributes_from_xml(self, xml_geom):
         attributes_str = xml_geom.get('size')
         if attributes_str == None:
             return
         self._radius, self._height = Utility.convert_to_float(attributes_str)
-
 
     def get_attributes(self):
         return self._radius, self._height

@@ -23,7 +23,8 @@ dependencies = [  # python 3.10
     "pandas", #
     "networkx",
     "trimesh",
-    "manifold3d"
+    "manifold3d",
+    "rtree"
 ]
 readme = "readme.md"
 

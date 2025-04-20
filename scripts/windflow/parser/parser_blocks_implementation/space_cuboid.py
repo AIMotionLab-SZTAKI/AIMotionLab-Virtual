@@ -9,7 +9,7 @@ class SpaceCuboid:
 
     def is_mesh_inside_space(self, mesh):
         cube_min_point, cube_max_point = mesh.bounds
-        return np.all(self.min_point < cube_min_point) and np.all(cube_max_point < self.max_point)
+        return np.all(self.min_point <= cube_min_point) and np.all(cube_max_point <= self.max_point)
 
 
 SPACE_MIN_X = -4.17

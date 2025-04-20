@@ -4,32 +4,31 @@
     </asset>
 
     <worldbody>
+        <geom type="mesh" mesh="man" rgba="0.34 0.15 0.64 1" euler="0 0 4.7123" pos="-0.45 0.05 0.01"/>
 
-        <geom type="mesh" mesh="man" rgba="0.34 0.15 0.64 1" euler="0 0 4.7123" pos="-0.5 0 0.1"/>
-
-        <geom type="box" size="0.5 0.5 0.5" rgba="0.8 0.1 0.1 1" pos="-2.5 0.3 0.7" euler="1.1708 0 0"/>
-
-
-
-        <body name="sphere" pos="0.5 1.5 0.7">
-            <geom type="sphere" size="0.5" rgba="0.1 0.8 0.1 1" />
+        <body name="col1" pos="0.55 1.05 0">
+            <geom type="box" size="0.25 0.25 0.35" rgba="0.8 0.1 0.1 1" pos="0 0 0.35"/>
+            <geom type="cylinder" size="0.2 0.35" rgba="0.1 0.1 0.8 1" pos="0 0 0.75"/>
+            <geom type="sphere" size="0.4" rgba="0.73 0.64 0.2 1" pos="0 0 1.2"/>
         </body>
 
-
-        <body name="cylinder" pos="-2.0 -2.0 1" euler="0 0.7854 0">
-            <geom type="cylinder" size="0.5 0.4" rgba="0.1 0.1 0.8 1" />
+        <body name="col2" pos="-1.45 1.05 0">
+            <geom type="box" size="0.25 0.25 0.35" rgba="0.8 0.1 0.1 1" pos="0 0 0.35"/>
+            <geom type="cylinder" size="0.2 0.35" rgba="0.1 0.1 0.8 1" pos="0 0 0.75"/>
+            <geom type="sphere" size="0.4" rgba="0.73 0.64 0.2 1" pos="0 0 1.2"/>
         </body>
 
-
-        <body name="capsule" pos="0.5 -0.2 0.9" quat="0 0.7071 0 0.2071">
-            <geom type="capsule" size="0.5 0.3" rgba="0.8 0.8 0.1 1" />
+        <body name="col3" pos="0.55 -0.95 0">
+            <geom type="box" size="0.25 0.25 0.35" rgba="0.8 0.1 0.1 1" pos="0 0 0.35"/>
+            <geom type="cylinder" size="0.2 0.35" rgba="0.1 0.1 0.8 1" pos="0 0 0.75"/>
+            <geom type="sphere" size="0.4" rgba="0.73 0.64 0.2 1" pos="0 0 1.2"/>
         </body>
 
-        <!-- Ellipsoid with Euler rotation (rotation around Z-axis by 45 degrees) -->
-        <body name="ellipsoid" pos="-1.0 2.0 1.2" euler="0 0 0.7854">
-            <geom type="ellipsoid" size="0.5 0.3 0.4" rgba="0.8 0.3 0.8 1" />
+        <body name="col4" pos="-1.45 -0.95 0">
+            <geom type="box" size="0.25 0.25 0.35" rgba="0.8 0.1 0.1 1" pos="0 0 0.35"/>
+            <geom type="cylinder" size="0.2 0.35" rgba="0.1 0.1 0.8 1" pos="0 0 0.75"/>
+            <geom type="sphere" size="0.4" rgba="0.73 0.64 0.2 1" pos="0 0 1.2"/>
         </body>
-
 
     </worldbody>
 </mujoco>

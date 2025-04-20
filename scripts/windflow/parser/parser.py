@@ -31,8 +31,6 @@ class Parser:
 
         if output_dir.exists():
             shutil.rmtree(output_dir)
-        output_dir.mkdir()
-
         self._preprocessor.preprocess_xml(source_xml_path, preprocessed_xml_path)
 
         primitives = self._object_parser.get_primitives(preprocessed_xml_path)
@@ -42,6 +40,7 @@ class Parser:
 
         stl_names = self._stl_processor.generate_stl(primitives, self._STL_FILENAME)
 
+        output_dir.mkdir()
         output_file = output_dir / Path('info.foamInfo')
         with output_file.open('a') as file:
             internal_point = [f"{x:.5g}" for x in self._point_calc.get_internal_point(primitives)]

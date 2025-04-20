@@ -54,3 +54,6 @@ class TestSTLProcessors(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         TestSTLProcessors.clear_dir()
+
+if __name__ == '__main__':
+    unittest.main()

@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # As mentioned in 2_build_scene.py, we can simulate physics using DynamicObjects. So far we've only seen a dynamic
     # object that had no actuators. Let's change that, and build a scene with dynamic objects based on the empty
     # checkerboard scene base!
-    scn = scene.Scene(os.path.join(xml_directory, "scene_base_with_static_objects.xml"), "saved_xml.xml")
+    scn = scene.Scene(os.path.join(xml_directory, "scene_base_with_static_objects.xml"), save_filename=f"example_scene_3.xml")
 
     # The dummy trajectory may have seemed a bit boring, even with the disturbance. A more interesting trajectory type
     # is read from a skyc file. An example skyc file is found under scripts/misc/skyc_example.skyc

@@ -46,3 +46,6 @@ class TestPreprocessor(unittest.TestCase):
                     print(output_lines)
                     self.output_file.unlink()
                     self.fail()
+
+if __name__ == '__main__':
+    unittest.main()

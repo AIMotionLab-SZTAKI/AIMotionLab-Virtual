@@ -66,3 +66,6 @@ class TestXMLObjectParser(unittest.TestCase):
     def test_valid_object_dimensions_ellipsoid(self):
         ellipsoid_radii = self.primitives_dict['ellipsoid'].get_radii()
         self.assertEqual(ellipsoid_radii, self.OBJECT_DIMENSIONS['ellipsoid'])
+
+if __name__ == '__main__':
+    unittest.main()

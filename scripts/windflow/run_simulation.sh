@@ -1,4 +1,4 @@
-#!/bin/bash
+OUTPUT_DIR=./output
 
 if [ "$(basename "$PWD")" != "windflow" ]; then
   echo "Error: You must run this script from the 'windflow' directory."
@@ -11,9 +11,11 @@ if [ -z "$1" ]; then
   return 1
 fi
 
-OUTPUT_PATH=./output
+source run_parser.sh "$1"
 
-python3 ./parser/parser.py \
-    "$1" \
-    $OUTPUT_PATH \
-    --semi-merge
+if [ -d "$OUTPUT_DIR" ]; then
+    source run_openfoam.sh
+else
+    echo "Directory \$OUTPUT_DIR does not exist, failed to launch simulation."
+fi
+

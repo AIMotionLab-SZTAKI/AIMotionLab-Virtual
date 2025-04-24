@@ -1,7 +1,15 @@
 #!/bin/bash
 
+if [ "$(basename "$PWD")" != "windflow" ]; then
+  echo "Error: You must run this script from the 'windflow' directory."
+  return 1
+fi
+
 OUTPUT_DIR=./output
 FOAM_DICT_NAME="foam_files"
+
+FOAM_PROJ_FILE=./$FOAM_DICT_NAME/open.foam
+OUTPUT_CSV_PATH=./data.csv
 
 clone_archive() {
     local archive=.foam_archive
@@ -75,26 +83,22 @@ run_simulation() {
     if [ -d "$OUTPUT_DIR" ]; then
         rm -rf "$OUTPUT_DIR"
     fi
-    cd "$FOAM_DICT_NAME"/mesh
-    ./runMesh.sh
-    cd ..
-    ./runSim.sh
-    paraFoam
+
+    pushd "$FOAM_DICT_NAME"/mesh > /dev/null
+    source runMesh.sh
+    popd
+
+    pushd "$FOAM_DICT_NAME" > /dev/null
+    source runSim.sh
+    popd
 }
 
-move_csv_file() {
-  local FINAL_CSV_FILE_PATH="../../../aiml_virtual/resources/windflow_data"
-  CSV_FILE=$(find "./" -maxdepth 1 -type f -name "*.csv" | head -n 1)
-  if [ -z "$CSV_FILE" ]; then
-    echo "No .csv file found in $SOURCE_DIR"
-    exit 1
-  fi
-  mv "$CSV_FILE" "$FINAL_CSV_FILE_PATH"
-  echo "Moved $(basename "$CSV_FILE") to $FINAL_CSV_FILE_PATH"
+postprocess() {
+  /opt/paraview/bin/pvpython paraview_export.py --foam_proj "$FOAM_PROJ_FILE" --output_csv "$OUTPUT_CSV_PATH"
 }
 
 clone_archive
 populate_snappy_config_dicts
 populate_patch_field_dicts
 run_simulation
-move_csv_file
+postprocess

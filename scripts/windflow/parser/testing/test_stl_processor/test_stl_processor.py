@@ -10,14 +10,14 @@ from pathlib import Path
 
 
 class TestSTLProcessors(unittest.TestCase):
-    STL_FILES_DIR = Path('./stl_files')
+    STL_FILES_DIR = Path(__file__).parent / Path('./stl_files')
 
     def setUp(self):
-        self.STL_FILENAME = './stl_files/test'
+        self.STL_FILENAME = str(Path(__file__).parent) + '/stl_files/test'
         self.NUMBER_OF_SEPARATE_FILES = 6
         self.NUMBER_OF_MERGED_FILES = 4
 
-        self.input_file = Path('./example.xml')
+        self.input_file = Path(__file__).parent / Path('./example.xml')
         self.parser = xml_object_parser.XMLObjectParser()
         self.primitives = self.parser.get_primitives(self.input_file)
 

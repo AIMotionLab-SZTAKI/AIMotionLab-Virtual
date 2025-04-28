@@ -29,7 +29,7 @@ class TestXMLObjectParser(unittest.TestCase):
             'ellipsoid': [0.5, 0.3, 0.4]
         }
 
-        self.input_file = Path('./example.xml')
+        self.input_file = Path(__file__).parent / Path('./example.xml')
         self.parser = xml_object_parser.XMLObjectParser()
         self.primitives = self.parser.get_primitives(self.input_file)
         self.primitives_dict = self.get_object_dict()

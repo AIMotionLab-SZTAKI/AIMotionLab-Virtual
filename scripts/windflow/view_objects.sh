@@ -5,14 +5,14 @@ if [ "$(basename "$PWD")" != "windflow" ]; then
   return 1
 fi
 
-if [ -z "$1" ]; then
-  echo "Error: No XML path provided."
-  echo "Usage: source view_objects.sh /path/to/static_objects.xml"
-  return 1
+INPUT_XML="$1"
+
+if [ -z "$INPUT_XML" ]; then
+  INPUT_XML=../../aiml_virtual/resources/xml_models/static_objects.xml
 fi
 
-VIEW_SCRIPT=../examples/11_test_view_static_objects.py
+VIEW_SCRIPT=11_test_view_static_objects.py
 
-pushd ../examples > /dev/null
-python3 $VIEW_SCRIPT --xml_path "$1"
-popd > /dev/null
+pushd ../examples
+python3 $VIEW_SCRIPT --xml_path "$INPUT_XML"
+popd

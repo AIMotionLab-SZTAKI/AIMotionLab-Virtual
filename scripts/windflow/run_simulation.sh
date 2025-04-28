@@ -5,13 +5,13 @@ if [ "$(basename "$PWD")" != "windflow" ]; then
   return 1
 fi
 
-if [ -z "$1" ]; then
-  echo "Error: No XML path provided."
-  echo "Usage: source parser.sh /path/to/static_objects.xml"
-  return 1
+INPUT_XML="$1"
+
+if [ ! -d "$INPUT_XML" ]; then
+  INPUT_XML=../../aiml_virtual/resources/xml_models/static_objects.xml
 fi
 
-source run_parser.sh "$1"
+source run_parser.sh "$INPUT_XML"
 
 if [ -d "$OUTPUT_DIR" ]; then
     source run_openfoam.sh

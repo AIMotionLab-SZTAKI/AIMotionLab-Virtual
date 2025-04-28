@@ -1,15 +1,21 @@
 #!/bin/bash
 
-if [ "$(basename "$PWD")" != "windflow" ]; then
-  echo "Error: You must run this script from the 'windflow' directory."
-  return 1
-fi
-
 OUTPUT_DIR=./output
 FOAM_DICT_NAME="foam_files"
 
 FOAM_PROJ_FILE=./$FOAM_DICT_NAME/open.foam
 OUTPUT_CSV_PATH=./data.csv
+
+if [ "$(basename "$PWD")" != "windflow" ]; then
+  echo "Error: You must run this script from the 'windflow' directory."
+  return 1
+fi
+
+
+if [ ! -d "$OUTPUT_DIR" ]; then
+    echo "Output does not exist, use parser first."
+    return 1
+fi
 
 clone_archive() {
     local archive=.foam_archive

@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     csv_path = Path(args.csv_path)
     if not csv_path.is_absolute():
-        csv_path = Path.cwd() / csv_path
+        csv_path = Path.cwd() / Path("../windflow") / csv_path
     csv_path = csv_path.resolve()
 
     scene_xml = Path(os.path.join(xml_directory, "scene_base_with_static_objects.xml"))

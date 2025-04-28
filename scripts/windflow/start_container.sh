@@ -20,6 +20,6 @@ docker run -it \
   -e DISPLAY="$DISPLAY" \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -v "$1":/home/app \
-  para_new:latest
+  szabokrisztian/thesis_environment:latest
 
 xhost -local:docker

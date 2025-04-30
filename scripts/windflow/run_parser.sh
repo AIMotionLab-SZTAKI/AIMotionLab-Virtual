@@ -6,14 +6,15 @@ if [ "$(basename "$PWD")" != "windflow" ]; then
 fi
 
 INPUT_XML="$1"
+OUTPUT_PATH=./output
+MERGE_MODE="${MERGE_MODE:---semi-merge}"
 
 if [ ! -d "$INPUT_XML" ]; then
   INPUT_XML=../../aiml_virtual/resources/xml_models/static_objects.xml
 fi
 
-OUTPUT_PATH=./output
 
 python3 ./parser/parser.py \
     "$INPUT_XML" \
     $OUTPUT_PATH \
-    --semi-merge
+    "$MERGE_MODE"

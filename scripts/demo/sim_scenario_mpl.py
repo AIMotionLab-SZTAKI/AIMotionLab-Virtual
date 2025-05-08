@@ -15,6 +15,9 @@ if __name__ == '__main__':
 
     drone_num = 4
     virtual_drone_num = 11
+
+    landing_delay = 2
+
     demo_time = 30 # which after every drone will return to its home position
     animation_speed = 1
     delay_between_frames = 20 # 20 is ideal 500 is more computational friendly
@@ -62,10 +65,15 @@ if __name__ == '__main__':
                     drone.go_to_new_target(start_time=time_now, scenario=scenario, drones=drones) # !!!
                     traj_generated = True
 
-                elif time_now >= max(drone.trajectory_final_time(), drone.wait_others) and time_now > demo_time and not drone.returned_home:
+                elif time_now >= max(drone.trajectory_final_time(), drone.wait_others) and time_now >= demo_time and not drone.returned_home:
                     print(f"---------------------------------{time_now}----------------------------------------")
                     drone.go_to_new_target(start_time=time_now, scenario=scenario, drones=drones, go_home=True)
                     traj_generated = True
+
+                elif time_now >= (drone.trajectory_final_time()+landing_delay) and time_now >= demo_time and not drone.landed and drone.returned_home:
+                    # Land drone
+                    print(f"---------------------------------{time_now}----------------------------------------")
+                    drone.land(scenario=scenario, t=time_now)
 
                 if traj_generated:
                     set_delay(drones, drone.ID, time_now, zero_delay=skip_animation)
@@ -86,7 +94,7 @@ if __name__ == '__main__':
             min_dist = min_distance_between_drones(drones, time_now)
             if min_dist < 2*drone.radius:
                 c_print(f"\n------------------------------------\n"
-                        f"Collision warning: Minimum distancebetween drones is {min_dist} m\n"
+                        f"Collision warning: Minimum distance between drones is {min_dist} m\n"
                         f"------------------------------------\n", "red")
             save_drones_routes(drones, real_routes, real_routes_save_name)
             save_drones_routes(drones, virtual_routes, virtual_routes_save_name)

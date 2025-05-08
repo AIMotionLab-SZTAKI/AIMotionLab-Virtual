@@ -25,7 +25,7 @@ class Node:
                  max_speed: float,
                  modified: bool,
                  waiting_time: float = np.inf,
-                 greed_factor: float = 1.2, # test with 1 too
+                 greed_factor: float = 1.1, # test with 1 too
                  ):
         self.parent = parent
         self.idx = idx
@@ -501,7 +501,7 @@ class Drone:
         position = interpolate.splev(t, self.trajectory)
         return np.transpose(position)
 
-    def land(self, scenario, time):
+    def land(self, scenario, t: float) -> None:
         self.landed = True
 
         # Visual update
@@ -516,7 +516,7 @@ class Drone:
         h = final_pos[2] + self.bounding_box[1]
         land_pos = final_pos - np.array([0,0,h])
         landing_time = 3 # under the surface to compensate for the upper half of the downwash
-        landing_route = np.concatenate((np.array([[time], [time+landing_time]]), np.array([final_pos,land_pos])), axis=1)
+        landing_route = np.concatenate((np.array([[t], [t+landing_time]]), np.array([final_pos,land_pos])), axis=1)
         self.fit_trajectory(route=landing_route, t=0)
 
 
@@ -531,7 +531,11 @@ class Drone:
         points = np.array([pos[:, 0], pos[:, 1], pos[:, 2]]).T.reshape(-1, 1, 3)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         for axes in self.trajectory_plot:
-            axes.remove()
+            try:
+                axes.remove()
+            except ValueError:
+                print("")
+
         self.trajectory_plot = [
             ax.scatter(points[0][0][0], points[0][0][1], points[0][0][2], s=10, alpha=1, c='green'),
             ax.scatter(points[-1][0][0], points[-1][0][1], points[-1][0][2], s=10, alpha=1, c='red'),

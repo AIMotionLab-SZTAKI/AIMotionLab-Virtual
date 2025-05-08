@@ -40,7 +40,6 @@ static_obstacles = StaticObstacleS(layout_id=6, # Add more options in Classes/st
                                    real_obs_base={'bu': 0.3,
                                                   'cf': 0.1,
                                                   'ob': 0.1},
-                                   #new_measurement=True
                                    )
 
 #radars = RadarS(layout_id=4) # Modify in Classes/radar/radar_layout_set

@@ -239,19 +239,18 @@ def plot_optitrack_paths():
 
 def set_anim_time(drones: list, frame: int, delay_between_frames: int, animation_speed: int,
                   skip_anim: bool = False) -> float:
+
+
+    drone_final_times = np.array([drone.trajectory_final_time() for drone in drones if not drone.returned_home])
+    # Initial plannings
+    if np.any(drone_final_times == -1):
+        return 0
     if skip_anim:
-        drone_final_times = np.array([drone.trajectory_final_time() for drone in drones if not drone.returned_home])
-        # Initial plannings
-        if np.any(drone_final_times == -1):
-            time = 0
         # After all drones returned to home
-        elif len(drone_final_times) == 0:
+        if len(drone_final_times) == 0:
             sys.exit(0)
         # During demo
-        else:
-            time = min(drone_final_times)
-
-        return time
+        return min(drone_final_times)
 
     return (frame - 1) * delay_between_frames / 1000 * animation_speed
 
@@ -449,9 +448,9 @@ def set_delay(drones, current_drone_ID, time, zero_delay):
     """
     The delay caused by the current path planning.
 
-    e.g. path planning starts at t=10, take T=1. The next planning can not hapen before t+T
+    e.g. path planning starts at t=10, take T=1. The next planning can not happen before t+T
     """
-    if zero_delay:
+    if zero_delay or time==0:
         return
 
     for d in drones:

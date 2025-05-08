@@ -7,6 +7,7 @@ import networkx as nx
 import math
 from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
 import time
 
 from .terrain import Terrain
@@ -677,6 +678,7 @@ class Scenario:
         print("Shortest edge is: ", min_L, "m")
 
     def plot(self,
+             plt_real_area: bool = False,
              plt_targets: bool = True,
              plt_graph: bool = False,
              alpha_graph: float = 0.2,
@@ -689,6 +691,23 @@ class Scenario:
         plot_fly_zone(self.dimension)
 
         ax = plt.gca()
+
+        if plt_real_area:
+            # Define parameters
+            width, length, h1, h2 = self.real_dimension
+
+            # Define vertices
+            vertices = np.array([[-width / 2, -length / 2, h1], [width / 2, -length / 2, h1],
+                                 [width / 2, length / 2, h1], [-width / 2, length / 2, h1],
+                                 [-width / 2, -length / 2, h2], [width / 2, -length / 2, h2],
+                                 [width / 2, length / 2, h2], [-width / 2, length / 2, h2]])
+
+            # Define edges
+            edges = [(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4), (0, 4), (1, 5), (2, 6), (3, 7)]
+            edge_lines = np.array([(vertices[i], vertices[j]) for i, j in edges])
+
+            # Plot
+            ax.add_collection3d(Line3DCollection(edge_lines, colors='k', alpha=0.3))
 
         if plt_targets and self.target_positions.size != 0:
 

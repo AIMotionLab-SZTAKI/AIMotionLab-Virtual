@@ -1,6 +1,22 @@
 import os
 import sys
 import pathlib
+from xml.etree import ElementTree as ET
+
+import numpy as np
+from skyc_utils.skyc_maker import write_skyc, XYZYaw, Trajectory, TrajectoryType, LightProgram, Color
+from skyc_utils.skyc_inspector import get_traj_data
+import socket
+import threading
+from typing import Optional, Union
+import copy
+from scipy import interpolate
+import platform
+if platform.system() == 'Windows':
+    import win_precise_time as time
+else:
+    import time
+
 # The lines under here are intended to make sure imports work, by adding parent folders to the path (i.e. the list
 # of folders where the interpreter will look for a given package when you try to import it). This is to account for
 # differences in what the interpreter identifies as your current working directory when launching these scripts
@@ -16,22 +32,18 @@ while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
 
 import aiml_virtual
 xml_directory = aiml_virtual.xml_directory
+from aiml_virtual.scene import Scene
+from aiml_virtual.simulator import Simulator
+from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.crazyflie import Crazyflie
+from aiml_virtual.trajectory.skyc_trajectory import SkycTrajectory, extract_trajectories
+from aiml_virtual.mocap.optitrack_mocap_source import OptitrackMocapSource
 
-import aiml_virtual.scene as scene
-import aiml_virtual.simulator as simulator
-import aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_crazyflie as mcf
-from aiml_virtual.mocap import dummy_mocap_source
-
-
-from aiml_virtual import scene, simulator
-from aiml_virtual.mocap import optitrack_mocap_source
-from aiml_virtual.simulated_object.mocap_skeleton import mocap_hooked_bumblebee
 
 if __name__ == "__main__":
-    scn = scene.Scene(os.path.join(xml_directory, "scene_base.xml"))
-    mocap = optitrack_mocap_source.OptitrackMocapSource()
+    scn = Scene(os.path.join(xml_directory, "demo_base.xml"))
+    mocap = OptitrackMocapSource()
     scn.add_mocap_objects(mocap)
-    sim = simulator.Simulator(scn)
+    sim = Simulator(scn)
     with sim.launch():
         while not sim.display_should_close():
-            sim.tick()  # tick steps the simulator, including all its subprocesses
+            sim.tick()

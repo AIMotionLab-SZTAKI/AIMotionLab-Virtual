@@ -18,4 +18,4 @@ scripts/*.xml
 scripts/demo/*.xml
 scripts/demo/*.skyc
 scripts/demo/Saves/
-
+scripts/windflow/static_objects.xml

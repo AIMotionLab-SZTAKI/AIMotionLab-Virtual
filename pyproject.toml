@@ -22,6 +22,9 @@ dependencies = [  # python 3.10
     "pyyaml", # 6.0.2, for MPCCCar
     "pandas", #
     "networkx",
+    "trimesh",
+    "manifold3d",
+    "rtree"
 ]
 readme = "readme.md"
 

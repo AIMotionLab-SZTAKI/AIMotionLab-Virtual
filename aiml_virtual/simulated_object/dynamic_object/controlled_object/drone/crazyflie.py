@@ -8,7 +8,7 @@ import numpy as np
 
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import drone
 from aiml_virtual.controller import drone_geom_controller
-
+from pathlib import Path
 
 class Crazyflie(drone.Drone):
     """
@@ -37,6 +37,10 @@ class Crazyflie(drone.Drone):
                          [1/4, -1/(4*Ly), 1/(4*Lx), -1/(4*motor_param)],
                          [1/4, 1/(4*Ly), 1/(4*Lx), 1/(4*motor_param)],
                          [1/4, 1/(4*Ly), -1/(4*Lx), -1/(4*motor_param)]])
+
+    def set_windflow_data(self, csvfile : Path) -> None:
+        from aiml_virtual.utils.wind_sampler import WindSampler
+        self.wind_sampler = WindSampler(csvfile)
 
     def set_default_controller(self) -> None:
         self.controller = drone_geom_controller.GeomControl(self.mass, self.inertia, self.model.opt.gravity)

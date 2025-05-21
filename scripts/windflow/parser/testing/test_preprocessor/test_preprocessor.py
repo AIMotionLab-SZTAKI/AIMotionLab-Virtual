@@ -10,10 +10,10 @@ from pathlib import Path
 
 class TestPreprocessor(unittest.TestCase):
     def setUp(self):
-        self.input_file = Path('./example_1.xml')
-        self.included_file1 = Path('./example_2.xml')
-        self.included_file2 = Path('./example_3.xml')
-        self.output_file = Path('./__temp__.xml')
+        self.input_file = Path(__file__).parent / Path('./example_1.xml')
+        self.included_file1 = Path(__file__).parent / Path('./example_2.xml')
+        self.included_file2 = Path(__file__).parent / Path('./example_3.xml')
+        self.output_file = Path(__file__).parent / Path('./__temp__.xml')
         self.output_file.touch()
 
     def test_valid_preprocessing(self):
@@ -46,3 +46,6 @@ class TestPreprocessor(unittest.TestCase):
                     print(output_lines)
                     self.output_file.unlink()
                     self.fail()
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,100 +1,21 @@
-#!/bin/bash
-
 OUTPUT_DIR=./output
-FOAM_DICT_NAME="foam_files"
 
-clone_archive() {
-    local archive=.foam_archive
-    if [ -d "$FOAM_DICT_NAME" ]; then
-        rm -rf "$FOAM_DICT_NAME"
-    fi
-    cp -r "$archive" "$FOAM_DICT_NAME"
-}
+if [ "$(basename "$PWD")" != "windflow" ]; then
+  echo "Error: You must run this script from the 'windflow' directory."
+  return 1
+fi
 
-populate_snappy_config_dicts() {
-    local snappy_file="$FOAM_DICT_NAME"/mesh/system/snappyHexMeshDict
-    local features_file="$FOAM_DICT_NAME"/mesh/system/surfaceFeaturesDict
+INPUT_XML="$1"
 
-    local snappy_features="( "
-    local internal_point=$(head "$OUTPUT_DIR"/info.foamInfo -n 1)
+if [ ! -d "$INPUT_XML" ]; then
+  INPUT_XML=../../aiml_virtual/resources/xml_models/static_objects.xml
+fi
 
-    for file in "$OUTPUT_DIR"/*.stl; do
-        filename_stl=$(basename "$file")
-        filename=${filename_stl%.stl}
+source run_parser.sh "$INPUT_XML"
 
-        snappy_features+="{ file \"$filename.eMesh\"; level 0; } "	
+if [ -d "$OUTPUT_DIR" ]; then
+    source run_openfoam.sh
+else
+    echo "Directory \$OUTPUT_DIR does not exist, failed to launch simulation."
+fi
 
-        foamDictionary "$snappy_file" -entry geometry/"$filename" -add "{}"
-        foamDictionary "$snappy_file" -entry geometry/"$filename"/type -add "triSurfaceMesh"
-        foamDictionary "$snappy_file" -entry geometry/"$filename"/file -add "\"$filename_stl\""
-
-        foamDictionary "$features_file" -entry "${filename}" -add "{}"
-        foamDictionary "$features_file" -entry "${filename}"/surfaces -add "( \"$filename_stl\" )"
-        foamDictionary "$features_file" -entry "${filename}"/includedAngle -add 150
-
-        foamDictionary "$snappy_file" -entry castellatedMeshControls/refinementSurfaces/"$filename" -add "{}"
-        foamDictionary "$snappy_file" -entry castellatedMeshControls/refinementSurfaces/"$filename"/level -set "(0 0)"
-        
-        local foam_stl_dir="$FOAM_DICT_NAME"/mesh/constant/triSurface/"$filename_stl"
-        cp "$file" "$foam_stl_dir"
-    done
-
-    snappy_features+=" )"
-    foamDictionary "$snappy_file" -entry castellatedMeshControls/features -add "$snappy_features"
-    foamDictionary "$snappy_file" -entry castellatedMeshControls/locationInMesh -add "$internal_point"
-}
-
-populate_patch_field_dicts() {
-    local p_file="$FOAM_DICT_NAME"/"0"/p
-    local U_file="$FOAM_DICT_NAME"/"0"/U
-    local nut_file="$FOAM_DICT_NAME"/"0"/nut
-    local nuTilda_file="$FOAM_DICT_NAME"/"0"/nuTilda
-
-
-    for file in "$OUTPUT_DIR"/*.stl; do
-        filename_stl=$(basename "$file")
-        filename=${filename_stl%.stl}
-
-        foamDictionary "$p_file" -entry boundaryField/"$filename" -add "{}"
-        foamDictionary "$p_file" -entry boundaryField/"$filename"/type -add "zeroGradient"
-
-        foamDictionary "$U_file" -entry boundaryField/"$filename" -add "{}"
-        foamDictionary "$U_file" -entry boundaryField/"$filename"/type -add "noSlip"
-
-        foamDictionary "$nut_file" -entry boundaryField/"$filename" -add "{}"
-        foamDictionary "$nut_file" -entry boundaryField/"$filename"/type -add "nutUSpaldingWallFunction"
-        foamDictionary "$nut_file" -entry boundaryField/"$filename"/value -add "uniform 0"
-
-        foamDictionary "$nuTilda_file" -entry boundaryField/"$filename" -add "{}"
-        foamDictionary "$nuTilda_file" -entry boundaryField/"$filename"/type -add "fixedValue"
-        foamDictionary "$nuTilda_file" -entry boundaryField/"$filename"/value -add "uniform 0"
-    done
-}
-
-run_simulation() {
-    if [ -d "$OUTPUT_DIR" ]; then
-        rm -rf "$OUTPUT_DIR"
-    fi
-    cd "$FOAM_DICT_NAME"/mesh
-    ./runMesh.sh
-    cd ..
-    ./runSim.sh
-    paraFoam
-}
-
-move_csv_file() {
-  local FINAL_CSV_FILE_PATH="../../../aiml_virtual/resources/windflow_data"
-  CSV_FILE=$(find "./" -maxdepth 1 -type f -name "*.csv" | head -n 1)
-  if [ -z "$CSV_FILE" ]; then
-    echo "No .csv file found in $SOURCE_DIR"
-    exit 1
-  fi
-  mv "$CSV_FILE" "$FINAL_CSV_FILE_PATH"
-  echo "Moved $(basename "$CSV_FILE") to $FINAL_CSV_FILE_PATH"
-}
-
-clone_archive
-populate_snappy_config_dicts
-populate_patch_field_dicts
-run_simulation
-move_csv_file

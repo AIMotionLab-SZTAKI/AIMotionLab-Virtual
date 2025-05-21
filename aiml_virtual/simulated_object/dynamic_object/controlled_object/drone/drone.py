@@ -84,9 +84,7 @@ class Drone(controlled_object.ControlledObject):
         self.ctrl_output: np.ndarray = np.zeros(4)  #: Output of the controllers, usually force-torque(x3).
 
         self.qfrc_applied = np.zeros(4)
-        self.windflow_csv_file = "data.csv"
-        import aiml_virtual
-        self.wind_sampler = WindSampler(os.path.join(aiml_virtual.windflow_data_directory, self.windflow_csv_file))
+        self.wind_sampler = None
 
     @property
     @abstractmethod

@@ -1,28 +1,27 @@
-# Virtual 3D model of AIMotion-Lab and simulation with MuJoCo engine
+# Windflow Augmentation
 
-The old documentation can be accessed [here](https://github.com/AIMotionLab-SZTAKI/Mujoco-Simulator/wiki).
+This branch introduces **Windflow simulation integration** into the AIMotionLab-Virtual environment. It adds support for defining static scenes via MuJoCo-style `.xml` files and integrates wind simulation using OpenFOAM. The simulated airflow data can then be used in real-time drone physics.
 
-## Installation
-1. Create and activate a virtual environment
+---
 
-2. Install libraries with pip
-```
-$ pip install -e .
-```
-3. Navigate to scripts
+## Key Features
 
-```
-$ cd scripts
+- Parse custom `.xml` scene files into geometry objects.
+- Preprocess and convert scenes into OpenFOAM-compatible STL files.
+- Run wind simulations with OpenFOAM.
+- Export wind vector fields to `.csv`.
+- Sample wind data in real time during drone flight.
+
+---
+
+## Docker Setup (Recommended)
+
+A prebuilt Docker image with **all dependencies** (OpenFOAM, ParaView, Python libs, etc.) is available:
+
+```bash
+docker pull szabokrisztian/thesis_environment:latest
 ```
 
-4. Run one of the scripts like below
-```
-$ python3 testing.py
-```
+All the relevant shell scripts for launching and managing simulations are provided in the ```scripts/windflow``` folder.
 
-5. Generate docs (they will be generated in docs/build/html)
-```
-cd docs
-make clean
-make html
-```
+To learn how to start the Docker container and run the system, use the scripts in that folder.

@@ -28,6 +28,7 @@ class Bumblebee(drone.Drone):
     DIAGINERTIA = "1.5e-3 1.45e-3 2.66e-3"  #: **classvar** | Diagonal inertia components of a bumblebee.
     COG = "0.0085 0.0 0.0"  #: **classvar** | Location of the center of mass.
     PROP_COLOR = "0.1 0.02 0.5 1.0"  #: **classvar** | Color of the propellers.
+    THRUST_FORCE_COEFF = 9.3945e-7
 
     @property
     def input_matrix(self) -> np.ndarray:
@@ -39,6 +40,16 @@ class Bumblebee(drone.Drone):
                          [1 / 4, -1 / (4 * Ly), 1 / (4 * Lx1), -1 / (4 * motor_param)],
                          [1 / 4, 1 / (4 * Ly), 1 / (4 * Lx1), 1 / (4 * motor_param)],
                          [1 / 4, 1 / (4 * Ly), -1 / (4 * Lx2), -1 / (4 * motor_param)]])
+
+    @property
+    def prop_vel(self) -> np.ndarray:
+        thrust = np.array([])
+        for prop in self.propellers:
+            thrust = np.concatenate((thrust, prop.ctrl))
+        velocity = np.sqrt(thrust / self.THRUST_FORCE_COEFF)
+        for i, prop in enumerate(self.propellers):
+            velocity[i] *= prop.direction
+        return velocity
 
     def set_default_controller(self) -> None:
         """

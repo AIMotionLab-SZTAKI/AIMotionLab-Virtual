@@ -105,7 +105,7 @@ class FixedPropBumblebee(Bumblebee):
             propeller.actr_force = self.data.actuator(f"{self.name}_actr{i}").force
 
 if __name__ == "__main__":
-    # As mentioned in 2_build_scene.py, we can simulate physics using DynamicObjects. So far we've only seen dynamic
+    # As mentioned in 02_build_scene.py, we can simulate physics using DynamicObjects. So far we've only seen dynamic
     # objects that had no actuators. Let's change that, and build a scene with dynamic objects based on the empty
     # checkerboard scene base!
     scn = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"), save_filename=f"example_scene_3.xml")

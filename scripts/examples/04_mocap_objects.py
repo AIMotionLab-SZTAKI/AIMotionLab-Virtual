@@ -28,11 +28,11 @@ from aiml_virtual.mocap import dummy_mocap_source
 from aiml_virtual.simulated_object.mocap_object.mocap_drone import mocap_bumblebee
 
 if __name__ == "__main__":
-    # As mentioned in 1_load_scene.py, we can load previously created scenes from xmls in order to continue working on
-    # them. Let's do that here and use the scene created in 2_build_scene.py:
+    # As mentioned in 01_load_scene.py, we can load previously created scenes from xmls in order to continue working on
+    # them. Let's do that here and use the scene created in 02_build_scene.py:
     scn = scene.Scene(os.path.join(xml_directory, "example_scene_2.xml"), save_filename=f"example_scene_4.xml")
 
-    # As mentioned in 2_build_scene.py, mocap objects receive their pose information from a motion capture source,
+    # As mentioned in 02_build_scene.py, mocap objects receive their pose information from a motion capture source,
     # rather than MuJoCo calculations. To this end let's create a motion capture source! The most versatile MocapSource
     # is a DummyMocapSource, which takes a frame generator as an argument. This frame generator should be a callable
     # with a header that takes no arguments and returns a dictionary containing the mocap data for a frame. An example

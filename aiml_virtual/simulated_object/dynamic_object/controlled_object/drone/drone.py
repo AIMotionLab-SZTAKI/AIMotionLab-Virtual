@@ -86,6 +86,18 @@ class Drone(controlled_object.ControlledObject):
         """
         pass
 
+    @property
+    def prop_offset(self) -> list[np.ndarray]:
+        """Property to grab the position of the propellers relative to the drone's center."""
+        return [self.model.joint(f"{self.name}_prop{i}").pos for i in range(4)]
+
+    @property
+    def prop_vel(self) -> np.ndarray:
+        """
+        Property to estimate propeller angular velocity.
+        """
+        raise NotImplementedError
+
     def spin_propellers(self) -> None:
         """
         Updates the display of the propellers, to make it look like they are spinning.

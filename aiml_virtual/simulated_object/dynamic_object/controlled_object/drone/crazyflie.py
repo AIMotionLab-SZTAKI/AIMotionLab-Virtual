@@ -24,10 +24,6 @@ class Crazyflie(drone.Drone):
     COG: str = "0.0 0.0 0.0"  #: **classvar** | Location of the center of mass.
     PROP_COLOR: str = "0.1 0.1 0.1 1.0"  #: **classvar** | Color of the (old style) propellers.
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "Crazyflie"
-
     @property
     def input_matrix(self) -> np.ndarray:
         Lx = float(Crazyflie.OFFSET)

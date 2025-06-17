@@ -21,10 +21,6 @@ class MocapDrone(mocap_object.MocapObject, ABC):
         self.propellers: list[Propeller] = [Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE),
                                             Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE)]  #: List of propellers; first and third are ccw, second and fourth are cw
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return None
-
     def spin_propellers(self) -> None:
         """
         Updates the display of the propellers, to make it look like they are spinning.

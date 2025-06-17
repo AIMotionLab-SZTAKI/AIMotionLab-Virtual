@@ -69,10 +69,6 @@ class Drone(controlled_object.ControlledObject):
     Class encapsulating behaviour common to all drones (which are ControlledObjects).
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return None
-
     def __init__(self):
         super().__init__()
         self.sensors: dict[str, np.array] = {}  #: Dictionary of sensor data.

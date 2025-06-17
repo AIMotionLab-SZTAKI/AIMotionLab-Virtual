@@ -9,7 +9,7 @@ import mujoco
 import numpy as np
 import re
 import aiml_virtual
-
+import inspect
 
 class SimulatedObject(ABC):
     """
@@ -55,16 +55,18 @@ class SimulatedObject(ABC):
     instance_count: dict[Type['SimulatedObject'], int] = {}  #: **classvar** | The registry tallying the number of instances per class.
 
     @classmethod
-    @abstractmethod
     def get_identifier(cls) -> Optional[str]:
         """
         Gives a list of identifiers (aliases) for the class to check for aliases when parsing an XML. A None returns
-        signals that this class opts out of parsing. This usually also means that it's an abstract class (ABC).
+        signals that this class opts out of parsing. The default behavior is that abstract classes return None, while
+        concrete classes return their symbolic name, however, this can be overridden.
 
         Returns:
             Optional[str]: The list of aliases for objects belonging to this class, or None if abstract.
         """
-        raise NotImplementedError
+        if inspect.isabstract(cls):
+            return None
+        return cls.__name__
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

@@ -22,10 +22,6 @@ class MocapCrazyflie(mocap_drone.MocapDrone):
     COG: str = "0.0 0.0 0.0"  #: **classvar** | Location of the center of mass.
     PROP_COLOR: str = "0.1 0.1 0.1 1.0"  #: **classvar** | Color of the (old style) propellers.
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "MocapCrazyflie"
-
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         """
         Overrides method in SimulatedObject. Generates all the necessary XML elements for the model.

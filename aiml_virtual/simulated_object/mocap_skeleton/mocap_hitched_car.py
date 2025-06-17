@@ -16,10 +16,6 @@ class MocapHitchedCar(mocap_skeleton.MocapSkeleton):
     The orientation of the trailer is read from optitrack, but its position is constrained by the car's position.
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "MocapHitchedCar"
-
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.car: MocapCar = cast(MocapCar, self.mocap_objects[0])  #: The top-level 'owner' body.

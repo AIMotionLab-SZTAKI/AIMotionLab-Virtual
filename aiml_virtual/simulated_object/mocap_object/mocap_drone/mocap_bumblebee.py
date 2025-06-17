@@ -28,10 +28,6 @@ class MocapBumblebee(mocap_drone.MocapDrone):
     COG = "0.0085 0.0 0.0"  #: **classvar** | Location of the center of mass.
     PROP_COLOR = "0.1 0.02 0.5 1.0"  #: **classvar** | Color of the propellers.
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "MocapBumblebee" # "bb" moved to mocap_hooked_bumblebee, at least for now
-
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.offset = np.array([0, 0, -0.06])

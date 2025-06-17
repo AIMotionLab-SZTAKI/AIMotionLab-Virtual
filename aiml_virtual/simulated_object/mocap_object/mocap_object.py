@@ -31,10 +31,6 @@ class MocapObject(SimulatedObject, ABC):
     simulation compared to the mocap data.
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return None
-
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__()
         self.mocap_name: str = mocap_name  #: The name in the mocap dictionary (different from the mujoco model name).
@@ -129,10 +125,6 @@ class Airport(MocapObject):
     Mocap object to display a piece of paper with the airport sign on it.
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "Airport"
-
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
         ET.SubElement(body, "geom", name=self.name, type="plane", pos="0 0 .05",
@@ -143,10 +135,6 @@ class ParkingLot(MocapObject):
     """
     Mocap object to display a piece of paper with the parking lot sign on it.
     """
-
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "ParkingLot"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
@@ -159,10 +147,6 @@ class LandingZone(MocapObject):
     Mocap object to display the white pads to be put under crazyflies for landing.
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "LandingZone"
-
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         body = ET.Element("body", name=self.name, pos=pos, quat=quat, mocap="true")
         ET.SubElement(body, "geom", {"class": "landing_zone"})
@@ -172,10 +156,6 @@ class Pole(MocapObject):
     """
     Mocap object to display the pool noodles we use as obstacles.
     """
-
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "Pole"
 
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
@@ -195,10 +175,6 @@ class Hospital(MocapObject):
     Mocap object to display the Hospital building (currently assumed to be bu1 in optitrack).
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "Hospital"
-
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.offset = np.array([0, 0, -0.88])
@@ -214,10 +190,6 @@ class Box(MocapObject):
     """
         Mocap object to display an anonymous block.
         """
-
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "Box"
 
     def __init__(self, width: float, length: float, height: float, source: Optional[MocapSource] = None,
                  mocap_name: Optional[str] = None):
@@ -237,10 +209,6 @@ class PostOffice(MocapObject):
     Mocap object to display the Post Office building (currently assumed to be bu2 in optitrack).
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "PostOffice"
-
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.offset = np.array([0, 0, -0.4])
@@ -257,10 +225,6 @@ class Sztaki(MocapObject):
     Mocap object to display the Sztaki building (currently assumed to be bu3 in optitrack).
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "Sztaki"
-
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.offset = np.array([0, 0, -0.18])
@@ -276,10 +240,6 @@ class MocapPayload(MocapObject):
     """
     Mocap object to display a tear shaped Payload.
     """
-
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "MocapPayload"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         black = "0 0 0 1"
@@ -307,10 +267,6 @@ class MocapHook(MocapObject):
     """
     Mocap object to display a drone hook.
     """
-
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "MocapHook"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         L = hooked_bumblebee.HookedBumblebee1DOF.ROD_LENGTH

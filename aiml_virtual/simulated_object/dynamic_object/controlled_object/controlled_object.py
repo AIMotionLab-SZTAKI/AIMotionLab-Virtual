@@ -16,10 +16,6 @@ class ControlledObject(dynamic_object.DynamicObject, ABC):
     representation (to interact with the controller).
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return None
-
     def __init__(self):
         super().__init__()
         self.controller: Optional[controller.Controller] = None  #: The controller in use currently.

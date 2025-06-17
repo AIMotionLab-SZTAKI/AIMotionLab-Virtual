@@ -16,17 +16,6 @@ class DynamicObject(simulated_object.SimulatedObject, ABC):
     Base class for objects that follow the rules of physics. This includes simple objects without actuators such as a
     dynamic payload (as opposed to a mocap payload), as well as actuated objects such as a drone.
     """
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        """
-        Overrides method in MocapObject to specify whether to check for aliases when parsing an XML. A None returns
-        signals that this class opts out of parsing. This usually also means that it's an abstract class (ABC).
-
-        Returns:
-            Optional[str]: The alias for objects belonging to this class.
-        """
-
-        return None
 
     @property
     def mass(self) -> Union[None, float, np.array]:
@@ -56,9 +45,6 @@ class TeardropPayload(DynamicObject):
     Class for handling a teardrop shaped dynamic payload that is subject to physics. Not to be confused with a
     mocap payload, which is what we use to track a payload in optitrack.
     """
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "TeardropPayload"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         load_mass = "0.07"  # I'm pretty sure it's something like 70g
@@ -101,9 +87,6 @@ class BoxPayload(DynamicObject):
     """
     Class for handling a box shaped dynamic payload that is subject to physics.
     """
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "BoxPayload"
 
     def __init__(self):
         super().__init__()

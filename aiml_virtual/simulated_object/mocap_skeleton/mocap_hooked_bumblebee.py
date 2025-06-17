@@ -16,10 +16,6 @@ class MocapHookedBumblebee2DOF(mocap_skeleton.MocapSkeleton):
     The orientation of the hook is read from optitrack, but its position is determined by the drone's pose.
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "MocapHookedBumblebee2DOF"
-
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
         self.bumblebee: MocapBumblebee =  cast(MocapBumblebee, self.mocap_objects[0])  #: The top-level 'owner' body.

@@ -59,10 +59,6 @@ class MocapSkeleton(mocap_object.MocapObject, ABC):
                 lst.append((name, cast(Type[MocapObject], obj_type)))
             cls.configurations[key] = lst
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return None
-
     def __init__(self, source: MocapSource, mocap_name: str):
         super().__init__(source, mocap_name)
         self.mocap_objects: list[mocap_object.MocapObject] = []  # is made up of several mocap objects

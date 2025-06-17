@@ -18,10 +18,6 @@ class Bicycle(controlled_object.ControlledObject):
     as a rectangular body.
     """
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "Bicycle"
-
     def __init__(self):
         super().__init__()
         self.controller: Optional[BicycleController] = None

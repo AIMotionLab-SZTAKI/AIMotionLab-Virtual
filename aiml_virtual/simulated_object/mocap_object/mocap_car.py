@@ -17,9 +17,6 @@ class MocapCar(mocap_object.MocapObject):
     """
     WHEEL_X: float = 0.16113  #: distance between axles and center of gravity
     WHEEL_Y: float = 0.122385  #: distance between center line and wheels
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "MocapCar"
 
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
@@ -70,9 +67,6 @@ class MocapTrailer(mocap_object.MocapObject):
     """
     Class that encapsulates a mocap trailer (which in this approximation is not attached to a car!).
     """
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "MocapTrailer"
 
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)

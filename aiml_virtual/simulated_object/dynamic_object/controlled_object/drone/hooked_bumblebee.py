@@ -14,9 +14,6 @@ class HookedBumblebee1DOF(bumblebee.Bumblebee):
     Class that extends the Bumblebee to have a 1-DOF hook on it.
     """
     ROD_LENGTH = 0.4
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "HookedBumblebee1DOF"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         L = HookedBumblebee1DOF.ROD_LENGTH
@@ -70,9 +67,6 @@ class HookedBumblebee2DOF(bumblebee.Bumblebee):
     Class that extends the Bumblebee to have a 2-DOF hook on it.
     """
     ROD_LENGTH = 0.4
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "HookedBumblebee2DOF"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         L = HookedBumblebee1DOF.ROD_LENGTH

@@ -84,10 +84,6 @@ class Car(controlled_object.ControlledObject):
     L_R: float = 0.168  #: Distance of the rear axis from the center of mass
     CTRL_FREQ: float = 40.0  #: the default control frequency to initialize the car with
 
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "Car"
-
     def __init__(self, has_trailer: bool = False):
         super().__init__()
         self.update_frequency: float = Car.CTRL_FREQ  #: The frequency at which the update process runs.

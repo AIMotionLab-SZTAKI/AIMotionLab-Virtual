@@ -51,14 +51,14 @@ class DynamicObject(simulated_object.SimulatedObject, ABC):
     def bind_to_data(self, data: mujoco.MjData) -> None:
         self.data = data
 
-class DynamicPayload(DynamicObject):
+class TeardropPayload(DynamicObject):
     """
-    Class for handling a dynamic payload that is subject to physics. Not to be confused with a mocap payload, which is
-    what we use to track a payload in optitrack.
+    Class for handling a teardrop shaped dynamic payload that is subject to physics. Not to be confused with a
+    mocap payload, which is what we use to track a payload in optitrack.
     """
     @classmethod
     def get_identifier(cls) -> Optional[str]:
-        return "DynamicPayload"
+        return "TeardropPayload"
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         load_mass = "0.07"  # I'm pretty sure it's something like 70g
@@ -91,6 +91,49 @@ class DynamicPayload(DynamicObject):
         ET.SubElement(body, "site", name=f"{self.name}_contact_point", pos="0 0 0.16", type="sphere", size="0.002", rgba=black)
         ET.SubElement(body, "site", name=f"{self.name}_hook_center_point", pos="0 0 0.1275", type="sphere", size="0.001", rgba=black)
         ET.SubElement(body, "site", name=f"{self.name}_origin", pos="0 0 0", type="sphere", size="0.001", rgba=black)
+
+        return {"worldbody": [body]}
+
+    def update(self) -> None:
+        pass
+
+class BoxPayload(DynamicObject):
+    """
+    Class for handling a box shaped dynamic payload that is subject to physics.
+    """
+    @classmethod
+    def get_identifier(cls) -> Optional[str]:
+        return "BoxPayload"
+
+    def __init__(self):
+        super().__init__()
+        self.size: str = "0.05 0.05 0.05"
+
+    def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
+        body = ET.Element("body", name=self.name, pos=pos, quat=quat)
+        ET.SubElement(body, "joint", name=self.name, type="free")
+        box_pos = "0 0 " + self.size.split()[2]
+        ET.SubElement(body, "geom", name=self.name, type="box", size=self.size, pos=box_pos, mass="0.07", rgba=color)
+
+        segment_mass = "0.001"
+        capsule_width = "0.004"
+        hook_height = float(self.size.split()[2]) * 2
+        ET.SubElement(body, "geom", type="capsule", pos=f"0 0 {0.025+hook_height}", size=capsule_width + " 0.027", rgba=color,
+                      mass=segment_mass, condim="1")
+        ET.SubElement(body, "geom", type="capsule", pos=f"0.01173 0 {0.05565+hook_height}", euler="0 1.12200 0",
+                      size=capsule_width + " 0.01562", rgba=color, mass=segment_mass, condim="1")
+        ET.SubElement(body, "geom", type="capsule", pos=f"0.01061 0 {0.05439+hook_height}", euler="0 1.17810 0",
+                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim="1")
+        ET.SubElement(body, "geom", type="capsule", pos=f"0.02561 0 {0.06939+hook_height}", euler="0 0.39270 0",
+                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim="1")
+        ET.SubElement(body, "geom", type="capsule", pos=f"-0.02561 0 {0.09061+hook_height}", euler="0 0.39270 0",
+                      size=capsule_width + " 0.005", rgba=color, mass=segment_mass, condim="1")
+        ET.SubElement(body, "geom", type="capsule", pos=f"-0.01061 0 {0.10561+hook_height}", euler="0 1.17810 0",
+                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim="1")
+        ET.SubElement(body, "geom", type="capsule", pos=f"0.01061 0 {0.10561+hook_height}", euler="0 1.96350 0",
+                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim="1")
+        ET.SubElement(body, "geom", type="capsule", pos=f"0.02561 0 {0.09061+hook_height}", euler="0 2.74889 0",
+                      size=capsule_width + " 0.008", rgba=color, mass=segment_mass, condim="1")
         return {"worldbody": [body]}
 
     def update(self) -> None:

@@ -11,8 +11,6 @@ import platform
 import glfw
 from functools import partial
 
-from aiml_virtual.visualize import Visualizer
-
 if platform.system() == 'Windows':
     import win_precise_time as time
 else:

@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # An example of a DynamicObject (an object which is subject to MuJoCo physics) is a payload.
     # This payload is 'passive' in that it has no actuators, as opposed to controlled objects, which we will discuss
     # later.
-    payload1 = dynamic_object.DynamicPayload()
+    payload1 = dynamic_object.BoxPayload()
     # Let's add this payload to the scene! We can give it a starting position and starting orientation.
     scn.add_object(payload1, pos="1 0 2.5", quat="1 0 0 0")
     # There is an important thing to note here. Whenever you modify the scene, it saves its state to an xml file

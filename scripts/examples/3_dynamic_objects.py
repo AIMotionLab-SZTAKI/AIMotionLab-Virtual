@@ -45,7 +45,7 @@ if __name__ == "__main__":
     scn.add_object(bb, "-1 0 0.7", "1 0 0 0", "0.5 0.5 0.5 1")
     # In order to give the bumblebee's controller some work, let's add a non-actuated dynamic object that drops from
     # the sky and disturbs the bumblebee when colliding with it.
-    scn.add_object(dynamic_object.DynamicPayload(), "-0.9 0 1")
+    scn.add_object(dynamic_object.TeardropPayload(), "-0.9 0 1")
 
     # The dummy trajectory may have seemed a bit boring, even with the disturbance. A more interesting trajectory type
     # is read from a skyc file. An example skyc file is found under scripts/misc/skyc_example.skyc

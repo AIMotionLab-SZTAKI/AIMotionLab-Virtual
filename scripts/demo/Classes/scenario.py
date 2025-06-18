@@ -291,7 +291,6 @@ class Scenario:
         # GENERATE:
         # The generation done whithin 2 steps to increase the chance to an evenly filled space
         graph = nx.Graph()
-        np.random.seed(300)
         random_vertices = np.random.uniform(low=[-self.real_dimension[0]/2, -self.real_dimension[1]/2, self.real_dimension[2]],
                                             high=[self.real_dimension[0]/2, self.real_dimension[1]/2, self.real_dimension[3]],
                                             size=(int(self.vertex_number/2), 3))

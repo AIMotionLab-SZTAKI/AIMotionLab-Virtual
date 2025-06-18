@@ -24,13 +24,11 @@ def obstacle_layout_set(layout_id: int) -> np.ndarray:
         obstacle_dimensions = np.array([[0.75, 0.2], [0.5, 0.5]])/2
     elif layout_id == 3:
         N_obs = 30
-        np.random.seed(100)
         obstacle_positions = np.multiply(np.array([8, 8]), np.random.rand(N_obs, 2)) - [4, 4]
         obstacle_positions = np.column_stack((obstacle_positions, np.ones((N_obs, 1)) * 4))
         obstacle_dimensions = np.array([[0.2, 0.2]]) / 2
     elif layout_id == 4:
         N_obs = 10
-        np.random.seed(100)
         obstacle_positions = np.multiply(np.array([4, 4]), np.random.rand(N_obs, 2)) - [2, 2]
         obstacle_positions = np.column_stack((obstacle_positions, np.ones((N_obs, 1)) * 3))
         obstacle_dimensions = np.array([[0.5, 0.5]]) / 2

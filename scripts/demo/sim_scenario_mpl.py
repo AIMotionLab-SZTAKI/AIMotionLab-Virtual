@@ -29,7 +29,8 @@ if __name__ == '__main__':
     real_routes_save_name = check_routes_save_file(file_name="real_routes")
     virtual_routes_save_name = check_routes_save_file(file_name="virtual_routes")
 
-    set_rand_seed(130010)
+    # set_rand_seed(1)
+    set_rand_seed(4)
 
     # -------- ANIMATION --------
     drones = drones[:(drone_num+virtual_drone_num)]

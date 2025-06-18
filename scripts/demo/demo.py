@@ -2,8 +2,10 @@ import os
 import sys
 import pathlib
 from xml.etree import ElementTree as ET
+import glfw
 
 import numpy as np
+import skyc_utils.skyc_inspector
 from skyc_utils.skyc_maker import write_skyc, XYZYaw, Trajectory, TrajectoryType, LightProgram, Color
 from skyc_utils.skyc_inspector import get_traj_data
 import socket
@@ -138,7 +140,7 @@ def generate_skyc(input_file: str, output_file: str, add_colors: bool = False):
                     extend_ppoly_coeffs(ppoly, 6)
                 traj.add_ppoly(XYZYaw(trimmed_ppoly_lst))
         traj.add_goto(start, takeoff_time)
-        traj.add_parameter(-15, "stabilizer.controller", 2)
+        # traj.add_parameter(-15, "stabilizer.controller", 2)
         trajectories.append(traj)
     if add_colors:
         light_programs = []
@@ -203,8 +205,9 @@ def handle_colors(drone: MocapDrone, light_data: dict):
 if __name__ == "__main__":
     ip = "127.0.0.1"
     port = 6002  # 6002 is actual server port, 7002 is Dummy Port
-    generate_skyc("Saves/Routes/virtual_routes", "virtual")
-    generate_skyc("Saves/Routes/real_routes", "real", add_colors=True)
+    # generate_skyc("Saves/Routes/virtual_routes", "virtual")
+    # generate_skyc("Saves/Routes/real_routes", "real", add_colors=True)
+    # skyc_utils.skyc_inspector.inspect("real.skyc")
     scene = Scene(os.path.join(xml_directory, "demo_base.xml"))
     virtual_trajectories = extract_trajectories("virtual.skyc")
     real_trajectories = extract_trajectories("real.skyc")
@@ -226,6 +229,7 @@ if __name__ == "__main__":
         thread = threading.Thread(target=start_show, args=(soc, virtual_trajectories, real_trajectories, simulator, mocap), daemon=True)
         thread.start()
         with simulator.launch():
+            glfw.window_hint(glfw.RESIZABLE, glfw.TRUE)
             while not simulator.display_should_close():
                 simulator.tick()
     except ConnectionRefusedError:

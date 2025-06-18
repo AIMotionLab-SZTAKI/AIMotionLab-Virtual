@@ -16,7 +16,7 @@ from Utils.Utils import save, get_trajectories, save_trajectories, set_rand_seed
 # INITIALIZE SCENARIO
 
 DIMENSION = np.array([6.4, 6.4, 0.1, 3])
-REAL_DIMENSION = np.array([3, 3, 0.1, 1.4])
+REAL_DIMENSION = np.array([3, 3, 0.3, 1.4])
 #corridor: np.array([10.0, 4.0, 0.2, 3.0])
 #city: np.array([3, 3, 0.1, 1.5])
 #multidrone_area: np.array([10, 10, 0.1, 4])

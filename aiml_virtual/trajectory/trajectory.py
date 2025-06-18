@@ -17,7 +17,7 @@ class Trajectory(ABC):
         """
         Constructor left empty due to great variance in actual implementations.
         """
-        pass
+        super().__init__()
 
     @abstractmethod
     def evaluate(self, *args, **kwargs) -> dict[str, Any]:

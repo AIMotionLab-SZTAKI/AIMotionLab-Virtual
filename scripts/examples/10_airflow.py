@@ -20,27 +20,32 @@ while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
     project_root = project_root.parents[0]
     sys.path.append(project_root.resolve().as_posix())
 
-import aiml_virtual
-xml_directory = aiml_virtual.xml_directory
-from aiml_virtual import scene, simulator
+from aiml_virtual import scene, simulator, airflow_luts_pressure, airflow_luts_velocity, xml_directory
 from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
 from aiml_virtual.simulated_object.dynamic_object import dynamic_object
 from aiml_virtual.simulated_object.dynamic_object.controlled_object import bicycle
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import crazyflie, bumblebee, hooked_bumblebee
+from aiml_virtual.airflow.airflow_sampler import AirflowSampler
 
 if __name__ == "__main__":
     scn = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"), save_filename=f"example_scene_10.xml")
     bb = hooked_bumblebee.HookedBumblebee1DOF()
-    bb.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([-1, 0, 0.7]))
-    scn.add_object(bb, "-1 0 0.7", "1 0 0 0", "0.5 0.5 0.5 1")
+    bb.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([0, 0, 0.7]))
+    scn.add_object(bb, "0 0 0.7", "1 0 0 0", "0.5 0.5 0.5 1")
 
-    scn.add_object(dynamic_object.BoxPayload(), "-0.9 0 1")
+    payload = dynamic_object.BoxPayload()
+    scn.add_object(payload, "0 0.05 0")
 
     sim = simulator.Simulator(scn)
+
+
     with sim.launch(speed=0.1):
+        airflowSampler = AirflowSampler(
+            data_file_name_pressure=os.path.join(airflow_luts_pressure, "openfoam_pressure_2500.txt"),
+            owning_drone=bb)
+        payload.add_airflow_sampler(airflowSampler)
         while not sim.display_should_close():
             sim.tick()  # tick steps the simulator, including all its subprocesses
-            print(bb.prop_vel)
 
 
 

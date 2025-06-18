@@ -4,9 +4,10 @@ import numpy as np
 import math
 import bisect
 
-
+# TODO: DOCSTRINGS
 class BoxDictionary:
     def __init__(self, folder_path):
+        super().__init__()
         self._loaded_data = {}
         self._txt_file_paths = glob.glob(folder_path + '/*.txt')
         self._cube_size = None

@@ -56,6 +56,7 @@ class MocapSource(ABC):
     config: dict[str, str] = load_mocap_config("MocapSource", "config") #: **classcar** | Contains the recognized rigid bodies. Keys are the optitrack names, values are the class identifiers.
 
     def __init__(self):
+        super().__init__()
         self.lock: threading.Lock = threading.Lock()  #: The lock used to access the underlying data dictionary.
         self._data: dict[str, tuple[np.ndarray, np.ndarray]] = {}  #: The underyling data dictionary
 

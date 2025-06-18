@@ -21,7 +21,7 @@ else:
     import time
 
 from aiml_virtual.utils import utils_general
-if TYPE_CHECKING:
+if TYPE_CHECKING: # this avoids a circular import issue
     from aiml_virtual.simulator import Simulator
 warning = utils_general.warning
 

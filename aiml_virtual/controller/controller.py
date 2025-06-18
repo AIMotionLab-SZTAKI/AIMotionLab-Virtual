@@ -19,7 +19,7 @@ class Controller(ABC):
         """
         Constructor left empty due to great variance in actual implementations.
         """
-        pass
+        super().__init__()
 
     @abstractmethod
     def compute_control(self, *args, **kwargs) -> Any:

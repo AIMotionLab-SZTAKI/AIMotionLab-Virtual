@@ -85,6 +85,7 @@ class SimulatedObject(ABC):
             SimulatedObject.instance_count[cls] = 0
 
     def __init__(self):
+        super().__init__()
         cls = self.__class__
         self.name = f"{cls.__name__}_{SimulatedObject.instance_count[cls]}"  #: The name parsed from the MJCF file.
         SimulatedObject.instance_count[cls] += 1

@@ -71,7 +71,7 @@ class Drone(controlled_object.ControlledObject):
 
     def __init__(self):
         super().__init__()
-        self.sensors: dict[str, np.array] = {}  #: Dictionary of sensor data.
+        self.sensors: dict[str, np.ndarray] = {}  #: Dictionary of sensor data.
         self.propellers: list[Propeller] = [Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE),
                                             Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE)] #: List of propellers; first and third are ccw, second and fourth are cw
         self.state: dict[str, np.ndarray] = self.sensors  #: Convenience alias for sensors.

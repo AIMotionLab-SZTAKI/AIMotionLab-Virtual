@@ -1,76 +1,12 @@
 import math
 import numpy as np
 from aiml_virtual.airflow.box_dictionary import BoxDictionary
+from aiml_virtual.airflow.airflow_target import AirflowTarget
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.drone import Drone
 from aiml_virtual.simulated_object.dynamic_object.dynamic_object import BoxPayload, TeardropPayload
+from aiml_virtual.airflow.utils import *
 
-def quaternion_multiply(quaternion0, quaternion1):
-    """Return multiplication of two quaternions.
-    """
-    w0, x0, y0, z0 = quaternion0
-    w1, x1, y1, z1 = quaternion1
-    return np.array((
-                    -x1*x0 - y1*y0 - z1*z0 + w1*w0,
-                    x1*w0 + y1*z0 - z1*y0 + w1*x0,
-                    -x1*z0 + y1*w0 + z1*x0 + w1*y0,
-                    x1*y0 - y1*x0 + z1*w0 + w1*z0), dtype=np.float64)
-
-def q_conjugate(q):
-    w, x, y, z = q
-    return [w, -x, -y, -z]
-
-def qv_mult(q1, v1):
-    """For active rotation. If passive rotation is needed, use q1 * q2 * q1^(-1)"""
-    q2 = np.append(0.0, v1)
-    return quaternion_multiply(q_conjugate(q1), quaternion_multiply(q2, q1))[1:]
-
-def quat_quat_array_multiply(quat, quat_array):
-
-    w0, x0, y0, z0 = quat
-    w1, x1, y1, z1 = quat_array[:, 0], quat_array[:, 1], quat_array[:, 2], quat_array[:, 3]
-    return np.stack((-x1*x0 - y1*y0 - z1*z0 + w1*w0,
-                      x1*w0 + y1*z0 - z1*y0 + w1*x0,
-                     -x1*z0 + y1*w0 + z1*x0 + w1*y0,
-                      x1*y0 - y1*x0 + z1*w0 + w1*z0), axis=1)
-
-def quat_array_quat_multiply(quat_array, quat):
-    w0, x0, y0, z0 = quat_array[:, 0], quat_array[:, 1], quat_array[:, 2], quat_array[:, 3]
-    w1, x1, y1, z1 = quat
-    return np.stack((-x1 * x0 - y1 * y0 - z1 * z0 + w1 * w0,
-                     x1 * w0 + y1 * z0 - z1 * y0 + w1 * x0,
-                     -x1 * z0 + y1 * w0 + z1 * x0 + w1 * y0,
-                     x1 * y0 - y1 * x0 + z1 * w0 + w1 * z0), axis=1)
-
-def quat_vect_array_mult(q, v_array):
-    q_array = np.append(np.zeros((v_array.shape[0], 1)), v_array, axis=1)
-    return quat_quat_array_multiply(q_conjugate(q), quat_array_quat_multiply(q_array, q))[:, 1:]
-
-def quat_vect_array_mult_passive(q, v_array):
-    q_array = np.append(np.zeros((v_array.shape[0], 1)), v_array, axis=1)
-    return quat_array_quat_multiply(quat_quat_array_multiply(q, q_array), q_conjugate(q))[:, 1:]
-
-def forces_from_pressures(normal, pressure, area):
-    # f = np.array([0., 0., -1.])
-    # F = np.dot(-normal, f) * np.outer(pressure, f) * area
-    if normal.ndim == 1:
-        F = np.outer(pressure, -normal) * area
-    else:
-        F = np.expand_dims(pressure, axis=1) * (-normal) * np.expand_dims(area, axis=1)
-    return F
-
-def forces_from_velocities(normal, velocity, area):
-    density = 1.293 #kg/m^3
-    if normal.ndim == 1:
-        F = velocity * density * area * np.dot(velocity, -normal).reshape(-1, 1)
-    else:
-        F = velocity * density * np.expand_dims(area, axis=1) * np.sum(velocity * (-normal), axis=1).reshape(-1, 1)
-    return F
-
-def torque_from_force(r, force):
-    """by Adam Weinhardt"""
-    M = np.cross(r, force)
-    return M
-
+# TODO: DOCSTRINGS
 class AirflowSampler:
     def __init__(self,
                  data_file_name_pressure: str,
@@ -80,7 +16,7 @@ class AirflowSampler:
                  pressure_dictionary_folder_path=None,
                  LOAD_VELOCITY_DICTIONARY=False,
                  velocity_dictionary_folder_path=None):
-
+        super().__init__()
         self.USE_PRESSURE_DICTIONARY = False
         self.USE_VELOCITY_DICTIONARY = False
 
@@ -111,13 +47,10 @@ class AirflowSampler:
         self.drone = owning_drone
         self.drone_position = owning_drone.sensors["pos"]
         self.drone_orientation = owning_drone.sensors["quat"]
-        # self.offset_from_drone_center = np.copy(owning_drone.prop1_joint_pos) #?
-        self.offset_from_drone_center = np.zeros_like(owning_drone.prop_offset) # ?
-
         # shifting the cube's middle to the rotor
-        self.offset_from_drone_center[0] -= self._cube_size / 200.0
-        self.offset_from_drone_center[1] -= self._cube_size / 200.0
-        self.offset_from_drone_center[2] -= self._cube_size / 100.0
+        self.offset_from_drone_center = np.array([-self._cube_size / 200.0,
+                                                  -self._cube_size / 200.0,
+                                                  -self._cube_size / 200.0])
 
         self._cube_size_meter = self._cube_size / 100.
 
@@ -145,7 +78,7 @@ class AirflowSampler:
 
         return position + self.drone_position, self.drone_orientation
 
-    def generate_forces_opt(self, payload: Payload):
+    def generate_forces(self, target: AirflowTarget):
         force_sum = np.array([0., 0., 0.])
         torque_sum = np.array([0., 0., 0.])
 
@@ -154,50 +87,16 @@ class AirflowSampler:
             prop_velocities = self.drone.prop_vel
             abs_average_velocity = np.sum(np.abs(prop_velocities)) / 4
 
-        if isinstance(payload, BoxPayload):
-            pos, pos_in_own_frame, normal, area = payload.get_top_rectangle_data()
+        sides = target.get_rectangle_data()
+        for pos, pos_in_own_frame, normal, area, consider_forces, consider_torques in sides:
             force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
-            force_sum += force
-            torque_sum += torque
-
-            pos, pos_in_own_frame, normal, area = payload.get_bottom_rectangle_data()
-            force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
-            force_sum += force
-            # torque_sum += torque
-
-            pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_xz_rectangle_data()
-            force, torque = self._gen_forces_one_side(pos_n, pos_in_own_frame_n, normal_n, area, abs_average_velocity)
-            force_sum += force
-            torque_sum += torque
-            force, torque = self._gen_forces_one_side(pos_p, pos_in_own_frame_p, normal_p, area, abs_average_velocity)
-            force_sum += force
-            torque_sum += torque
-
-            pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = payload.get_side_yz_rectangle_data()
-            force, torque = self._gen_forces_one_side(pos_n, pos_in_own_frame_n, normal_n, area, abs_average_velocity)
-            force_sum += force
-            torque_sum += torque
-            force, torque = self._gen_forces_one_side(pos_p, pos_in_own_frame_p, normal_p, area, abs_average_velocity)
-            force_sum += force
-            torque_sum += torque
-
-        elif isinstance(payload, TeardropPayload):
-            pos, pos_in_own_frame, normal, area = payload.get_top_data()
-            force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
-            force_sum += force
-            torque_sum += torque
-
-            pos, pos_in_own_frame, normal, area = payload.get_bottom_data()
-            force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
-            force_sum += force
-            torque_sum += torque
-
-        else:
-            raise RuntimeError("payload not implemented!")
-
+            if consider_forces:
+                force_sum += force
+            if consider_torques:
+                torque_sum += torque
         return force_sum, torque_sum
 
-    def _gen_forces_one_side(self, pos, pos_own_frame, normal, area, abs_average_velocity):
+    def _gen_forces_one_side(self, pos, pos_own_frame, normal, area, abs_average_velocity): # TODO
         selfposition, selforientation = self.get_position_orientation()
         pos_traffed = pos - selfposition
         pos_traffed = quat_vect_array_mult_passive(selforientation, pos_traffed)

@@ -35,6 +35,7 @@ class MocapObject(SimulatedObject, ABC):
         super().__init__()
         self.mocap_name: str = mocap_name  #: The name in the mocap dictionary (different from the mujoco model name).
         self.source: MocapSource = source  #: The source for the poses of the object.
+        self.angle_offset: np.array = np.array([0, 0, 0]) #: RPY angle offset compared to the mocap.
         self.offset: np.array = np.array([0, 0, 0]) #: The offset from the center of the marker set to the center of the XML body.
         self.fixed_angles: list[Optional[float]] = [None, None, None] #: The angles in which a mocap object must be fixed.
 
@@ -100,6 +101,8 @@ class MocapObject(SimulatedObject, ABC):
             mocap_frame = self.source.data
             if self.mocap_name in mocap_frame:
                 mocap_pos, mocap_quat = mocap_frame[self.mocap_name]
+                mocap_quat = utils_general.offset_angles(mocap_quat, roll=self.angle_offset[0],
+                                                         pitch=self.angle_offset[1], yaw=self.angle_offset[2])
                 mocap_quat = utils_general.fix_angles(mocap_quat, roll=self.fixed_angles[0], pitch=self.fixed_angles[1],
                                                       yaw=self.fixed_angles[2])
                 offet_world_frame = Rotation.from_quat(np.roll(mocap_quat, -1)).as_matrix() @ self.offset
@@ -240,6 +243,9 @@ class MocapPayload(MocapObject):
     """
     Mocap object to display a tear shaped Payload.
     """
+    def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
+        super().__init__(source, mocap_name)
+        self.angle_offset = np.array([0, 0, -1.57])
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         black = "0 0 0 1"

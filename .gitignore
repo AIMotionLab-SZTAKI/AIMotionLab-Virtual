@@ -12,3 +12,4 @@ scripts/*.xml
 scripts/demo/*.xml
 scripts/demo/*.skyc
 scripts/demo/Saves/
+scripts/misc/*.xml

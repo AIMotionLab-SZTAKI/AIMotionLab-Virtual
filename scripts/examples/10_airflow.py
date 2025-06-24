@@ -33,7 +33,7 @@ if __name__ == "__main__":
     bb.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([0, 0, 2]))
     scn.add_object(bb, "0 0 2", "1 0 0 0", "0.5 0.5 0.5 1")
 
-    payload = dynamic_object.BoxPayload()
+    payload = dynamic_object.TeardropPayload()
     scn.add_object(payload, "0 0 1.32")
 
     sim = simulator.Simulator(scn)

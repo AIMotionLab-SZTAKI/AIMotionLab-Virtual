@@ -2,15 +2,18 @@
 This module contains classes for SimulatedObjects that adhere to mujoco's rules of physics (gravity, etc.).
 """
 from __future__ import annotations
+
+import os
 from typing import TYPE_CHECKING
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
 from abc import ABC
 import mujoco
 import numpy as np
+from stl import mesh
 from scipy.spatial.transform import Rotation
 
-from aiml_virtual import airflow_data
+from aiml_virtual import xml_directory
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.airflow.utils import *
 from aiml_virtual.airflow.airflow_target import AirflowTarget, AirflowData
@@ -46,17 +49,86 @@ class DynamicObject(simulated_object.SimulatedObject, ABC):
     def bind_to_data(self, data: mujoco.MjData) -> None:
         self.data = data
 
-class TeardropPayload(DynamicObject):
+class TeardropPayload(DynamicObject, AirflowTarget):
     """
     Class for handling a teardrop shaped dynamic payload that is subject to physics. Not to be confused with a
     mocap payload, which is what we use to track a payload in optitrack.
     """
+    def __init__(self):
+        super().__init__()
+
+        self._triangles = None
+        self._center_positions = None
+        self._normals = None
+        self._areas = None
+
+        self._MIN_Z = None
+        self._MAX_Z = None
+        self._TOP_BOTTOM_RATIO = 0.005
+
+        self.sensors: dict[str, np.ndarray] = {}  #: Dictionary of sensor data.
+        payload_stl_path = os.path.join(xml_directory, "meshes", "payload", "payload_simplified.stl")
+        self._init_default_values(payload_stl_path)
+        self._bottom_triangles, self._bottom_center_positions, self._bottom_normals, self._bottom_areas = self._init_bottom_data()
+        self._top_triangles, self._top_center_positions, self._top_normals, self._top_areas = self._init_top_data()
+
+    def _init_default_values(self, path):
+        meter = 1000.0
+        self._loaded_mesh = mesh.Mesh.from_file(path)
+        self._loaded_mesh.vectors[:, :, [1, 2]] = self._loaded_mesh.vectors[:, :, [2, 1]]
+        self._loaded_mesh.vectors /= meter
+
+        self._triangles = self._loaded_mesh.vectors
+        self._center_positions = get_center_positions(self._triangles)
+        self._normals = get_triangle_normals(self._triangles)
+        self._areas = (self._loaded_mesh.areas / (meter ** 2)).flatten()
+        self._MIN_Z = np.min(self._triangles[:, :, 2])
+        self._MAX_Z = np.max(self._triangles[:, :, 2])
+
+        set_normals_pointing_outward(self._normals, self._center_positions)
+
+    def _init_top_data(self):
+        mesh_height = self._MAX_Z - self._MIN_Z
+        mask = np.any(self._triangles[:, :, 2] > self._MIN_Z + (mesh_height) * self._TOP_BOTTOM_RATIO, axis=1)
+        return self._triangles[mask], self._center_positions[mask], self._normals[mask], self._areas[mask]
+
+    def _init_bottom_data(self):
+        mesh_height = self._MAX_Z - self._MIN_Z
+        mask = np.any(self._triangles[:, :, 2] > (self._MIN_Z + (mesh_height) * self._TOP_BOTTOM_RATIO), axis=1)
+        return self._triangles[~mask], self._center_positions[~mask], self._normals[~mask], self._areas[~mask]
+
+    def get_top_rectangle_data(self) -> AirflowData:
+        pos_in_own_frame = quat_vect_array_mult(self.sensors["quat"], self._top_center_positions)
+        normals = quat_vect_array_mult(self.sensors["quat"], self._top_normals)
+        n = self._top_center_positions.shape[0]
+        return AirflowData(pos_in_own_frame + self.sensors["pos"], pos_in_own_frame, normals,
+                           self._top_areas, [True] * n, [True] * n)
+
+    def get_bottom_rectangle_data(self) -> AirflowData:
+        pos_in_own_frame = quat_vect_array_mult(self.sensors["quat"], self._bottom_center_positions)
+        normals = quat_vect_array_mult(self.sensors["quat"], self._bottom_normals)
+        n = self._bottom_center_positions.shape[0]
+        return AirflowData(pos_in_own_frame + self.sensors["pos"], pos_in_own_frame, normals,
+                           self._bottom_areas, [True] * n, [True] * n)
+
+    def get_rectangle_data(self) -> AirflowData:
+        top = self.get_top_rectangle_data()
+        bottom = self.get_bottom_rectangle_data()
+        pos = np.concatenate([top.pos, bottom.pos], axis=0)
+        pos_own_frame = np.concatenate([top.pos_own_frame, bottom.pos_own_frame], axis=0)
+        normal = np.concatenate([top.normal, bottom.normal], axis=0)
+        area = top.area + bottom.area
+        force_enabled = top.force_enabled + bottom.force_enabled
+        torque_enabled = top.torque_enabled + bottom.torque_enabled
+        return AirflowData(pos, pos_own_frame, normal, area, force_enabled, torque_enabled)
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         load_mass = "0.07"  # I'm pretty sure it's something like 70g
         segment_mass = "0.001"
         black = "0 0 0 1"
         body = ET.Element("body", name=self.name, pos=pos, quat=quat)
+        ret = {"worldbody": [body],
+               "sensor": []}
         capsule_width = "0.004"
         ET.SubElement(body, "joint", name=self.name, type="free")
         # ET.SubElement(body, "joint", name=self.name, type="slide", axis="0 0 1")
@@ -84,10 +156,35 @@ class TeardropPayload(DynamicObject):
         ET.SubElement(body, "site", name=f"{self.name}_hook_center_point", pos="0 0 0.1275", type="sphere", size="0.001", rgba=black)
         ET.SubElement(body, "site", name=f"{self.name}_origin", pos="0 0 0", type="sphere", size="0.001", rgba=black)
 
-        return {"worldbody": [body]}
+        ret["sensor"].append(ET.Element("framepos", objtype="body", objname=self.name, name=self.name + "_posimeter"))
+        ret["sensor"].append(
+            ET.Element("framelinvel", objtype="body", objname=self.name, name=self.name + "_velocimeter"))
+        ret["sensor"].append(ET.Element("framequat", objtype="body", objname=self.name, name=self.name + "_orimeter"))
+        return ret
+
+    def bind_to_data(self, data: mujoco.MjData) -> None:
+        if self.model is None:
+            raise RuntimeError
+        self.data = data
+        self.sensors["pos"] = self.data.sensor(self.name + "_posimeter").data
+        self.sensors["quat"] = self.data.sensor(self.name + "_orimeter").data
+        self.sensors["vel"] = self.data.sensor(self.name + "_velocimeter").data
 
     def update(self) -> None:
-        pass
+        if self.data is not None:
+            user_forces = self.data.body(self.name).xfrc_applied
+            force = np.array([0.0, 0.0, 0.0])
+            torque = np.array([0.0, 0.0, 0.0])
+            for airflow_sampler in self.airflow_samplers:
+                f, t = airflow_sampler.generate_forces(self)
+                force += f
+                torque += t
+            user_forces[0] = force[0]
+            user_forces[1] = force[1]
+            user_forces[2] = force[2]
+            user_forces[3] = torque[0]
+            user_forces[4] = torque[1]
+            user_forces[5] = torque[2]
 
 class BoxPayload(DynamicObject, AirflowTarget):
     """

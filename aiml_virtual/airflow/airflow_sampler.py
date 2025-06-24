@@ -50,7 +50,7 @@ class AirflowSampler:
         # shifting the cube's middle to the rotor
         self.offset_from_drone_center = np.array([-self._cube_size / 200.0,
                                                   -self._cube_size / 200.0,
-                                                  -self._cube_size / 200.0])
+                                                  -self._cube_size / 100.0])
 
         self._cube_size_meter = self._cube_size / 100.
 

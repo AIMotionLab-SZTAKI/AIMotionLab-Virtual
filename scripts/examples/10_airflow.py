@@ -30,18 +30,18 @@ from aiml_virtual.airflow.airflow_sampler import AirflowSampler
 if __name__ == "__main__":
     scn = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"), save_filename=f"example_scene_10.xml")
     bb = hooked_bumblebee.HookedBumblebee1DOF()
-    bb.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([0, 0, 0.7]))
-    scn.add_object(bb, "0 0 0.7", "1 0 0 0", "0.5 0.5 0.5 1")
+    bb.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([0, 0, 2]))
+    scn.add_object(bb, "0 0 2", "1 0 0 0", "0.5 0.5 0.5 1")
 
     payload = dynamic_object.BoxPayload()
-    scn.add_object(payload, "0 0.05 0")
+    scn.add_object(payload, "0 0 1.32")
 
     sim = simulator.Simulator(scn)
 
 
-    with sim.launch(speed=0.1):
+    with sim.launch():
         airflowSampler = AirflowSampler(
-            data_file_name_pressure=os.path.join(airflow_luts_pressure, "openfoam_pressure_2500.txt"),
+            data_file_name_pressure=os.path.join(airflow_luts_pressure, "openfoam_pressure_1500.txt"),
             owning_drone=bb)
         payload.add_airflow_sampler(airflowSampler)
         while not sim.display_should_close():

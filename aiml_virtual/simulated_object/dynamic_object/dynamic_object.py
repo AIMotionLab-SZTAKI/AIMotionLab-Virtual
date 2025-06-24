@@ -158,8 +158,6 @@ class BoxPayload(DynamicObject, AirflowTarget):
             user_forces[3] = torque[0]
             user_forces[4] = torque[1]
             user_forces[5] = torque[2]
-            print(user_forces)
-
 
     def create_surface_mesh(self, surface_division_area: float) -> None:
         a = surface_division_area

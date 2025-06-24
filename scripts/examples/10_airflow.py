@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     with sim.launch():
         airflowSampler = AirflowSampler(
-            data_file_name_pressure=os.path.join(airflow_luts_pressure, "openfoam_pressure_1500.txt"),
+            data_file_name_pressure=os.path.join(airflow_luts_pressure, "openfoam_pressure_1700.txt"),
             owning_drone=bb)
         payload.add_airflow_sampler(airflowSampler)
         while not sim.display_should_close():

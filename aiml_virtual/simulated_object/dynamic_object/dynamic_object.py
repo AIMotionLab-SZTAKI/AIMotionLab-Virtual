@@ -10,9 +10,10 @@ import mujoco
 import numpy as np
 from scipy.spatial.transform import Rotation
 
+from aiml_virtual import airflow_data
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.airflow.utils import *
-from aiml_virtual.airflow.airflow_target import AirflowTarget
+from aiml_virtual.airflow.airflow_target import AirflowTarget, AirflowData
 if TYPE_CHECKING: # this avoids a circular import issue
     from aiml_virtual.airflow.airflow_sampler import AirflowSampler
 
@@ -270,52 +271,72 @@ class BoxPayload(DynamicObject, AirflowTarget):
                     (pos_x, pos_y, pos_z))
 
 
-    def get_top_rectangle_data(self):
+    def get_top_rectangle_data(self) -> AirflowData:
         pos_in_own_frame = quat_vect_array_mult(self.sensors["quat"], self._top_rectangle_positions_raw)
         normal = qv_mult(self.sensors["quat"], np.array((0, 0, 1)))
-        return pos_in_own_frame + self.sensors["pos"], pos_in_own_frame, normal, self.top_bottom_miniractangle_area
+        n = self._top_rectangle_positions_raw.shape[0]
+        return AirflowData(pos_in_own_frame + self.sensors["pos"], pos_in_own_frame, np.tile(normal, (n, 1)),
+                           [self.top_bottom_miniractangle_area] * n, [True] * n, [True] * n)
 
-    def get_bottom_rectangle_data(self):
+    def get_bottom_rectangle_data(self) -> AirflowData:
         pos_in_own_frame = quat_vect_array_mult(self.sensors["quat"], self._bottom_rectangle_positions_raw)
         normal = qv_mult(self.sensors["quat"], np.array((0, 0, -1)))
-        return pos_in_own_frame + self.sensors["pos"], pos_in_own_frame, normal, self.top_bottom_miniractangle_area
+        n = self._bottom_rectangle_positions_raw.shape[0]
+        return AirflowData(pos_in_own_frame + self.sensors["pos"], pos_in_own_frame, np.tile(normal, (n, 1)),
+                           [self.top_bottom_miniractangle_area] * n, [True] * n, [False] * n)
 
-    def get_side_xz_rectangle_data(self):
+
+    def get_side_xz_rectangle_data(self) -> tuple[AirflowData, AirflowData]:
         pos_in_own_frame_negative = quat_vect_array_mult(self.sensors["quat"], self._side_rectangle_positions_xz_neg_raw)
         pos_in_own_frame_positive = quat_vect_array_mult(self.sensors["quat"], self._side_rectangle_positions_xz_pos_raw)
+        n = self._side_rectangle_positions_xz_neg_raw.shape[0]
+        m = self._side_rectangle_positions_xz_pos_raw.shape[0]
         normal_negative = qv_mult(self.sensors["quat"], np.array((0, -1, 0)))
         normal_positive = qv_mult(self.sensors["quat"], np.array((0, 1, 0)))
 
         pos_world_negative = pos_in_own_frame_negative + self.sensors["pos"]
         pos_world_positive = pos_in_own_frame_positive + self.sensors["pos"]
+        airflow_data_negative = AirflowData(pos_world_negative, pos_in_own_frame_negative,
+                                            np.tile(normal_negative, (n, 1)), [self.side_miniractangle_area_xz]*n,
+                                            [True] * n, [True] * n)
+        airflow_data_positive = AirflowData(pos_world_positive, pos_in_own_frame_positive,
+                                            np.tile(normal_positive, (m, 1)), [self.side_miniractangle_area_xz]*m,
+                                            [True] * m, [True] * m)
+        return airflow_data_negative, airflow_data_positive
 
-        return pos_world_negative, pos_world_positive, pos_in_own_frame_negative, pos_in_own_frame_positive,\
-            normal_negative, normal_positive, self.side_miniractangle_area_xz
-
-    def get_side_yz_rectangle_data(self):
+    def get_side_yz_rectangle_data(self) -> tuple[AirflowData, AirflowData]:
         pos_in_own_frame_negative = quat_vect_array_mult(self.sensors["quat"], self._side_rectangle_positions_yz_neg_raw)
         pos_in_own_frame_positive = quat_vect_array_mult(self.sensors["quat"], self._side_rectangle_positions_yz_pos_raw)
         normal_negative = qv_mult(self.sensors["quat"], np.array((-1, 0, 0)))
         normal_positive = qv_mult(self.sensors["quat"], np.array((1, 0, 0)))
-
+        n = self._side_rectangle_positions_yz_neg_raw.shape[0]
+        m = self._side_rectangle_positions_yz_pos_raw.shape[0]
         pos_world_negative = pos_in_own_frame_negative + self.sensors["pos"]
         pos_world_positive = pos_in_own_frame_positive + self.sensors["pos"]
 
-        return pos_world_negative, pos_world_positive, pos_in_own_frame_negative, pos_in_own_frame_positive,\
-            normal_negative, normal_positive, self.side_miniractangle_area_yz
+        airflow_data_negative = AirflowData(pos_world_negative, pos_in_own_frame_negative,
+                                            np.tile(normal_negative, (n, 1)), [self.side_miniractangle_area_yz] * n,
+                                            [True] * n, [True] * n)
+        airflow_data_positive = AirflowData(pos_world_positive, pos_in_own_frame_positive,
+                                            np.tile(normal_positive, (m, 1)), [self.side_miniractangle_area_yz] * m,
+                                            [True] * m, [True] * m)
+        return airflow_data_negative, airflow_data_positive
 
 
-    def get_rectangle_data(self):
-        sides = []
-        pos, pos_in_own_frame, normal, area = self.get_top_rectangle_data()
-        sides.append((pos, pos_in_own_frame, normal, area, True, True)) # last 2 arguments: consider forces and torques on this side
-        pos, pos_in_own_frame, normal, area = self.get_bottom_rectangle_data()
-        sides.append((pos, pos_in_own_frame, normal, area, True, False))
-        pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = self.get_side_xz_rectangle_data()
-        sides.append((pos_n, pos_in_own_frame_n, normal_n, area, True, True))
-        sides.append((pos_p, pos_in_own_frame_p, normal_p, area, True, True))
-        pos_n, pos_p, pos_in_own_frame_n, pos_in_own_frame_p, normal_n, normal_p, area = self.get_side_yz_rectangle_data()
-        sides.append((pos_n, pos_in_own_frame_n, normal_n, area, True, True))
-        sides.append((pos_p, pos_in_own_frame_p, normal_p, area, True, True))
-        return sides
+    def get_rectangle_data(self) -> AirflowData:
+        top = self.get_top_rectangle_data()
+        bottom = self.get_bottom_rectangle_data()
+        left, right = self.get_side_xz_rectangle_data()
+        back, front = self.get_side_yz_rectangle_data()
+        pos = np.concatenate([top.pos, bottom.pos, left.pos, right.pos, back.pos, front.pos], axis=0)
+        pos_own_frame = np.concatenate([top.pos_own_frame, bottom.pos_own_frame, left.pos_own_frame,
+                                        right.pos_own_frame, back.pos_own_frame, front.pos_own_frame], axis=0)
+        normal = np.concatenate([top.normal, bottom.normal, left.normal, right.normal, back.normal,
+                                 front.normal], axis=0)
+        area = top.area + bottom.area + left.area + right.area + back.area + front.area
+        force_enabled = (top.force_enabled + bottom.force_enabled + left.force_enabled + right.force_enabled +
+                         back.force_enabled + front.force_enabled)
+        torque_enabled = (top.torque_enabled + bottom.torque_enabled + left.torque_enabled + right.torque_enabled +
+                         back.torque_enabled + front.torque_enabled)
+        return AirflowData(pos, pos_own_frame, normal, area, force_enabled, torque_enabled)
 

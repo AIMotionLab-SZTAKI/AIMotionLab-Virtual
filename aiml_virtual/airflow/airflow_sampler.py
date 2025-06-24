@@ -1,7 +1,7 @@
 import math
 import numpy as np
 from aiml_virtual.airflow.box_dictionary import BoxDictionary
-from aiml_virtual.airflow.airflow_target import AirflowTarget
+from aiml_virtual.airflow.airflow_target import AirflowTarget, AirflowData
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.drone import Drone
 from aiml_virtual.simulated_object.dynamic_object.dynamic_object import BoxPayload, TeardropPayload
 from aiml_virtual.airflow.utils import *
@@ -78,46 +78,28 @@ class AirflowSampler:
 
         return position + self.drone_position, self.drone_orientation
 
-    def generate_forces(self, target: AirflowTarget):
+    def generate_forces(self, target: AirflowTarget) -> tuple[np.ndarray, np.ndarray]:
         force_sum = np.array([0., 0., 0.])
         torque_sum = np.array([0., 0., 0.])
-
-        abs_average_velocity = None
-        if self.USE_PRESSURE_DICTIONARY:
-            prop_velocities = self.drone.prop_vel
-            abs_average_velocity = np.sum(np.abs(prop_velocities)) / 4
-
-        sides = target.get_rectangle_data()
-        for pos, pos_in_own_frame, normal, area, consider_forces, consider_torques in sides:
-            force, torque = self._gen_forces_one_side(pos, pos_in_own_frame, normal, area, abs_average_velocity)
-            if consider_forces:
-                force_sum += force
-            if consider_torques:
-                torque_sum += torque
-        return force_sum, torque_sum
-
-    def _gen_forces_one_side(self, pos, pos_own_frame, normal, area, abs_average_velocity): # TODO
         selfposition, selforientation = self.get_position_orientation()
+        rect_data = target.get_rectangle_data()
+        pos, pos_own_frame, normal, area, force_enabled, torque_enabled = (rect_data.pos, rect_data.pos_own_frame,
+                                                                           rect_data.normal,rect_data.area,
+                                                                           rect_data.force_enabled, rect_data.torque_enabled)
         pos_traffed = pos - selfposition
         pos_traffed = quat_vect_array_mult_passive(selforientation, pos_traffed)
-
-        # pos_traffed[:, 2] += self._payload_offset_z_meter
-        # pt = np.copy(pos_traffed)
-
         condition = (pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & \
                     (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) & \
                     (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit)
-
         pos_in_own_frame = pos_own_frame[condition]
         pos_traffed = pos_traffed[condition]
-
-        if normal.ndim > 1:
-            normal = normal[condition]
-            area = area[condition]
-
+        normal = normal[condition]
+        area = [a for (a, c) in zip(area, condition) if c]
         indices = np.rint(pos_traffed * 100).astype(np.int32)
 
         if self.USE_PRESSURE_DICTIONARY:
+            raise NotImplementedError() # not yet tested
+            abs_average_velocity = np.sum(np.abs(self.drone.prop_vel)) / 4
             lower_bound, upper_bound = self.loaded_pressures.get_lower_upper_bounds(abs_average_velocity)
             lower_pressures, upper_pressures = self.loaded_pressures.get_lower_upper_bounds_arrays(lower_bound,
                                                                                                    upper_bound)
@@ -128,13 +110,13 @@ class AirflowSampler:
             pressure_values = self.loaded_pressures.get_interpolated_array(abs_average_velocity, upper_pressure_values,
                                                                            lower_pressure_values, upper_bound,
                                                                            lower_bound)
-
         else:
             pressure_values = self.pressure_data[indices[:, 0], indices[:, 1], indices[:, 2]]
-
         forces = forces_from_pressures(normal, pressure_values, area)
 
         if self.USE_VELOCITY_DICTIONARY:
+            raise NotImplementedError()  # not yet tested
+            abs_average_velocity = np.sum(np.abs(self.drone.prop_vel)) / 4
             lower_bound, upper_bound = self.loaded_velocities.get_lower_upper_bounds(abs_average_velocity)
             lower_velocities, upper_velocities = self.loaded_velocities.get_lower_upper_bounds_arrays(lower_bound,
                                                                                                       upper_bound)
@@ -145,19 +127,16 @@ class AirflowSampler:
             velocity_values = self.loaded_velocities.get_interpolated_array(abs_average_velocity, upper_velocity_values,
                                                                             lower_velocity_values, upper_bound,
                                                                             lower_bound)
-
         elif self.use_velocity:
             velocity_values = self.velocity_data[indices[:, 0], indices[:, 1], indices[:, 2]]
 
         if self.USE_VELOCITY_DICTIONARY or self.use_velocity:
             forces_velocity = forces_from_velocities(normal, velocity_values, area)
             forces += forces_velocity
-
-        # if pos_in_own_frame.shape != forces.shape:
-        #    print("shapes not equal")
-
         torques = torque_from_force(pos_in_own_frame, forces)
-
-        force_sum = np.sum(forces, axis=0)
-        torque_sum = np.sum(torques, axis=0)
+        for force, torque, f_en, t_en in zip(forces, torques, force_enabled, torque_enabled):
+            if f_en:
+                force_sum += force
+            if t_en:
+                torque_sum += torque
         return force_sum, torque_sum

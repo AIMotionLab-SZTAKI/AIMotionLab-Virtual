@@ -1,8 +1,21 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 from abc import ABC, abstractmethod
+
+import numpy as np
+
 if TYPE_CHECKING: # this avoids a circular import issue
     from aiml_virtual.airflow.airflow_sampler import AirflowSampler
+from dataclasses import dataclass
+
+@dataclass
+class AirflowData:
+    pos: np.ndarray
+    pos_own_frame: np.ndarray
+    normal: np.ndarray
+    area: list[float]
+    force_enabled: list[bool]
+    torque_enabled: list[bool]
 
 # TODO: DOCSTRINGS
 class AirflowTarget(ABC):
@@ -19,5 +32,5 @@ class AirflowTarget(ABC):
 
     # TODO: TYPE
     @abstractmethod
-    def get_rectangle_data(self) -> list[tuple[Any]]: # TODO: refactor this with proper types
+    def get_rectangle_data(self) -> AirflowData:
         raise NotImplementedError()

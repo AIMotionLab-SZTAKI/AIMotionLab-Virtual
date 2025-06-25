@@ -19,7 +19,7 @@ from aiml_virtual.airflow.airflow_target import AirflowTarget, AirflowData
 if TYPE_CHECKING: # this avoids a circular import issue
     from aiml_virtual.airflow.airflow_sampler import AirflowSampler
 
-class DynamicObject(simulated_object.SimulatedObject, ABC):
+class DynamicObject(simulated_object.SimulatedObject, ABC): # TODO: DOCSTRINGS FOR AIRFLOW-RELATED PARTS
     """
     Base class for objects that follow the rules of physics. This includes simple objects without actuators such as a
     dynamic payload (as opposed to a mocap payload), as well as actuated objects such as a drone.
@@ -185,7 +185,7 @@ class TeardropPayload(DynamicObject, AirflowTarget):
             user_forces[4] = torque[1]
             user_forces[5] = torque[2]
 
-class BoxPayload(DynamicObject, AirflowTarget):
+class BoxPayload(DynamicObject, AirflowTarget): # TODO: DOCSTRINGS FOR AIRFLOW-RELATED PARTS
     """
     Class for handling a box shaped dynamic payload that is subject to physics.
     """

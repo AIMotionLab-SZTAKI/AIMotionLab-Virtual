@@ -117,7 +117,7 @@ class TeardropPayload(DynamicObject, AirflowTarget):
         pos = np.concatenate([top.pos, bottom.pos], axis=0)
         pos_own_frame = np.concatenate([top.pos_own_frame, bottom.pos_own_frame], axis=0)
         normal = np.concatenate([top.normal, bottom.normal], axis=0)
-        area = top.area + bottom.area
+        area = np.concatenate([top.area, bottom.area])
         force_enabled = top.force_enabled + bottom.force_enabled
         torque_enabled = top.torque_enabled + bottom.torque_enabled
         return AirflowData(pos, pos_own_frame, normal, area, force_enabled, torque_enabled)
@@ -373,14 +373,14 @@ class BoxPayload(DynamicObject, AirflowTarget):
         normal = qv_mult(self.sensors["quat"], np.array((0, 0, 1)))
         n = self._top_rectangle_positions_raw.shape[0]
         return AirflowData(pos_in_own_frame + self.sensors["pos"], pos_in_own_frame, np.tile(normal, (n, 1)),
-                           [self.top_bottom_miniractangle_area] * n, [True] * n, [True] * n)
+                           np.full(n, self.top_bottom_miniractangle_area), [True] * n, [True] * n)
 
     def get_bottom_rectangle_data(self) -> AirflowData:
         pos_in_own_frame = quat_vect_array_mult(self.sensors["quat"], self._bottom_rectangle_positions_raw)
         normal = qv_mult(self.sensors["quat"], np.array((0, 0, -1)))
         n = self._bottom_rectangle_positions_raw.shape[0]
         return AirflowData(pos_in_own_frame + self.sensors["pos"], pos_in_own_frame, np.tile(normal, (n, 1)),
-                           [self.top_bottom_miniractangle_area] * n, [True] * n, [False] * n)
+                           np.full(n, self.top_bottom_miniractangle_area), [True] * n, [False] * n)
 
 
     def get_side_xz_rectangle_data(self) -> tuple[AirflowData, AirflowData]:
@@ -394,10 +394,10 @@ class BoxPayload(DynamicObject, AirflowTarget):
         pos_world_negative = pos_in_own_frame_negative + self.sensors["pos"]
         pos_world_positive = pos_in_own_frame_positive + self.sensors["pos"]
         airflow_data_negative = AirflowData(pos_world_negative, pos_in_own_frame_negative,
-                                            np.tile(normal_negative, (n, 1)), [self.side_miniractangle_area_xz]*n,
+                                            np.tile(normal_negative, (n, 1)), np.full(n, self.side_miniractangle_area_xz),
                                             [True] * n, [True] * n)
         airflow_data_positive = AirflowData(pos_world_positive, pos_in_own_frame_positive,
-                                            np.tile(normal_positive, (m, 1)), [self.side_miniractangle_area_xz]*m,
+                                            np.tile(normal_positive, (m, 1)), np.full(m, self.side_miniractangle_area_xz),
                                             [True] * m, [True] * m)
         return airflow_data_negative, airflow_data_positive
 
@@ -412,10 +412,10 @@ class BoxPayload(DynamicObject, AirflowTarget):
         pos_world_positive = pos_in_own_frame_positive + self.sensors["pos"]
 
         airflow_data_negative = AirflowData(pos_world_negative, pos_in_own_frame_negative,
-                                            np.tile(normal_negative, (n, 1)), [self.side_miniractangle_area_yz] * n,
+                                            np.tile(normal_negative, (n, 1)), np.full(n, self.side_miniractangle_area_yz),
                                             [True] * n, [True] * n)
         airflow_data_positive = AirflowData(pos_world_positive, pos_in_own_frame_positive,
-                                            np.tile(normal_positive, (m, 1)), [self.side_miniractangle_area_yz] * m,
+                                            np.tile(normal_positive, (m, 1)), np.full(m, self.side_miniractangle_area_yz),
                                             [True] * m, [True] * m)
         return airflow_data_negative, airflow_data_positive
 
@@ -430,7 +430,7 @@ class BoxPayload(DynamicObject, AirflowTarget):
                                         right.pos_own_frame, back.pos_own_frame, front.pos_own_frame], axis=0)
         normal = np.concatenate([top.normal, bottom.normal, left.normal, right.normal, back.normal,
                                  front.normal], axis=0)
-        area = top.area + bottom.area + left.area + right.area + back.area + front.area
+        area = np.concatenate([top.area, bottom.area, left.area, right.area, back.area, front.area])
         force_enabled = (top.force_enabled + bottom.force_enabled + left.force_enabled + right.force_enabled +
                          back.force_enabled + front.force_enabled)
         torque_enabled = (top.torque_enabled + bottom.torque_enabled + left.torque_enabled + right.torque_enabled +

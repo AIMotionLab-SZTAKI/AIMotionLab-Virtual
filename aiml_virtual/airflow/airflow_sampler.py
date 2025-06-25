@@ -98,7 +98,6 @@ class AirflowSampler:
         indices = np.rint(pos_traffed * 100).astype(np.int32)
 
         if self.USE_PRESSURE_DICTIONARY:
-            raise NotImplementedError() # not yet tested
             abs_average_velocity = np.sum(np.abs(self.drone.prop_vel)) / 4
             lower_bound, upper_bound = self.loaded_pressures.get_lower_upper_bounds(abs_average_velocity)
             lower_pressures, upper_pressures = self.loaded_pressures.get_lower_upper_bounds_arrays(lower_bound,
@@ -115,7 +114,6 @@ class AirflowSampler:
         forces = forces_from_pressures(normal, pressure_values, area)
 
         if self.USE_VELOCITY_DICTIONARY:
-            raise NotImplementedError()  # not yet tested
             abs_average_velocity = np.sum(np.abs(self.drone.prop_vel)) / 4
             lower_bound, upper_bound = self.loaded_velocities.get_lower_upper_bounds(abs_average_velocity)
             lower_velocities, upper_velocities = self.loaded_velocities.get_lower_upper_bounds_arrays(lower_bound,

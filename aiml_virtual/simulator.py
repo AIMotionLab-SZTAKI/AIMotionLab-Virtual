@@ -193,6 +193,7 @@ class Simulator:
         if with_display:
             self.add_process("visualize", self.visualizer.visualize, fps / speed)
             self.add_process("rate_limit", partial(self.rate_limit, speed=speed), fps/speed)
+        self.tick()
         yield self
         self.visualizer.close()
 

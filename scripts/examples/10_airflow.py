@@ -33,17 +33,22 @@ if __name__ == "__main__":
     bb.trajectory = dummy_drone_trajectory.DummyDroneTrajectory(np.array([0, 0, 2]))
     scn.add_object(bb, "0 0 2", "1 0 0 0", "0.5 0.5 0.5 1")
 
-    payload = dynamic_object.TeardropPayload()
+    payload = dynamic_object.BoxPayload()
     scn.add_object(payload, "0 0 1.32")
+
+    # payload = dynamic_object.TeardropPayload()
+    # scn.add_object(payload, "0 0 1.37")
 
     sim = simulator.Simulator(scn)
 
 
     with sim.launch():
-        airflowSampler = AirflowSampler(
-            data_file_name_pressure=os.path.join(airflow_luts_pressure, "openfoam_pressure_1700.txt"),
-            owning_drone=bb)
+        # airflowSampler = AirflowSampler(
+        #     data_file_name_pressure=os.path.join(airflow_luts_pressure, "openfoam_pressure_2000.txt"),
+        #     owning_drone=bb)
+        airflowSampler = AirflowSampler(None, bb, None, True, airflow_luts_pressure, True, airflow_luts_velocity)
         payload.add_airflow_sampler(airflowSampler)
+        sim.pause_physics()
         while not sim.display_should_close():
             sim.tick()  # tick steps the simulator, including all its subprocesses
 

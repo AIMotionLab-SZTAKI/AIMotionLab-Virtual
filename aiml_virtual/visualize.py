@@ -5,7 +5,7 @@ The visualization happens in two phases: abstract visualization and openGL rende
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Any
+from typing import TYPE_CHECKING, Optional, Any, Callable
 import glfw
 import platform
 import mujoco
@@ -219,7 +219,7 @@ class Visualizer:
             self.prev_y: int = 0  #: Mouse y position when the last click happened.
             self.mouse_left_btn_down: bool = False  #: Whether the left mouse button is pressed.
             self.mouse_right_btn_down: bool = False  #: Whether the right mouse button is pressed.
-            self.keybinds: dict[int, callable] = {
+            self.keybinds: dict[int, Callable] = {
                 glfw.KEY_SPACE: self.simulator.pause_physics,
                 glfw.KEY_R: self.toggle_record
             } #: Dictionary to save keybinds and their callbacks.

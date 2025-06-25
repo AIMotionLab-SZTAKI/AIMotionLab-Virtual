@@ -1,3 +1,10 @@
+"""
+This module contains a utility class for looking up air pressure and velocity data
+from several files in a folder.
+
+.. note::
+    Requires docstrings.
+"""
 import os
 import glob
 import numpy as np

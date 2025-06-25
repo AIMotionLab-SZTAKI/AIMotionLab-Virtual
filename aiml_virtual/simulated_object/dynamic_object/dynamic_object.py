@@ -9,9 +9,8 @@ from typing import Optional, Union
 from xml.etree import ElementTree as ET
 from abc import ABC
 import mujoco
-import numpy as np
 from stl import mesh
-from scipy.spatial.transform import Rotation
+import math
 
 from aiml_virtual import xml_directory
 from aiml_virtual.simulated_object import simulated_object

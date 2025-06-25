@@ -1,10 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
-from typing_extensions import Literal
+from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
 
 import numpy as np
-from numpy.typing import NDArray
 
 if TYPE_CHECKING: # this avoids a circular import issue
     from aiml_virtual.airflow.airflow_sampler import AirflowSampler

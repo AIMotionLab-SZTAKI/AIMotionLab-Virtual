@@ -15,7 +15,7 @@ sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
 project = 'AIMotionLab-Virtual'
 copyright = '2024, Botond Gaal'
 author = 'Botond Gaal'
-release = '1.0.0'
+release = '1.1.0'
 
 # -- General configuration ---------------------------------------------------
 

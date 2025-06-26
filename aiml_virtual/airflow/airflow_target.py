@@ -67,8 +67,9 @@ class AirflowTarget(ABC):
     @abstractmethod
     def get_rectangle_data(self) -> AirflowData:
         """
-        This is the method that subclasses must implement: calculate a partitioning of the surface
-        of the object into small rectangles to allow an airflow sampler to calculate forces.
+        Calculate a partitioning of the surface of the object into small rectangles to allow an airflow sampler to
+        calculate forces. The output of this partitioning is a set of rectangles which make up the surface, described
+        by an AirflowData object. This is the method that subclasses must implement.
 
         Returns:
             AirflowData: The data of the surface of the object.

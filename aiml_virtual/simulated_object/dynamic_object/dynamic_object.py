@@ -4,8 +4,7 @@ This module contains classes for SimulatedObjects that adhere to mujoco's rules 
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
-from typing import Optional, Union
+from typing import  Union
 from xml.etree import ElementTree as ET
 from abc import ABC
 import mujoco
@@ -16,10 +15,8 @@ from aiml_virtual import xml_directory
 from aiml_virtual.simulated_object import simulated_object
 from aiml_virtual.airflow.utils import *
 from aiml_virtual.airflow.airflow_target import AirflowTarget, AirflowData
-if TYPE_CHECKING: # this avoids a circular import issue
-    from aiml_virtual.airflow.airflow_sampler import AirflowSampler
 
-class DynamicObject(simulated_object.SimulatedObject, ABC): # TODO: DOCSTRINGS FOR AIRFLOW-RELATED PARTS
+class DynamicObject(simulated_object.SimulatedObject, ABC):
     """
     Base class for objects that follow the rules of physics. This includes simple objects without actuators such as a
     dynamic payload (as opposed to a mocap payload), as well as actuated objects such as a drone.
@@ -51,7 +48,8 @@ class DynamicObject(simulated_object.SimulatedObject, ABC): # TODO: DOCSTRINGS F
 class TeardropPayload(DynamicObject, AirflowTarget):
     """
     Class for handling a teardrop shaped dynamic payload that is subject to physics. Not to be confused with a
-    mocap payload, which is what we use to track a payload in optitrack.
+    mocap payload, which is what we use to track a payload in optitrack. This class also implements the AirflowTarget
+    interface.
     """
     def __init__(self):
         super().__init__()
@@ -71,7 +69,13 @@ class TeardropPayload(DynamicObject, AirflowTarget):
         self._bottom_triangles, self._bottom_center_positions, self._bottom_normals, self._bottom_areas = self._init_bottom_data()
         self._top_triangles, self._top_center_positions, self._top_normals, self._top_areas = self._init_top_data()
 
-    def _init_default_values(self, path):
+    def _init_default_values(self, path: str) -> None:
+        """
+        Initializes the data for the airflow target interface based on the provided mesh.
+
+        Args:
+            path (str): The path to the mesh stl file for the payload.
+        """
         meter = 1000.0
         self._loaded_mesh = mesh.Mesh.from_file(path)
         self._loaded_mesh.vectors[:, :, [1, 2]] = self._loaded_mesh.vectors[:, :, [2, 1]]
@@ -97,6 +101,13 @@ class TeardropPayload(DynamicObject, AirflowTarget):
         return self._triangles[~mask], self._center_positions[~mask], self._normals[~mask], self._areas[~mask]
 
     def get_top_rectangle_data(self) -> AirflowData:
+        """
+        The teardrop-shaped payload is split into two "sides": top and bottom. This method
+        provides the data about the top half's partitioning for the sake of airflow calculations.
+
+        Returns:
+            AirflowData: The top half's airflow rectangles' data object.
+        """
         pos_in_own_frame = quat_vect_array_mult(self.sensors["quat"], self._top_center_positions)
         normals = quat_vect_array_mult(self.sensors["quat"], self._top_normals)
         n = self._top_center_positions.shape[0]
@@ -104,6 +115,13 @@ class TeardropPayload(DynamicObject, AirflowTarget):
                            self._top_areas, [True] * n, [True] * n)
 
     def get_bottom_rectangle_data(self) -> AirflowData:
+        """
+        The teardrop-shaped payload is split into two "sides": top and bottom. This method
+        provides the data about the bottom half's partitioning for the sake of airflow calculations.
+
+        Returns:
+            AirflowData: The bottom half's airflow rectangles' data object.
+        """
         pos_in_own_frame = quat_vect_array_mult(self.sensors["quat"], self._bottom_center_positions)
         normals = quat_vect_array_mult(self.sensors["quat"], self._bottom_normals)
         n = self._bottom_center_positions.shape[0]
@@ -185,18 +203,19 @@ class TeardropPayload(DynamicObject, AirflowTarget):
             user_forces[4] = torque[1]
             user_forces[5] = torque[2]
 
-class BoxPayload(DynamicObject, AirflowTarget): # TODO: DOCSTRINGS FOR AIRFLOW-RELATED PARTS
+class BoxPayload(DynamicObject, AirflowTarget):
     """
-    Class for handling a box shaped dynamic payload that is subject to physics.
+    Class for handling a box shaped dynamic payload that is subject to physics. This class also implements the
+    AirflowTarget interface.
     """
 
     def __init__(self):
         super().__init__()
         self.size: np.ndarray = np.array([0.05, 0.05, 0.05]) #: Dimensions of the box part of the payload (hook size unaffected).
         self.sensors: dict[str, np.ndarray] = {}  #: Dictionary of sensor data.
-        self.top_bottom_surface_area = 2 * self.size[0] * 2 * self.size[1] #: TODO
-        self.side_surface_area_xz = 2 * self.size[0] * 2 * self.size[2] #: TODO
-        self.side_surface_area_yz = 2 * self.size[1] * 2 * self.size[2] #: TODO
+        self.top_bottom_surface_area : float = 2 * self.size[0] * 2 * self.size[1] #: Airflow rectangle area on top/bottom.
+        self.side_surface_area_xz: float = 2 * self.size[0] * 2 * self.size[2] #: #: Airflow rectangle area in the xz plane.
+        self.side_surface_area_yz: float = 2 * self.size[1] * 2 * self.size[2] #: Airflow rectangle area in the yz plane.
         self.create_surface_mesh(0.0001)
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
@@ -257,6 +276,12 @@ class BoxPayload(DynamicObject, AirflowTarget): # TODO: DOCSTRINGS FOR AIRFLOW-R
             user_forces[5] = torque[2]
 
     def create_surface_mesh(self, surface_division_area: float) -> None:
+        """
+        Initializes the mesh partitioning into airflow rectangles.
+
+        Args:
+            surface_division_area (float): Side length of an airflow rectangle.
+        """
         a = surface_division_area
 
         square_side = math.sqrt(a)
@@ -366,8 +391,14 @@ class BoxPayload(DynamicObject, AirflowTarget): # TODO: DOCSTRINGS FOR AIRFLOW-R
                 self._side_rectangle_positions_yz_pos_raw[(i * self._side_subdivision_z) + j] = np.array(
                     (pos_x, pos_y, pos_z))
 
-
     def get_top_rectangle_data(self) -> AirflowData:
+        """
+        The box-shaped payload is split into six sides. This method
+        provides the data about the top's partitioning for the sake of airflow calculations.
+
+        Returns:
+            AirflowData: The top side's airflow rectangles' data object.
+        """
         pos_in_own_frame = quat_vect_array_mult(self.sensors["quat"], self._top_rectangle_positions_raw)
         normal = qv_mult(self.sensors["quat"], np.array((0, 0, 1)))
         n = self._top_rectangle_positions_raw.shape[0]
@@ -375,6 +406,13 @@ class BoxPayload(DynamicObject, AirflowTarget): # TODO: DOCSTRINGS FOR AIRFLOW-R
                            np.full(n, self.top_bottom_miniractangle_area), [True] * n, [True] * n)
 
     def get_bottom_rectangle_data(self) -> AirflowData:
+        """
+        The box-shaped payload is split into six sides. This method
+        provides the data about the botom's partitioning for the sake of airflow calculations.
+
+        Returns:
+            AirflowData: The bottom's airflow rectangles' data object.
+        """
         pos_in_own_frame = quat_vect_array_mult(self.sensors["quat"], self._bottom_rectangle_positions_raw)
         normal = qv_mult(self.sensors["quat"], np.array((0, 0, -1)))
         n = self._bottom_rectangle_positions_raw.shape[0]
@@ -383,6 +421,13 @@ class BoxPayload(DynamicObject, AirflowTarget): # TODO: DOCSTRINGS FOR AIRFLOW-R
 
 
     def get_side_xz_rectangle_data(self) -> tuple[AirflowData, AirflowData]:
+        """
+        The box-shaped payload is split into six sides. This method
+        provides the data about the two xz side's partitioning for the sake of airflow calculations.
+
+        Returns:
+            AirflowData: The two xz sides' airflow rectangles' data object.
+        """
         pos_in_own_frame_negative = quat_vect_array_mult(self.sensors["quat"], self._side_rectangle_positions_xz_neg_raw)
         pos_in_own_frame_positive = quat_vect_array_mult(self.sensors["quat"], self._side_rectangle_positions_xz_pos_raw)
         n = self._side_rectangle_positions_xz_neg_raw.shape[0]
@@ -401,6 +446,13 @@ class BoxPayload(DynamicObject, AirflowTarget): # TODO: DOCSTRINGS FOR AIRFLOW-R
         return airflow_data_negative, airflow_data_positive
 
     def get_side_yz_rectangle_data(self) -> tuple[AirflowData, AirflowData]:
+        """
+        The box-shaped payload is split into six sides. This method
+        provides the data about the two yz side's partitioning for the sake of airflow calculations.
+
+        Returns:
+            AirflowData: The two yz sides' airflow rectangles' data object.
+        """
         pos_in_own_frame_negative = quat_vect_array_mult(self.sensors["quat"], self._side_rectangle_positions_yz_neg_raw)
         pos_in_own_frame_positive = quat_vect_array_mult(self.sensors["quat"], self._side_rectangle_positions_yz_pos_raw)
         normal_negative = qv_mult(self.sensors["quat"], np.array((-1, 0, 0)))

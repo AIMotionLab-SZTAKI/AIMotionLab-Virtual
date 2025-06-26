@@ -20,8 +20,8 @@ class AirflowSampler(ABC):
         self.drone: Drone = drone #: The drone which generates the air flow
         self.offset_from_drone_center: np.ndarray = np.array([-cube_size / 200.0,
                                                   -cube_size / 200.0,
-                                                  -cube_size / 100.0]) #: TODO
-        self.index_upper_limit: float = (float(cube_size) - 0.5) / 100 #: TODO
+                                                  -cube_size / 100.0]) #: Offset of the air pressure dictionary's origo.
+        self.index_upper_limit: float = (float(cube_size) - 0.5) / 100 #: Max index of the air pressure dictionary.
 
     @property
     def drone_position(self) -> np.ndarray:

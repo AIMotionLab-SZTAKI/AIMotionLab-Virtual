@@ -164,6 +164,7 @@ class Car(controlled_object.ControlledObject):
         # the body for the trailer under which all other geoms go
         trailer = ET.Element("body", name=self.name+"_trailer", pos=f"{-TRAILER.CAR_COG_TO_HITCH} 0 0")
         ET.SubElement(trailer, "joint", type="ball", name=self.name + "car_to_rod")  # joint between car and drawbar
+        ET.SubElement(trailer, "site", name=self.name + "_trailer_connection_point", pos="0 0 0")
         ET.SubElement(trailer, "geom", type="cylinder", size=f"0.0025 {TRAILER.DRAWBAR_LENGTH/2}",  # drawbar geom
                       euler="0 1.571 0", pos=f"-{TRAILER.DRAWBAR_LENGTH/2} 0 0", mass = TRAILER.MASS_DRAW_BAR)
         front_axle = ET.SubElement(trailer, "body", name=self.name + "_trailer_front_structure",

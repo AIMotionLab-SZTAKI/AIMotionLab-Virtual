@@ -4,12 +4,9 @@ This module contains the classes responsible for reading and evaluating a trajec
 
 from typing import Any, Optional
 import numpy as np
-from skyc_utils import skyc_inspector
-
+from skyc_utils.trajectory import Trajectory as sTrajectory
+from skyc_utils import skyc, light_program
 from aiml_virtual.trajectory import trajectory
-
-BezierCurve = skyc_inspector.BezierCurve
-TrajEvaluator = skyc_inspector.TrajEvaluator
 
 class SkycTrajectory(trajectory.Trajectory):
     """
@@ -29,27 +26,11 @@ class SkycTrajectory(trajectory.Trajectory):
     segment is special (it has to be, since it has no previous segment to describe its starting time/point): it shall
     have no extra control points.
     """
-    def __init__(self, traj_data: dict[str, Any], light_data: dict[str, Any] = None):
+    def __init__(self, traj: sTrajectory, lights: Optional[light_program.LightProgram] = None) -> None:
         super().__init__()
-        self.traj_data: dict[str, Any] = traj_data  #: The dictionary that can be read from trajectory.json.
-        self.traj_data["started"] = False
-        self.evaluator: Optional[TrajEvaluator] = None
-        self.light_data: dict[str, Any] = light_data
-
-    def set_start(self, t: float):
-        """
-        Sets the start time for the trajectory.
-
-        Args:
-            t (float): The time for takeoff.
-        """
-        dt = t - self.traj_data["takeoffTime"]
-        self.traj_data["takeoffTime"] = t
-        self.traj_data["landingTime"] += t
-        for segment in self.traj_data["points"]:
-            segment[0] += dt
-        self.traj_data["started"] = True
-        self.evaluator = TrajEvaluator(self.traj_data)
+        self.traj: sTrajectory = traj
+        self.light_data: light_program.LightProgram = lights
+        self.time_offset = 0
 
     def evaluate(self, time: float) -> dict[str, Any]:
         """
@@ -62,31 +43,15 @@ class SkycTrajectory(trajectory.Trajectory):
         Returns:
             dict[str, Any]: The desired setpoint at the provided timestamp.
         """
-        retval = {}
-        if not self.traj_data["started"] or time <= self.traj_data["takeoffTime"]: # The trajectory hasn't started yet
-            segment = self.traj_data["points"][0]
-            retval["load_mass"] = 0.0
-            retval["target_pos"] = np.array(segment[1][:3])
-            retval["target_vel"] = np.zeros(3)  # We haven't started: speed should be 0.
-            retval["target_acc"] = np.zeros(3)  # We haven't started: acc should be 0.
-            retval["target_rpy"] = np.array([0, 0, np.deg2rad(segment[1][3])])
-            retval["target_ang_vel"] = np.zeros(3)  # We haven't started: angular velocity should be 0.
-        elif time > self.traj_data["landingTime"]:
-            segment = self.traj_data["points"][-1]
-            retval["load_mass"] = 0.0
-            retval["target_pos"] = np.array(segment[1][:3])
-            retval["target_vel"] = np.zeros(3)  # We've stopped: speed should be 0.
-            retval["target_acc"] = np.zeros(3)  # We've stopped: acc should be 0.
-            retval["target_rpy"] = np.array([0, 0, np.deg2rad(segment[1][3])])
-            retval["target_ang_vel"] = np.zeros(3)  # We've stopped: angular velocity should be 0.
-        else:
-            curve = self.evaluator.select_curve(time)
-            retval["load_mass"] = 0.0
-            retval["target_pos"] = np.array([curve.x(time), curve.y(time), curve.z(time)])
-            retval["target_vel"] = np.array([curve.x(time, nu=1), curve.y(time, nu=1), curve.z(time, nu=1)])
-            retval["target_acc"] = np.array([curve.x(time, nu=2), curve.y(time, nu=2), curve.z(time, nu=2)])
-            retval["target_rpy"] = np.array([0, 0, np.deg2rad(curve.yaw(time))])
-            retval["target_ang_vel"] = np.array([0, 0, np.deg2rad(curve.yaw(time, nu=1))])
+        time = time - self.time_offset
+        retval = {
+            "load_mass": 0.0,
+            "target_pos": self.traj.evaluate(time).pose[:3],
+            "target_vel": self.traj.evaluate(time).vel[:3],
+            "target_acc": self.traj.evaluate(time).acc[:3],
+            "target_rpy": np.array([0, 0, self.traj.evaluate(time).pose[3]]),
+            "target_ang_vel": np.array([0, 0, self.traj.evaluate(time).vel[3]]),
+        }
         return retval
 
 def extract_trajectories(skyc_file: str) -> list[SkycTrajectory]:
@@ -99,5 +64,8 @@ def extract_trajectories(skyc_file: str) -> list[SkycTrajectory]:
     Returns:
         list[SkycTrajectory]: A list with one SkycTrajectory per drone in the skyc file.
     """
-    data: list[tuple[dict, dict]] = skyc_inspector.get_data(skyc_file)
-    return [SkycTrajectory(t, l) for t, l in data]
+    parsed_skyc = skyc.Skyc.from_file(skyc_file)
+    if parsed_skyc.has_lights:
+        return [SkycTrajectory(traj, lights) for traj, lights in parsed_skyc.drones]
+    else:
+        return [SkycTrajectory(traj) for traj, in parsed_skyc.drones]

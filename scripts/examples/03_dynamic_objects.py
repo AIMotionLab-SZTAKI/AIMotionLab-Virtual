@@ -27,6 +27,7 @@ from aiml_virtual.trajectory import dummy_drone_trajectory, skyc_trajectory
 from aiml_virtual.simulated_object.dynamic_object import dynamic_object
 from aiml_virtual.simulated_object.dynamic_object.controlled_object import bicycle
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone import crazyflie, bumblebee, hooked_bumblebee
+from aiml_virtual.utils.utils_general import quaternion_from_euler
 
 if __name__ == "__main__":
     # As mentioned in 02_build_scene.py, we can simulate physics using DynamicObjects. So far we've only seen a dynamic
@@ -51,9 +52,16 @@ if __name__ == "__main__":
     # is read from a skyc file. An example skyc file is found under scripts/misc/skyc_example.skyc
     cf = crazyflie.Crazyflie()
     traj = skyc_trajectory.extract_trajectories(os.path.join(aiml_virtual.resource_directory, "skyc_example.skyc"))[0]
-    traj.set_start(5)
+    traj.time_offset = 3
     cf.trajectory = traj
-    scn.add_object(cf, "0 0 0", "1 0 0 0", "0.5 0.5 0.5 1")
+    start = traj.traj.start
+    quat = quaternion_from_euler(0, 0, start.yaw)
+    scn.add_object(
+        cf,
+        f"{start.x} {start.y} {start.z}",
+        f"{quat[0]} {quat[1]} {quat[2]} {quat[3]}",
+        "0.5 0.5 0.5 1"
+    )
 
     sim = simulator.Simulator(scn)
     with sim.launch():

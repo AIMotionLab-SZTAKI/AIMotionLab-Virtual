@@ -7,10 +7,13 @@ from aiml_virtual.trajectory.skyc_trajectory import SkycTrajectory, extract_traj
 from aiml_virtual.utils.utils_general import quaternion_from_euler
 from aiml_virtual.simulator import Simulator
 
+from skyc_utils.skyc import plot_skyc_trajectories
+
 # TODO: comments and docstrings
 class SkycViewer:
     def __init__(self, skyc_file: str):
         self.trajectories: list[SkycTrajectory] = extract_trajectories(skyc_file)
+        plot_skyc_trajectories(skyc_file)
 
     def play(self, delay: float = 1.0):
         scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))

@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # The dummy trajectory may have seemed a bit boring, even with the disturbance. A more interesting trajectory type
     # is read from a skyc file. An example skyc file is found under scripts/misc/skyc_example.skyc
     cf = crazyflie.Crazyflie()
-    traj = skyc_trajectory.extract_trajectories(os.path.join(aiml_virtual.resource_directory, "skyc_example.skyc"))[0]
+    traj = skyc_trajectory.extract_trajectories(os.path.join(aiml_virtual.skyc_folder, "skyc_example.skyc"))[0]
     traj.time_offset = 3
     cf.trajectory = traj
     start = traj.traj.start

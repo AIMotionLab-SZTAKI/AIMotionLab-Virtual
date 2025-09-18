@@ -19,6 +19,7 @@ import aiml_virtual
 from aiml_virtual.skyc_viewer.skyc_viewer import SkycViewer
 
 if __name__ == "__main__":
-    # viewer = SkycViewer(os.path.join(aiml_virtual.skyc_folder, "three_drones_collisions.skyc"))
-    viewer = SkycViewer()
-    viewer.play()
+    viewer = SkycViewer(os.path.join(aiml_virtual.skyc_folder, "three_drones_collisions.skyc"))
+    # viewer = SkycViewer()
+    #viewer.play_with_controller()
+    viewer.play_raw()

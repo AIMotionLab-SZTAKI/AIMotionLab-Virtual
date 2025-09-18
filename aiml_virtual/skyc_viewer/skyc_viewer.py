@@ -3,16 +3,18 @@ from typing import Optional
 from xml.etree import ElementTree as ET
 import numpy as np
 from scipy.spatial import cKDTree
-import mujoco
+from functools import partial
 
 from skyc_utils.skyc import plot_skyc_trajectories
 
 import aiml_virtual
 from aiml_virtual.scene import Scene
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.crazyflie import Crazyflie
+from aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_crazyflie import MocapCrazyflie
 from aiml_virtual.trajectory.skyc_trajectory import SkycTrajectory, extract_trajectories
 from aiml_virtual.utils.utils_general import quaternion_from_euler
 from aiml_virtual.simulator import Simulator
+from aiml_virtual.mocap.dummy_mocap_source import DummyMocapSource
 
 def _pick_skyc_file() -> str:
     # Compute starting directory: parent of the aiml_virtual package folder
@@ -45,10 +47,6 @@ def _pick_skyc_file() -> str:
         return path
 
 class ViewerCrazyflie(Crazyflie):
-    @classmethod
-    def get_identifier(cls) -> Optional[str]:
-        return "ViewerCrazyflie"
-
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         ret = super().create_xml_element(pos, quat, color)
         drone = ret["worldbody"][0]
@@ -57,6 +55,15 @@ class ViewerCrazyflie(Crazyflie):
             drone, "geom", name=self.name+"_sphere", type="sphere", size="0.1",
             rgba=f"{r} {g} {b} {0.2}", contype="0", conaffinity="0"
         )
+        return ret
+
+class ViewerMocapCrazyflie(MocapCrazyflie):
+    def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
+        ret = super().create_xml_element(pos, quat, color)
+        drone = ret["worldbody"][0]
+        r, g, b, _ = color.split()
+        ET.SubElement(drone, "geom", name=self.name + "_sphere", type="sphere", size="0.1", rgba=f"{r} {g} {b} {0.2}",
+                      contype="0", conaffinity="0")
         return ret
 
 def close_pairs_by_xpos(objs: list[ViewerCrazyflie], r: float) -> list[tuple[ViewerCrazyflie, ViewerCrazyflie]]:
@@ -70,7 +77,7 @@ def close_pairs_by_xpos(objs: list[ViewerCrazyflie], r: float) -> list[tuple[Vie
 
 # TODO: comments and docstrings
 class SkycViewer:
-    def __init__(self, skyc_file: Optional[str] = None, clearance: float = 0.2):
+    def __init__(self, skyc_file: Optional[str] = None):
         # NEW: make the skyc_file optional and open a picker if not provided
         if not skyc_file:
             skyc_file = _pick_skyc_file()
@@ -81,7 +88,38 @@ class SkycViewer:
         self.trajectories: list[SkycTrajectory] = extract_trajectories(skyc_file)
         plot_skyc_trajectories(skyc_file)
 
-    def play(self, delay: float = 1.0):
+    def generate_mocap_frame(self, simulator: Simulator, delay: float):
+        t = simulator.sim_time
+        frame: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+        for i, traj in enumerate(self.trajectories):
+            pos = traj.evaluate(t)["target_pos"]
+            rpy = traj.evaluate(t)["target_rpy"]
+            quat = np.array(quaternion_from_euler(*rpy))
+            frame[f"cf{i}"] = (pos, quat)
+        return frame
+
+    def play_raw(self, delay: float = 1.0):
+        scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
+        sim = Simulator(scn)
+        mocap = DummyMocapSource(frame_generator=partial(self.generate_mocap_frame, simulator=sim, delay=delay))
+        crazyflies = []
+        for i, traj in enumerate(self.trajectories):
+            cf = ViewerMocapCrazyflie(mocap, f"cf{i}")
+            scn.add_object(cf)
+            crazyflies.append(cf)
+
+        with sim.launch():
+            while not sim.display_should_close():
+                sim.tick()
+                for cf in crazyflies:
+                    cf.set_color(0.5, 0.5, 0.5, 0.2)
+                collision_pairs = close_pairs_by_xpos(crazyflies, 0.2)
+                for a, b in collision_pairs:
+                    a.set_color(0.5, 0, 0, 0.2)
+                    b.set_color(0.5, 0, 0, 0.2)
+                    print(f"WARNING: COLLISION BETWEEN {a.name} and {b.name}")
+
+    def play_with_controller(self, delay: float = 1.0):
         scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
         crazyflies = []
         for traj in self.trajectories:

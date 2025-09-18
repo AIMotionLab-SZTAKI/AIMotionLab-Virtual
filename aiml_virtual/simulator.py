@@ -221,6 +221,7 @@ class Simulator:
         describes a particular run of the simulation for a given model, at a given time. Should be called once all the
         objects have been added to the simulation.
         """
+        self.data = mujoco.MjData(self.model) # re-bind data in case the scene has changed since __init__ was called
         for obj in self.simulated_objects:
             obj.bind_to_data(self.data)
 

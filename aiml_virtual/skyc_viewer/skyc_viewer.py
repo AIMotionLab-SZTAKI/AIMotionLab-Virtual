@@ -1,9 +1,9 @@
+# TODO: COMMENTS, DOCSTRINGS
 import os
 from typing import Optional
 from xml.etree import ElementTree as ET
 import numpy as np
 from scipy.spatial import cKDTree
-from functools import partial
 
 from skyc_utils.skyc import plot_skyc_trajectories
 
@@ -11,10 +11,11 @@ import aiml_virtual
 from aiml_virtual.scene import Scene
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.crazyflie import Crazyflie
 from aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_crazyflie import MocapCrazyflie
+from aiml_virtual.simulated_object.simulated_object import SimulatedObject
 from aiml_virtual.trajectory.skyc_trajectory import SkycTrajectory, extract_trajectories
 from aiml_virtual.utils.utils_general import quaternion_from_euler
 from aiml_virtual.simulator import Simulator
-from aiml_virtual.mocap.dummy_mocap_source import DummyMocapSource
+from aiml_virtual.mocap.skyc_mocap_source import SkycMocapSource
 
 def _pick_skyc_file() -> str:
     # Compute starting directory: parent of the aiml_virtual package folder
@@ -66,7 +67,7 @@ class ViewerMocapCrazyflie(MocapCrazyflie):
                       contype="0", conaffinity="0")
         return ret
 
-def close_pairs_by_xpos(objs: list[ViewerCrazyflie], r: float) -> list[tuple[ViewerCrazyflie, ViewerCrazyflie]]:
+def close_pairs_by_xpos(objs: list[SimulatedObject], r: float) -> list[tuple[SimulatedObject, SimulatedObject]]:
     """Return [(obj_i, obj_j), ...] for all pairs with ||xpos_i - xpos_j|| < r."""
     n = len(objs)
     if n < 2:
@@ -77,7 +78,7 @@ def close_pairs_by_xpos(objs: list[ViewerCrazyflie], r: float) -> list[tuple[Vie
 
 # TODO: comments and docstrings
 class SkycViewer:
-    def __init__(self, skyc_file: Optional[str] = None):
+    def __init__(self, skyc_file: Optional[str] = None, delay: float = 1.0):
         # NEW: make the skyc_file optional and open a picker if not provided
         if not skyc_file:
             skyc_file = _pick_skyc_file()
@@ -85,65 +86,46 @@ class SkycViewer:
         # Optionally normalize relative paths (useful if picking from skyc_viewer subpackage)
         skyc_file = os.path.abspath(skyc_file)
 
-        self.trajectories: list[SkycTrajectory] = extract_trajectories(skyc_file)
         plot_skyc_trajectories(skyc_file)
 
-    def generate_mocap_frame(self, simulator: Simulator, delay: float):
-        t = simulator.sim_time
-        frame: dict[str, tuple[np.ndarray, np.ndarray]] = {}
-        for i, traj in enumerate(self.trajectories):
-            pos = traj.evaluate(t)["target_pos"]
-            rpy = traj.evaluate(t)["target_rpy"]
-            quat = np.array(quaternion_from_euler(*rpy))
-            frame[f"cf{i}"] = (pos, quat)
-        return frame
+        self.trajectories: list[SkycTrajectory] = extract_trajectories(skyc_file)
+        for traj in self.trajectories:
+            traj.time_offset = delay
+        self.crazyflies: list[SimulatedObject] = []
+        self.scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
+        self.sim = Simulator(self.scn)
 
-    def play_raw(self, delay: float = 1.0):
-        scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
-        sim = Simulator(scn)
-        mocap = DummyMocapSource(frame_generator=partial(self.generate_mocap_frame, simulator=sim, delay=delay))
-        crazyflies = []
-        for i, traj in enumerate(self.trajectories):
-            cf = ViewerMocapCrazyflie(mocap, f"cf{i}")
-            scn.add_object(cf)
-            crazyflies.append(cf)
-
-        with sim.launch():
-            while not sim.display_should_close():
-                sim.tick()
-                for cf in crazyflies:
+    def _play(self):
+        with self.sim.launch():
+            while not self.sim.display_should_close():
+                self.sim.tick()
+                for cf in self.crazyflies:
                     cf.set_color(0.5, 0.5, 0.5, 0.2)
-                collision_pairs = close_pairs_by_xpos(crazyflies, 0.2)
+                collision_pairs = close_pairs_by_xpos(self.crazyflies, 0.2)
                 for a, b in collision_pairs:
                     a.set_color(0.5, 0, 0, 0.2)
                     b.set_color(0.5, 0, 0, 0.2)
                     print(f"WARNING: COLLISION BETWEEN {a.name} and {b.name}")
 
-    def play_with_controller(self, delay: float = 1.0):
-        scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
-        crazyflies = []
+    def play_raw(self):
+        mocap = SkycMocapSource(self.trajectories, lambda: self.sim.sim_time)
+        for i, traj in enumerate(self.trajectories):
+            cf = ViewerMocapCrazyflie(mocap, f"cf{i}")
+            self.scn.add_object(cf)
+            self.crazyflies.append(cf)
+        self._play()
+
+    def play_with_controller(self):
         for traj in self.trajectories:
             cf = ViewerCrazyflie()
-            traj.time_offset = delay
             cf.trajectory = traj
             start = traj.traj.start
             quat = quaternion_from_euler(0, 0, start.yaw)
-            scn.add_object(
+            self.scn.add_object(
                 cf,
                 f"{start.x} {start.y} {start.z}",
                 f"{quat[0]} {quat[1]} {quat[2]} {quat[3]}",
                 "0.5 0.5 0.5 1"
             )
-            crazyflies.append(cf)
-        sim = Simulator(scn)
-
-        with sim.launch():
-            while not sim.display_should_close():
-                sim.tick()
-                for cf in crazyflies:
-                    cf.set_color(0.5, 0.5, 0.5, 0.2)
-                collision_pairs = close_pairs_by_xpos(crazyflies, 0.2)
-                for a, b in collision_pairs:
-                    a.set_color(0.5, 0, 0, 0.2)
-                    b.set_color(0.5, 0, 0, 0.2)
-                    print(f"WARNING: COLLISION BETWEEN {a.name} and {b.name}")
+            self.crazyflies.append(cf)
+        self._play()

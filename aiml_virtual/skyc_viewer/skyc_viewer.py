@@ -95,7 +95,7 @@ class SkycViewer:
         self.scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
         self.sim = Simulator(self.scn)
 
-    def _play(self):
+    def _play(self, speed: float):
         with self.sim.launch():
             while not self.sim.display_should_close():
                 self.sim.tick()
@@ -107,15 +107,15 @@ class SkycViewer:
                     b.set_color(0.5, 0, 0, 0.2)
                     print(f"WARNING: COLLISION BETWEEN {a.name} and {b.name}")
 
-    def play_raw(self):
+    def play_raw(self, speed: float = 1.0) -> None:
         mocap = SkycMocapSource(self.trajectories, lambda: self.sim.sim_time)
         for i, traj in enumerate(self.trajectories):
             cf = ViewerMocapCrazyflie(mocap, f"cf{i}")
             self.scn.add_object(cf)
             self.crazyflies.append(cf)
-        self._play()
+        self._play(speed)
 
-    def play_with_controller(self):
+    def play_with_controller(self, speed: float = 1.0) -> None:
         for traj in self.trajectories:
             cf = ViewerCrazyflie()
             cf.trajectory = traj
@@ -128,4 +128,4 @@ class SkycViewer:
                 "0.5 0.5 0.5 1"
             )
             self.crazyflies.append(cf)
-        self._play()
+        self._play(speed)

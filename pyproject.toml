@@ -29,9 +29,9 @@ dependencies = [  # python 3.10
 readme = "readme.md"
 
 [tool.setuptools]
+packages = { find = { include = ["aiml_virtual", "aiml_virtual.*"] } }
 py-modules = []
 include-package-data = true
-packages = ["aiml_virtual"]
 
 [tool.setuptools.package-data]
 aiml_virtual = ["resources/**/*"]

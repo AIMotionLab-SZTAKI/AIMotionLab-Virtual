@@ -96,7 +96,7 @@ class SkycViewer:
         self.sim = Simulator(self.scn)
 
     def _play(self, speed: float):
-        with self.sim.launch():
+        with self.sim.launch(speed=speed):
             while not self.sim.display_should_close():
                 self.sim.tick()
                 for cf in self.crazyflies:

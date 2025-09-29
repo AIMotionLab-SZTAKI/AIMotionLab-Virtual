@@ -78,7 +78,7 @@ def close_pairs_by_xpos(objs: list[SimulatedObject], r: float) -> list[tuple[Sim
 
 # TODO: comments and docstrings
 class SkycViewer:
-    def __init__(self, skyc_file: Optional[str] = None, delay: float = 1.0):
+    def __init__(self, skyc_file: Optional[str] = None, graphs: bool = True, delay: float = 1.0):
         # NEW: make the skyc_file optional and open a picker if not provided
         if not skyc_file:
             skyc_file = _pick_skyc_file()
@@ -86,7 +86,8 @@ class SkycViewer:
         # Optionally normalize relative paths (useful if picking from skyc_viewer subpackage)
         skyc_file = os.path.abspath(skyc_file)
 
-        plot_skyc_trajectories(skyc_file)
+        if graphs:
+            plot_skyc_trajectories(skyc_file)
 
         self.trajectories: list[SkycTrajectory] = extract_trajectories(skyc_file)
         for traj in self.trajectories:

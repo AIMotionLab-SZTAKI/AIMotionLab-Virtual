@@ -94,11 +94,28 @@ class Visualizer:
 
     .. todo:
         When the window is dragged, the simulation lags and then rushes to catch up. This is a bug.
+
+    .. todo:
+        PROPER docstrings for the nudge_camera_xy method
     """
     DEFAULT_WIDTH: int = 1536  #: The width of the window unless specified otherwise.
     DEFAULT_HEIGHT: int = 864  #: The height of the window unless specified otherwise.
     MAX_GEOM: int = 1000  #: Size of allocated geom buffer for the mjvScene struct.
     SCROLL_DISTANCE_STEP: float = 0.2  #: How much closer/farther we get to the lookat point in a mouse scroll.
+
+    CAM_MOVE_STEP: float = 0.1  # tweak to taste
+
+    def nudge_camera_xy(self, forward: float = 0.0, right: float = 0.0, step: float = None) -> None:
+        """Translate the camera lookat in the XY plane relative to current azimuth."""
+        if step is None:
+            step = self.CAM_MOVE_STEP
+        az = math.radians(self.mjvCamera.azimuth)
+        # Unit vectors in world XY for “forward” and “right”
+        fwd_x, fwd_y = math.cos(az), math.sin(az)
+        rgt_x, rgt_y = math.sin(az), -math.cos(az)
+        self.mjvCamera.lookat[0] += step * (forward * fwd_x + right * rgt_x)
+        self.mjvCamera.lookat[1] += step * (forward * fwd_y + right * rgt_y)
+        # leave Z unchanged
 
     def mouse_dxdy(self, window: Any) -> tuple[int, int]:
         """
@@ -159,8 +176,8 @@ class Visualizer:
             mods (int): The code for shift/alt/etc.
             scancode (int): Code for buttons that don't have a glfw code?
         """
-        if action == glfw.PRESS and key in self.keybinds:
-            self.keybinds[key]()
+        if action in (glfw.PRESS, glfw.REPEAT) and key in self.keybinds:
+            self.keybinds[key]() # TODO: Fix the weird jittery WASD movement
 
     def handle_mouse_movement(self, window: Any, x: float, y: float) -> None:
         """
@@ -221,7 +238,11 @@ class Visualizer:
             self.mouse_right_btn_down: bool = False  #: Whether the right mouse button is pressed.
             self.keybinds: dict[int, Callable] = {
                 glfw.KEY_SPACE: self.simulator.pause_physics,
-                glfw.KEY_R: self.toggle_record
+                glfw.KEY_R: self.toggle_record,
+                glfw.KEY_W: lambda: self.nudge_camera_xy(forward=+1),
+                glfw.KEY_S: lambda: self.nudge_camera_xy(forward=-1),
+                glfw.KEY_A: lambda: self.nudge_camera_xy(right=-1),
+                glfw.KEY_D: lambda: self.nudge_camera_xy(right=+1),
             } #: Dictionary to save keybinds and their callbacks.
             self.display: Display = Display(self.model, self.width, self.height, title="simulator") #: The window handler.
             # Save callbacks: mouse movement, clicks, scroll and keybinds.

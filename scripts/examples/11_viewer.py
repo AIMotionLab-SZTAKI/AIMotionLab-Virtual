@@ -17,7 +17,7 @@ while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
     sys.path.append(project_root.resolve().as_posix())
 
 import aiml_virtual
-from aiml_virtual.skyc_viewer.skyc_viewer import SkycViewer
+from aiml_virtual.skyc_viewer import SkycViewer
 
 if __name__ == "__main__":
     #viewer = SkycViewer(os.path.join(aiml_virtual.skyc_folder, "three_drones_collisions.skyc"))

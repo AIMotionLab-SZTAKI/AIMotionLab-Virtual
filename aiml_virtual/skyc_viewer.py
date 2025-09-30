@@ -4,6 +4,7 @@ from typing import Optional
 from xml.etree import ElementTree as ET
 import numpy as np
 from scipy.spatial import cKDTree
+from functools import partial
 
 from skyc_utils.skyc import plot_skyc_trajectories
 
@@ -14,7 +15,7 @@ from aiml_virtual.simulated_object.mocap_object.mocap_drone.mocap_crazyflie impo
 from aiml_virtual.simulated_object.simulated_object import SimulatedObject
 from aiml_virtual.trajectory.skyc_trajectory import SkycTrajectory, extract_trajectories
 from aiml_virtual.utils.utils_general import quaternion_from_euler
-from aiml_virtual.simulator import Simulator
+from aiml_virtual.simulator import Simulator, Event
 from aiml_virtual.mocap.skyc_mocap_source import SkycMocapSource
 
 def _pick_skyc_file() -> str:
@@ -91,7 +92,7 @@ class SkycViewer:
 
         self.trajectories: list[SkycTrajectory] = extract_trajectories(skyc_file)
         for traj in self.trajectories:
-            traj.time_offset = delay
+            traj.delay = delay
         self.crazyflies: list[SimulatedObject] = []
         self.scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
         self.sim = Simulator(self.scn)
@@ -100,15 +101,11 @@ class SkycViewer:
         with self.sim.launch(speed=speed):
             while not self.sim.display_should_close():
                 self.sim.tick()
-                for cf in self.crazyflies:
-                    cf.set_color(0.5, 0.5, 0.5, 0.2)
                 collision_pairs = close_pairs_by_xpos(self.crazyflies, 0.2)
                 for a, b in collision_pairs:
-                    a.set_color(0.5, 0, 0, 0.2)
-                    b.set_color(0.5, 0, 0, 0.2)
-                    print(f"WARNING: COLLISION BETWEEN {a.name} and {b.name}")
+                    print(f"[{self.sim.sim_time}] WARNING: COLLISION BETWEEN {a.name} and {b.name}")
 
-    def play_raw(self, speed: float = 1.0) -> None:
+    def play_raw(self, speed: float = 1.0) -> None: # TODO: add colors here as well
         mocap = SkycMocapSource(self.trajectories, lambda: self.sim.sim_time)
         for i, traj in enumerate(self.trajectories):
             cf = ViewerMocapCrazyflie(mocap, f"cf{i}")
@@ -121,6 +118,13 @@ class SkycViewer:
             cf = ViewerCrazyflie()
             cf.trajectory = traj
             start = traj.traj.start
+            for t, color in traj.light_data.colors:
+                r, g, b = color.as_list()
+                self.sim.add_event(Event(
+                    t + traj.delay,
+                    partial(cf.set_color, r, g, b, 0.2)  # <- captures cf,r,g,b
+                ))
+
             quat = quaternion_from_euler(0, 0, start.yaw)
             self.scn.add_object(
                 cf,

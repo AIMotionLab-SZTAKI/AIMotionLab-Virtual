@@ -7,6 +7,7 @@ import numpy as np
 from skyc_utils.trajectory import Trajectory as sTrajectory
 from skyc_utils import skyc, light_program
 from aiml_virtual.trajectory import trajectory
+from aiml_virtual.simulator import Event
 
 class SkycTrajectory(trajectory.Trajectory):
     """
@@ -30,7 +31,7 @@ class SkycTrajectory(trajectory.Trajectory):
         super().__init__()
         self.traj: sTrajectory = traj
         self.light_data: light_program.LightProgram = lights
-        self.time_offset = 0
+        self.delay = 0
 
     def evaluate(self, time: float) -> dict[str, Any]:
         """
@@ -43,7 +44,7 @@ class SkycTrajectory(trajectory.Trajectory):
         Returns:
             dict[str, Any]: The desired setpoint at the provided timestamp.
         """
-        time = time - self.time_offset
+        time = time - self.delay
         retval = {
             "load_mass": 0.0,
             "target_pos": self.traj.evaluate(time).pose[:3],

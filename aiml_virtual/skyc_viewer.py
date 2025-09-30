@@ -122,7 +122,7 @@ class SkycViewer:
                 r, g, b = color.as_list()
                 self.sim.add_event(Event(
                     t + traj.delay,
-                    partial(cf.set_color, r, g, b, 0.2)  # <- captures cf,r,g,b
+                    partial(cf.set_color, r/255, g/255, b/255, 0.2)  # <- captures cf,r,g,b
                 ))
 
             quat = quaternion_from_euler(0, 0, start.yaw)

@@ -10,6 +10,7 @@ from contextlib import contextmanager
 import platform
 import glfw
 from functools import partial
+from dataclasses import dataclass
 
 if platform.system() == 'Windows':
     import win_precise_time as time
@@ -25,6 +26,11 @@ from aiml_virtual.visualize import Visualizer
 Scene = scene.Scene
 SimulatedObject = simulated_object.SimulatedObject
 
+@dataclass
+class Event: # TODO: COMMENTS AND DOCSTRINGS REGARDING EVENTS
+    t: float
+    func: Callable[[], None]
+
 class Simulator:
     """
     Class that uses the scene and the mujoco package to run the mujoco simulation and display the results.
@@ -39,7 +45,7 @@ class Simulator:
         Class for containing all the data for a process that is tied to the Simulator. I.e. a process that may only
         run when the simulator ticks.
         """
-        def __init__(self, func: Callable, frequency: float, **kwargs):
+        def __init__(self, func: Callable[[], None], frequency: float, **kwargs):
             self.func: Callable[[], None] = partial(func, **kwargs)  #: The function that gets called when the process gets its turn.
             self.target_frequency: float = frequency  #: The target frequency of the process
             self.paused: bool = False  #: Whether the process should run when it gets the next chance.
@@ -88,8 +94,19 @@ class Simulator:
         self.processes: dict[str, Simulator.Process] = {}  #: The dictionary of simulator processes and their names
         self.start_time: float = time.time()  #: The time when the simulation starts.
         self.visualizer: Optional[Visualizer] = None  #: Responsible for rendering, display and video creation
+        self.events: list[Event] = []
 
-    def add_process(self, name: str, func: Callable, frequency: float, *args, **kwargs) -> None:
+    def add_event(self, event: Event) -> None:
+        self.events.append(event)
+        self.events.sort(key=lambda e: e.t)
+
+    def handle_events(self) -> None:
+        if self.data is not None and len(self.events) > 0:
+            while len(self.events) > 0 and self.sim_time > self.events[0].t:
+                event = self.events.pop(0)
+                event.func()
+
+    def add_process(self, name: str, func: Callable[[], None], frequency: float, *args, **kwargs) -> None:
         """
         Register a process to be run at a specified frequency. The function will be ran after a given number of
         physics steps to match the frequency, rounded down. If additional keyword arguments are passed to this method,
@@ -116,6 +133,7 @@ class Simulator:
         are set, since each object will have a process associated with it, where it can update.
         """
         self.add_process("physics", self.mj_step, 1 / self.timestep)
+        self.add_process("handle_events", self.handle_events, 1/self.timestep)
         for obj in self.simulated_objects:
             self.add_process(obj.name, obj.update, obj.update_frequency)
 

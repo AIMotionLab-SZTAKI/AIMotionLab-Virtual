@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # is read from a skyc file. An example skyc file is found under scripts/misc/skyc_example.skyc
     cf = crazyflie.Crazyflie()
     traj = skyc_trajectory.extract_trajectories(os.path.join(aiml_virtual.skyc_folder, "skyc_example.skyc"))[0]
-    traj.time_offset = 3
+    traj.delay = 3
     cf.trajectory = traj
     start = traj.traj.start
     quat = quaternion_from_euler(0, 0, start.yaw)

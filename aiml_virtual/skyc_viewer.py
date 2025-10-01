@@ -116,8 +116,9 @@ class SkycViewer:
 
     def play_raw(self, speed: float = 1.0) -> None: # TODO: add colors here as well
         mocap = SkycMocapSource(self.trajectories, lambda: self.sim.sim_time)
-        for i, traj in enumerate(self.trajectories):
-            cf = ViewerMocapCrazyflie(mocap, f"cf{i}")
+        self.crazyflies = self.scn.add_mocap_objects(mocap)
+        for mocap_name, traj in mocap.trajectories.items():
+            cf = next(item for item in self.crazyflies if item.mocap_name == mocap_name)
             for t, color in traj.light_data.colors:
                 r, g, b = color.as_list()
                 self.sim.add_event(Event(

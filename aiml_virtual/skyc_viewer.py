@@ -125,9 +125,8 @@ class SkycViewer:
                     t + traj.start_time,
                     partial(cf.set_color, r / 255, g / 255, b / 255, 0.2)  # <- captures cf,r,g,b
                 ))
-            self.scn.add_object(cf)
-            self.crazyflies.append(cf)
         self._play(speed)
+
 
     def play_with_controller(self, speed: float = 1.0) -> None:
         for traj in self.trajectories:

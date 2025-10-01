@@ -101,7 +101,7 @@ class SkycViewer:
         for traj in self.trajectories:
             traj.start_time = delay
             traj.started = started
-        self.crazyflies: list[SimulatedObject] = []
+        self.crazyflies: list[ViewerCrazyflie | ViewerMocapCrazyflie] = []
         self.scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
         self.sim = Simulator(self.scn)
 

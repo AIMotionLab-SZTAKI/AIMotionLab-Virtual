@@ -1,17 +1,7 @@
 {
     "MocapSource": {
         "config": {
-            "vcf0": "ViewerMocapCrazyflie",
-            "vcf1": "ViewerMocapCrazyflie",
-            "vcf2": "ViewerMocapCrazyflie",
-            "vcf3": "ViewerMocapCrazyflie",
-            "vcf4": "ViewerMocapCrazyflie",
-            "vcf5": "ViewerMocapCrazyflie",
-            "vcf6": "ViewerMocapCrazyflie",
-            "vcf7": "ViewerMocapCrazyflie",
-            "vcf8": "ViewerMocapCrazyflie",
-            "vcf9": "ViewerMocapCrazyflie",
-            "vcf10": "ViewerMocapCrazyflie",
+
             "cf0": "MocapCrazyflie",
             "cf1": "MocapCrazyflie",
             "cf2": "MocapCrazyflie",
@@ -38,7 +28,28 @@
             "payload1": "MocapPayload",
             "payload2": "MocapPayload",
             "bb3": "MocapHookedBumblebee2DOF",
-            "JoeBush1": "MocapHitchedCar"
+            "JoeBush1": "MocapHitchedCar",
+            "vcf0": "ViewerMocapCrazyflie",
+            "vcf1": "ViewerMocapCrazyflie",
+            "vcf2": "ViewerMocapCrazyflie",
+            "vcf3": "ViewerMocapCrazyflie",
+            "vcf4": "ViewerMocapCrazyflie",
+            "vcf5": "ViewerMocapCrazyflie",
+            "vcf6": "ViewerMocapCrazyflie",
+            "vcf7": "ViewerMocapCrazyflie",
+            "vcf8": "ViewerMocapCrazyflie",
+            "vcf9": "ViewerMocapCrazyflie",
+            "vcf10": "ViewerMocapCrazyflie",
+            "vcf11": "ViewerMocapCrazyflie",
+            "vcf12": "ViewerMocapCrazyflie",
+            "vcf13": "ViewerMocapCrazyflie",
+            "vcf14": "ViewerMocapCrazyflie",
+            "vcf15": "ViewerMocapCrazyflie",
+            "vcf16": "ViewerMocapCrazyflie",
+            "vcf17": "ViewerMocapCrazyflie",
+            "vcf18": "ViewerMocapCrazyflie",
+            "vcf19": "ViewerMocapCrazyflie",
+            "vcf20": "ViewerMocapCrazyflie"
         }
     },
     "MocapHitchedCar": {

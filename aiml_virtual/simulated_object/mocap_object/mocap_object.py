@@ -78,6 +78,7 @@ class MocapObject(SimulatedObject, ABC):
         # this also leads to 05_recod.py being wrong by the way. Huge todo!
         class_name: Optional[str] = MocapSource.config.get(mocap_name) # e.g. "MocapCrazyflie" (str)
         if class_name is None:
+            warning(f"{mocap_name} not found in config.")
             return None
         else:
             cls_to_create: Type[MocapObject] = cast(Type[MocapObject], SimulatedObject.xml_registry[class_name])  # e.g. MocapCrazyflie (class)

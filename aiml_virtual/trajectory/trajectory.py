@@ -5,6 +5,8 @@ This module contains the abstract Trajectory class, which serves as a base of al
 from abc import ABC, abstractmethod
 from typing import Any
 
+from numpy.array_api import trunc
+
 
 class Trajectory(ABC):
     """
@@ -13,11 +15,16 @@ class Trajectory(ABC):
     Trajectories may have different outputs, but they will always be organized in a dictionary, to be able to look up
     by velocity, position, etc.
     """
-    def __init__(self):
+    def __init__(self, started: bool = True):
         """
         Constructor left empty due to great variance in actual implementations.
         """
         super().__init__()
+        self.started: bool = started
+
+    def start(self):
+        self.started = True
+
 
     @abstractmethod
     def evaluate(self, *args, **kwargs) -> dict[str, Any]:

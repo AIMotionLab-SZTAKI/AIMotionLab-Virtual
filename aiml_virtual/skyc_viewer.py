@@ -17,6 +17,7 @@ from aiml_virtual.trajectory.skyc_trajectory import SkycTrajectory, extract_traj
 from aiml_virtual.utils.utils_general import quaternion_from_euler
 from aiml_virtual.simulator import Simulator, Event
 from aiml_virtual.mocap.skyc_mocap_source import SkycMocapSource
+from aiml_virtual.utils.utils_general import warning
 
 def _pick_skyc_file() -> str:
     # Compute starting directory: parent of the aiml_virtual package folder
@@ -79,7 +80,13 @@ def close_pairs_by_xpos(objs: list[SimulatedObject], r: float) -> list[tuple[Sim
 
 # TODO: comments and docstrings
 class SkycViewer:
-    def __init__(self, skyc_file: Optional[str] = None, graphs: bool = True, delay: float = 0.0):
+    def __init__(self,
+                 skyc_file: Optional[str] = None,
+                 graphs: bool = True,
+                 delay: float = 0.0,
+                 started: bool = True,
+                 log_collisions: bool = True):
+        self.log_collisions = log_collisions
         # NEW: make the skyc_file optional and open a picker if not provided
         if not skyc_file:
             skyc_file = _pick_skyc_file()
@@ -93,6 +100,7 @@ class SkycViewer:
         self.trajectories: list[SkycTrajectory] = extract_trajectories(skyc_file)
         for traj in self.trajectories:
             traj.start_time = delay
+            traj.started = started
         self.crazyflies: list[SimulatedObject] = []
         self.scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
         self.sim = Simulator(self.scn)
@@ -101,9 +109,10 @@ class SkycViewer:
         with self.sim.launch(speed=speed):
             while not self.sim.display_should_close():
                 self.sim.tick()
-                collision_pairs = close_pairs_by_xpos(self.crazyflies, 0.2)
-                for a, b in collision_pairs:
-                    print(f"[{self.sim.sim_time}] WARNING: COLLISION BETWEEN {a.name} and {b.name}")
+                if self.log_collisions:
+                    collision_pairs = close_pairs_by_xpos(self.crazyflies, 0.2)
+                    for a, b in collision_pairs:
+                        warning(f"[{self.sim.sim_time:.2f}] COLLISION BETWEEN {a.name} and {b.name}")
 
     def play_raw(self, speed: float = 1.0) -> None: # TODO: add colors here as well
         mocap = SkycMocapSource(self.trajectories, lambda: self.sim.sim_time)

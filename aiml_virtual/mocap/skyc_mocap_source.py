@@ -19,7 +19,7 @@ class SkycMocapSource(mocap_source.MocapSource):
     """
     def __init__(self, trajectories: list[SkycTrajectory], t: Callable[[], float], fps: float = 100):
         super().__init__()
-        self.trajectories: list[SkycTrajectory] = trajectories
+        self.trajectories: dict[str, SkycTrajectory] = {f"vcf{i}": v for i, v in enumerate(trajectories)}
         self.t = t
         self.fps = fps
         self.start_mocap_thread()
@@ -31,11 +31,11 @@ class SkycMocapSource(mocap_source.MocapSource):
     def mocap(self) -> None:
         while True:
             with self.lock:
-                for i, traj in enumerate(self.trajectories):
-                    pos = traj.evaluate(self.t())["target_pos"]
-                    rpy = traj.evaluate(self.t())["target_rpy"]
+                for k, v in self.trajectories.items():
+                    pos = v.evaluate(self.t())["target_pos"]
+                    rpy = v.evaluate(self.t())["target_rpy"]
                     quat = np.array(quaternion_from_euler(*rpy))
-                    self._data[f"cf{i}"] = (pos, quat)
+                    self._data[k] = (pos, quat)
             time.sleep(1 / self.fps)
 
 

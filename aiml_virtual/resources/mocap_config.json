@@ -1,6 +1,18 @@
 {
     "MocapSource": {
         "config": {
+            "vcf0": "ViewerMocapCrazyflie",
+            "vcf1": "ViewerMocapCrazyflie",
+            "vcf2": "ViewerMocapCrazyflie",
+            "vcf3": "ViewerMocapCrazyflie",
+            "vcf4": "ViewerMocapCrazyflie",
+            "vcf5": "ViewerMocapCrazyflie",
+            "vcf6": "ViewerMocapCrazyflie",
+            "vcf7": "ViewerMocapCrazyflie",
+            "vcf8": "ViewerMocapCrazyflie",
+            "vcf9": "ViewerMocapCrazyflie",
+            "vcf10": "ViewerMocapCrazyflie",
+            "cf0": "MocapCrazyflie",
             "cf1": "MocapCrazyflie",
             "cf2": "MocapCrazyflie",
             "cf3": "MocapCrazyflie",

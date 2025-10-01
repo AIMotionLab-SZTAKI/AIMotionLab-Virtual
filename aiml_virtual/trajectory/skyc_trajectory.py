@@ -31,7 +31,7 @@ class SkycTrajectory(trajectory.Trajectory):
         super().__init__()
         self.traj: sTrajectory = traj
         self.light_data: light_program.LightProgram = lights
-        self.delay = 0
+        self.start_time = 0
 
     def evaluate(self, time: float) -> dict[str, Any]:
         """
@@ -44,7 +44,7 @@ class SkycTrajectory(trajectory.Trajectory):
         Returns:
             dict[str, Any]: The desired setpoint at the provided timestamp.
         """
-        time = time - self.delay
+        time = time - self.start_time if self.started else 0
         retval = {
             "load_mass": 0.0,
             "target_pos": self.traj.evaluate(time).pose[:3],

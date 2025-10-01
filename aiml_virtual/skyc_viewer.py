@@ -79,7 +79,7 @@ def close_pairs_by_xpos(objs: list[SimulatedObject], r: float) -> list[tuple[Sim
 
 # TODO: comments and docstrings
 class SkycViewer:
-    def __init__(self, skyc_file: Optional[str] = None, graphs: bool = True, delay: float = 1.0):
+    def __init__(self, skyc_file: Optional[str] = None, graphs: bool = True, delay: float = 0.0):
         # NEW: make the skyc_file optional and open a picker if not provided
         if not skyc_file:
             skyc_file = _pick_skyc_file()
@@ -92,7 +92,7 @@ class SkycViewer:
 
         self.trajectories: list[SkycTrajectory] = extract_trajectories(skyc_file)
         for traj in self.trajectories:
-            traj.delay = delay
+            traj.start_time = delay
         self.crazyflies: list[SimulatedObject] = []
         self.scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
         self.sim = Simulator(self.scn)
@@ -121,7 +121,7 @@ class SkycViewer:
             for t, color in traj.light_data.colors:
                 r, g, b = color.as_list()
                 self.sim.add_event(Event(
-                    t + traj.delay,
+                    t + traj.start_time,
                     partial(cf.set_color, r/255, g/255, b/255, 0.2)  # <- captures cf,r,g,b
                 ))
 

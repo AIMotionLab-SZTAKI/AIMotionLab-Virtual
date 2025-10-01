@@ -118,6 +118,12 @@ class SkycViewer:
         mocap = SkycMocapSource(self.trajectories, lambda: self.sim.sim_time)
         for i, traj in enumerate(self.trajectories):
             cf = ViewerMocapCrazyflie(mocap, f"cf{i}")
+            for t, color in traj.light_data.colors:
+                r, g, b = color.as_list()
+                self.sim.add_event(Event(
+                    t + traj.start_time,
+                    partial(cf.set_color, r / 255, g / 255, b / 255, 0.2)  # <- captures cf,r,g,b
+                ))
             self.scn.add_object(cf)
             self.crazyflies.append(cf)
         self._play(speed)
@@ -126,7 +132,7 @@ class SkycViewer:
         for traj in self.trajectories:
             cf = ViewerCrazyflie()
             cf.trajectory = traj
-            start = traj.traj.start
+            start = traj.sTraj.start
             for t, color in traj.light_data.colors:
                 r, g, b = color.as_list()
                 self.sim.add_event(Event(

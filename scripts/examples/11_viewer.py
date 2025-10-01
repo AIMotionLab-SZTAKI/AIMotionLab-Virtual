@@ -22,7 +22,7 @@ from aiml_virtual.simulator import Event
 
 if __name__ == "__main__":
     # viewer = SkycViewer()
-    # viewer.play_raw()
+    # viewer.play_with_controller()
 
     viewer = SkycViewer(os.path.join(aiml_virtual.skyc_folder, "three_drones_collisions.skyc"))
-    viewer.play_with_controller()
+    viewer.play_raw()

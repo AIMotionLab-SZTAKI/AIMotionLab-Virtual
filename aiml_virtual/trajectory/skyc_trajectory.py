@@ -29,7 +29,7 @@ class SkycTrajectory(trajectory.Trajectory):
     """
     def __init__(self, traj: sTrajectory, lights: Optional[light_program.LightProgram] = None) -> None:
         super().__init__()
-        self.traj: sTrajectory = traj
+        self.sTraj: sTrajectory = traj
         self.light_data: light_program.LightProgram = lights
         self.start_time = 0
 
@@ -47,11 +47,11 @@ class SkycTrajectory(trajectory.Trajectory):
         time = time - self.start_time if self.started else 0
         retval = {
             "load_mass": 0.0,
-            "target_pos": self.traj.evaluate(time).pose[:3],
-            "target_vel": self.traj.evaluate(time).vel[:3],
-            "target_acc": self.traj.evaluate(time).acc[:3],
-            "target_rpy": np.array([0, 0, self.traj.evaluate(time).pose[3]]),
-            "target_ang_vel": np.array([0, 0, self.traj.evaluate(time).vel[3]]),
+            "target_pos": self.sTraj.evaluate(time).pose[:3],
+            "target_vel": self.sTraj.evaluate(time).vel[:3],
+            "target_acc": self.sTraj.evaluate(time).acc[:3],
+            "target_rpy": np.array([0, 0, self.sTraj.evaluate(time).pose[3]]),
+            "target_ang_vel": np.array([0, 0, self.sTraj.evaluate(time).vel[3]]),
         }
         return retval
 

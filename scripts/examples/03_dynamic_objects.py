@@ -54,7 +54,7 @@ if __name__ == "__main__":
     traj = skyc_trajectory.extract_trajectories(os.path.join(aiml_virtual.skyc_folder, "skyc_example.skyc"))[0]
     traj.start_time = 3
     cf.trajectory = traj
-    start = traj.traj.start
+    start = traj.sTraj.start
     quat = quaternion_from_euler(0, 0, start.yaw)
     scn.add_object(
         cf,

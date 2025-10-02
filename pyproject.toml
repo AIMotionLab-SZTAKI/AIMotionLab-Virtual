@@ -10,7 +10,7 @@ description = "TODO"
 # be a reference: other version combinations may also work fine.
 dependencies = [  # python 3.10
     "matplotlib",  # 3.6.0
-    "motioncapture", # 1.0a2
+    "motioncapture==1.0a2", # 1.0a2, we should move to 1.0a4
     "mujoco", # 3.2.2
     "numpy", # 1.23.3
     "scipy", # 1.10.1

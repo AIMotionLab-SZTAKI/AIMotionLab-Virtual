@@ -18,8 +18,11 @@ class MocapDrone(mocap_object.MocapObject, ABC):
     """
     def __init__(self, source: Optional[mocap_source.MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__(source, mocap_name)
-        self.propellers: list[Propeller] = [Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE),
-                                            Propeller(Propeller.DIR_POSITIVE), Propeller(Propeller.DIR_NEGATIVE)]  #: List of propellers; first and third are ccw, second and fourth are cw
+        prop_speed = 40 / source.fps if source is not None else 0.08
+        self.propellers: list[Propeller] = [Propeller(Propeller.DIR_POSITIVE, prop_speed),
+                                            Propeller(Propeller.DIR_NEGATIVE, prop_speed),
+                                            Propeller(Propeller.DIR_POSITIVE, prop_speed),
+                                            Propeller(Propeller.DIR_NEGATIVE, prop_speed)]  #: List of propellers; first and third are ccw, second and fourth are cw
 
     def spin_propellers(self) -> None:
         """

@@ -21,6 +21,7 @@ class OptitrackMocapSource(mocap_source.MocapSource):
     """
     def __init__(self, ip: str = "192.168.2.141"):
         super().__init__()
+        self.fps = 120 # default optitrack fps
         self.optitrack: motioncapture.MotionCaptureOptitrack = motioncapture.MotionCaptureOptitrack(ip)  #: motion capture handler
         self.start_mocap_thread()
 

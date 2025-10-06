@@ -34,10 +34,11 @@ class MocapObject(SimulatedObject, ABC):
     def __init__(self, source: Optional[MocapSource] = None, mocap_name: Optional[str] = None):
         super().__init__()
         self.mocap_name: str = mocap_name  #: The name in the mocap dictionary (different from the mujoco model name).
-        self.source: MocapSource = source  #: The source for the poses of the object.
+        self.source: Optional[MocapSource] = source  #: The source for the poses of the object.
         self.angle_offset: np.array = np.array([0, 0, 0]) #: RPY angle offset compared to the mocap.
         self.offset: np.array = np.array([0, 0, 0]) #: The offset from the center of the marker set to the center of the XML body.
         self.fixed_angles: list[Optional[float]] = [None, None, None] #: The angles in which a mocap object must be fixed.
+        self.update_frequency = self.source.fps if self.source is not None else 0
 
     def assign_mocap(self, source: MocapSource, mocap_name: str) -> None:
         """
@@ -49,6 +50,7 @@ class MocapObject(SimulatedObject, ABC):
         """
         self.mocap_name = mocap_name
         self.source = source
+        self.update_frequency = source.fps
 
     def set_offset(self, offset: np.ndarray) -> None:
         """

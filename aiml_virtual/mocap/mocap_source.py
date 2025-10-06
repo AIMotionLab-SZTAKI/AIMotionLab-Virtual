@@ -5,6 +5,8 @@ This module contains the base class for mocap sources.
 from abc import ABC, abstractmethod
 import threading
 import copy
+from typing import Optional
+
 import numpy as np
 import os
 import json
@@ -59,6 +61,7 @@ class MocapSource(ABC):
         super().__init__()
         self.lock: threading.Lock = threading.Lock()  #: The lock used to access the underlying data dictionary.
         self._data: dict[str, tuple[np.ndarray, np.ndarray]] = {}  #: The underyling data dictionary
+        self.fps: float = 0
 
     @property
     def data(self) -> dict[str, tuple[np.ndarray, np.ndarray]]:

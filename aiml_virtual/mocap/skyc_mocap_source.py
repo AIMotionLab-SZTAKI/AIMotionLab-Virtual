@@ -17,7 +17,7 @@ class SkycMocapSource(mocap_source.MocapSource):
     """
     Todo: Docstring
     """
-    def __init__(self, trajectories: list[SkycTrajectory], t: Callable[[], float], fps: float = 100):
+    def __init__(self, trajectories: list[SkycTrajectory], t: Callable[[], float], fps: float = 50):
         super().__init__()
         self.trajectories: dict[str, SkycTrajectory] = {f"vcf{i}": v for i, v in enumerate(trajectories)}
         self.t = t

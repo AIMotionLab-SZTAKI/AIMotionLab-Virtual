@@ -135,7 +135,8 @@ class Simulator:
         self.add_process("physics", self.mj_step, 1 / self.timestep)
         self.add_process("handle_events", self.handle_events, 1/self.timestep)
         for obj in self.simulated_objects:
-            self.add_process(obj.name, obj.update, obj.update_frequency)
+            if obj.update_frequency > 0:
+                self.add_process(obj.name, obj.update, obj.update_frequency)
 
     @property
     def wallclock_time(self) -> float:

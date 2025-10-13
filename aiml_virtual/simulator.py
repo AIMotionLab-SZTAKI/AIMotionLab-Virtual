@@ -188,7 +188,8 @@ class Simulator:
         """
         self.processes["physics"].toggle()
         for obj in self.simulated_objects:
-            self.processes[obj.name].toggle()
+            if obj.name in self.processes:
+                self.processes[obj.name].toggle()
 
     # TODO: fix type hint error
     @contextmanager

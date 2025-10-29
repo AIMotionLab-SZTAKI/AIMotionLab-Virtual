@@ -13,7 +13,6 @@
             "cf8": "MocapCrazyflie",
             "cf9": "MocapCrazyflie",
             "cf10": "MocapCrazyflie",
-            "bb1": "MocapBumblebee",
             "bb2": "MocapBumblebee",
             "AI_Car_01": "MocapCar",
             "RC_Car_01": "MocapCar",
@@ -27,8 +26,11 @@
             "bu14": "Sztaki",
             "payload1": "MocapPayload",
             "payload2": "MocapPayload",
+            "payload3": "MocapPayload",
             "bb3": "MocapHookedBumblebee2DOF",
+            "bb1": "MocapHookedBumblebee2DOF",
             "JoeBush1": "MocapHitchedCar",
+            "JoeBush2": "MocapHitchedCar",
             "vcf0": "ViewerMocapCrazyflie",
             "vcf1": "ViewerMocapCrazyflie",
             "vcf2": "ViewerMocapCrazyflie",
@@ -54,12 +56,14 @@
     },
     "MocapHitchedCar": {
         "configurations": {
-            "JoeBush1": [["JoeBush1", "MocapCar"], ["trailer", "MocapTrailer"]]
+            "JoeBush1": [["JoeBush1", "MocapCar"], ["trailer", "MocapTrailer"]],
+            "JoeBush2": [["JoeBush2", "MocapCar"], ["trailer2", "MocapTrailer"]]
         }
     },
     "MocapHookedBumblebee2DOF": {
         "configurations": {
-            "bb3": [["bb3", "MocapBumblebee"], ["hook12", "MocapHook"]]
+            "bb3": [["bb3", "MocapBumblebee"], ["hook12", "MocapHook"]],
+            "bb1": [["bb1", "MocapBumblebee"], ["hook3", "MocapHook"]]
         }
     }
 }

@@ -10,7 +10,7 @@ from contextlib import contextmanager
 import platform
 import glfw
 from functools import partial
-
+import os
 if platform.system() == 'Windows':
     import win_precise_time as time
 else:
@@ -189,6 +189,12 @@ class Simulator:
         self.start_time = time.time()
         # Note that we can have a visualizer even when there is no display, since it's required to render a video, which
         # is independent of whether there is a display.
+        if self.is_headless():
+            print("Running in headless mode")
+            if with_display:
+                with_display = False
+                print("Cannot open display")
+            os.environ["DISPLAY"] = ":0"  # artificial display for mujoco renderer to work properly
         self.visualizer = Visualizer(self, fps, with_display=with_display)
         if with_display:
             self.add_process("visualize", self.visualizer.visualize, fps / speed)
@@ -251,14 +257,10 @@ class Simulator:
         else:
             return None
 
-
-
-
-
-
-
-
-
-
-
-
+    @staticmethod
+    def is_headless():
+        return not any([
+            os.environ.get("DISPLAY"),
+            os.environ.get("WAYLAND_DISPLAY"),
+            os.environ.get("XDG_SESSION_TYPE") in ("x11", "wayland"),
+        ])

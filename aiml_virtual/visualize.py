@@ -14,6 +14,7 @@ import cv2
 import numpy as np
 import os  # needed for video conversion
 import subprocess  # needed for video conversion
+import traceback
 
 if platform.system() == 'Windows':
     import win_precise_time as time
@@ -31,10 +32,6 @@ class Display:
     abstract visualization).
     """
     def __init__(self, model: mujoco.MjModel, width: int, height: int, title: str):
-        if not glfw.init():
-            warning("Could not create glfw window.")
-            glfw.terminate()
-            return
         glfw.window_hint(glfw.RESIZABLE, glfw.TRUE)  # careful! resizing may mess up the video capture!
         self.window: Any = glfw.create_window(width, height, title, None, None)  #: The handle for the glfw window.
         if not self.window:
@@ -80,6 +77,30 @@ class Display:
         rgb = np.flip(rgb, 0)
         return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
 
+def glfw_error_callback(code, desc):
+    print("GLFW ERROR:", code, desc.decode())
+    traceback.print_stack(limit=10)
+
+class GLFWGuard:
+    def __init__(self):
+        self.enabled = False
+        glfw.set_error_callback(glfw_error_callback)
+
+    def initialize(self):
+        self.enabled = True
+        if not glfw.init():
+            glfw.terminate()
+            raise RuntimeError("Cannot initialize glfw.")
+
+    def terminate(self):
+        self.enabled = False
+        glfw.terminate()
+
+    def __getattr__(self, name):
+        if not self.enabled:
+            raise RuntimeError(f"GLFW call '{name}' while GLFW is not initialized")
+        return getattr(glfw, name)
+
 class Visualizer:
     """
     Class responsible for handling the glfw window of the simulation and rendering mujoco data.
@@ -116,12 +137,12 @@ class Visualizer:
         self.mjvCamera.lookat[1] += step * (forward * fwd_y + right * rgt_y)
 
     def update_camera_from_keys(self):
-        now = glfw.get_time()
+        now = self.glfw.get_time()
         dt = max(0.0, min(0.05, now - self._last_time))  # clamp dt a bit
         self._last_time = now
 
-        fwd = int(glfw.KEY_W in self._keys_down) - int(glfw.KEY_S in self._keys_down)
-        rgt = int(glfw.KEY_D in self._keys_down) - int(glfw.KEY_A in self._keys_down)
+        fwd = int(self.glfw.KEY_W in self._keys_down) - int(self.glfw.KEY_S in self._keys_down)
+        rgt = int(self.glfw.KEY_D in self._keys_down) - int(self.glfw.KEY_A in self._keys_down)
         if not (fwd or rgt):
             return
 
@@ -138,7 +159,7 @@ class Visualizer:
         Returns:
             tuple[int, int]: The x and y distances since this method was last called.
         """
-        x, y = glfw.get_cursor_pos(window)
+        x, y = self.glfw.get_cursor_pos(window)
         dx = x - self.prev_x
         dy = y - self.prev_y
         self.prev_x, self.prev_y = x, y
@@ -156,18 +177,18 @@ class Visualizer:
             action (int): The code for press/release/etc.
             mods (int): The code for shift/alt/etc.
         """
-        if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
-            self.prev_x, self.prev_y = glfw.get_cursor_pos(window)
+        if button == self.glfw.MOUSE_BUTTON_LEFT and action == self.glfw.PRESS:
+            self.prev_x, self.prev_y = self.glfw.get_cursor_pos(window)
             self.mouse_left_btn_down = True
 
-        elif button == glfw.MOUSE_BUTTON_LEFT and action == glfw.RELEASE:
+        elif button == self.glfw.MOUSE_BUTTON_LEFT and action == self.glfw.RELEASE:
             self.mouse_left_btn_down = False
 
-        if button == glfw.MOUSE_BUTTON_RIGHT and action == glfw.PRESS:
-            self.prev_x, self.prev_y = glfw.get_cursor_pos(window)
+        if button == self.glfw.MOUSE_BUTTON_RIGHT and action == self.glfw.PRESS:
+            self.prev_x, self.prev_y = self.glfw.get_cursor_pos(window)
             self.mouse_right_btn_down = True
 
-        elif button == glfw.MOUSE_BUTTON_RIGHT and action == glfw.RELEASE:
+        elif button == self.glfw.MOUSE_BUTTON_RIGHT and action == self.glfw.RELEASE:
             self.mouse_right_btn_down = False
 
     def handle_scroll(self, window: Any, x: float, y: float) -> None:
@@ -187,11 +208,11 @@ class Visualizer:
             mods (int): The code for shift/alt/etc.
             scancode (int): Code for buttons that don't have a glfw code?
         """
-        if action == glfw.PRESS:
+        if action == self.glfw.PRESS:
             self._keys_down.add(key)
             if key in self.keybinds:
                 self.keybinds[key]()
-        elif action == glfw.RELEASE:
+        elif action == self.glfw.RELEASE:
             self._keys_down.discard(key)
 
     def handle_mouse_movement(self, window: Any, x: float, y: float) -> None:
@@ -245,6 +266,8 @@ class Visualizer:
         self.writer: Optional[cv2.VideoWriter] = None  #: The object responsible for saving the video.
         self.recording: bool = False  #: Whether the frames are currently being saved.
 
+        self.glfw = GLFWGuard()
+        self.glfw.initialize()
         self.with_display: bool = with_display #: Whether a window will be displayed for the simulation.
         if with_display:
             self.prev_x: int = 0  #: Mouse x position when the last click happened.
@@ -252,20 +275,19 @@ class Visualizer:
             self.mouse_left_btn_down: bool = False  #: Whether the left mouse button is pressed.
             self.mouse_right_btn_down: bool = False  #: Whether the right mouse button is pressed.
             self._keys_down = set() # TODO: COMMENT
-            self._last_time = glfw.get_time() # TODO: COMMENT
+            self._last_time = self.glfw.get_time() # TODO: COMMENT
             self.keybinds: dict[int, Callable] = {
-                glfw.KEY_SPACE: self.simulator.pause_physics,
-                glfw.KEY_R: self.toggle_record,
+                self.glfw.KEY_SPACE: self.simulator.pause_physics,
+                self.glfw.KEY_R: self.toggle_record,
             } #: Dictionary to save keybinds and their callbacks.
             self.display: Display = Display(self.model, self.width, self.height, title="simulator") #: The window handler.
             # Save callbacks: mouse movement, clicks, scroll and keybinds.
-            glfw.set_scroll_callback(self.display.window, self.handle_scroll)
-            glfw.set_mouse_button_callback(self.display.window, self.handle_mouse_button)
-            glfw.set_cursor_pos_callback(self.display.window, self.handle_mouse_movement)
-            glfw.set_key_callback(self.display.window, self.handle_keypress)
+            self.glfw.set_scroll_callback(self.display.window, self.handle_scroll)
+            self.glfw.set_mouse_button_callback(self.display.window, self.handle_mouse_button)
+            self.glfw.set_cursor_pos_callback(self.display.window, self.handle_mouse_movement)
+            self.glfw.set_key_callback(self.display.window, self.handle_keypress)
         else:
             self.renderer: mujoco.Renderer = mujoco.Renderer(self.model, self.height, self.width) #: The renderer used to generate frames without display.
-
 
     def write(self) -> None:
         """
@@ -291,14 +313,11 @@ class Visualizer:
             self.simulator.add_process("visualize", self.visualize, self.fps)
         self.recording = not self.recording
 
-    def visualize(self, speed: float = 1.0) -> None:
+    def visualize(self) -> None:
         """
         Updates the scene for rendering. If there is a display for the simulator, also instructs the display to
         populate the window with the rendered image, then waits in order to not let the display run ahead of the wall
         clock.
-
-        Args:
-            speed (float): The relative speed of the simulation compared to the wall clock.
         """
         self.update_camera_from_keys()
         mujoco.mjv_updateScene(self.model, self.data, self.mjvOption, pert=None, cam=self.mjvCamera,
@@ -334,5 +353,4 @@ class Visualizer:
                 print("FFmpeg is not installed, skipping file conversion.")
             except Exception as e:
                 print(f"Unexpected error: {e}")
-        if self.with_display:
-            glfw.terminate()
+        self.glfw.terminate()

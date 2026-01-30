@@ -1,6 +1,8 @@
 import os
 import sys
 import pathlib
+
+import glfw
 import numpy as np
 
 project_root = pathlib.Path(__file__).parents[0]
@@ -17,11 +19,13 @@ from aiml_virtual.simulated_object.dynamic_object import dynamic_object
 from aiml_virtual.simulated_object.dynamic_object.controlled_object import bicycle
 
 if __name__ == "__main__":
-
-    # The bug that bugs me: if i run two independent simulations, both with display (or both without display), everything works fine. But if I run one
+    # good one bro
+    # The bug that bugs me: if i run two independent simulations, both with display (or both without display),
+    # everything works fine. But if I run one
     # simulation with display, and then another without display, the second one crashes.
     # So far, the only workaround I've found is to call glfw.terminate() in between the two simulations. But still then,
     # a GLFW error is printed to the console.
+
 
     scn = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"), save_filename=f"example_scene_3.xml")
 
@@ -32,15 +36,12 @@ if __name__ == "__main__":
         while not sim.display_should_close() and sim.data.time < 4:
             sim.tick()
 
-    # import glfw
-    # glfw.terminate()
-
     scn_2 = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"), save_filename=f"example_scene_3.xml")
 
     scn_2.add_object(bicycle.Bicycle(), "0 1 0.1", "1 0 0 0", "0.5 0.5 0.5 1")
 
     sim_2 = simulator.Simulator(scn_2)
-    with sim_2.launch(with_display=True):
+    with sim_2.launch(with_display=False):
         while not sim_2.display_should_close() and sim_2.data.time < 4:
             sim_2.tick()
 

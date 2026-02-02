@@ -360,11 +360,11 @@ class Visualizer:
         populate the window with the rendered image, then waits in order to not let the display run ahead of the wall
         clock.
         """
-        self.update_camera_from_keys()
         mujoco.mjv_updateScene(self.model, self.data, self.mjvOption, pert=None, cam=self.mjvCamera,
                                catmask=mujoco.mjtCatBit.mjCAT_ALL,
                                scn=self.mjvScene)  # abstract visualization
         if self.with_display:
+            self.update_camera_from_keys()
             self.display.render_scene(self.mjvScene)
             if self.recording:
                 self.write()

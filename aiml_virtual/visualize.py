@@ -26,27 +26,49 @@ if TYPE_CHECKING: # this avoids a circular import issue
     from aiml_virtual.simulator import Simulator
 warning = utils_general.warning
 
+# TODO: rationale for using a raw mjrcontext instead of the renderer which includes it
+# i remember this was not an arbitrary decision, but can't remember the exact reasoning
 class Display:
     """
     Class responsible for handing the OpenGL rendering phase and display of the simulation (as opposed to the
     abstract visualization).
     """
     def __init__(self, model: mujoco.MjModel, width: int, height: int, title: str):
+        self.width: int = width
+        self.height: int = height
+        self.title: str = title
+        self.model: mujoco.MjModel = model
+        self.window: Any = None
+        self.mjrContext: Optional[mujoco.MjrContext] = None
+        self.viewport: Optional[mujoco.MjrRect] = None
+
+    def __enter__(self) -> Display:
         glfw.window_hint(glfw.RESIZABLE, glfw.TRUE)  # careful! resizing may mess up the video capture!
-        self.window: Any = glfw.create_window(width, height, title, None, None)  #: The handle for the glfw window.
+        self.window = glfw.create_window(self.width, self.height, self.title, None, None)  #: The handle for the glfw window.
         if not self.window:
             warning("Could not create glfw window.")
             glfw.terminate()
-            return
+            return self
         glfw.make_context_current(self.window)  # The context needs to be made current before handling the window.
-        self.mjrContext = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_100)  #: Context for rendering.
+        self.mjrContext = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_100)  #: Context for rendering.
         w, h = glfw.get_framebuffer_size(self.window)
-        self.viewport: mujoco.MjrRect = mujoco.MjrRect(0, 0, w, h)  #: OpenGL rectangle where the rendering happens
+        self.viewport = mujoco.MjrRect(0, 0, w, h)  #: OpenGL rectangle where the rendering happens
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        if glfw.get_current_context() == self.window:
+            glfw.make_context_current(None)
+        glfw.destroy_window(self.window)
+        self.window = None
+        self.viewport = None
+        self.mjrContext.free()
+        self.mjrContext = None
 
     def render_scene(self, scene: mujoco.MjvScene) -> None:
         """
         Renders the provided MjvScene to the glfw framebuffer.
         """
+        # glfw.make_context_current(self.window) # might neccessary if there are multiple windows TODO: check vs performance
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
         mujoco.mjr_render(self.viewport, scene, self.mjrContext)  # openGL rendering
 
@@ -266,21 +288,28 @@ class Visualizer:
         self.writer: Optional[cv2.VideoWriter] = None  #: The object responsible for saving the video.
         self.recording: bool = False  #: Whether the frames are currently being saved.
 
-        self.glfw = GLFWGuard()
-        self.glfw.initialize()
+
         self.with_display: bool = with_display #: Whether a window will be displayed for the simulation.
-        if with_display:
+        self.display: Optional[Display] = None  #: The Display object for the visualizer.
+        self.renderer: Optional[mujoco.Renderer] = None  #: The mujoco renderer for generating frames without display.
+        self.glfw = GLFWGuard() #: The glfw handler.
+
+    def __enter__(self) -> Visualizer:
+        self.glfw.initialize()
+        if self.with_display:
             self.prev_x: int = 0  #: Mouse x position when the last click happened.
             self.prev_y: int = 0  #: Mouse y position when the last click happened.
             self.mouse_left_btn_down: bool = False  #: Whether the left mouse button is pressed.
             self.mouse_right_btn_down: bool = False  #: Whether the right mouse button is pressed.
-            self._keys_down = set() # TODO: COMMENT
-            self._last_time = self.glfw.get_time() # TODO: COMMENT
+            self._keys_down = set()  # TODO: COMMENT
+            self._last_time = self.glfw.get_time()  # TODO: COMMENT
             self.keybinds: dict[int, Callable] = {
                 self.glfw.KEY_SPACE: self.simulator.pause_physics,
                 self.glfw.KEY_R: self.toggle_record,
-            } #: Dictionary to save keybinds and their callbacks.
-            self.display: Display = Display(self.model, self.width, self.height, title="simulator") #: The window handler.
+            }  #: Dictionary to save keybinds and their callbacks.
+            self.display: Display = Display(self.model, self.width, self.height,
+                                            title="simulator")  #: The window handler.
+            self.display.__enter__()
             # Save callbacks: mouse movement, clicks, scroll and keybinds.
             self.glfw.set_scroll_callback(self.display.window, self.handle_scroll)
             self.glfw.set_mouse_button_callback(self.display.window, self.handle_mouse_button)
@@ -288,6 +317,18 @@ class Visualizer:
             self.glfw.set_key_callback(self.display.window, self.handle_keypress)
         else:
             self.renderer: mujoco.Renderer = mujoco.Renderer(self.model, self.height, self.width) #: The renderer used to generate frames without display.
+            self.renderer.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        if self.display is not None:
+            self.display.__exit__(exc_type, exc_value, traceback)
+            self.display = None
+        if self.renderer is not None:
+            self.renderer.__exit__(exc_type, exc_value, traceback)
+            self.renderer = None
+        self.close()
+
 
     def write(self) -> None:
         """

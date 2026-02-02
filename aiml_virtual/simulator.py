@@ -103,7 +103,11 @@ class Simulator:
             os.environ.get("DISPLAY"),
             os.environ.get("WAYLAND_DISPLAY"),
             os.environ.get("XDG_SESSION_TYPE") in ("x11", "wayland"),
+            os.environ.get("SESSIONNAME", "").startswith("Console"),
+            os.environ.get("WT_SESSION"),  # Windows Terminal
+            os.environ.get("TERM_PROGRAM"),  # VS Code, etc.
         ])
+
 
     def add_event(self, event: Event) -> None:
         self.events.append(event)
@@ -225,13 +229,12 @@ class Simulator:
                 with_display = False
                 print("Cannot open display")
             os.environ["DISPLAY"] = ":0"  # artificial display for mujoco renderer to work properly
-        self.visualizer = Visualizer(self, fps, with_display=with_display)
-        if with_display:
-            self.add_process("visualize", self.visualizer.visualize, fps / speed)
-            self.add_process("rate_limit", partial(self.rate_limit, speed=speed), fps/speed)
-        self.tick()
-        yield self
-        self.visualizer.close()
+        with Visualizer(self, fps, with_display=with_display) as self.visualizer:
+            if with_display:
+                self.add_process("visualize", self.visualizer.visualize, fps / speed)
+                self.add_process("rate_limit", partial(self.rate_limit, speed=speed), fps/speed)
+            self.tick()
+            yield self
 
     def rate_limit(self, speed: float = 1.0):
         """

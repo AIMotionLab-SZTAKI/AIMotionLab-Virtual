@@ -42,9 +42,9 @@ class MocapSource(ABC):
         Each MocapSource will have a private _data, which is a dictionary housing its data. This object musts not be
         accessed directly, only through the data property! The reason is that each MocapSource runs an infinite loop
         updating its _data in a thread separate from the main simulation thread. This thread can be started using the
-        start_mocap_thread method, and its concrete implementation should be provided in the mocap
-        method. In order to avoid concurrent accesses, _data is protected by a lock. When accessed through the data
-        property, this lock is used properly, which means the following:
+        start_mocap_thread method (preferably in the constructor), and its concrete implementation should be provided in
+        the mocap method. In order to avoid concurrent accesses, _data is protected by a lock. When accessed through the
+        data property, this lock is used properly, which means the following:
 
         - _data is only touched whenever the accessing thread has control of the lock.
         - Only a deep copy of _data is available through the data property, to avoid providing a reference through which
@@ -60,7 +60,7 @@ class MocapSource(ABC):
         super().__init__()
         self.lock: threading.Lock = threading.Lock()  #: The lock used to access the underlying data dictionary.
         self._data: dict[str, tuple[np.ndarray, np.ndarray]] = {}  #: The underyling data dictionary
-        self.fps: float = 0
+        self.fps: float = 0 #: the rate at which the mocap source updates its data
 
     @property
     def data(self) -> dict[str, tuple[np.ndarray, np.ndarray]]:

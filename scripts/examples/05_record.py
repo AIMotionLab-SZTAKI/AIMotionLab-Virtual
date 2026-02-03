@@ -33,15 +33,15 @@ if __name__ == "__main__":
     # This can be done using the DummyMocapSource.freeze(other_mocap) function, which returns a new MocapSource
     # that always contains the frame that was present in other_mocap at the time of initialization.
     dummy_mocap_dict = {
-        "airport": (np.array([-1, 1, 0]), np.array([0, 0, 0, 1])),
-        "parking_lot_0": (np.array([0, 1, 0]), np.array([0, 0, 0, 1])),
-        "landing_zone_10": (np.array([1, 1, 0]), np.array([0, 0, 0, 1])),
+        "Airport": (np.array([-1, 1, 0]), np.array([0, 0, 0, 1])),
+        "ParkingLot": (np.array([0, 1, 0]), np.array([0, 0, 0, 1])),
+        "LandingZone": (np.array([1, 1, 0]), np.array([0, 0, 0, 1])),
         "obst1": (np.array([-1, 0, 0]), np.array([0, 0, 0, 1])),
-        "payload 12": (np.array([1, 0, 0]), np.array([0, 0, 0, 1])),
+        "payload1": (np.array([1, 0, 0]), np.array([0, 0, 0, 1])),
         "bu11": (np.array([-1, -1, 0.9]), np.array([0, 0, 0, 1])),
         "bu13": (np.array([0, -1, 0]), np.array([0, 0, 0, 1])),
         "bu14": (np.array([1, -1, 0.2]), np.array([0, 0, 0, 1])),
-        "MocapBumblebee": (np.array([0, 0, 0.5]), np.array([0, 0, 0, 1]))
+        "bb0": (np.array([0, 0, 0.5]), np.array([0, 0, 0, 1]))
     }
     frame_generator = partial(dummy_mocap_source.generate_circular_paths, start_poses=dummy_mocap_dict, T=5)
     # mocap1 moves the objects above around in a circle
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     mocap2 = dummy_mocap_source.DummyMocapSource.freeze(mocap1)
     scn.add_mocap_objects(mocap2)
     # Let's add a moving mocap drone connected to mocap1 as well:
-    bb = mocap_bumblebee.MocapBumblebee(mocap1, "MocapBumblebee")
+    bb = mocap_bumblebee.MocapBumblebee(mocap1, "bb0")
     scn.add_object(bb, color="0 1 0 1")
     sim = simulator.Simulator(scn)  # note that render fps is separate from display fps!
     with sim.launch(fps=60):

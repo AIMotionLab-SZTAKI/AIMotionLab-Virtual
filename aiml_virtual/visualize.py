@@ -16,37 +16,33 @@ import os  # needed for video conversion
 import subprocess  # needed for video conversion
 import traceback
 
-if platform.system() == 'Windows':
-    import win_precise_time as time
-else:
-    import time
-
 from aiml_virtual.utils import utils_general
 if TYPE_CHECKING: # this avoids a circular import issue
     from aiml_virtual.simulator import Simulator
 warning = utils_general.warning
 
 def glfw_error_callback(code, desc):
+    """
+    Callback for GLFW errors. Prints the error code and description, as well as a stack trace.
+    """
     print("GLFW ERROR:", code, desc.decode())
     traceback.print_stack(limit=10)
 
 glfw.set_error_callback(glfw_error_callback)
 
-# TODO: rationale for using a raw mjrcontext instead of the renderer which includes it
-# i remember this was not an arbitrary decision, but can't remember the exact reasoning
 class Display:
     """
     Class responsible for handing the OpenGL rendering phase and display of the simulation (as opposed to the
     abstract visualization).
     """
     def __init__(self, model: mujoco.MjModel, width: int, height: int, title: str):
-        self.width: int = width
-        self.height: int = height
-        self.title: str = title
-        self.model: mujoco.MjModel = model
-        self.window: Any = None
-        self.mjrContext: Optional[mujoco.MjrContext] = None
-        self.viewport: Optional[mujoco.MjrRect] = None
+        self.width: int = width #: The width of the window in pixels.
+        self.height: int = height #: The height of the window in pixels.
+        self.title: str = title #: The title of the window.
+        self.model: mujoco.MjModel = model #: The mujoco model.
+        self.window: Any = None #: The handle for the glfw window.
+        self.mjrContext: Optional[mujoco.MjrContext] = None #: Context for rendering.
+        self.viewport: Optional[mujoco.MjrRect] = None #: OpenGL rectangle where the rendering happens
 
     def __enter__(self) -> Display:
         glfw.window_hint(glfw.RESIZABLE, glfw.TRUE)  # careful! resizing may mess up the video capture!
@@ -73,8 +69,11 @@ class Display:
     def render_scene(self, scene: mujoco.MjvScene) -> None:
         """
         Renders the provided MjvScene to the glfw framebuffer.
+
+        Args:
+            scene (mujoco.MjvScene): The scene to be rendered.
         """
-        # glfw.make_context_current(self.window) # might neccessary if there are multiple windows TODO: check vs performance
+        # glfw.make_context_current(self.window) # may beneccessary if there are multiple windows, performance tradeoff
         self.viewport.width, self.viewport.height = glfw.get_framebuffer_size(self.window)
         mujoco.mjr_render(self.viewport, scene, self.mjrContext)  # openGL rendering
 
@@ -97,6 +96,9 @@ class Display:
     def get_frame(self) -> np.ndarray:
         """
         Generate a frame from the latest rendered pixels.
+
+        Returns:
+            np.ndarray: The latest frame as a numpy array in BGR format.
         """
         rgb = np.empty(self.viewport.width * self.viewport.height * 3, dtype=np.uint8)
         depth = np.zeros(self.viewport.height * self.viewport.width)
@@ -114,33 +116,38 @@ class Visualizer:
     The visualizer's job is to render frames from which a video can be produced, and the frames may be displayed in a
     window. A video can be saved even when there is no display.
 
+    The visualizer acts as a context manager, so it can (MUST) be used in a with statement. Inside, it wraps
+    another context manager, which is either a Display when with_display=True (in order for us to have better control
+    over whe window) or a mujoco.Renderer (when with_display=False).
+
     .. todo:
-        Make the video frame saving use multiprocessing.
+        Rework the video frame saving to use multiprocessing, so that the simulation doesn't have to wait for the disk
+        write.
 
     .. todo:
         When the window is dragged, the simulation lags and then rushes to catch up. This is a bug.
-
-    .. todo:
-        PROPER docstrings for the newly added methods and variables
-
-    .. todo:
-        PROPER SMOOTH camera movement
     """
     DEFAULT_WIDTH: int = 1536  #: The width of the window unless specified otherwise.
     DEFAULT_HEIGHT: int = 864  #: The height of the window unless specified otherwise.
     MAX_GEOM: int = 1000  #: Size of allocated geom buffer for the mjvScene struct.
     SCROLL_DISTANCE_STEP: float = 0.2  #: How much closer/farther we get to the lookat point in a mouse scroll.
 
-    CAM_MOVE_SPEED = 3  # TODO: COMMENT
+    CAM_MOVE_SPEED = 3  #: Speed at which the camera moves when WASD keys are pressed.
 
-    def nudge_camera_xy(self, forward=0.0, right=0.0, step=0.02):
+    def nudge_camera_xy(self, forward: float =0.0, right: float =0.0, step: float=0.02) -> None:
+        """
+        Move the camera's lookat point in the XY plane, based on the current azimuth.
+        """
         az = math.radians(self.mjvCamera.azimuth)
         fwd_x, fwd_y = math.cos(az), math.sin(az)
         rgt_x, rgt_y = math.sin(az), -math.cos(az)  # fixed A/D direction
         self.mjvCamera.lookat[0] += step * (forward * fwd_x + right * rgt_x)
         self.mjvCamera.lookat[1] += step * (forward * fwd_y + right * rgt_y)
 
-    def update_camera_from_keys(self):
+    def update_camera_from_keys(self) -> None:
+        """
+        Update the camera position based on the currently pressed keys (WASD).
+        """
         now = glfw.get_time()
         dt = max(0.0, min(0.05, now - self._last_time))  # clamp dt a bit
         self._last_time = now
@@ -198,6 +205,11 @@ class Visualizer:
     def handle_scroll(self, window: Any, x: float, y: float) -> None:
         """
         Callback for the mouse scroll. Zooms the camera.
+
+        Args:
+            window (Any): The glfw window for the Display
+            x (float): The scroll in the x direction.
+            y (float): The scroll in the y direction.
         """
         self.mjvCamera.distance -= Visualizer.SCROLL_DISTANCE_STEP * y
 
@@ -270,26 +282,25 @@ class Visualizer:
         self.writer: Optional[cv2.VideoWriter] = None  #: The object responsible for saving the video.
         self.recording: bool = False  #: Whether the frames are currently being saved.
 
-
         self.with_display: bool = with_display #: Whether a window will be displayed for the simulation.
         self.display: Optional[Display] = None  #: The Display object for the visualizer.
         self.renderer: Optional[mujoco.Renderer] = None  #: The mujoco renderer for generating frames without display.
+        self._last_time: float = 0.0  #: Last time the camera was updated based on keypresses.
+        self.prev_x: int = 0  #: Mouse x position when the last click happened.
+        self.prev_y: int = 0  #: Mouse y position when the last click happened
+        self.mouse_left_btn_down: bool = False  #: Whether the left mouse button is pressed.
+        self.mouse_right_btn_down: bool = False  #: Whether the right mouse button is pressed
+        self._keys_down: set[int] = set() #: Set of currently pressed keys.
+        self.keybinds: dict[int, Callable] = {
+            glfw.KEY_SPACE: self.simulator.pause_physics,
+            glfw.KEY_R: self.toggle_record,
+        }  #: Dictionary to save keybinds and their callbacks.
 
     def __enter__(self) -> Visualizer:
         if not glfw.init():
             glfw.terminate()
             raise RuntimeError("Cannot initialize glfw.")
         if self.with_display:
-            self.prev_x: int = 0  #: Mouse x position when the last click happened.
-            self.prev_y: int = 0  #: Mouse y position when the last click happened.
-            self.mouse_left_btn_down: bool = False  #: Whether the left mouse button is pressed.
-            self.mouse_right_btn_down: bool = False  #: Whether the right mouse button is pressed.
-            self._keys_down = set()  # TODO: COMMENT
-            self._last_time = glfw.get_time()  # TODO: COMMENT
-            self.keybinds: dict[int, Callable] = {
-                glfw.KEY_SPACE: self.simulator.pause_physics,
-                glfw.KEY_R: self.toggle_record,
-            }  #: Dictionary to save keybinds and their callbacks.
             self.display: Display = Display(self.model, self.width, self.height,
                                             title="simulator")  #: The window handler.
             self.display.__enter__()

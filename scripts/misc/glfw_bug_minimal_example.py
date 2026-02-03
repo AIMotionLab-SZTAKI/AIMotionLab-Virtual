@@ -37,7 +37,7 @@ if __name__ == "__main__":
     scn_2 = scene.Scene(os.path.join(xml_directory, "empty_checkerboard.xml"), save_filename=f"example_scene_3.xml")
     scn_2.add_object(bicycle.Bicycle(), "0 1 0.1", "1 0 0 0", "0.5 0.5 0.5 1")
     sim_2 = simulator.Simulator(scn_2)
-    with sim_2.launch(with_display=True):
+    with sim_2.launch(with_display=False):
         while not sim_2.display_should_close() and sim_2.data.time < 2:
             sim_2.tick()
 

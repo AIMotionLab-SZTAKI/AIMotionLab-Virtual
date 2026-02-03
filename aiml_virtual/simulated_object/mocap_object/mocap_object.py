@@ -75,10 +75,7 @@ class MocapObject(SimulatedObject, ABC):
         Returns:
             Optional['MocapObject']: A MocapObject of dynamic type corresponding to mocap_name.
         """
-        # TODO: fix issue where we cannot create cf above 10 using add_mocap_objects due to the config file
-        # investigate whether this is only an issue using add_mocap_objects, or when adding them 1 by 1 as well
-        # this also leads to 05_recod.py being wrong by the way. Huge todo!
-        class_name: Optional[str] = MocapSource.config.get(mocap_name) # e.g. "MocapCrazyflie" (str)
+        class_name: Optional[str] = MocapSource.mocap_name_2_class(mocap_name) # e.g. "MocapCrazyflie" (str)
         if class_name is None:
             warning(f"{mocap_name} not found in config.")
             return None

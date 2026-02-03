@@ -5,6 +5,7 @@ This module contains the base class for mocap sources.
 from abc import ABC, abstractmethod
 import threading
 import copy
+from typing import Optional
 
 import numpy as np
 import os
@@ -34,6 +35,8 @@ def load_mocap_config(class_name: str, config_key: str) -> dict[str, str]:
 
     return all_configs[class_name][config_key]
 
+
+
 class MocapSource(ABC):
     """
     Abstract base class for mocap sources, which provide data for mocap objects.
@@ -54,13 +57,34 @@ class MocapSource(ABC):
         only access it after acquiring its lock, as well as never returning a direct reference to it.
     """
 
-    config: dict[str, str] = load_mocap_config("MocapSource", "config") #: **classcar** | Contains the recognized rigid bodies. Keys are the optitrack names, values are the class identifiers.
+    config: dict[str, str] = load_mocap_config("MocapSource", "config") #: **classvar** | Contains the recognized rigid bodies. Keys are the optitrack names, values are the class identifiers.
+    prefixes: dict[str, str] = load_mocap_config("MocapSource", "prefixes") #: **classvar** | Contains the prefixes for each class identifier. Keys are the prefixes, values are the class identifiers
 
     def __init__(self):
         super().__init__()
         self.lock: threading.Lock = threading.Lock()  #: The lock used to access the underlying data dictionary.
         self._data: dict[str, tuple[np.ndarray, np.ndarray]] = {}  #: The underyling data dictionary
         self.fps: float = 0 #: the rate at which the mocap source updates its data
+
+    @classmethod
+    def mocap_name_2_class(cls, mocap_name: str) -> Optional[str]:
+        """
+        Class method to convert a mocap name to its class identifier, according to the config.
+        If the mocap name is not found in the config, the known prefixes are checked.
+        If still not found, None is returned.
+
+        Args:
+            mocap_name (str): The name of the rigid body in the mocap system.
+
+        Returns:
+            str: The class identifier corresponding to the given mocap name.
+        """
+        class_name = cls.config.get(mocap_name)
+        if class_name is not None:
+            return class_name
+        class_name = cls.prefixes.get(mocap_name)
+        return class_name
+
 
     @property
     def data(self) -> dict[str, tuple[np.ndarray, np.ndarray]]:

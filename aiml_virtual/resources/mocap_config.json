@@ -1,7 +1,6 @@
 {
     "MocapSource": {
         "config": {
-
             "cf0": "MocapCrazyflie",
             "cf1": "MocapCrazyflie",
             "cf2": "MocapCrazyflie",
@@ -56,6 +55,16 @@
             "vcf18": "ViewerMocapCrazyflie",
             "vcf19": "ViewerMocapCrazyflie",
             "vcf20": "ViewerMocapCrazyflie"
+        },
+        "prefixes": {
+            "cf": "MocapCrazyflie",
+            "bb": "MocapBumblebee",
+            "AI_Car": "MocapCar",
+            "RC_Car": "MocapCar",
+            "obst": "Pole",
+            "payload": "MocapPayload",
+            "JoeBush": "MocapHitchedCar" ,
+            "vcf": "ViewerMocapCrazyflie"
         }
     },
     "MocapHitchedCar": {

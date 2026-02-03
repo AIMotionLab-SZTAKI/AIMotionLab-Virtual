@@ -41,8 +41,8 @@ if __name__ == "__main__":
         "cf0": (np.array([1, -1, 0.5]), np.array([0, 0, 0, 1])),
         "cf1": (np.array([1, 1, 0.5]), np.array([0, 0, 1, 0])),
         "bb0": (np.array([-1, 1, 0.5]), np.array([0, 1, 0, 0])),
-        "bb1": (np.array([-1, -1, 0.5]), np.array([1, 0, 0, 0])),
-        "payload1": (np.array([0, 0, 0.25]), np.array([0, 0, 0, 1]))
+        "payload1": (np.array([0, 0, 0.25]), np.array([0, 0, 0, 1])),
+        "bb2": (np.array([-1, -1, 0.5]), np.array([1, 0, 0, 0])),
     }
     # In order to make a frame generator, we can use a function provided in the dummy_mocap_source module.
     # This way, frame generator will generate mocap data that moves the elements of this dictionary around in a circle.

@@ -5,9 +5,6 @@ This module contains the abstract Trajectory class, which serves as a base of al
 from abc import ABC, abstractmethod
 from typing import Any
 
-from numpy.array_api import trunc
-
-
 class Trajectory(ABC):
     """
     Base class for all trajectories.

@@ -5,7 +5,6 @@ This module contains the base class for mocap sources.
 from abc import ABC, abstractmethod
 import threading
 import copy
-from typing import Optional
 
 import numpy as np
 import os

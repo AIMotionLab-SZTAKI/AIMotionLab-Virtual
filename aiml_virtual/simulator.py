@@ -28,9 +28,12 @@ Scene = scene.Scene
 SimulatedObject = simulated_object.SimulatedObject
 
 @dataclass
-class Event: # TODO: COMMENTS AND DOCSTRINGS REGARDING EVENTS
-    t: float
-    func: Callable[[], None]
+class Event:
+    """
+    Class for scheduling events at specific simulation times.
+    """
+    t: float #: The simulation time at which the event should occur.
+    func: Callable[[], None] #: The function to be called when the event occurs.
 
 class Simulator:
     """
@@ -98,7 +101,13 @@ class Simulator:
         self.events: list[Event] = []
 
     @staticmethod
-    def is_headless():
+    def is_headless() -> bool:
+        """
+        Static method to determine whether the current environment has a display or not.
+
+        Returns:
+            bool: True if there is no display, False otherwise.
+        """
         return not any([
             os.environ.get("DISPLAY"),
             os.environ.get("WAYLAND_DISPLAY"),
@@ -110,10 +119,19 @@ class Simulator:
 
 
     def add_event(self, event: Event) -> None:
+        """
+        Schedule an event to be executed at a specific simulation time.
+
+        Args:
+            event (Event): The event to be scheduled.
+        """
         self.events.append(event)
         self.events.sort(key=lambda e: e.t)
 
     def handle_events(self) -> None:
+        """
+        Check and execute scheduled events whose time has come.
+        """
         if self.data is not None and len(self.events) > 0:
             while len(self.events) > 0 and self.sim_time > self.events[0].t:
                 event = self.events.pop(0)

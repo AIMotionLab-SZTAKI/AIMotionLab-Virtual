@@ -26,7 +26,7 @@ if __name__ == "__main__":
     # before we upload them to the drones. The SkycViewer class allows us to do just that.
     viewer = SkycViewer(os.path.join(aiml_virtual.skyc_folder, "three_drones_collisions.skyc"))
     # The skyc viewer has three main functions:
-    # viewer.plot() # This function uses skyc_utils to plot the trajectories in matplotlib.
+    viewer.plot() # This function uses skyc_utils to plot the trajectories in matplotlib.
     # This function plays the trajectories using raw mocap data, meaning that the crazyflies are mocap objects, following
     # the trajectory exactly as it's defined.
     viewer.play_raw()

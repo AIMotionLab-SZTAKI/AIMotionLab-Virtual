@@ -1,5 +1,3 @@
-# TODO: COMMENTS, DOCSTRINGS
-
 import numpy as np
 from typing import Callable
 import platform
@@ -15,16 +13,22 @@ from aiml_virtual.utils.utils_general import quaternion_from_euler
 
 class SkycMocapSource(mocap_source.MocapSource):
     """
-    Todo: Docstring
+    Mocap source that provides mocap data based on Skyc trajectories, extracted from a .skyc file.
     """
     def __init__(self, trajectories: list[SkycTrajectory], t: Callable[[], float], fps: float = 50):
         super().__init__()
-        self.trajectories: dict[str, SkycTrajectory] = {f"vcf{i}": v for i, v in enumerate(trajectories)}
-        self.t = t
-        self.fps = fps
+        self.trajectories: dict[str, SkycTrajectory] = {f"vcf{i}": v for i, v in enumerate(trajectories)} #: The trajectories to provide mocap data for, mapped by their mocap object name.
+        self.t = t #: Function that provides the current time in seconds.
+        self.fps = fps #: The frequency at which mocap data is updated.
         self.start_mocap_thread()
 
-    def t(self):
+    def t(self) -> float:
+        """
+        Function that provides the current time in seconds. This is just a placeholder to be overridden in the constructor.
+
+        Returns:
+            float: The current time.
+        """
         raise NotImplementedError
 
 

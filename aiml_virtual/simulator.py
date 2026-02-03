@@ -204,7 +204,6 @@ class Simulator:
             if obj.name in self.processes:
                 self.processes[obj.name].toggle()
 
-    # TODO: fix type hint error
     @contextmanager
     def launch(self, with_display: bool = True, fps: float = 50, speed: float = 1.0) -> 'Simulator':
         """

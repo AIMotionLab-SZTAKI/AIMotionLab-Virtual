@@ -1,11 +1,13 @@
-# TODO: COMMENTS, DOCSTRINGS
+"""
+Module to visualize .skyc trajectory files.
+"""
+
 import os
 from typing import Optional
 from xml.etree import ElementTree as ET
 import numpy as np
 from scipy.spatial import cKDTree
 from functools import partial
-
 from skyc_utils.skyc import plot_skyc_trajectories
 
 import aiml_virtual
@@ -20,6 +22,13 @@ from aiml_virtual.mocap.skyc_mocap_source import SkycMocapSource
 from aiml_virtual.utils.utils_general import warning
 
 def _pick_skyc_file() -> str:
+    """
+    Open a file picker dialog to select a .skyc file.
+    If GUI is not available, prompt for input in the terminal.
+
+    Returns:
+        str: The path to the selected .skyc file.
+    """
     # Compute starting directory: parent of the aiml_virtual package folder
     aiml_dir = os.path.dirname(os.path.abspath(aiml_virtual.__file__))
     start_dir = os.path.dirname(aiml_dir)
@@ -50,6 +59,9 @@ def _pick_skyc_file() -> str:
         return path
 
 class ViewerCrazyflie(Crazyflie):
+    """
+    Crazyflie with a semi-transparent sphere to visualize its position, and color changes.
+    """
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         ret = super().create_xml_element(pos, quat, color)
         drone = ret["worldbody"][0]
@@ -61,6 +73,9 @@ class ViewerCrazyflie(Crazyflie):
         return ret
 
 class ViewerMocapCrazyflie(MocapCrazyflie):
+    """
+    Mocap Crazyflie with a semi-transparent sphere to visualize its position, and color changes.
+    """
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         ret = super().create_xml_element(pos, quat, color)
         drone = ret["worldbody"][0]
@@ -70,7 +85,17 @@ class ViewerMocapCrazyflie(MocapCrazyflie):
         return ret
 
 def close_pairs_by_xpos(objs: list[SimulatedObject], r: float) -> list[tuple[SimulatedObject, SimulatedObject]]:
-    """Return [(obj_i, obj_j), ...] for all pairs with ||xpos_i - xpos_j|| < r."""
+    """
+    Find all pairs of objects that are closer than r based on their xpos attribute.
+    Returns [(obj_i, obj_j), ...] for all pairs with ||xpos_i - xpos_j|| < r.
+
+    Args:
+        objs (list[SimulatedObject]): List of simulated objects with xpos attribute.
+        r (float): Distance threshold.
+
+    Returns:
+        list[tuple[SimulatedObject, SimulatedObject]]: List of pairs of objects closer than r.
+    """
     n = len(objs)
     if n < 2:
         return []
@@ -78,34 +103,44 @@ def close_pairs_by_xpos(objs: list[SimulatedObject], r: float) -> list[tuple[Sim
     pairs_idx = cKDTree(P).query_pairs(r)  # set of (i,j)
     return [(objs[i], objs[j]) for (i, j) in pairs_idx]
 
-# TODO: comments and docstrings
+
 class SkycViewer:
+    """
+    Class to visualize .skyc trajectory files in the aiml_virtual simulator.
+    """
     def __init__(self,
-                 skyc_file: Optional[str] = None,
-                 graphs: bool = True,
-                 delay: float = 0.0,
-                 started: bool = True,
-                 log_collisions: bool = True):
-        self.log_collisions = log_collisions
-        # NEW: make the skyc_file optional and open a picker if not provided
+                 skyc_file: Optional[str] = None, # Path to the .skyc file. If None, a file picker dialog will open.
+                 delay: float = 0.0, # Delay in seconds before starting the trajectories.
+                 log_collisions: bool = True # Whether to log collisions between crazyflies.
+                 ):
+        self.log_collisions: bool = log_collisions #: Whether to log collisions between crazyflies.
         if not skyc_file:
             skyc_file = _pick_skyc_file()
 
         # Optionally normalize relative paths (useful if picking from skyc_viewer subpackage)
-        skyc_file = os.path.abspath(skyc_file)
+        self.skyc_file = os.path.abspath(skyc_file)
 
-        if graphs:
-            plot_skyc_trajectories(skyc_file)
-
-        self.trajectories: list[SkycTrajectory] = extract_trajectories(skyc_file)
+        self.trajectories: list[SkycTrajectory] = extract_trajectories(self.skyc_file) #: List of SkycTrajectories extracted from the .skyc file.
         for traj in self.trajectories:
             traj.start_time = delay
-            traj.started = started
-        self.crazyflies: list[ViewerCrazyflie | ViewerMocapCrazyflie] = []
-        self.scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
-        self.sim = Simulator(self.scn)
+            traj.started = delay < 0.001
+        self.crazyflies: list[ViewerCrazyflie | ViewerMocapCrazyflie] = [] #: List of crazyflies in the simulation.
+        self.scn: Optional[Scene] = None #: Scene for the simulation.
+        self.sim: Optional[Simulator] = None #: Simulator instance.
+
+    def plot(self) -> None:
+        """
+        Plot the trajectories using skyc_utils' plotting function.
+        """
+        plot_skyc_trajectories(self.skyc_file)
 
     def _play(self, speed: float):
+        """
+        Internal method to run the simulation loop.
+
+        Args:
+            speed (float): Speed multiplier for the simulation.
+        """
         with self.sim.launch(speed=speed):
             while not self.sim.display_should_close():
                 self.sim.tick()
@@ -114,7 +149,16 @@ class SkycViewer:
                     for a, b in collision_pairs:
                         warning(f"[{self.sim.sim_time:.2f}] COLLISION BETWEEN {a.name} and {b.name}")
 
-    def play_raw(self, speed: float = 1.0) -> None: # TODO: add colors here as well
+    def play_raw(self, speed: float = 1.0) -> None:
+        """
+        Play the trajectories using raw mocap data, meaning that the crazyflies are mocap objects, following
+        the trajectory exactly as it's defined.
+
+        Args:
+            speed (float): Speed multiplier for the simulation.
+        """
+        self.scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
+        self.sim = Simulator(self.scn)
         mocap = SkycMocapSource(self.trajectories, lambda: self.sim.sim_time)
         self.crazyflies = self.scn.add_mocap_objects(mocap)
         for mocap_name, traj in mocap.trajectories.items():
@@ -127,8 +171,16 @@ class SkycViewer:
                 ))
         self._play(speed)
 
-
     def play_with_controller(self, speed: float = 1.0) -> None:
+        """
+        Play the trajectories using crazyflies with controllers, meaning that the crazyflies are controlled
+        objects using a geom controller to follow the trajectory.
+
+        Args:
+            speed (float): Speed multiplier for the simulation.
+        """
+        self.scn = Scene(os.path.join(aiml_virtual.xml_directory, "empty_checkerboard.xml"))
+        self.sim = Simulator(self.scn)
         for traj in self.trajectories:
             cf = ViewerCrazyflie()
             cf.trajectory = traj

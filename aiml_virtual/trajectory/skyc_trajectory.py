@@ -7,7 +7,6 @@ import numpy as np
 from skyc_utils.trajectory import Trajectory as sTrajectory
 from skyc_utils import skyc, light_program
 from aiml_virtual.trajectory import trajectory
-from aiml_virtual.simulator import Event
 
 class SkycTrajectory(trajectory.Trajectory):
     """
@@ -29,9 +28,9 @@ class SkycTrajectory(trajectory.Trajectory):
     """
     def __init__(self, traj: sTrajectory, lights: Optional[light_program.LightProgram] = None) -> None:
         super().__init__()
-        self.sTraj: sTrajectory = traj
-        self.light_data: light_program.LightProgram = lights
-        self.start_time = 0
+        self.sTraj: sTrajectory = traj #: The skyc trajectory to evaluate.
+        self.light_data: light_program.LightProgram = lights #: The light program to evaluate alongside the trajectory.
+        self.start_time = 0 #: The time when the trajectory starts.
 
     def evaluate(self, time: float) -> dict[str, Any]:
         """

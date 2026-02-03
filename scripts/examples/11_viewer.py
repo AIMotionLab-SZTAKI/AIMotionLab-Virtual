@@ -1,4 +1,6 @@
-# TODO: COMMENTS, DOCSTRINGS
+"""
+This script demonstrates the capability of the skyc viewer to play .skyc files.
+"""
 import os
 import sys
 import pathlib
@@ -18,11 +20,9 @@ while "aiml_virtual" not in [f.name for f in  project_root.iterdir()]:
 
 import aiml_virtual
 from aiml_virtual.skyc_viewer import SkycViewer
-from aiml_virtual.simulator import Event
 
 if __name__ == "__main__":
-    # viewer = SkycViewer()
-    # viewer.play_with_controller()
-
     viewer = SkycViewer(os.path.join(aiml_virtual.skyc_folder, "three_drones_collisions.skyc"))
+    # viewer.plot()
     viewer.play_raw()
+    viewer.play_with_controller()

@@ -17,9 +17,12 @@ class Trajectory(ABC):
         Constructor left empty due to great variance in actual implementations.
         """
         super().__init__()
-        self.started: bool = started
+        self.started: bool = started #: Whether the trajectory has started. If false, evaluate should return the initial setpoint.
 
     def start(self):
+        """
+        Marks the trajectory as started.
+        """
         self.started = True
 
 

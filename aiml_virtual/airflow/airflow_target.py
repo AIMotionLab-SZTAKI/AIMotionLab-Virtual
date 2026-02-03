@@ -1,6 +1,20 @@
 """
-Module containing the interface definition that an object must satisfy if airflow forces shall act on it.
+Interfaces for objects that can receive aerodynamic forces from airflow samplers.
+
+This module defines the contract that an object must satisfy to act as an *airflow target*.
+An airflow target exposes a discretized representation of its surface, allowing airflow
+samplers to compute local pressure- and velocity-induced forces and torques.
+
+An airflow target:
+- Owns one or more airflow samplers
+- Provides a surface partitioning via `AirflowData`
+- Aggregates forces and torques computed by its samplers
+- Applies the resulting forces during its update step
+
+The airflow target is responsible for deciding *when* and *how* forces are applied;
+samplers only compute forces and remain stateless with respect to simulation time.
 """
+
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod

@@ -141,34 +141,35 @@ class TeardropPayload(DynamicObject, AirflowTarget):
 
     def create_xml_element(self, pos: str, quat: str, color: str) -> dict[str, list[ET.Element]]:
         load_mass = "0.07"  # I'm pretty sure it's something like 70g
-        segment_mass = "0.001"
+        segment_mass = "0.0001"
         black = "0 0 0 1"
         body = ET.Element("body", name=self.name, pos=pos, quat=quat)
         ret = {"worldbody": [body],
                "sensor": []}
-        capsule_width = "0.004"
+        capsule_width = "0.005"
+        condim = "3"
         ET.SubElement(body, "joint", name=self.name, type="free")
         # ET.SubElement(body, "joint", name=self.name, type="slide", axis="0 0 1")
         ET.SubElement(body, "geom", name=self.name, type="mesh", mesh="payload_simplified", pos="0 0 0.0405",
-                      rgba="0 0 0 1", euler="1.57 0 0", mass=segment_mass, condim="1")
+                      rgba="0 0 0 1", euler="1.57 0 0", mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", name=f"{self.name}_bottom", type="box", size=".016 .016 .02",
                       pos="0 0 0.0175", mass=load_mass, rgba="1.0 1.0 1.0 0.0")
         ET.SubElement(body, "geom", type="capsule", pos="0 0 0.075", size=capsule_width+" 0.027", rgba=black,
                       mass=segment_mass, condim="1")
         ET.SubElement(body, "geom", type="capsule", pos="0.01173 0 0.10565", euler="0 1.12200 0",
-                      size=capsule_width+" 0.01562", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.01562", rgba=black, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos="0.01061 0 0.10439", euler="0 1.17810 0",
-                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos="0.02561 0 0.11939", euler="0 0.39270 0",
-                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos="-0.02561 0 0.14061", euler="0 0.39270 0",
-                      size=capsule_width+" 0.005", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.005", rgba=black, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos="-0.01061 0 0.15561", euler="0 1.17810 0",
-                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos="0.01061 0 0.15561", euler="0 1.96350 0",
-                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.01378", rgba=black, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos="0.02561 0 0.14061", euler="0 2.74889 0",
-                      size=capsule_width+" 0.008", rgba=black, mass=segment_mass, condim="1")
+                      size=capsule_width+" 0.008", rgba=black, mass=segment_mass, condim=condim)
         ET.SubElement(body, "site", name=f"{self.name}_contact_point", pos="0 0 0.16", type="sphere", size="0.002", rgba=black)
         ET.SubElement(body, "site", name=f"{self.name}_hook_center_point", pos="0 0 0.1275", type="sphere", size="0.001", rgba=black)
         ET.SubElement(body, "site", name=f"{self.name}_origin", pos="0 0 0", type="sphere", size="0.001", rgba=black)
@@ -211,7 +212,7 @@ class BoxPayload(DynamicObject, AirflowTarget):
 
     def __init__(self):
         super().__init__()
-        self.size: np.ndarray = np.array([0.05, 0.05, 0.05]) #: Dimensions of the box part of the payload (hook size unaffected).
+        self.size: np.ndarray = np.array([0.16, 0.11, 0.09])/2 #: Dimensions of the box part of the payload (hook size unaffected).
         self.sensors: dict[str, np.ndarray] = {}  #: Dictionary of sensor data.
         self.top_bottom_surface_area : float = 2 * self.size[0] * 2 * self.size[1] #: Airflow rectangle area on top/bottom.
         self.side_surface_area_xz: float = 2 * self.size[0] * 2 * self.size[2] #: #: Airflow rectangle area in the xz plane.
@@ -226,26 +227,29 @@ class BoxPayload(DynamicObject, AirflowTarget):
         box_pos = f"0 0 {self.size[2]}"
         str_size = f"{self.size[0]} {self.size[1]} {self.size[2]}"
         ET.SubElement(body, "geom", name=self.name, type="box", size=str_size, pos=box_pos, mass="0.07", rgba=color)
-        segment_mass = "0.001"
-        capsule_width = "0.004"
-        hook_height = self.size[2] * 2
+        segment_mass = "0.0001"
+        capsule_width = "0.005"
+        condim = "3"
+        hook_height = self.size[2] * 2-0.02
         ET.SubElement(body, "geom", type="capsule", pos=f"0 0 {0.025+hook_height}", size=capsule_width + " 0.027",
-                      rgba=color, mass=segment_mass, condim="1")
+                      rgba=color, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos=f"0.01173 0 {0.05565+hook_height}", euler="0 1.12200 0",
-                      size=capsule_width + " 0.01562", rgba=color, mass=segment_mass, condim="1")
+                      size=capsule_width + " 0.01562", rgba=color, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos=f"0.01061 0 {0.05439+hook_height}", euler="0 1.17810 0",
-                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim="1")
+                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos=f"0.02561 0 {0.06939+hook_height}", euler="0 0.39270 0",
-                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim="1")
+                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos=f"-0.02561 0 {0.09061+hook_height}", euler="0 0.39270 0",
-                      size=capsule_width + " 0.005", rgba=color, mass=segment_mass, condim="1")
+                      size=capsule_width + " 0.005", rgba=color, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos=f"-0.01061 0 {0.10561+hook_height}", euler="0 1.17810 0",
-                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim="1")
+                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos=f"0.01061 0 {0.10561+hook_height}", euler="0 1.96350 0",
-                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim="1")
+                      size=capsule_width + " 0.01378", rgba=color, mass=segment_mass, condim=condim)
         ET.SubElement(body, "geom", type="capsule", pos=f"0.02561 0 {0.09061+hook_height}", euler="0 2.74889 0",
-                      size=capsule_width + " 0.008", rgba=color, mass=segment_mass, condim="1")
-
+                      size=capsule_width + " 0.008", rgba=color, mass=segment_mass, condim=condim)
+        ET.SubElement(body, "site", name=f"{self.name}_contact_point", pos="0 0 0.16", type="sphere", size="0.002", rgba=color)
+        ET.SubElement(body, "site", name=f"{self.name}_hook_center_point", pos="0 0 0.1275", type="sphere", size="0.001", rgba=color)
+        ET.SubElement(body, "site", name=f"{self.name}_origin", pos="0 0 0", type="sphere", size="0.001", rgba=color)
         ret["sensor"].append(ET.Element("framepos", objtype="body", objname=self.name, name=self.name+"_posimeter"))
         ret["sensor"].append(ET.Element("framelinvel", objtype="body", objname=self.name, name=self.name + "_velocimeter"))
         ret["sensor"].append(ET.Element("framequat", objtype="body", objname=self.name, name=self.name + "_orimeter"))

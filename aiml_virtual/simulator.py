@@ -7,13 +7,15 @@ import mujoco
 import mujoco.viewer
 from typing import Optional, Callable
 from contextlib import contextmanager
-import platform
 import glfw
 from functools import partial
 from dataclasses import dataclass
 import os
+import sys
+import ctypes
+from ctypes import wintypes
 
-if platform.system() == 'Windows':
+if sys.platform == "win32":
     import win_precise_time as time
 else:
     import time
@@ -101,22 +103,26 @@ class Simulator:
         self.events: list[Event] = []
 
     @staticmethod
-    def is_headless() -> bool:
-        """
-        Static method to determine whether the current environment has a display or not.
 
-        Returns:
-            bool: True if there is no display, False otherwise.
-        """
-        return not any([
-            os.environ.get("DISPLAY"),
-            os.environ.get("WAYLAND_DISPLAY"),
-            os.environ.get("XDG_SESSION_TYPE") in ("x11", "wayland"),
-            os.environ.get("SESSIONNAME", "").startswith("Console"),
-            os.environ.get("WT_SESSION"),  # Windows Terminal
-            os.environ.get("TERM_PROGRAM"),  # VS Code, etc.
-        ])
-
+    def is_headless():
+        if sys.platform != 'win32':
+            return not any([
+                os.environ.get("DISPLAY"),
+                os.environ.get("WAYLAND_DISPLAY"),
+                os.environ.get("XDG_SESSION_TYPE") in ("x11", "wayland")
+            ])
+        
+        # Windows: Check if remote session or session 0 (services/headless)
+        user32 = ctypes.windll.user32
+        is_remote = user32.GetSystemMetrics(0x1000)  # SM_REMOTESESSION [web:8]
+        
+        # Get current process session ID
+        pid = ctypes.windll.kernel32.GetCurrentProcessId()
+        session_id = wintypes.DWORD()
+        ctypes.windll.kernel32.ProcessIdToSessionId(pid, ctypes.byref(session_id)) [web:36]
+        
+        # Headless if remote or session 0 (non-interactive)
+        return bool(is_remote or session_id.value == 0)
 
     def add_event(self, event: Event) -> None:
         """

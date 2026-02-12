@@ -13,7 +13,7 @@ sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
 # -- Project information -----------------------------------------------------
 
 project = 'AIMotionLab-Virtual'
-copyright = '2024, Botond Gaal'
+copyright = '2026, Botond Gaal & AIMotionLab'
 author = 'Botond Gaal'
 release = '1.1.0'
 

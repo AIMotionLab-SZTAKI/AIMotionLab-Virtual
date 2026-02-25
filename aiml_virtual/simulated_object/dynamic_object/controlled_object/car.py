@@ -191,7 +191,7 @@ class Car(controlled_object.ControlledObject):
         rear_structure = ET.SubElement(front_axle, "body", name=self.name + "_trailer_rear_structure")
         # top plate
         ET.SubElement(rear_structure, "geom", type="box", size=".25 .1475 .003", pos="-.21 0 .08",
-                      rgba="0.7 0.6 0.35 1.0", euler="0 " + TRAILER.TOP_TILT + " 0",
+                      rgba="0.08 0.5 0.75 1.0", euler="0 " + TRAILER.TOP_TILT + " 0",
                       mass=TRAILER.MASS_TOP_PLATE, name=self.name + "_trailer_top_plate")
                       # , solref="0.02 1.0", solimp="0 0.95 0.005 0.5 2") #  , solref="0.02 2.0", solimp="0 0.95 0.01 0.5 2"
         ET.SubElement(rear_structure, "site", name=self.name + "_trailer_top_plate", pos="-.21 0 .08")

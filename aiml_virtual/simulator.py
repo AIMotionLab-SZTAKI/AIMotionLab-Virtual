@@ -103,15 +103,17 @@ class Simulator:
         self.events: list[Event] = []
 
     @staticmethod
-
-    def is_headless():
+    def is_headless() -> bool:
         if sys.platform != 'win32':
             return not any([
                 os.environ.get("DISPLAY"),
                 os.environ.get("WAYLAND_DISPLAY"),
                 os.environ.get("XDG_SESSION_TYPE") in ("x11", "wayland")
             ])
-        
+        else:
+            return False
+        #TODO: figure out a way of determining headless mode on windows as well.
+
         # Windows: Check if remote session or session 0 (services/headless)
         user32 = ctypes.windll.user32
         is_remote = user32.GetSystemMetrics(0x1000)  # SM_REMOTESESSION [web:8]
@@ -229,7 +231,9 @@ class Simulator:
                 self.processes[obj.name].toggle()
 
     @contextmanager
-    def launch(self, with_display: bool = True, fps: float = 50, speed: float = 1.0) -> 'Simulator':
+    def launch(self, with_display: bool = True, fps: float = 50, speed: float = 1.0,
+               width: int = Visualizer.DEFAULT_WIDTH,
+               height: int = Visualizer.DEFAULT_HEIGHT) -> 'Simulator':
         """
         A context handler to wrap the initialization and cleanup of a simulation run.
         When used with a display, it can be used like so:
@@ -238,6 +242,8 @@ class Simulator:
             with_display (bool): Whether to display the simulation in a window as it's being calculated.
             fps (float): The fps of the display animation (if present).
             speed (float): The relative speed of the simulation.
+            width (int): The width of the display window, if with_display is True.
+            height (int): The height of the display window, if with_display is True.
         """
         # this should be called *after* all objects have been added to the scene, hence it is called here, as opposed
         # to in __init__()
@@ -252,7 +258,7 @@ class Simulator:
                 with_display = False
                 print("Cannot open display")
             os.environ["DISPLAY"] = ":0"  # artificial display for mujoco renderer to work properly
-        with Visualizer(self, fps, with_display=with_display) as self.visualizer:
+        with Visualizer(self, fps, with_display=with_display, width=width, height=height) as self.visualizer:
             if with_display:
                 self.add_process("visualize", self.visualizer.visualize, fps / speed)
                 self.add_process("rate_limit", partial(self.rate_limit, speed=speed), fps/speed)

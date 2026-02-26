@@ -32,6 +32,7 @@ if __name__ == "__main__":
     # corresponding to the mujoco MODEL, as opposed to the simulator, which generates mujoco DATA.
     sim = simulator.Simulator(scn)
     # We can start displaying our simulation by launching its context handler.
-    with sim.launch(fps=100):
+    with sim.launch(fps=100, width=800, height=600) as _:
+        sim.visualizer.width = 200
         while not sim.display_should_close():
             sim.tick()  # tick steps the simulator, including all its subprocesses

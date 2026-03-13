@@ -8,25 +8,47 @@ version = "1.1.0"
 description = "TODO"
 # The versions in comments definitely work, but they are only meant to
 # be a reference: other version combinations may also work fine.
-dependencies = [  # python 3.10
+dependencies = [  # core packages needed for most functionalities
     "matplotlib",  # 3.6.0
-    "motioncapture==1.0a2", # 1.0a2, we should move to 1.0a4
     "mujoco", # 3.2.2
     "numpy", # 1.23.3
     "scipy", # 1.10.1
-    "sphinx",  # 8.0.2
-    "furo", # 2024.8.6
     "win-precise-time; sys_platform=='win32'", # 1.4.2
-    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git@rework",  # 2.0.0
     "opencv-python", # 4.10.0.84
-    "cyipopt; sys_platform != 'win32'", # 1.5.0, for MPCCCar
-    "casadi", # 3.6.4, for MPCCCar
-    "pyyaml", # 6.0.2, for MPCCCar
-    "pandas", # 2.2.3
-    "networkx", # 3.4.2
     "numpy-stl" # 3.1.1
 ]
 readme = "readme.md"
+
+[project.optional-dependencies] # Feature-specific dependencies
+MPCCar = [
+    "cyipopt; sys_platform != 'win32'", # 1.5.0
+    "casadi", # 3.6.4, for MPCCCar
+    "pyyaml", # 6.0.2, for MPCCCar
+]
+mocap = [
+    "motioncapture==1.0a2",
+    "pandas", # 2.2.3, used in read_optitrack_take()
+]
+docs = [
+    "sphinx",  # 8.0.2
+    "furo", # 2024.8.6
+]
+skyc = [
+    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git@rework",  # 2.0.0
+    "networkx", # 3.4.2
+]
+full = [  # contains all of the above
+    "numba",
+    "cyipopt; sys_platform != 'win32'", # 1.5.0
+    "casadi", # 3.6.4, for MPCCCar
+    "pyyaml", # 6.0.2, for MPCCCar
+    "motioncapture==1.0a2",
+    "pandas", # 2.2.3, used in read_optitrack_take()
+    "sphinx",  # 8.0.2
+    "furo", # 2024.8.6
+    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git@rework",  # 2.0.0
+    "networkx", # 3.4.2
+]
 
 [tool.setuptools]
 packages = { find = { include = ["aiml_virtual", "aiml_virtual.*"] } }

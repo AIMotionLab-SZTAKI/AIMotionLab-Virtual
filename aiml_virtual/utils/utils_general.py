@@ -89,29 +89,59 @@ def euler_from_quaternion(w: float, x: float, y: float, z: float) -> tuple[float
 
     return roll_x, pitch_y, yaw_z  # in radians
 
-def clamp(value: Union[float, int], bound: Union[int, float, list, tuple, np.ndarray]) -> float:
+def clamp(value: Union[float, int, list, tuple, np.ndarray],
+          bound: Union[int, float, list, tuple, np.ndarray]) -> float:
     """Helper function that clamps the given value with the specified bounds
 
     Args:
-        value (float | int): The value to clamp
+        value (float | int | list | tuple | np.ndarray): The value to clamp. If list | tuple | np.ndarray,
+                                                          it must contain exactly one element.
         bound Union[int, float, list, tuple, np.ndarray]: If int | float the function constrains the value into [-bound,bound]
                                                           If tuple| list | np.ndarray the value is constained into the range of [bound[0],bound[1]]
 
     Returns:
         float: The clamped value
     """
-    if isinstance(bound, int) or isinstance(bound, float):
+    if isinstance(value, (list, tuple, np.ndarray)):
+        value_arr = np.asarray(value)
+        if value_arr.size != 1:
+            raise ValueError(
+                "clamp expected 'value' to be scalar or a single-element container, "
+                f"got {value_arr.size} elements"
+            )
+        value = float(value_arr.reshape(-1)[0])
+    elif isinstance(value, (int, float, np.integer, np.floating)):
+        value = float(value)
+    else:
+        raise TypeError(
+            "clamp expected 'value' to be a numeric scalar or single-element container, "
+            f"got {type(value).__name__}"
+        )
+
+    if isinstance(bound, (int, float, np.integer, np.floating)):
         if value < -bound:
             return float(-bound)
         elif value > bound:
             return float(bound)
         return float(value)
-    elif isinstance(bound, tuple) or isinstance(bound, list) or isinstance(bound, np.ndarray):
-        if value < bound[0]:
-            return float(bound[0])
-        elif value > bound[1]:
-            return float(bound[1])
+    elif isinstance(bound, (tuple, list, np.ndarray)):
+        bound_arr = np.asarray(bound).reshape(-1)
+        if bound_arr.size < 2:
+            raise ValueError(
+                "clamp expected range bound to contain at least two elements [min, max]"
+            )
+        lower = float(bound_arr[0])
+        upper = float(bound_arr[1])
+        if value < lower:
+            return lower
+        elif value > upper:
+            return upper
         return float(value)
+
+    raise TypeError(
+        "clamp expected 'bound' to be a number or a container with at least two elements, "
+        f"got {type(bound).__name__}"
+    )
 
 def normalize(angle: float) -> float:
     """Normalizes the given angle into the [-pi/2, pi/2] range

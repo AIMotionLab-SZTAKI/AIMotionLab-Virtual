@@ -421,7 +421,7 @@ class BoxPayload(DynamicObject, AirflowTarget):
         normal = qv_mult(self.sensors["quat"], np.array((0, 0, -1)))
         n = self._bottom_rectangle_positions_raw.shape[0]
         return AirflowData(pos_in_own_frame + self.sensors["pos"], pos_in_own_frame, np.tile(normal, (n, 1)),
-                           np.full(n, self.top_bottom_miniractangle_area), [True] * n, [False] * n)
+                           np.full(n, self.top_bottom_miniractangle_area), [False] * n, [True] * n)
 
 
     def get_side_xz_rectangle_data(self) -> tuple[AirflowData, AirflowData]:

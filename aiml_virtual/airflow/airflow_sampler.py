@@ -181,9 +181,22 @@ class ComplexAirflowSampler(AirflowSampler):
         forces += forces_velocity
 
         torques = torque_from_force(pos_in_own_frame, forces)
+
+        # ORIGINAL IMPLEMENTATION: only adds torques / forces if enabled flag is true
+        # for force, torque, f_en, t_en in zip(forces, torques, force_enabled, torque_enabled):
+        #     if f_en:
+        #         force_sum += force
+        #     if t_en:
+        #         torque_sum += torque
+        # return force_sum, torque_sum
+
+        # PATCH: if force flag is False --> only zero out vertical component
+        #TODO: validate this concept via measurements
         for force, torque, f_en, t_en in zip(forces, torques, force_enabled, torque_enabled):
             if f_en:
                 force_sum += force
+            else:
+                force_sum += np.hstack((force[0:2], 0.))
             if t_en:
                 torque_sum += torque
         return force_sum, torque_sum

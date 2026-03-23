@@ -170,9 +170,13 @@ def forces_from_velocities(normal, velocity, area):
     """
     density = 1.293 #kg/m^3
     if normal.ndim == 1:
-        F = velocity * density * area * np.dot(velocity, -normal).reshape(-1, 1)
+        v_dot_n = np.dot(velocity, -normal)
+        v_dot_n = max(v_dot_n, 0)  # only surfaces facing the flow
+        F = (velocity * density * area * v_dot_n).reshape(-1, 1)
     else:
-        F = velocity * density * np.expand_dims(area, axis=1) * np.sum(velocity * (-normal), axis=1).reshape(-1, 1)
+        v_dot_n = np.sum(velocity * (-normal), axis=1)
+        v_dot_n = np.clip(v_dot_n, 0, None)  # only surfaces facing the flow
+        F = velocity * density * np.expand_dims(area, axis=1) * v_dot_n.reshape(-1, 1)
     return F
 
 def torque_from_force(r, force):

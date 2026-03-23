@@ -210,9 +210,9 @@ class BoxPayload(DynamicObject, AirflowTarget):
     AirflowTarget interface.
     """
 
-    def __init__(self):
+    def __init__(self, size: np.ndarray = np.array([0.16, 0.11, 0.09])/2):
         super().__init__()
-        self.size: np.ndarray = np.array([0.16, 0.11, 0.09])/2 #: Dimensions of the box part of the payload (hook size unaffected).
+        self.size = size #: Dimensions of the box part of the payload (hook size unaffected).
         self.sensors: dict[str, np.ndarray] = {}  #: Dictionary of sensor data.
         self.top_bottom_surface_area : float = 2 * self.size[0] * 2 * self.size[1] #: Airflow rectangle area on top/bottom.
         self.side_surface_area_xz: float = 2 * self.size[0] * 2 * self.size[2] #: #: Airflow rectangle area in the xz plane.

@@ -21,11 +21,14 @@ Samplers are attached to airflow targets, which invoke them during their update 
 
 import math
 import numpy as np
+
+import aiml_virtual
 from aiml_virtual.airflow.box_dictionary import BoxDictionary
 from aiml_virtual.airflow.airflow_target import AirflowTarget
 from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.drone import Drone
 from aiml_virtual.airflow.utils import *
 from abc import ABC, abstractmethod
+from typing import Optional
 
 class AirflowSampler(ABC):
     """
@@ -192,6 +195,60 @@ class ComplexAirflowSampler(AirflowSampler):
 
         # PATCH: if force flag is False --> only zero out vertical component
         #TODO: validate this concept via measurements
+        for force, torque, f_en, t_en in zip(forces, torques, force_enabled, torque_enabled):
+            if f_en:
+                force_sum += force
+            else:
+                force_sum += np.hstack((force[0:2], 0.))
+            if t_en:
+                torque_sum += torque
+        return force_sum, torque_sum
+
+
+class ComplexAirflowSamplerPressure(AirflowSampler):
+    """
+    Airflow sampler that takes into account the drone's rotor speed changes, but only calculates forces from pressures.
+    """
+    def __init__(self, drone: Drone, pressure_folder_path: Optional[str]):
+        if pressure_folder_path is None:
+            pressure_folder_path = aiml_virtual.airflow_luts_pressure
+        self.loaded_pressures = BoxDictionary(pressure_folder_path) #: lookup object for pressure
+        cube_size = self.loaded_pressures.get_cube_size()
+        super().__init__(drone, cube_size)
+
+    def generate_forces(self, target: AirflowTarget) -> tuple[np.ndarray, np.ndarray]:
+        force_sum = np.array([0., 0., 0.])
+        torque_sum = np.array([0., 0., 0.])
+        selfposition, selforientation = self.get_position_orientation()
+        rect_data = target.get_rectangle_data()
+        pos, pos_own_frame, normal, area, force_enabled, torque_enabled = (rect_data.pos, rect_data.pos_own_frame,
+                                                                           rect_data.normal,rect_data.area,
+                                                                           rect_data.force_enabled, rect_data.torque_enabled)
+        pos_traffed = pos - selfposition
+        pos_traffed = quat_vect_array_mult_passive(selforientation, pos_traffed)
+        condition = (pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & \
+                    (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) & \
+                    (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit)
+        pos_in_own_frame = pos_own_frame[condition]
+        pos_traffed = pos_traffed[condition]
+        normal = normal[condition]
+        area = area[condition]
+        indices = np.rint(pos_traffed * 100).astype(np.int32)
+
+        abs_average_velocity = np.sum(np.abs(self.drone.prop_vel)) / 4
+        lower_bound, upper_bound = self.loaded_pressures.get_lower_upper_bounds(abs_average_velocity)
+        lower_pressures, upper_pressures = self.loaded_pressures.get_lower_upper_bounds_arrays(lower_bound,
+                                                                                               upper_bound)
+
+        lower_pressure_values = lower_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
+        upper_pressure_values = upper_pressures[indices[:, 0], indices[:, 1], indices[:, 2]]
+
+        pressure_values = self.loaded_pressures.get_interpolated_array(abs_average_velocity, upper_pressure_values,
+                                                                       lower_pressure_values, upper_bound,
+                                                                       lower_bound)
+        forces = forces_from_pressures(normal, pressure_values, area)
+        torques = torque_from_force(pos_in_own_frame, forces)
+
         for force, torque, f_en, t_en in zip(forces, torques, force_enabled, torque_enabled):
             if f_en:
                 force_sum += force

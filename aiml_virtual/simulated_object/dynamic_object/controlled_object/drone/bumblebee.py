@@ -27,6 +27,8 @@ class Bumblebee(drone.Drone):
     MASS = "0.605"  #: **classvar** | Mass of a crazyflie.
     DIAGINERTIA = "1.5e-3 1.45e-3 2.66e-3"  #: **classvar** | Diagonal inertia components of a bumblebee.
     COG = "0.0085 0.0 0.0"  #: **classvar** | Location of the center of mass.
+    MESH_SHIFT = "0.0132 0.0 0.0"  #: **classvar** | Shift of the body mesh from the center of mass.
+    MESH_NAME = "bumblebee_body"
     PROP_COLOR = "0.1 0.02 0.5 1.0"  #: **classvar** | Color of the propellers.
     THRUST_FORCE_COEFF = 9.3945e-7
 
@@ -74,8 +76,8 @@ class Bumblebee(drone.Drone):
         quat_mesh = utils_general.quaternion_from_euler(0, 0, math.radians(270))
         quat_mesh_str = str(quat_mesh[0]) + " " + str(quat_mesh[1]) + " " + str(quat_mesh[2]) + " " + str(quat_mesh[3])
         # this is the main body of the crazyflie (from mesh):
-        ET.SubElement(drone, "geom", name=name + "_body", pos="0.0132 0 0", type="mesh", quat=quat_mesh_str,
-                      mesh="bumblebee_body", rgba=color)
+        ET.SubElement(drone, "geom", name=name + "_body", pos=Bumblebee.MESH_SHIFT, type="mesh", quat=quat_mesh_str,
+                      mesh=Bumblebee.MESH_NAME, rgba=color)
         ret = {"worldbody": [drone],
                "actuator": [],
                "sensor": []}

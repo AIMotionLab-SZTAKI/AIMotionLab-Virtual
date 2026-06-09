@@ -21,6 +21,7 @@ Samplers are attached to airflow targets, which invoke them during their update 
 
 import math
 import numpy as np
+import torch
 
 import aiml_virtual
 from aiml_virtual.airflow.box_dictionary import BoxDictionary
@@ -29,6 +30,7 @@ from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.drone 
 from aiml_virtual.airflow.utils import *
 from abc import ABC, abstractmethod
 from typing import Optional
+from CFD_MPC.ML.ann_model import ResNet
 
 class AirflowSampler(ABC):
     """
@@ -141,13 +143,16 @@ class ComplexAirflowSampler(AirflowSampler):
     def generate_forces(self, target: AirflowTarget) -> tuple[np.ndarray, np.ndarray]:
         force_sum = np.array([0., 0., 0.])
         torque_sum = np.array([0., 0., 0.])
-        selfposition, selforientation = self.get_position_orientation()
+        selfposition, selforientation = self.get_position_orientation()  # position and orientation of shifted and rotated frame used for sampling the pressure field
         rect_data = target.get_rectangle_data()
+        # pos: position of grid point in world frame
+        # pos_own_frame: position of grid point in a frame centered at the rectangle adn aligned with the world frame axes
+        # normal: normal vector at the grid point, expressed in world frame
         pos, pos_own_frame, normal, area, force_enabled, torque_enabled = (rect_data.pos, rect_data.pos_own_frame,
                                                                            rect_data.normal,rect_data.area,
                                                                            rect_data.force_enabled, rect_data.torque_enabled)
         pos_traffed = pos - selfposition
-        pos_traffed = quat_vect_array_mult_passive(selforientation, pos_traffed)
+        pos_traffed = quat_vect_array_mult_passive(selforientation, pos_traffed)  # position of the grid point in the shifted and rotated frame used for sampling the pressure field
         condition = (pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & \
                     (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) & \
                     (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit)
@@ -204,6 +209,60 @@ class ComplexAirflowSampler(AirflowSampler):
                 torque_sum += torque
         return force_sum, torque_sum
 
+class ComplexAirflowSamplerANN(AirflowSampler):
+    def __init__(self, drone: Drone, nn_model_path: str, cube_size: int = 81):
+        self.load_model(nn_model_path)
+        super().__init__(drone, cube_size)
+
+    def load_model(self, nn_model_path: str):
+        self.umean = np.array([0.39973926092563605, 0.40005617742393446, 0.399896347903726, 1456.2423409925368])
+        self.ugain = np.array([4.275118699658631, 4.278651969884725, 4.276037107810073, 0.004544720970441981])
+        self.ymean = np.array([10.292452317601311])
+        self.ygain = np.array([0.02292892630856809])
+
+        self.model = ResNet(input_features=4, output_features=1, hidden_layers=2, nodes_per_layer=128)
+        self.model.load_state_dict(torch.load(nn_model_path)["model_state_dict"])
+        self.model.eval()
+
+    def generate_forces(self, target: AirflowTarget) -> tuple[np.ndarray, np.ndarray]:
+        force_sum = np.array([0., 0., 0.])
+        torque_sum = np.array([0., 0., 0.])
+        selfposition, selforientation = self.get_position_orientation()
+        rect_data = target.get_rectangle_data()
+        pos, pos_own_frame, normal, area, force_enabled, torque_enabled = (rect_data.pos, rect_data.pos_own_frame,
+                                                                           rect_data.normal,rect_data.area,
+                                                                           rect_data.force_enabled, rect_data.torque_enabled)
+        pos_traffed = pos - selfposition
+        pos_traffed = quat_vect_array_mult_passive(selforientation, pos_traffed)
+        condition = (pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & \
+                    (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) & \
+                    (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit)
+        pos_in_own_frame = pos_own_frame[condition]
+        pos_traffed = pos_traffed[condition]
+        normal = normal[condition]
+        area = area[condition]
+        indices = np.rint(pos_traffed * 100).astype(np.int32)
+
+        abs_average_velocity = np.sum(np.abs(self.drone.prop_vel)) / 4
+
+        nn_inputs = np.hstack((pos_traffed, np.ones((pos_traffed.shape[0], 1)) * abs_average_velocity))
+        nn_inputs_scaled = (nn_inputs - self.umean) * self.ugain
+        with torch.no_grad():
+            predictions_scaled = self.model(torch.as_tensor(nn_inputs_scaled, dtype=torch.float64)).numpy().flatten()
+        pressure_values = predictions_scaled / self.ygain + self.ymean
+
+        forces = forces_from_pressures(normal, pressure_values, area)
+        torques = torque_from_force(pos_in_own_frame, forces)
+
+        for force, torque, f_en, t_en in zip(forces, torques, force_enabled, torque_enabled):
+            if f_en:
+                force_sum += force
+            else:
+                force_sum += force #np.hstack((force[0:2], 0.))
+            if t_en:
+                torque_sum += torque
+        return force_sum, torque_sum
+
 
 class ComplexAirflowSamplerPressure(AirflowSampler):
     """
@@ -253,7 +312,7 @@ class ComplexAirflowSamplerPressure(AirflowSampler):
             if f_en:
                 force_sum += force
             else:
-                force_sum += np.hstack((force[0:2], 0.))
+                force_sum += force #np.hstack((force[0:2], 0.))
             if t_en:
                 torque_sum += torque
         return force_sum, torque_sum

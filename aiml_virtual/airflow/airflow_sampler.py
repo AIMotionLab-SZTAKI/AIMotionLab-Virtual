@@ -19,9 +19,14 @@ Two sampler types are provided:
 Samplers are attached to airflow targets, which invoke them during their update step.
 """
 
+import glob
 import math
+import os
 import numpy as np
 import torch
+import yaml
+from jax import jit
+import jax.numpy as jp
 
 import aiml_virtual
 from aiml_virtual.airflow.box_dictionary import BoxDictionary
@@ -30,20 +35,35 @@ from aiml_virtual.simulated_object.dynamic_object.controlled_object.drone.drone 
 from aiml_virtual.airflow.utils import *
 from abc import ABC, abstractmethod
 from typing import Optional
-from CFD_MPC.ML.ann_model import ResNet
+from CFD_MPC.ML.ann_model import ResNet, ResNetJax
+
+def _parse_vel_range_from_folder(folder_path: str) -> tuple[int, int]:
+    """Return (min, max) propeller-velocity keys from LUT filenames in *folder_path*.
+
+    Expects filenames whose last 4 stem characters encode an integer velocity
+    (e.g. ``quadcopter_pressure_1150.txt`` → 1150).
+    """
+    paths = glob.glob(os.path.join(folder_path, "*.txt"))
+    if not paths:
+        raise RuntimeError(f"No .txt files found in {folder_path}")
+    keys = [int(os.path.splitext(os.path.basename(p))[0][-4:]) for p in paths]
+    return min(keys), max(keys)
+
 
 class AirflowSampler(ABC):
     """
     Abstract base class to define an interface both kind of airflow samplers (simple and complex)
     shall implement.
     """
-    def __init__(self, drone: Drone, cube_size: int):
+    def __init__(self, drone: Drone, cube_size: int, nz: int | None = None):
         super().__init__()
         self.drone: Drone = drone #: The drone which generates the air flow
         self.offset_from_drone_center: np.ndarray = np.array([-cube_size / 200.0,
                                                   -cube_size / 200.0,
                                                   -cube_size / 100.0]) #: Offset of the air pressure dictionary's origo.
-        self.index_upper_limit: float = (float(cube_size) - 0.5) / 100 #: Max index of the air pressure dictionary.
+        self.index_upper_limit: float = (float(cube_size) - 0.5) / 100 #: Max index in x and y.
+        # z may differ from xy when the LUT is cropped along z only
+        self.index_upper_limit_z: float = (float(nz) - 0.5) / 100 if nz is not None else self.index_upper_limit
 
     @property
     def drone_position(self) -> np.ndarray:
@@ -126,6 +146,7 @@ class SimpleAirflowSampler(AirflowSampler):
                 force_sum += force
             if t_en:
                 torque_sum += torque
+        print(force_sum)
         return force_sum, torque_sum
 
 class ComplexAirflowSampler(AirflowSampler):
@@ -210,19 +231,36 @@ class ComplexAirflowSampler(AirflowSampler):
         return force_sum, torque_sum
 
 class ComplexAirflowSamplerANN(AirflowSampler):
-    def __init__(self, drone: Drone, nn_model_path: str, cube_size: int = 81):
-        self.load_model(nn_model_path)
-        super().__init__(drone, cube_size)
+    def __init__(self, drone: Drone, nn_model_path: str, cube_size: int = 81,
+                 lut_folder_path: Optional[str] = None):
+        nz = self.load_model(nn_model_path)
+        if lut_folder_path is not None:
+            self.vel_min, self.vel_max = _parse_vel_range_from_folder(lut_folder_path)
+        else:
+            self.vel_min, self.vel_max = None, None
+        super().__init__(drone, cube_size, nz=nz)
 
-    def load_model(self, nn_model_path: str):
-        self.umean = np.array([0.39973926092563605, 0.40005617742393446, 0.399896347903726, 1456.2423409925368])
-        self.ugain = np.array([4.275118699658631, 4.278651969884725, 4.276037107810073, 0.004544720970441981])
-        self.ymean = np.array([10.292452317601311])
-        self.ygain = np.array([0.02292892630856809])
+    def load_model(self, nn_model_path: str) -> int | None:
+        meta_path = os.path.join(os.path.dirname(nn_model_path), "data.yaml")
+        if os.path.exists(meta_path):
+            with open(meta_path) as f:
+                meta = yaml.safe_load(f)
+            self.umean = np.array(meta["umean"])
+            self.ugain = np.array(meta["ugain"])
+            self.ymean = np.array(meta["ymean"])
+            self.ygain = np.array(meta["ygain"])
+            nz = meta.get("nz", None)
+        else:
+            self.umean = np.array([0.39973926092563605, 0.40005617742393446, 0.399896347903726, 1456.2423409925368])
+            self.ugain = np.array([4.275118699658631, 4.278651969884725, 4.276037107810073, 0.004544720970441981])
+            self.ymean = np.array([10.292452317601311])
+            self.ygain = np.array([0.02292892630856809])
+            nz = None
 
         self.model = ResNet(input_features=4, output_features=1, hidden_layers=2, nodes_per_layer=128)
         self.model.load_state_dict(torch.load(nn_model_path)["model_state_dict"])
         self.model.eval()
+        return nz
 
     def generate_forces(self, target: AirflowTarget) -> tuple[np.ndarray, np.ndarray]:
         force_sum = np.array([0., 0., 0.])
@@ -236,14 +274,15 @@ class ComplexAirflowSamplerANN(AirflowSampler):
         pos_traffed = quat_vect_array_mult_passive(selforientation, pos_traffed)
         condition = (pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & \
                     (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) & \
-                    (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit)
+                    (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit_z)
         pos_in_own_frame = pos_own_frame[condition]
         pos_traffed = pos_traffed[condition]
         normal = normal[condition]
         area = area[condition]
-        indices = np.rint(pos_traffed * 100).astype(np.int32)
 
         abs_average_velocity = np.sum(np.abs(self.drone.prop_vel)) / 4
+        if self.vel_min is not None:
+            abs_average_velocity = np.clip(abs_average_velocity, self.vel_min, self.vel_max)
 
         nn_inputs = np.hstack((pos_traffed, np.ones((pos_traffed.shape[0], 1)) * abs_average_velocity))
         nn_inputs_scaled = (nn_inputs - self.umean) * self.ugain
@@ -258,22 +297,43 @@ class ComplexAirflowSamplerANN(AirflowSampler):
             if f_en:
                 force_sum += force
             else:
-                force_sum += force #np.hstack((force[0:2], 0.))
+                force_sum += force
             if t_en:
                 torque_sum += torque
         return force_sum, torque_sum
 
+class ComplexAirflowSamplerJax(AirflowSampler):
+    def __init__(self, drone: Drone, nn_model_path: str, cube_size: int = 81,
+                 lut_folder_path: Optional[str] = None):
+        nz = self.load_model(nn_model_path)
+        if lut_folder_path is not None:
+            self.vel_min, self.vel_max = _parse_vel_range_from_folder(lut_folder_path)
+        else:
+            self.vel_min, self.vel_max = None, None
+        super().__init__(drone, cube_size, nz=nz)
+        self.predict(jp.zeros((1, 4)))
 
-class ComplexAirflowSamplerPressure(AirflowSampler):
-    """
-    Airflow sampler that takes into account the drone's rotor speed changes, but only calculates forces from pressures.
-    """
-    def __init__(self, drone: Drone, pressure_folder_path: Optional[str]):
-        if pressure_folder_path is None:
-            pressure_folder_path = aiml_virtual.airflow_luts_pressure
-        self.loaded_pressures = BoxDictionary(pressure_folder_path) #: lookup object for pressure
-        cube_size = self.loaded_pressures.get_cube_size()
-        super().__init__(drone, cube_size)
+    def load_model(self, nn_model_path: str) -> int | None:
+        meta_path = os.path.join(os.path.dirname(nn_model_path), "data.yaml")
+        if os.path.exists(meta_path):
+            with open(meta_path) as f:
+                meta = yaml.safe_load(f)
+            self.umean = jp.array(meta["umean"])
+            self.ugain = jp.array(meta["ugain"])
+            self.ymean = jp.array(meta["ymean"])
+            self.ygain = jp.array(meta["ygain"])
+            nz = meta.get("nz", None)
+        else:
+            self.umean = jp.array([0.39973926092563605, 0.40005617742393446, 0.399896347903726, 1456.2423409925368])
+            self.ugain = jp.array([4.275118699658631, 4.278651969884725, 4.276037107810073, 0.004544720970441981])
+            self.ymean = jp.array([10.292452317601311])
+            self.ygain = jp.array([0.02292892630856809])
+            nz = None
+
+        model = ResNetJax(input_features=4, output_features=1, hidden_layers=2, nodes_per_layer=128)
+        model.load_pth(nn_model_path)
+        self.predict = jit(model)
+        return nz
 
     def generate_forces(self, target: AirflowTarget) -> tuple[np.ndarray, np.ndarray]:
         force_sum = np.array([0., 0., 0.])
@@ -287,14 +347,73 @@ class ComplexAirflowSamplerPressure(AirflowSampler):
         pos_traffed = quat_vect_array_mult_passive(selforientation, pos_traffed)
         condition = (pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & \
                     (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) & \
-                    (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit)
+                    (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit_z)
+        abs_average_velocity = np.sum(np.abs(self.drone.prop_vel)) / 4
+        if self.vel_min is not None:
+            abs_average_velocity = np.clip(abs_average_velocity, self.vel_min, self.vel_max)
+
+        # Evaluate the network on the full, fixed-size point set so the jitted
+        # `self.predict` is only traced/compiled once. The number of points inside
+        # `condition` changes every step; feeding that variable-length subset to a
+        # jitted function forces a costly XLA recompilation on each call. Instead we
+        # run every point and drop the out-of-region predictions afterwards. Those
+        # points lie outside the model's trained domain, but they are discarded
+        # before any of their values are used, so they cannot affect the result.
+        nn_inputs = np.hstack((pos_traffed, np.ones((pos_traffed.shape[0], 1)) * abs_average_velocity))
+        nn_inputs_scaled = (nn_inputs - self.umean) * self.ugain
+        predictions_scaled = np.asarray(self.predict(jp.array(nn_inputs_scaled))).flatten()
+        pressure_values = np.asarray(predictions_scaled / self.ygain + self.ymean)[condition]
+
+        pos_in_own_frame = pos_own_frame[condition]
+        normal = normal[condition]
+        area = area[condition]
+
+        forces = forces_from_pressures(normal, pressure_values, area)
+        torques = torque_from_force(pos_in_own_frame, forces)
+
+        for force, torque, f_en, t_en in zip(forces, torques, force_enabled, torque_enabled):
+            if f_en:
+                force_sum += force
+            else:
+                force_sum += np.hstack((force[0:2], 0.))
+            if t_en:
+                torque_sum += torque
+        return force_sum, torque_sum
+
+class ComplexAirflowSamplerPressure(AirflowSampler):
+    """
+    Airflow sampler that takes into account the drone's rotor speed changes, but only calculates forces from pressures.
+    """
+    def __init__(self, drone: Drone, pressure_folder_path: Optional[str]):
+        if pressure_folder_path is None:
+            pressure_folder_path = aiml_virtual.airflow_luts_pressure
+        self.loaded_pressures = BoxDictionary(pressure_folder_path) #: lookup object for pressure
+        self.vel_min, self.vel_max = self.loaded_pressures.get_velocity_range()
+        cube_size = self.loaded_pressures.get_cube_size()
+        _, _, nz = self.loaded_pressures.get_grid_shape()
+        super().__init__(drone, cube_size, nz=nz)
+
+    def generate_forces(self, target: AirflowTarget) -> tuple[np.ndarray, np.ndarray]:
+        force_sum = np.array([0., 0., 0.])
+        torque_sum = np.array([0., 0., 0.])
+        selfposition, selforientation = self.get_position_orientation()
+        rect_data = target.get_rectangle_data()
+        pos, pos_own_frame, normal, area, force_enabled, torque_enabled = (rect_data.pos, rect_data.pos_own_frame,
+                                                                           rect_data.normal,rect_data.area,
+                                                                           rect_data.force_enabled, rect_data.torque_enabled)
+        pos_traffed = pos - selfposition
+        pos_traffed = quat_vect_array_mult_passive(selforientation, pos_traffed)
+        condition = (pos_traffed[:, 0] >= 0) & (pos_traffed[:, 0] < self.index_upper_limit) & \
+                    (pos_traffed[:, 1] >= 0) & (pos_traffed[:, 1] < self.index_upper_limit) & \
+                    (pos_traffed[:, 2] >= 0) & (pos_traffed[:, 2] < self.index_upper_limit_z)
         pos_in_own_frame = pos_own_frame[condition]
         pos_traffed = pos_traffed[condition]
         normal = normal[condition]
         area = area[condition]
         indices = np.rint(pos_traffed * 100).astype(np.int32)
 
-        abs_average_velocity = np.sum(np.abs(self.drone.prop_vel)) / 4
+        abs_average_velocity = np.clip(np.sum(np.abs(self.drone.prop_vel)) / 4,
+                                       self.vel_min, self.vel_max)
         lower_bound, upper_bound = self.loaded_pressures.get_lower_upper_bounds(abs_average_velocity)
         lower_pressures, upper_pressures = self.loaded_pressures.get_lower_upper_bounds_arrays(lower_bound,
                                                                                                upper_bound)
@@ -312,7 +431,7 @@ class ComplexAirflowSamplerPressure(AirflowSampler):
             if f_en:
                 force_sum += force
             else:
-                force_sum += force #np.hstack((force[0:2], 0.))
+                force_sum += np.hstack((force[0:2], 0.))
             if t_en:
                 torque_sum += torque
         return force_sum, torque_sum

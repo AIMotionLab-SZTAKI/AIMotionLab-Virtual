@@ -31,7 +31,6 @@ File format assumptions
 import os
 import glob
 import numpy as np
-import math
 import bisect
 
 class BoxDictionary:
@@ -64,7 +63,7 @@ class BoxDictionary:
         Each file is keyed by the integer encoded in the last 4 digits of its filename.
 
         Raises:
-            RuntimeError: If no files are found or if any file has an invalid number of rows.
+            RuntimeError: If no files are found or if the grid shape cannot be inferred.
         """
         if (len(self._txt_file_paths) == 0):
             raise RuntimeError("no files found at given path!")
@@ -72,11 +71,6 @@ class BoxDictionary:
         for txt_file_path in self._txt_file_paths:
             number_from_file = self._get_extracted_number_from_file_path(txt_file_path)
             self._loaded_data[number_from_file] = np.loadtxt(txt_file_path)
-
-            is_invalid_number_of_lines_in_file = not self._is_perfect_cube_number(
-                len(self._loaded_data[number_from_file]))
-            if (is_invalid_number_of_lines_in_file):
-                raise RuntimeError(f"invalid number of lines in {txt_file_path}!")
 
     def _get_extracted_number_from_file_path(self, file_path):
         """
@@ -100,37 +94,48 @@ class BoxDictionary:
 
         return int(filename[-4:])
 
+    @staticmethod
+    def _infer_grid_shape(n: int) -> tuple[int, int, int]:
+        """
+        Infer ``(nx, ny, nz)`` from the total voxel count.
+
+        First tries a perfect cube. If that fails, assumes ``nx == ny == 81``
+        (the standard LUT xy resolution) and computes ``nz = n / (81 * 81)``.
+
+        Raises:
+            RuntimeError: If neither heuristic produces a valid factorisation.
+        """
+        cube_root = round(n ** (1 / 3))
+        if cube_root ** 3 == n:
+            return (cube_root, cube_root, cube_root)
+        nxy = 81
+        if n % (nxy * nxy) == 0:
+            return (nxy, nxy, n // (nxy * nxy))
+        raise RuntimeError(
+            f"Cannot infer grid shape from {n} voxels: not a perfect cube "
+            f"and not divisible by {nxy}×{nxy}={nxy*nxy}."
+        )
+
     def _get_cube_size(self):
         """
-        Compute the cube edge length (voxels per axis) from the first loaded file.
+        Compute the grid shape from the first loaded file and store it.
+
+        Sets ``self._grid_shape = (nx, ny, nz)`` and returns the xy edge length.
 
         Returns:
-            int: The cube size (N) such that each file contains N**3 rows.
+            int: ``nx`` (== ``ny``), the number of voxels along the x/y axes.
         """
         first_key_in_dict = next(iter(self._loaded_data))
-        return int(math.pow(self._loaded_data[first_key_in_dict].shape[0] + 1, 1 / 3))
-
-    def _is_perfect_cube_number(self, n):
-        """
-        Check whether an integer is a perfect cube.
-
-        Args:
-            n (int): Value to check.
-
-        Returns:
-            bool: True if ``n`` is a perfect cube, otherwise False.
-        """
-        if n <= 0:
-            return False
-        cube_root = round(n ** (1 / 3))
-        return cube_root ** 3 == n
+        n = self._loaded_data[first_key_in_dict].shape[0]
+        self._grid_shape = self._infer_grid_shape(n)
+        return self._grid_shape[0]
 
     def _reshape_dictionary(self):
         """
         Reshape each loaded array into its voxel-grid form.
 
-        Scalar fields become ``(cube_size, cube_size, cube_size)``.
-        Vector fields become ``(cube_size, cube_size, cube_size, k)``.
+        Scalar fields become ``(nx, ny, nz)``.
+        Vector fields become ``(nx, ny, nz, k)``.
         """
         first_key_in_dict = next(iter(self._loaded_data))
         dimension = self._get_dimension(self._loaded_data[first_key_in_dict])
@@ -148,18 +153,33 @@ class BoxDictionary:
         Returns:
             tuple[int, ...]: Target shape for reshaping.
         """
+        nx, ny, nz = self._grid_shape
         if (len(array.shape) == 1):
-            return (self._cube_size, self._cube_size, self._cube_size)
-        return (self._cube_size, self._cube_size, self._cube_size, array.shape[1])
+            return (nx, ny, nz)
+        return (nx, ny, nz, array.shape[1])
 
     def get_cube_size(self):
         """
-        Get the number of voxels per axis of the loaded cubic grids.
+        Get the number of voxels along the x/y axes.
 
         Returns:
-            int: The cube size.
+            int: ``nx`` (== ``ny``).
         """
         return self._cube_size
+
+    def get_grid_shape(self) -> tuple[int, int, int]:
+        """
+        Get the full ``(nx, ny, nz)`` grid shape.
+
+        Returns:
+            tuple[int, int, int]: Voxel counts along x, y, and z axes.
+        """
+        return self._grid_shape
+
+    def get_velocity_range(self) -> tuple[int, int]:
+        """Return (min_key, max_key) — the propeller-velocity range covered by this dataset."""
+        keys = sorted(self._loaded_data.keys())
+        return keys[0], keys[-1]
 
     def get_lower_upper_bounds(self, average_velocity):
         """
@@ -183,7 +203,7 @@ class BoxDictionary:
         if target <= keys[0]:
             return keys[0], keys[0]
         elif target >= keys[-1]:
-            keys[-1], keys[-1]
+            return keys[-1], keys[-1]
 
         pos = bisect.bisect_left(keys, target)
         if (keys[pos] == target):

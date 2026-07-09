@@ -20,7 +20,7 @@
     </default>
   </default>
   <compiler angle="radian" meshdir=""/>
-  <option timestep="0.001" integrator="implicitfast"/>
+  <option timestep="0.001" integrator="implicitfast" iterations="5" ls_iterations="15"/>
   <visual>
     <quality shadowsize="4096"/>
     <global offwidth = "1920" offheight = "1200"/>

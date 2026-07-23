@@ -367,6 +367,10 @@ class ComplexAirflowSamplerJax(AirflowSampler):
         pos_in_own_frame = pos_own_frame[condition]
         normal = normal[condition]
         area = area[condition]
+        # the enable masks describe every panel, so they have to be narrowed down to the in-region panels as well,
+        # otherwise the zip below pairs them with the wrong panels
+        force_enabled = np.asarray(force_enabled)[condition]
+        torque_enabled = np.asarray(torque_enabled)[condition]
 
         forces = forces_from_pressures(normal, pressure_values, area)
         torques = torque_from_force(pos_in_own_frame, forces)
@@ -378,6 +382,7 @@ class ComplexAirflowSamplerJax(AirflowSampler):
                 force_sum += np.hstack((force[0:2], 0.))
             if t_en:
                 torque_sum += torque
+        force_sum[0:2] = 0.0
         return force_sum, torque_sum
 
 class ComplexAirflowSamplerPressure(AirflowSampler):
@@ -434,4 +439,5 @@ class ComplexAirflowSamplerPressure(AirflowSampler):
                 force_sum += np.hstack((force[0:2], 0.))
             if t_en:
                 torque_sum += torque
+        force_sum[0:2] = 0.0
         return force_sum, torque_sum

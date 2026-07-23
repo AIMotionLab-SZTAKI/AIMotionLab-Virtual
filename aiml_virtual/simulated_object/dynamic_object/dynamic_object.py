@@ -343,7 +343,10 @@ class BoxPayload(DynamicObject, AirflowTarget):
         self._bottom_rectangle_positions_raw = np.zeros(
             (self._top_bottom_subdivision_x * self._top_bottom_subdivision_y, 3))
 
-        pos_z_offset = (-1) * self.size[2]
+        # the top rectangles sit at z = +size[2], so mirroring them onto the bottom face is a translation of the full
+        # box height along z only
+        pos_z_offset = np.array((0.0, 0.0, (-2) * self.size[2]))
+        # pos_z_offset = -1* self.size[2]
 
         for i in range(self._top_bottom_subdivision_x):
             for j in range(self._top_bottom_subdivision_y):

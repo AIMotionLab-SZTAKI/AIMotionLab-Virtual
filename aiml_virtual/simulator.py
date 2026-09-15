@@ -155,7 +155,7 @@ class Simulator:
 
         Args:
             name (str): The name of the process in the dictionary, to allow named access later.
-            func (func: Callable): The function that will run when the process gets its turn.
+            func (Callable[[], None]): The function that will run when the process gets its turn.
             frequency (float): The frequency (in Hz) at which to run the method.
         """
         # the method we're registering shall be called after interval number of physics loops, for example, if

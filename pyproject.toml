@@ -15,7 +15,8 @@ dependencies = [  # core packages needed for most functionalities
     "scipy", # 1.10.1
     "win-precise-time; sys_platform=='win32'", # 1.4.2
     "opencv-python", # 4.10.0.84
-    "numpy-stl" # 3.1.1
+    "numpy-stl", # 3.1.1
+    "glfw", # 2.10.2
 ]
 readme = "readme.md"
 
@@ -27,27 +28,29 @@ MPCCar = [
 ]
 mocap = [
     "motioncapture==1.0a2",
-    "pandas", # 2.2.3, used in read_optitrack_take()
 ]
 docs = [
     "sphinx",  # 8.0.2
     "furo", # 2024.8.6
 ]
 skyc = [
-    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git@rework",  # 2.0.0
-    "networkx", # 3.4.2
+    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git",  # 2.0.0
 ]
-full = [  # contains all of the above
-    "numba",
-    "cyipopt; sys_platform != 'win32'", # 1.5.0
-    "casadi", # 3.6.4, for MPCCCar
-    "pyyaml", # 6.0.2, for MPCCCar
-    "motioncapture==1.0a2",
-    "pandas", # 2.2.3, used in read_optitrack_take()
-    "sphinx",  # 8.0.2
-    "furo", # 2024.8.6
-    "skyc_utils @ git+https://github.com/AIMotionLab-SZTAKI/skyc_utils.git@rework",  # 2.0.0
+airflow = [  # for the neural network based airflow samplers
+    "torch",
+    "jax",
+    "pyyaml",
+    # private repository: installing requires access to it
+    "CFD-based-drone-transport @ git+https://github.com/AIMotionLab-SZTAKI/CFD-based-drone-transport.git",
+]
+demo = [  # for the scripts in scripts/demo
     "networkx", # 3.4.2
+    "pandas", # 2.2.3, used in read_optitrack_take()
+    "pillow",
+]
+hook2dof = [  # for scripts/misc/plan_trajectory_moving.py
+    # private repository: installing requires access to it
+    "quadcopter_hook_twodof @ git+https://github.com/AIMotionLab-SZTAKI/quadcopter-hook-2DoF.git",
 ]
 
 [tool.setuptools]

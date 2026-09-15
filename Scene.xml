@@ -1,0 +1,126 @@
+<mujoco model="Scene.xml">
+	<include file="/home/gaalbotond/SZTAKI/AIMotionLab-Virtual/aiml_virtual/resources/xml_models/empty_checkerboard.xml" />
+	<worldbody>
+		<body name="ViewerCrazyflie_0" pos="-1.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+			<geom name="ViewerCrazyflie_0_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0.5 0.5 1" />
+			<geom name="ViewerCrazyflie_0_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0.5 0.5 1" />
+			<geom name="ViewerCrazyflie_0_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.5 0.5 1" />
+			<inertial pos="0.0 0.0 0.0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028" />
+			<joint name="ViewerCrazyflie_0" type="free" />
+			<site name="ViewerCrazyflie_0_cog" pos="0 0 0" size="0.005" rgba="0.5 0.5 0.5 0.0" />
+			<body name="ViewerCrazyflie_0_prop0">
+				<joint name="ViewerCrazyflie_0_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_0_prop0" type="mesh" mesh="crazyflie_ccw_prop" mass="0.00001" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_0_prop0" pos="0.03275 -0.03275 0.0223" size="0.0001" />
+			<body name="ViewerCrazyflie_0_prop1">
+				<joint name="ViewerCrazyflie_0_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_0_prop1" type="mesh" mesh="crazyflie_cw_prop" mass="0.00001" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_0_prop1" pos="-0.03275 -0.03275 0.0223" size="0.0001" />
+			<body name="ViewerCrazyflie_0_prop2">
+				<joint name="ViewerCrazyflie_0_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_0_prop2" type="mesh" mesh="crazyflie_ccw_prop" mass="0.00001" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_0_prop2" pos="-0.03275 0.03275 0.0223" size="0.0001" />
+			<body name="ViewerCrazyflie_0_prop3">
+				<joint name="ViewerCrazyflie_0_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_0_prop3" type="mesh" mesh="crazyflie_cw_prop" mass="0.00001" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_0_prop3" pos="0.03275 0.03275 0.0223" size="0.0001" />
+			<geom name="ViewerCrazyflie_0_sphere" type="sphere" size="0.1" rgba="0.5 0.5 0.5 0.2" contype="0" conaffinity="0" />
+		</body>
+		<body name="ViewerCrazyflie_1" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+			<geom name="ViewerCrazyflie_1_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0.5 0.5 1" />
+			<geom name="ViewerCrazyflie_1_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0.5 0.5 1" />
+			<geom name="ViewerCrazyflie_1_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.5 0.5 1" />
+			<inertial pos="0.0 0.0 0.0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028" />
+			<joint name="ViewerCrazyflie_1" type="free" />
+			<site name="ViewerCrazyflie_1_cog" pos="0 0 0" size="0.005" rgba="0.5 0.5 0.5 0.0" />
+			<body name="ViewerCrazyflie_1_prop0">
+				<joint name="ViewerCrazyflie_1_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_1_prop0" type="mesh" mesh="crazyflie_ccw_prop" mass="0.00001" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_1_prop0" pos="0.03275 -0.03275 0.0223" size="0.0001" />
+			<body name="ViewerCrazyflie_1_prop1">
+				<joint name="ViewerCrazyflie_1_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_1_prop1" type="mesh" mesh="crazyflie_cw_prop" mass="0.00001" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_1_prop1" pos="-0.03275 -0.03275 0.0223" size="0.0001" />
+			<body name="ViewerCrazyflie_1_prop2">
+				<joint name="ViewerCrazyflie_1_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_1_prop2" type="mesh" mesh="crazyflie_ccw_prop" mass="0.00001" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_1_prop2" pos="-0.03275 0.03275 0.0223" size="0.0001" />
+			<body name="ViewerCrazyflie_1_prop3">
+				<joint name="ViewerCrazyflie_1_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_1_prop3" type="mesh" mesh="crazyflie_cw_prop" mass="0.00001" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_1_prop3" pos="0.03275 0.03275 0.0223" size="0.0001" />
+			<geom name="ViewerCrazyflie_1_sphere" type="sphere" size="0.1" rgba="0.5 0.5 0.5 0.2" contype="0" conaffinity="0" />
+		</body>
+		<body name="ViewerCrazyflie_2" pos="1.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+			<geom name="ViewerCrazyflie_2_body" type="mesh" mesh="crazyflie_body" rgba="0.5 0.5 0.5 1" />
+			<geom name="ViewerCrazyflie_2_4_motormounts" type="mesh" mesh="crazyflie_4_motormounts" rgba="0.5 0.5 0.5 1" />
+			<geom name="ViewerCrazyflie_2_4_motors" type="mesh" mesh="crazyflie_4_motors" rgba="0.5 0.5 0.5 1" />
+			<inertial pos="0.0 0.0 0.0" diaginertia="1.4e-5 1.4e-5 2.17e-5" mass="0.028" />
+			<joint name="ViewerCrazyflie_2" type="free" />
+			<site name="ViewerCrazyflie_2_cog" pos="0 0 0" size="0.005" rgba="0.5 0.5 0.5 0.0" />
+			<body name="ViewerCrazyflie_2_prop0">
+				<joint name="ViewerCrazyflie_2_prop0" axis="0 0 1" pos="0.03275 -0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_2_prop0" type="mesh" mesh="crazyflie_ccw_prop" mass="0.00001" pos="0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_2_prop0" pos="0.03275 -0.03275 0.0223" size="0.0001" />
+			<body name="ViewerCrazyflie_2_prop1">
+				<joint name="ViewerCrazyflie_2_prop1" axis="0 0 1" pos="-0.03275 -0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_2_prop1" type="mesh" mesh="crazyflie_cw_prop" mass="0.00001" pos="-0.03275 -0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_2_prop1" pos="-0.03275 -0.03275 0.0223" size="0.0001" />
+			<body name="ViewerCrazyflie_2_prop2">
+				<joint name="ViewerCrazyflie_2_prop2" axis="0 0 1" pos="-0.03275 0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_2_prop2" type="mesh" mesh="crazyflie_ccw_prop" mass="0.00001" pos="-0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_2_prop2" pos="-0.03275 0.03275 0.0223" size="0.0001" />
+			<body name="ViewerCrazyflie_2_prop3">
+				<joint name="ViewerCrazyflie_2_prop3" axis="0 0 1" pos="0.03275 0.03275 0.0223" />
+				<geom name="ViewerCrazyflie_2_prop3" type="mesh" mesh="crazyflie_cw_prop" mass="0.00001" pos="0.03275 0.03275 0.0223" rgba="0.1 0.1 0.1 1.0" />
+			</body>
+			<site name="ViewerCrazyflie_2_prop3" pos="0.03275 0.03275 0.0223" size="0.0001" />
+			<geom name="ViewerCrazyflie_2_sphere" type="sphere" size="0.1" rgba="0.5 0.5 0.5 0.2" contype="0" conaffinity="0" />
+		</body>
+	</worldbody>
+	<actuator>
+		<general site="ViewerCrazyflie_0_prop0" name="ViewerCrazyflie_0_actr0" gear="0 0 1 0 0 0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_0_prop1" name="ViewerCrazyflie_0_actr1" gear="0 0 1 0 0 -0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_0_prop2" name="ViewerCrazyflie_0_actr2" gear="0 0 1 0 0 0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_0_prop3" name="ViewerCrazyflie_0_actr3" gear="0 0 1 0 0 -0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_1_prop0" name="ViewerCrazyflie_1_actr0" gear="0 0 1 0 0 0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_1_prop1" name="ViewerCrazyflie_1_actr1" gear="0 0 1 0 0 -0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_1_prop2" name="ViewerCrazyflie_1_actr2" gear="0 0 1 0 0 0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_1_prop3" name="ViewerCrazyflie_1_actr3" gear="0 0 1 0 0 -0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_2_prop0" name="ViewerCrazyflie_2_actr0" gear="0 0 1 0 0 0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_2_prop1" name="ViewerCrazyflie_2_actr1" gear="0 0 1 0 0 -0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_2_prop2" name="ViewerCrazyflie_2_actr2" gear="0 0 1 0 0 0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+		<general site="ViewerCrazyflie_2_prop3" name="ViewerCrazyflie_2_actr3" gear="0 0 1 0 0 -0.02514" ctrllimited="true" ctrlrange="0 0.16" />
+	</actuator>
+	<sensor>
+		<gyro site="ViewerCrazyflie_0_cog" name="ViewerCrazyflie_0_gyro" />
+		<framelinvel objtype="site" objname="ViewerCrazyflie_0_cog" name="ViewerCrazyflie_0_velocimeter" />
+		<accelerometer site="ViewerCrazyflie_0_cog" name="ViewerCrazyflie_0_accelerometer" />
+		<framepos objtype="site" objname="ViewerCrazyflie_0_cog" name="ViewerCrazyflie_0_posimeter" />
+		<framequat objtype="site" objname="ViewerCrazyflie_0_cog" name="ViewerCrazyflie_0_orimeter" />
+		<frameangacc objtype="site" objname="ViewerCrazyflie_0_cog" name="ViewerCrazyflie_0_ang_accelerometer" />
+		<gyro site="ViewerCrazyflie_1_cog" name="ViewerCrazyflie_1_gyro" />
+		<framelinvel objtype="site" objname="ViewerCrazyflie_1_cog" name="ViewerCrazyflie_1_velocimeter" />
+		<accelerometer site="ViewerCrazyflie_1_cog" name="ViewerCrazyflie_1_accelerometer" />
+		<framepos objtype="site" objname="ViewerCrazyflie_1_cog" name="ViewerCrazyflie_1_posimeter" />
+		<framequat objtype="site" objname="ViewerCrazyflie_1_cog" name="ViewerCrazyflie_1_orimeter" />
+		<frameangacc objtype="site" objname="ViewerCrazyflie_1_cog" name="ViewerCrazyflie_1_ang_accelerometer" />
+		<gyro site="ViewerCrazyflie_2_cog" name="ViewerCrazyflie_2_gyro" />
+		<framelinvel objtype="site" objname="ViewerCrazyflie_2_cog" name="ViewerCrazyflie_2_velocimeter" />
+		<accelerometer site="ViewerCrazyflie_2_cog" name="ViewerCrazyflie_2_accelerometer" />
+		<framepos objtype="site" objname="ViewerCrazyflie_2_cog" name="ViewerCrazyflie_2_posimeter" />
+		<framequat objtype="site" objname="ViewerCrazyflie_2_cog" name="ViewerCrazyflie_2_orimeter" />
+		<frameangacc objtype="site" objname="ViewerCrazyflie_2_cog" name="ViewerCrazyflie_2_ang_accelerometer" />
+	</sensor>
+</mujoco>

@@ -35,6 +35,14 @@ autodoc_default_options = {
     'no-value': True,
 }
 
+# Packages from optional dependency groups are replaced by mock modules while autodoc imports the package, so that
+# building the docs only requires the docs group. This has no effect outside the docs build.
+autodoc_mock_imports = [
+    "torch", "jax", "yaml", "CFD_MPC",  # airflow
+    "motioncapture",  # mocap
+    "skyc_utils",  # skyc
+]
+
 autodoc_member_order = 'groupwise'
 todo_include_todos = True
 templates_path = ['_templates']

@@ -48,6 +48,22 @@ class SimulatedObject(ABC):
         data and the model aren't saved when the object is initialized. This way, we can initialize a simulated object,
         set whatever properties we want for it, and *then* use the bind_to_model/data functions to bind it. This also
         means that when we reload, and the model/data are lost, the object may persist.
+
+    .. todo::
+        Objects parsed from an MJCF file don't keep the name found in the file. Scene.__init__ identifies the class
+        from the body's name, but then calls the constructor, which generates a new name from the instance counter.
+        The two only match if the file's names are numbered consecutively from 0 (e.g. a file containing only
+        Crazyflie_1 results in an object named Crazyflie_0, whose bind_to_data fails to find its sensors). The name
+        must be set before the constructor body runs, since some subclasses (e.g. Car) derive further names from it
+        in their constructors. A possible fix is a classmethod that creates the object with __new__, sets its name,
+        then calls __init__, with SimulatedObject.__init__ only generating a name if one isn't set yet, and raising
+        the instance counter past the index found in the name.
+
+    .. todo::
+        Scene.remove_object decrements the instance counter of the removed object's class, which can lead to a name
+        being handed out twice: after creating Crazyflie_0 and Crazyflie_1 and removing Crazyflie_0, the next
+        Crazyflie is named Crazyflie_1 again, and Scene.add_object refuses it as a duplicate. The counter should
+        never be decremented, so that generated names stay unique.
     """
 
     DEFAULT_UPDATE_FREQ: float = 500 #: **classvar** | The default frequency at which each object runs its update function
@@ -87,7 +103,7 @@ class SimulatedObject(ABC):
     def __init__(self):
         super().__init__()
         cls = self.__class__
-        self.name = f"{cls.__name__}_{SimulatedObject.instance_count[cls]}"  #: The name parsed from the MJCF file.
+        self.name = f"{cls.get_identifier()}_{SimulatedObject.instance_count[cls]}"  #: The MJCF file will refer to the object by this name, and it will be used to look up the object in the model and data.
         SimulatedObject.instance_count[cls] += 1
         self.model: Optional[mujoco.MjModel] = None  #: The mujoco model in which the object exists.
         self.data: Optional[mujoco.MjData] = None  #: The mujoco data for the simulation.

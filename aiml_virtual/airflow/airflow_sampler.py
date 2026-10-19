@@ -55,7 +55,7 @@ class AirflowSampler(ABC):
     Abstract base class to define an interface both kind of airflow samplers (simple and complex)
     shall implement.
     """
-    def __init__(self, drone: Drone, cube_size: int, nz: int | None = None):
+    def __init__(self, drone: Drone, cube_size: int, nz: int | None = None, force_frame: str = "drone"):
         super().__init__()
         self.drone: Drone = drone #: The drone which generates the air flow
         self.offset_from_drone_center: np.ndarray = np.array([-cube_size / 200.0,
@@ -64,6 +64,34 @@ class AirflowSampler(ABC):
         self.index_upper_limit: float = (float(cube_size) - 0.5) / 100 #: Max index in x and y.
         # z may differ from xy when the LUT is cropped along z only
         self.index_upper_limit_z: float = (float(nz) - 0.5) / 100 if nz is not None else self.index_upper_limit
+        if force_frame not in ("drone", "world"):
+            raise ValueError(f"force_frame must be 'drone' or 'world', got {force_frame!r}")
+        self.force_frame: str = force_frame #: Axis the summed panel force is projected onto, see project_force().
+
+    def project_force(self, force_sum: np.ndarray, drone_quat: np.ndarray) -> np.ndarray:
+        """
+        Project the summed panel force onto the single axis the pressure-only model is trusted along.
+
+        Only the component of the airflow force along the rotor axis is retained: the pressure LUT
+        resolves the downwash pushing on the payload, but not the shear/drag that would produce a
+        physically meaningful in-plane force, so the lateral components of the panel sum are dropped.
+
+        - ``force_frame='drone'``: the retained axis is the drone's body z axis, so the wrench tilts
+          with the drone and gains a world-frame horizontal component of ``|F| sin(tilt)``.
+        - ``force_frame='world'``: the retained axis is world z, regardless of the drone's attitude
+          (the historical behaviour; identical to 'drone' at zero tilt).
+
+        Args:
+            force_sum (np.ndarray): Summed panel force in world frame.
+            drone_quat (np.ndarray): The drone's orientation quaternion [w, x, y, z].
+
+        Returns:
+            np.ndarray: The projected force in world frame.
+        """
+        if self.force_frame == "world":
+            return np.array([0., 0., force_sum[2]])
+        z_axis = qv_mult(drone_quat, np.array([0., 0., 1.]))
+        return float(np.dot(force_sum, z_axis)) * z_axis
 
     @property
     def drone_position(self) -> np.ndarray:
@@ -304,13 +332,13 @@ class ComplexAirflowSamplerANN(AirflowSampler):
 
 class ComplexAirflowSamplerJax(AirflowSampler):
     def __init__(self, drone: Drone, nn_model_path: str, cube_size: int = 81,
-                 lut_folder_path: Optional[str] = None):
+                 lut_folder_path: Optional[str] = None, force_frame: str = "drone"):
         nz = self.load_model(nn_model_path)
         if lut_folder_path is not None:
             self.vel_min, self.vel_max = _parse_vel_range_from_folder(lut_folder_path)
         else:
             self.vel_min, self.vel_max = None, None
-        super().__init__(drone, cube_size, nz=nz)
+        super().__init__(drone, cube_size, nz=nz, force_frame=force_frame)
         self.predict(jp.zeros((1, 4)))
 
     def load_model(self, nn_model_path: str) -> int | None:
@@ -375,28 +403,27 @@ class ComplexAirflowSamplerJax(AirflowSampler):
         forces = forces_from_pressures(normal, pressure_values, area)
         torques = torque_from_force(pos_in_own_frame, forces)
 
+        # Force-disabled panels contribute no force: their in-plane (x, y) components used to be
+        # accumulated here, but project_force() discards everything off the retained axis anyway.
         for force, torque, f_en, t_en in zip(forces, torques, force_enabled, torque_enabled):
             if f_en:
                 force_sum += force
-            else:
-                force_sum += np.hstack((force[0:2], 0.))
             if t_en:
                 torque_sum += torque
-        force_sum[0:2] = 0.0
-        return force_sum, torque_sum
+        return self.project_force(force_sum, selforientation), torque_sum
 
 class ComplexAirflowSamplerPressure(AirflowSampler):
     """
     Airflow sampler that takes into account the drone's rotor speed changes, but only calculates forces from pressures.
     """
-    def __init__(self, drone: Drone, pressure_folder_path: Optional[str]):
+    def __init__(self, drone: Drone, pressure_folder_path: Optional[str], force_frame: str = "drone"):
         if pressure_folder_path is None:
             pressure_folder_path = aiml_virtual.airflow_luts_pressure
         self.loaded_pressures = BoxDictionary(pressure_folder_path) #: lookup object for pressure
         self.vel_min, self.vel_max = self.loaded_pressures.get_velocity_range()
         cube_size = self.loaded_pressures.get_cube_size()
         _, _, nz = self.loaded_pressures.get_grid_shape()
-        super().__init__(drone, cube_size, nz=nz)
+        super().__init__(drone, cube_size, nz=nz, force_frame=force_frame)
 
     def generate_forces(self, target: AirflowTarget) -> tuple[np.ndarray, np.ndarray]:
         force_sum = np.array([0., 0., 0.])
@@ -432,12 +459,11 @@ class ComplexAirflowSamplerPressure(AirflowSampler):
         forces = forces_from_pressures(normal, pressure_values, area)
         torques = torque_from_force(pos_in_own_frame, forces)
 
+        # Force-disabled panels contribute no force: their in-plane (x, y) components used to be
+        # accumulated here, but project_force() discards everything off the retained axis anyway.
         for force, torque, f_en, t_en in zip(forces, torques, force_enabled, torque_enabled):
             if f_en:
                 force_sum += force
-            else:
-                force_sum += np.hstack((force[0:2], 0.))
             if t_en:
                 torque_sum += torque
-        force_sum[0:2] = 0.0
-        return force_sum, torque_sum
+        return self.project_force(force_sum, selforientation), torque_sum
